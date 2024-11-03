@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
+@layer components {
+  .editor-btn {
+    @apply flex justify-center items-center text-[#4493B2] rounded-lg w-8 aspect-square;
+  }
+
+  .active-editor-btn {
+    @apply text-white bg-[#FA5564];
+  }
+}
+
+
+@font-face {
+    font-family: 'SifonnBasic';
+    src: url('./assets/fonts/SIFONN_BASIC.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@layer base {
+    body {
+        font-family: 'Poppins', sans-serif;
+    }
+
+    h1, h2, h3 {
+        font-family: 'SifonnBasic', sans-serif;
+    }
+}
