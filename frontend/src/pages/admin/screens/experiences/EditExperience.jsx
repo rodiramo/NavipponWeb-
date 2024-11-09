@@ -1,9 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import CreatableSelect from "react-select/creatable";
-import { getSinglePost, updatePost } from "../../../../services/index/posts";
+import { getSingleExperience, updateExperience } from "../../../../services/index/experiences";
 import { Link, useParams, useNavigate } from "react-router-dom";
-import ArticleDetailSkeleton from "../../../articleDetail/components/ArticleDetailSkeleton";
+import ExperienceDetailSkeleton from "../../../experienceDetail/components/ExperienceDetailSkeleton";
 import ErrorMessage from "../../../../components/ErrorMessage";
 import { stables } from "../../../../constants";
 import { HiOutlineCamera } from "react-icons/hi";
@@ -11,18 +11,10 @@ import { toast } from "react-hot-toast";
 import { useSelector } from "react-redux";
 import Editor from "../../../../components/editor/Editor";
 import MultiSelectTagDropdown from "../../components/select-dropdown/MultiSelectTagDropdown";
-import { getAllCategories } from "../../../../services/index/postCategories";
-import {
-  categoryToOption,
-  filterCategories,
-} from "../../../../utils/multiSelectTagUtils";
 
-const promiseOptions = async (inputValue) => {
-  const { data: categoriesData } = await getAllCategories();
-  return filterCategories(inputValue, categoriesData);
-};
+const categoriesEnum = ["Hoteles", "Atractivos", "Restaurantes"];
 
-const EditPost = () => {
+const EditExperience = () => {
   const { slug } = useParams();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -30,39 +22,41 @@ const EditPost = () => {
   const [initialPhoto, setInitialPhoto] = useState(null);
   const [photo, setPhoto] = useState(null);
   const [body, setBody] = useState(null);
-  const [categories, setCategories] = useState(null);
+  const [categories, setCategories] = useState("");
   const [title, setTitle] = useState("");
-  const [tags, setTags] = useState(null);
-  const [postSlug, setPostSlug] = useState(slug);
+  const [tags, setTags] = useState([]);
+  const [experienceSlug, setExperienceSlug] = useState(slug);
   const [caption, setCaption] = useState("");
 
   const { data, isLoading, isError } = useQuery({
-    queryFn: () => getSinglePost({ slug }),
-    queryKey: ["blog", slug],
+    queryFn: () => getSingleExperience({ slug }),
+    queryKey: ["experience", slug],
     onSuccess: (data) => {
       setInitialPhoto(data?.photo);
-      setCategories(data.categories.map((item) => item._id));
+      setCategories(data.categories);
       setTitle(data.title);
       setTags(data.tags);
+      setBody(data.body);
+      setCaption(data.caption);
     },
     refetchOnWindowFocus: false,
   });
 
   const {
-    mutate: mutateUpdatePostDetail,
-    isLoading: isLoadingUpdatePostDetail,
+    mutate: mutateUpdateExperienceDetail,
+    isLoading: isLoadingUpdateExperienceDetail,
   } = useMutation({
     mutationFn: ({ updatedData, slug, token }) => {
-      return updatePost({
+      return updateExperience({
         updatedData,
         slug,
         token,
       });
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries(["blog", slug]);
-      toast.success("Post actualizado");
-      navigate(`/admin/posts/manage/edit/${data.slug}`, { replace: true });
+      queryClient.invalidateQueries(["experience", slug]);
+      toast.success("Experiencia actualizada");
+      navigate(`/admin/experiences/manage/edit/${data.slug}`, { replace: true });
     },
     onError: (error) => {
       toast.error(error.message);
@@ -75,15 +69,15 @@ const EditPost = () => {
     setPhoto(file);
   };
 
-  const handleUpdatePost = async () => {
+  const handleUpdateExperience = async () => {
     let updatedData = new FormData();
 
     if (!initialPhoto && photo) {
-      updatedData.append("postPicture", photo);
+      updatedData.append("experiencePicture", photo);
     } else if (initialPhoto && !photo) {
       const urlToObject = async (url) => {
-        let reponse = await fetch(url);
-        let blob = await reponse.blob();
+        let response = await fetch(url);
+        let blob = await response.blob();
         const file = new File([blob], initialPhoto, { type: blob.type });
         return file;
       };
@@ -91,15 +85,15 @@ const EditPost = () => {
         stables.UPLOAD_FOLDER_BASE_URL + data?.photo
       );
 
-      updatedData.append("postPicture", picture);
+      updatedData.append("experiencePicture", picture);
     }
 
     updatedData.append(
       "document",
-      JSON.stringify({ body, categories, title, tags, slug: postSlug, caption })
+      JSON.stringify({ body, categories, title, tags, slug: experienceSlug, caption })
     );
 
-    mutateUpdatePostDetail({
+    mutateUpdateExperienceDetail({
       updatedData,
       slug,
       token: userState.userInfo.token,
@@ -107,24 +101,24 @@ const EditPost = () => {
   };
 
   const handleDeleteImage = () => {
-    if (window.confirm("¿Quieres borrar la imagen del post?")) {
+    if (window.confirm("¿Quieres eliminar la foto de tu publicación?")) {
       setInitialPhoto(null);
       setPhoto(null);
     }
   };
 
-  let isPostDataLoaded = !isLoading && !isError;
+  let isExperienceDataLoaded = !isLoading && !isError;
 
   return (
     <div>
       {isLoading ? (
-        <ArticleDetailSkeleton />
+        <ExperienceDetailSkeleton />
       ) : isError ? (
         <ErrorMessage message="No se pudieron obtener los detalles de la publicación" />
       ) : (
         <section className="container mx-auto max-w-5xl flex flex-col px-5 py-5 lg:flex-row lg:gap-x-5 lg:items-start">
           <article className="flex-1">
-            <label htmlFor="postPicture" className="w-full cursor-pointer">
+            <label htmlFor="experiencePicture" className="w-full cursor-pointer">
               {photo ? (
                 <img
                   src={URL.createObjectURL(photo)}
@@ -146,7 +140,7 @@ const EditPost = () => {
             <input
               type="file"
               className="sr-only"
-              id="postPicture"
+              id="experiencePicture"
               onChange={handleFileChange}
             />
             <button
@@ -157,14 +151,12 @@ const EditPost = () => {
               Borrar imagen
             </button>
             <div className="mt-4 flex gap-2">
-              {data?.categories.map((category) => (
-                <Link
-                  to={`/blog?category=${category.name}`}
-                  className="text-primary text-sm font-roboto inline-block md:text-base"
-                >
-                  {category.name}
-                </Link>
-              ))}
+              <Link
+                to={`/experience?category=${categories}`}
+                className="text-primary text-sm font-roboto inline-block md:text-base"
+              >
+                {categories}
+              </Link>
             </div>
             <div className="d-form-control w-full">
               <label className="d-label" htmlFor="title">
@@ -196,33 +188,37 @@ const EditPost = () => {
               </label>
               <input
                 id="slug"
-                value={postSlug}
+                value={experienceSlug}
                 className="d-input d-input-bordered border-slate-300 !outline-slate-300 text-xl font-medium font-roboto text-dark-hard"
                 onChange={(e) =>
-                  setPostSlug(e.target.value.replace(/\s+/g, "-").toLowerCase())
+                  setExperienceSlug(e.target.value.replace(/\s+/g, "-").toLowerCase())
                 }
-                placeholder="post slug"
+                placeholder="experience slug"
               />
             </div>
             <div className="mb-5 mt-2">
               <label className="d-label">
                 <span className="d-label-text">Categorías</span>
               </label>
-              {isPostDataLoaded && (
-                <MultiSelectTagDropdown
-                  loadOptions={promiseOptions}
-                  defaultValue={data.categories.map(categoryToOption)}
-                  onChange={(newValue) =>
-                    setCategories(newValue.map((item) => item.value))
-                  }
-                />
+              {isExperienceDataLoaded && (
+                <select
+                  value={categories}
+                  onChange={(e) => setCategories(e.target.value)}
+                  className="d-input d-input-bordered border-slate-300 !outline-slate-300 text-xl font-medium font-roboto text-dark-hard"
+                >
+                  {categoriesEnum.map((category) => (
+                    <option key={category} value={category}>
+                      {category}
+                    </option>
+                  ))}
+                </select>
               )}
             </div>
             <div className="mb-5 mt-2">
               <label className="d-label">
                 <span className="d-label-text">Etiquetas</span>
               </label>
-              {isPostDataLoaded && (
+              {isExperienceDataLoaded && (
                 <CreatableSelect
                   defaultValue={data.tags.map((tag) => ({
                     value: tag,
@@ -237,7 +233,7 @@ const EditPost = () => {
               )}
             </div>
             <div className="w-full">
-              {isPostDataLoaded && (
+              {isExperienceDataLoaded && (
                 <Editor
                   content={data?.body}
                   editable={true}
@@ -248,9 +244,9 @@ const EditPost = () => {
               )}
             </div>
             <button
-              disabled={isLoadingUpdatePostDetail}
+              disabled={isLoadingUpdateExperienceDetail}
               type="button"
-              onClick={handleUpdatePost}
+              onClick={handleUpdateExperience}
               className="w-full bg-green-500 text-white font-semibold rounded-lg px-4 py-2 disabled:cursor-not-allowed disabled:opacity-70"
             >
               Actualizar
@@ -262,4 +258,4 @@ const EditPost = () => {
   );
 };
 
-export default EditPost;
+export default EditExperience;

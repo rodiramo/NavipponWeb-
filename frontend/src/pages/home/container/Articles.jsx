@@ -31,9 +31,9 @@ const Articles = () => {
             />
           ))
         ) : isError ? (
-          <ErrorMessage message="Couldn't fetch the posts data" />
+          <ErrorMessage message="No se pudieron obtener los detalles de la publicación" />
         ) : (
-          data?.data.map((post) => (
+          data?.data.slice(0, 3).map((post) => (
             <ArticleCard
               key={post._id}
               post={post}

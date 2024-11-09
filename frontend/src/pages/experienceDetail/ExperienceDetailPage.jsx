@@ -2,41 +2,41 @@ import React, { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
 import BreadCrumbs from "../../components/BreadCrumbs";
-import CommentsContainer from "../../components/comments/CommentsContainer";
+import ReviewsContainer from "../../components/reviews/ReviewsContainer";
 import MainLayout from "../../components/MainLayout";
 import SocialShareButtons from "../../components/SocialShareButtons";
 import { images, stables } from "../../constants";
-import SuggestedPosts from "./container/SuggestedPosts";
+import SuggestedExperiences from "./container/SuggestedExperiences";
 import { useQuery } from "@tanstack/react-query";
-import { getAllPosts, getSinglePost } from "../../services/index/posts";
-import ArticleDetailSkeleton from "./components/ArticleDetailSkeleton";
+import { getAllExperiences, getSingleExperience } from "../../services/index/experiences";
+import ExperienceDetailSkeleton from "./components/ExperienceDetailSkeleton";
 import ErrorMessage from "../../components/ErrorMessage";
 import { useSelector } from "react-redux";
 import parseJsonToHtml from "../../utils/parseJsonToHtml";
 import Editor from "../../components/editor/Editor";
 
-const ArticleDetailPage = () => {
+const ExperienceDetailPage = () => {
   const { slug } = useParams();
   const userState = useSelector((state) => state.user);
   const [breadCrumbsData, setbreadCrumbsData] = useState([]);
-  const [setBody] = useState(null);
+  const [body, setBody] = useState(null);
 
   const { data, isLoading, isError } = useQuery({
-    queryFn: () => getSinglePost({ slug }),
-    queryKey: ["blog", slug],
+    queryFn: () => getSingleExperience({ slug }),
+    queryKey: ["experience", slug],
     onSuccess: (data) => {
       setbreadCrumbsData([
         { name: "Home", link: "/" },
-        { name: "Blog", link: "/blog" },
-        { name: "Artículo", link: `/blog/${data.slug}` },
+        { name: "Experience", link: "/experience" },
+        { name: "Detalle", link: `/experience/${data.slug}` },
       ]);
       setBody(parseJsonToHtml(data?.body));
     },
   });
 
-  const { data: postsData } = useQuery({
-    queryFn: () => getAllPosts(),
-    queryKey: ["posts"],
+  const { data: ExperiencesData } = useQuery({
+    queryFn: () => getAllExperiences(),
+    queryKey: ["experiences"],
   });
 
   useEffect(() => {
@@ -46,7 +46,7 @@ const ArticleDetailPage = () => {
   return (
     <MainLayout>
       {isLoading ? (
-        <ArticleDetailSkeleton />
+        <ExperienceDetailSkeleton />
       ) : isError ? (
         <ErrorMessage message="No se pudieron obtener los detalles de la publicación" />
       ) : (
@@ -58,14 +58,15 @@ const ArticleDetailPage = () => {
               src={
                 data?.photo
                   ? stables.UPLOAD_FOLDER_BASE_URL + data?.photo
-                  : images.samplePostImage
+                  : images.sampleExperienceImage
               }
               alt={data?.title}
             />
             <div className="mt-4 flex gap-2">
-              {data?.categories.map((category) => (
+              {Array.isArray(data?.categories) && data.categories.map((category) => (
                 <Link
-                  to={`/blog?category=${category.name}`}
+                  key={category.name}
+                  to={`/experience?category=${category.name}`}
                   className="text-primary text-sm inline-block md:text-base"
                 >
                   {category.name}
@@ -77,20 +78,20 @@ const ArticleDetailPage = () => {
             </h2>
             <div className="w-full">
               {!isLoading && !isError && (
-                <Editor content={data?.body} editable={false} />
+                <Editor content={body} editable={false} />
               )}
             </div>
-            <CommentsContainer
-              comments={data?.comments}
+            <ReviewsContainer
+              reviews={data?.reviews}
               className="mt-10"
               logginedUserId={userState?.userInfo?._id}
-              postSlug={slug}
+              experienceSlug={slug}
             />
           </article>
           <div>
-            <SuggestedPosts
-              header="Últimas publicaciones"
-              posts={postsData?.data}
+            <SuggestedExperiences
+              header="Últimas experiencias"
+              experiences={ExperiencesData?.data}  
               tags={data?.tags}
               className="mt-8 lg:mt-0 lg:max-w-xs"
             />
@@ -110,4 +111,4 @@ const ArticleDetailPage = () => {
   );
 };
 
-export default ArticleDetailPage;
+export default ExperienceDetailPage;

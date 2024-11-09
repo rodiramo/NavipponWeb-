@@ -11,7 +11,7 @@ import { logout } from "../store/actions/user";
 const navItemsInfo = [
   { name: 'Inicio', type: 'link', href: '/' },
   { name: 'Nosotros', type: 'link', href: '/about' },
-  { name: 'Explora', type: 'link', href: '/explore' },
+  { name: 'Explora', type: 'link', href: '/experience' },
   { name: 'Blog', type: 'link', href: '/blog' },
   { name: 'Contacto', type: 'link', href: '/contacto' },
 ];

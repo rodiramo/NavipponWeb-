@@ -12,6 +12,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { useSelector } from "react-redux";
 import { createPost } from "../../../../services/index/posts";
+import { createExperience } from "../../../../services/index/experiences";  
 
 const Header = () => {
   const navigate = useNavigate();
@@ -39,6 +40,24 @@ const Header = () => {
       },
     });
 
+  const { mutate: mutateCreateExperience, isLoading: isLoadingCreateExperience } =
+    useMutation({
+      mutationFn: ({ slug, token }) => {
+        return createExperience({
+          token,
+        });
+      },
+      onSuccess: (data) => {
+        queryClient.invalidateQueries(["experiences"]);
+        toast.success("¡Experiencia creada, edítala ahora!");
+        navigate(`/admin/experiences/manage/edit/${data.slug}`);
+      },
+      onError: (error) => {
+        toast.error(error.message);
+        console.log(error);
+      },
+    });
+
   const toggleMenuHandler = () => {
     setIsMenuActive((prevState) => !prevState);
   };
@@ -53,6 +72,10 @@ const Header = () => {
 
   const handleCreateNewPost = ({ token }) => {
     mutateCreatePost({ token });
+  };
+
+  const handleCreateNewExperience = ({ token }) => {
+    mutateCreateExperience({ token });
   };
 
   return (
@@ -104,6 +127,16 @@ const Header = () => {
                 className="hover:text-[#FF4A5A]"
               />
 
+              <NavItem
+                title="Reseñas"
+                link="/admin/reviews"
+                icon={<FaComments className="text-xl text-white" />}
+                name="reviews"
+                activeNavName={activeNavName}
+                setActiveNavName={setActiveNavName}
+                className="hover:text-[#FF4A5A]"
+              />
+
               <NavItemCollapse
                 title="Posts"
                 icon={<MdDashboard className="text-xl text-white" />}
@@ -123,6 +156,26 @@ const Header = () => {
                   Crear nuevo post
                 </button>
                 <Link to="/admin/categories/manage" className="hover:text-[#FF4A5A]">Categorias</Link>
+              </NavItemCollapse>
+
+              <NavItemCollapse
+                title="Experiencias"
+                icon={<MdDashboard className="text-xl text-white" />}
+                name="experiences"
+                activeNavName={activeNavName}
+                setActiveNavName={setActiveNavName}
+                className="hover:text-[#FF4A5A]"
+              >
+                <Link to="/admin/experiences/manage" className="hover:text-[#FF4A5A]">Administrar todas las experiencias</Link>
+                <button
+                  disabled={isLoadingCreateExperience}
+                  className="text-start disabled:opacity-60 disabled:cursor-not-allowed hover:text-[#FF4A5A]"
+                  onClick={() =>
+                    handleCreateNewExperience({ token: userState.userInfo.token })
+                  }
+                >
+                  Crear nueva experiencia
+                </button>                
               </NavItemCollapse>
 
               <NavItem

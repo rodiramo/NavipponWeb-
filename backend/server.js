@@ -11,7 +11,9 @@ import {
 // Routes
 import userRoutes from "./routes/userRoutes";
 import postRoutes from "./routes/postRoutes";
+import experienceRoutes from "./routes/experienceRoutes";
 import commentRoutes from "./routes/commentRoutes";
+import reviewRoutes from "./routes/reviewRoutes";
 import postCategoriesRoutes from "./routes/postCategoriesRoutes";
 
 dotenv.config();
@@ -26,7 +28,9 @@ app.get("/", (req, res) => {
 
 app.use("/api/users", userRoutes);
 app.use("/api/posts", postRoutes);
+app.use("/api/experiences", experienceRoutes);
 app.use("/api/comments", commentRoutes);
+app.use("/api/reviews", reviewRoutes);
 app.use("/api/post-categories", postCategoriesRoutes);
 
 // Carpeta para guardas las imagenes
@@ -37,4 +41,4 @@ app.use(errorResponserHandler);
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
+app.listen(PORT, () => console.log(`El servidor esta corriendo en puerto ${PORT}`));

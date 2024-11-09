@@ -6,6 +6,7 @@ import CTA from "./container/CTA";
 import Hero from "./container/Hero";
 import InfoPill from './container/InfoPill';
 import CategoryCarousel from './container/CategoryCarrusel';
+import Experiences from "./container/Experiences";
 
 const HomePage = () => {
   return (
@@ -14,8 +15,9 @@ const HomePage = () => {
       <InfoPill />
       <CategoryCarousel />
       <CTA />
+      <Experiences />
       <Articles />
- 
+
     </MainLayout>
   );
 };

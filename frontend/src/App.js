@@ -10,13 +10,18 @@ import ProfilePage from "./pages/profile/ProfilePage";
 import AdminLayout from "./pages/admin/AdminLayout";
 import Admin from "./pages/admin/screens/Admin";
 import Comments from "./pages/admin/screens/comments/Comments";
+import Reviews from "./pages/admin/screens/reviews/Reviews";
 import ManagePosts from "./pages/admin/screens/posts/ManagePosts";
+import ManageExperiences from "./pages/admin/screens/experiences/ManageExperiences";
 import EditPost from "./pages/admin/screens/posts/EditPost";
+import EditExperience from "./pages/admin/screens/experiences/EditExperience";
 import Categories from "./pages/admin/screens/categories/Categories";
 import EditCategories from "./pages/admin/screens/categories/EditCategories";
 import Users from "./pages/admin/screens/users/Users";
 import BlogPage from "./pages/blog/BlogPage";
+import ExperiencePage from "./pages/experience/ExperiencePage";
 import AboutPage from './pages/about/AboutPage';
+import ExperienceDetailPage from './pages/experienceDetail/ExperienceDetailPage';
 
 function App() {
   return (
@@ -25,15 +30,20 @@ function App() {
         <Route index path="/" element={<HomePage />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/blog" element={<BlogPage />} />
+        <Route path="/experience" element={<ExperiencePage />} />
         <Route path="/blog/:slug" element={<ArticleDetailPage />} />
+        <Route path="/experience/:slug" element={<ExperienceDetailPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<Admin />} />
           <Route path="comments" element={<Comments />} />
+          <Route path="reviews" element={<Reviews />} />
           <Route path="posts/manage" element={<ManagePosts />} />
+          <Route path="experiences/manage" element={<ManageExperiences />} />
           <Route path="posts/manage/edit/:slug" element={<EditPost />} />
+          <Route path="experiences/manage/edit/:slug" element={<EditExperience />} />
           <Route path="categories/manage" element={<Categories />} />
           <Route
             path="categories/manage/edit/:slug"

@@ -17,7 +17,7 @@ export const authGuard = async (req, res, next) => {
       next(err);
     }
   } else {
-    let error = new Error("Not autorizado, No token");
+    let error = new Error("No autorizado, No token");
     error.statusCode = 401;
     next(error);
   }
