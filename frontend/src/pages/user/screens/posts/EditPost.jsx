@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import React, { useState } from "react";
 import CreatableSelect from "react-select/creatable";
-import { getSingleUserPost, updateUserPost } from "../../../../services/index/userPosts"; // Importa desde userPosts.js
+import { getSingleUserPost, updateUserPost } from "../../../../services/index/userPosts"; 
 import { Link, useParams, useNavigate } from "react-router-dom";
 import ArticleDetailSkeleton from "../../../articleDetail/components/ArticleDetailSkeleton";
 import ErrorMessage from "../../../../components/ErrorMessage";

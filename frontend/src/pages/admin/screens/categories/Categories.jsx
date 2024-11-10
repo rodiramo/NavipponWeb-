@@ -23,7 +23,7 @@ const Categories = () => {
       },
       onSuccess: (data) => {
         queryClient.invalidateQueries(["categories"]);
-        toast.success("Category is created");
+        toast.success("Categoría agregada");
       },
       onError: (error) => {
         toast.error(error.message);
@@ -47,7 +47,7 @@ const Categories = () => {
   } = useDataTable({
     dataQueryFn: () => getAllCategories(searchKeyword, currentPage),
     dataQueryKey: "categories",
-    deleteDataMessage: "Category is deleted",
+    deleteDataMessage: "Categoría eliminada",
     mutateDeleteFn: ({ slug, token }) => {
       return deleteCategory({
         slug,
@@ -112,7 +112,7 @@ const Categories = () => {
               </td>
               <td className="px-5 py-5 text-sm bg-white border-b border-gray-200">
                 <p className="text-gray-900 whitespace-no-wrap">
-                  {new Date(category.createdAt).toLocaleDateString("en-US", {
+                  {new Date(category.createdAt).toLocaleDateString("es-ES", {
                     day: "numeric",
                     month: "short",
                     year: "numeric",

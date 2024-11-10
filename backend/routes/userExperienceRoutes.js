@@ -5,7 +5,7 @@ import {
   deleteExperience,
   updateExperience,
   getUserExperiences,
-  getSingleUserExperience, // Importa la función para obtener una experiencia específica
+  getSingleUserExperience, 
 } from "../controllers/userExperienceControllers";
 import { authGuard } from "../middleware/authMiddleware";
 
@@ -14,7 +14,7 @@ router.route("/").post(authGuard, createExperience);
 router.route("/user").get(authGuard, getUserExperiences);
 router
   .route("/:slug")
-  .get(authGuard, getSingleUserExperience) // Añade la ruta para obtener una experiencia específica
+  .get(authGuard, getSingleUserExperience)  
   .put(authGuard, updateExperience)
   .delete(authGuard, deleteExperience);
 

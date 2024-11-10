@@ -4,7 +4,7 @@ import {
   createPost,
   deletePost,
   updatePost,
-  getUserPosts, // Importa la nueva función
+  getUserPosts,  
   getPost,
 } from "../controllers/userPostControllers";
 import { authGuard } from "../middleware/authMiddleware";

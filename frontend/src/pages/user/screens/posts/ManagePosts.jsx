@@ -1,5 +1,5 @@
 import { images, stables } from "../../../../constants";
-import { deleteUserPost, getUserPosts } from "../../../../services/index/userPosts"; // Importa desde userPosts.js
+import { deleteUserPost, getUserPosts } from "../../../../services/index/userPosts"; 
 import { Link } from "react-router-dom";
 import { useDataTable } from "../../../../hooks/useDataTable";
 import DataTable from "../../components/DataTable";

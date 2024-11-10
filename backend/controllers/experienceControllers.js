@@ -14,7 +14,7 @@ const createExperience = async (req, res, next) => {
             body: body || { type: "doc", content: [] },
             photo: photo || "",
             user: req.user._id,
-            categories: categories || "Hoteles", // Puedes ajustar esto según sea necesario
+            categories: categories || "Hoteles",  
             tags: tags || [],
         });
 

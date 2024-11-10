@@ -1,5 +1,5 @@
 import { images, stables } from "../../../../constants";
-import { deleteUserExperience, getUserExperiences } from "../../../../services/index/userExperiences"; // Importa desde userExperiences.js
+import { deleteUserExperience, getUserExperiences } from "../../../../services/index/userExperiences"; 
 import { Link } from "react-router-dom";
 import { useDataTable } from "../../../../hooks/useDataTable";
 import DataTable from "../../components/DataTable";
@@ -32,7 +32,7 @@ const ManageExperiences = () => {
   return (
     <DataTable
       pageTitle="Administrar tus Experiencias"
-      dataListName="Experiences"
+      dataListName="Experiencias"
       searchInputPlaceHolder="Título Experiencia..."
       searchKeywordOnSubmitHandler={submitSearchKeywordHandler}
       searchKeywordOnChangeHandler={searchKeywordHandler}
