@@ -5,7 +5,7 @@ import { MdKeyboardArrowDown } from "react-icons/md";
 import { useSelector, useDispatch } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 
-import { images } from "../constants";
+import { images, stables } from "../constants";
 import { logout } from "../store/actions/user";
 
 const navItemsInfo = [
@@ -118,7 +118,15 @@ const Header = () => {
                     className="flex items-center justify-center w-20 h-20 bg-[#fa5564] rounded-full text-white font-semibold hover:bg-white hover:text-[#fa5564] transition-all duration-300"
                     onClick={() => setProfileDrowpdown(!profileDrowpdown)}
                   >
-                    <FaRegUserCircle className="text-3xl" />
+                    {userState.userInfo?.avatar ? (
+                      <img
+                        src={`${stables.UPLOAD_FOLDER_BASE_URL}${userState.userInfo.avatar}`}
+                        alt="Profile"
+                        className="w-full h-full rounded-full object-cover"
+                      />
+                    ) : (
+                      <FaRegUserCircle className="text-3xl" />
+                    )}
                   </button>
                   <div
                     className={`${profileDrowpdown ? "block" : "hidden"
@@ -142,7 +150,7 @@ const Header = () => {
                         Perfil
                       </button>
                       <button
-                        onClick={() => navigate("/userDashboard")}
+                        onClick={() => navigate("/user")}
                         type="button"
                         className="hover:bg-[#fa5564] hover:text-white px-4 py-2 text-white lg:text-white"
                       >

@@ -1,31 +1,28 @@
 import { images, stables } from "../../../../constants";
-import { deleteExperience, getAllExperiences } from "../../../../services/index/experiences";
-//import Pagination from "../../../../components/Pagination";
-//import { toast } from "react-hot-toast";
+import { deleteUserPost, getUserPosts } from "../../../../services/index/userPosts"; // Importa desde userPosts.js
 import { Link } from "react-router-dom";
 import { useDataTable } from "../../../../hooks/useDataTable";
 import DataTable from "../../components/DataTable";
 
-const ManageExperiences = () => {
+const ManagePosts = () => {
   const {
     userState,
     currentPage,
     searchKeyword,
-    data: experiencesData,
+    data: postsData,
     isLoading,
     isFetching,
     isLoadingDeleteData,
-    //queryClient,
     searchKeywordHandler,
     submitSearchKeywordHandler,
     deleteDataHandler,
     setCurrentPage,
   } = useDataTable({
-    dataQueryFn: () => getAllExperiences(searchKeyword, currentPage),
-    dataQueryKey: "experiences",
-    deleteDataMessage: "Experiencia Borrada",
+    dataQueryFn: () => getUserPosts(searchKeyword, currentPage, 10, userState.userInfo.token),
+    dataQueryKey: "userPosts",
+    deleteDataMessage: "Post borrado",
     mutateDeleteFn: ({ slug, token }) => {
-      return deleteExperience({
+      return deleteUserPost({
         slug,
         token,
       });
@@ -34,51 +31,62 @@ const ManageExperiences = () => {
 
   return (
     <DataTable
-      pageTitle="Administrar Experiencias"
-      dataListName="Experiencias"
-      searchInputPlaceHolder=" Título Experiencia..."
+      pageTitle="Administrar tus Posts"
+      dataListName="Posts"
+      searchInputPlaceHolder="Título Post..."
       searchKeywordOnSubmitHandler={submitSearchKeywordHandler}
       searchKeywordOnChangeHandler={searchKeywordHandler}
       searchKeyword={searchKeyword}
       tableHeaderTitleList={["Título", "Categoría", "Creado", "Etiquetas", ""]}
       isLoading={isLoading}
       isFetching={isFetching}
-      data={experiencesData?.data}
+      data={postsData?.data}
       setCurrentPage={setCurrentPage}
       currentPage={currentPage}
-      headers={experiencesData?.headers}
+      headers={postsData?.headers}
       userState={userState}
     >
-      {experiencesData?.data.map((experience) => (
-        <tr key={experience._id}>
+      {postsData?.data.map((post) => (
+        <tr key={post._id}>
           <td className="px-5 py-5 text-sm bg-white border-b border-gray-200">
             <div className="flex items-center">
               <div className="flex-shrink-0">
                 <a href="/" className="relative block">
                   <img
                     src={
-                      experience?.photo
-                        ? stables.UPLOAD_FOLDER_BASE_URL + experience?.photo
-                        : images.sampleExperienceImage
+                      post?.photo
+                        ? stables.UPLOAD_FOLDER_BASE_URL + post?.photo
+                        : images.samplePostImage
                     }
-                    alt={experience.title}
+                    alt={post.title}
                     className="mx-auto object-cover rounded-lg w-10 aspect-square"
                   />
                 </a>
               </div>
               <div className="ml-3">
-                <p className="text-gray-900 whitespace-no-wrap">{experience.title}</p>
+                <p className="text-gray-900 whitespace-no-wrap">{post.title}</p>
               </div>
             </div>
           </td>
           <td className="px-5 py-5 text-sm bg-white border-b border-gray-200">
             <p className="text-gray-900 whitespace-no-wrap">
-              {experience.categories || "Sin categorizar"}
+              {post.categories.length > 0
+                ? post.categories
+                    .slice(0, 3)
+                    .map(
+                      (category, index) =>
+                        `${category.title}${
+                          post.categories.slice(0, 3).length === index + 1
+                            ? ""
+                            : ", "
+                        }`
+                    )
+                : "Sin categorizar"}
             </p>
           </td>
           <td className="px-5 py-5 text-sm bg-white border-b border-gray-200">
             <p className="text-gray-900 whitespace-no-wrap">
-              {new Date(experience.createdAt).toLocaleDateString("es-ES", {
+              {new Date(post.createdAt).toLocaleDateString("es-ES", {
                 day: "numeric",
                 month: "short",
                 year: "numeric",
@@ -87,11 +95,11 @@ const ManageExperiences = () => {
           </td>
           <td className="px-5 py-5 text-sm bg-white border-b border-gray-200">
             <div className="flex gap-x-2">
-              {experience.tags.length > 0
-                ? experience.tags.map((tag, index) => (
+              {post.tags.length > 0
+                ? post.tags.map((tag, index) => (
                     <p key={index}>
                       {tag}
-                      {experience.tags.length - 1 !== index && ","}
+                      {post.tags.length - 1 !== index && ","}
                     </p>
                   ))
                 : "Sin etiquetas"}
@@ -104,7 +112,7 @@ const ManageExperiences = () => {
               className="text-red-600 hover:text-red-900 disabled:opacity-70 disabled:cursor-not-allowed"
               onClick={() => {
                 deleteDataHandler({
-                  slug: experience?.slug,
+                  slug: post?.slug,
                   token: userState.userInfo.token,
                 });
               }}
@@ -112,7 +120,7 @@ const ManageExperiences = () => {
               Borrar
             </button>
             <Link
-              to={`/admin/experiences/manage/edit/${experience?.slug}`}
+              to={`/user/posts/manage/edit/${post?.slug}`}
               className="text-green-600 hover:text-green-900"
             >
               Editar
@@ -124,4 +132,4 @@ const ManageExperiences = () => {
   );
 };
 
-export default ManageExperiences;
+export default ManagePosts;

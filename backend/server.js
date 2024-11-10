@@ -12,6 +12,8 @@ import {
 import userRoutes from "./routes/userRoutes";
 import postRoutes from "./routes/postRoutes";
 import experienceRoutes from "./routes/experienceRoutes";
+import userExperienceRoutes from "./routes/userExperienceRoutes";
+import userPostRoutes from "./routes/userPostRoutes";
 import commentRoutes from "./routes/commentRoutes";
 import reviewRoutes from "./routes/reviewRoutes";
 import postCategoriesRoutes from "./routes/postCategoriesRoutes";
@@ -29,6 +31,8 @@ app.get("/", (req, res) => {
 app.use("/api/users", userRoutes);
 app.use("/api/posts", postRoutes);
 app.use("/api/experiences", experienceRoutes);
+app.use("/api/user-experiences", userExperienceRoutes); 
+app.use("/api/user-posts", userPostRoutes);
 app.use("/api/comments", commentRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/post-categories", postCategoriesRoutes);

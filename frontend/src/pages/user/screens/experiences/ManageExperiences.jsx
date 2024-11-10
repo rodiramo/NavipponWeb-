@@ -1,7 +1,5 @@
 import { images, stables } from "../../../../constants";
-import { deleteExperience, getAllExperiences } from "../../../../services/index/experiences";
-//import Pagination from "../../../../components/Pagination";
-//import { toast } from "react-hot-toast";
+import { deleteUserExperience, getUserExperiences } from "../../../../services/index/userExperiences"; // Importa desde userExperiences.js
 import { Link } from "react-router-dom";
 import { useDataTable } from "../../../../hooks/useDataTable";
 import DataTable from "../../components/DataTable";
@@ -15,17 +13,16 @@ const ManageExperiences = () => {
     isLoading,
     isFetching,
     isLoadingDeleteData,
-    //queryClient,
     searchKeywordHandler,
     submitSearchKeywordHandler,
     deleteDataHandler,
     setCurrentPage,
   } = useDataTable({
-    dataQueryFn: () => getAllExperiences(searchKeyword, currentPage),
-    dataQueryKey: "experiences",
+    dataQueryFn: () => getUserExperiences(searchKeyword, currentPage, 10, userState.userInfo.token),
+    dataQueryKey: "userExperiences",
     deleteDataMessage: "Experiencia Borrada",
     mutateDeleteFn: ({ slug, token }) => {
-      return deleteExperience({
+      return deleteUserExperience({
         slug,
         token,
       });
@@ -34,9 +31,9 @@ const ManageExperiences = () => {
 
   return (
     <DataTable
-      pageTitle="Administrar Experiencias"
-      dataListName="Experiencias"
-      searchInputPlaceHolder=" Título Experiencia..."
+      pageTitle="Administrar tus Experiencias"
+      dataListName="Experiences"
+      searchInputPlaceHolder="Título Experiencia..."
       searchKeywordOnSubmitHandler={submitSearchKeywordHandler}
       searchKeywordOnChangeHandler={searchKeywordHandler}
       searchKeyword={searchKeyword}
@@ -112,7 +109,7 @@ const ManageExperiences = () => {
               Borrar
             </button>
             <Link
-              to={`/admin/experiences/manage/edit/${experience?.slug}`}
+              to={`/user/experiences/manage/edit/${experience?.slug}`}
               className="text-green-600 hover:text-green-900"
             >
               Editar
