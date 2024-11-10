@@ -14,7 +14,8 @@ const createExperience = async (req, res, next) => {
             body: body || { type: "doc", content: [] },
             photo: photo || "",
             user: req.user._id,
-            categories: categories || "Hoteles",  
+            approved: false,
+            categories: categories || "Hoteles",
             tags: tags || [],
         });
 
@@ -38,13 +39,14 @@ const updateExperience = async (req, res, next) => {
         const upload = uploadPicture.single("experiencePicture");
 
         const handleUpdateExperienceData = async (data) => {
-            const { title, caption, slug, body, tags, categories } = JSON.parse(data);
+            const { title, caption, slug, body, tags, categories, approved } = JSON.parse(data);  
             experience.title = title || experience.title;
             experience.caption = caption || experience.caption;
             experience.slug = slug || experience.slug;
-            experience.body = body || experience.body;    
+            experience.body = body || experience.body;
             experience.tags = tags || experience.tags;
             experience.categories = categories || experience.categories;
+            experience.approved = approved !== undefined ? approved : experience.approved;  
             const updatedExperience = await experience.save();
             return res.json(updatedExperience);
         };

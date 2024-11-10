@@ -35,6 +35,7 @@ const EditPost = () => {
   const [tags, setTags] = useState(null);
   const [postSlug, setPostSlug] = useState(slug);
   const [caption, setCaption] = useState("");
+  const [approved, setApproved] = useState(false);  
 
   const { data, isLoading, isError } = useQuery({
     queryFn: () => getSinglePost({ slug }),
@@ -44,6 +45,7 @@ const EditPost = () => {
       setCategories(data.categories.map((item) => item._id));
       setTitle(data.title);
       setTags(data.tags);
+      setApproved(data.approved);  
     },
     refetchOnWindowFocus: false,
   });
@@ -96,7 +98,7 @@ const EditPost = () => {
 
     updatedData.append(
       "document",
-      JSON.stringify({ body, categories, title, tags, slug: postSlug, caption })
+      JSON.stringify({ body, categories, title, tags, slug: postSlug, caption, approved })  
     );
 
     mutateUpdatePostDetail({
@@ -124,6 +126,18 @@ const EditPost = () => {
       ) : (
         <section className="container mx-auto max-w-5xl flex flex-col px-5 py-5 lg:flex-row lg:gap-x-5 lg:items-start">
           <article className="flex-1">
+            <div className="flex items-center justify-center w-full mb-4"> {/* Campo de aprobación */}
+              <label className="flex items-center space-x-2">
+                <span className="text-2xl font-bold">Aprobado</span>
+                <input
+                  type="checkbox"
+                  id="approved"
+                  checked={approved}
+                  onChange={(e) => setApproved(e.target.checked)}
+                  className="form-checkbox h-6 w-6 text-green-500"
+                />
+              </label>
+            </div>
             <label htmlFor="postPicture" className="w-full cursor-pointer">
               {photo ? (
                 <img
@@ -247,6 +261,7 @@ const EditPost = () => {
                 />
               )}
             </div>
+
             <button
               disabled={isLoadingUpdatePostDetail}
               type="button"

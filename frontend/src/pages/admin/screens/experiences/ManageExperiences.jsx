@@ -1,10 +1,11 @@
 import { images, stables } from "../../../../constants";
 import { deleteExperience, getAllExperiences } from "../../../../services/index/experiences";
-//import Pagination from "../../../../components/Pagination";
-//import { toast } from "react-hot-toast";
 import { Link } from "react-router-dom";
 import { useDataTable } from "../../../../hooks/useDataTable";
 import DataTable from "../../components/DataTable";
+import { BsCheckLg } from "react-icons/bs";
+import { AiOutlineClose } from "react-icons/ai";
+import { useState, useEffect } from "react";
 
 const ManageExperiences = () => {
   const {
@@ -15,7 +16,6 @@ const ManageExperiences = () => {
     isLoading,
     isFetching,
     isLoadingDeleteData,
-    //queryClient,
     searchKeywordHandler,
     submitSearchKeywordHandler,
     deleteDataHandler,
@@ -32,24 +32,30 @@ const ManageExperiences = () => {
     },
   });
 
+  const [updatedExperiences, setUpdatedExperiences] = useState(experiencesData?.data || []);
+
+  useEffect(() => {
+    setUpdatedExperiences(experiencesData?.data || []);
+  }, [experiencesData]);
+
   return (
     <DataTable
       pageTitle="Administrar Experiencias"
       dataListName="Experiencias"
-      searchInputPlaceHolder=" Título Experiencia..."
+      searchInputPlaceHolder="Título Experiencia..."
       searchKeywordOnSubmitHandler={submitSearchKeywordHandler}
       searchKeywordOnChangeHandler={searchKeywordHandler}
       searchKeyword={searchKeyword}
-      tableHeaderTitleList={["Título", "Categoría", "Creado", "Etiquetas", ""]}
+      tableHeaderTitleList={["Título", "Categoría", "Creado", "Etiquetas", "Aprobado", "Acciones"]}
       isLoading={isLoading}
       isFetching={isFetching}
-      data={experiencesData?.data}
+      data={updatedExperiences}
       setCurrentPage={setCurrentPage}
       currentPage={currentPage}
       headers={experiencesData?.headers}
       userState={userState}
     >
-      {experiencesData?.data.map((experience) => (
+      {updatedExperiences.map((experience) => (
         <tr key={experience._id}>
           <td className="px-5 py-5 text-sm bg-white border-b border-gray-200">
             <div className="flex items-center">
@@ -96,6 +102,19 @@ const ManageExperiences = () => {
                   ))
                 : "Sin etiquetas"}
             </div>
+          </td>
+          <td className="px-5 py-5 text-sm bg-white border-b border-gray-200"> {/* Columna de Aprobación */}
+            <span
+              className={`${
+                experience.approved ? "bg-[#36B37E]" : "bg-[#FF4A5A]"
+              } w-fit bg-opacity-20 rounded-full`}
+            >
+              {experience.approved ? (
+                <BsCheckLg className=" text-[#36B37E]" />
+              ) : (
+                <AiOutlineClose className=" text-[#FF4A5A]" />
+              )}
+            </span>
           </td>
           <td className="px-5 py-5 text-sm bg-white border-b border-gray-200 space-x-5">
             <button

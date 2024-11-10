@@ -16,6 +16,7 @@ const ExperienceSchema = new Schema(
       enum: categoriesEnum, 
       required: true 
     },
+    approved: { type: Boolean, default: false },
   },
   { timestamps: true, toJSON: { virtuals: true } }
 );

@@ -27,6 +27,7 @@ const EditExperience = () => {
   const [tags, setTags] = useState([]);
   const [experienceSlug, setExperienceSlug] = useState(slug);
   const [caption, setCaption] = useState("");
+  const [approved, setApproved] = useState(false); // Campo de aprobación
 
   const { data, isLoading, isError } = useQuery({
     queryFn: () => getSingleExperience({ slug }),
@@ -38,6 +39,7 @@ const EditExperience = () => {
       setTags(data.tags);
       setBody(data.body);
       setCaption(data.caption);
+      setApproved(data.approved); // Campo de aprobación
     },
     refetchOnWindowFocus: false,
   });
@@ -90,7 +92,7 @@ const EditExperience = () => {
 
     updatedData.append(
       "document",
-      JSON.stringify({ body, categories, title, tags, slug: experienceSlug, caption })
+      JSON.stringify({ body, categories, title, tags, slug: experienceSlug, caption, approved }) // Campo de aprobación
     );
 
     mutateUpdateExperienceDetail({
@@ -118,6 +120,18 @@ const EditExperience = () => {
       ) : (
         <section className="container mx-auto max-w-5xl flex flex-col px-5 py-5 lg:flex-row lg:gap-x-5 lg:items-start">
           <article className="flex-1">
+            <div className="flex items-center justify-center w-full mb-4"> {/* Campo de aprobación */}
+              <label className="flex items-center space-x-2">
+                <span className="text-2xl font-bold">Aprobado</span>
+                <input
+                  type="checkbox"
+                  id="approved"
+                  checked={approved}
+                  onChange={(e) => setApproved(e.target.checked)}
+                  className="form-checkbox h-6 w-6 text-green-500"
+                />
+              </label>
+            </div>
             <label htmlFor="experiencePicture" className="w-full cursor-pointer">
               {photo ? (
                 <img

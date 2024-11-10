@@ -1,10 +1,11 @@
 import { images, stables } from "../../../../constants";
 import { deletePost, getAllPosts } from "../../../../services/index/posts";
-//import Pagination from "../../../../components/Pagination";
-//import { toast } from "react-hot-toast";
 import { Link } from "react-router-dom";
 import { useDataTable } from "../../../../hooks/useDataTable";
 import DataTable from "../../components/DataTable";
+import { BsCheckLg } from "react-icons/bs";
+import { AiOutlineClose } from "react-icons/ai";
+import { useState, useEffect } from "react";
 
 const ManagePosts = () => {
   const {
@@ -15,7 +16,6 @@ const ManagePosts = () => {
     isLoading,
     isFetching,
     isLoadingDeleteData,
-    //queryClient,
     searchKeywordHandler,
     submitSearchKeywordHandler,
     deleteDataHandler,
@@ -32,25 +32,31 @@ const ManagePosts = () => {
     },
   });
 
+  const [updatedPosts, setUpdatedPosts] = useState(postsData?.data || []);
+
+  useEffect(() => {
+    setUpdatedPosts(postsData?.data || []);
+  }, [postsData]);
+
   return (
     <DataTable
       pageTitle="Administrar Posts"
       dataListName="Posts"
-      searchInputPlaceHolder=" Título Post..."
+      searchInputPlaceHolder="Título Post..."
       searchKeywordOnSubmitHandler={submitSearchKeywordHandler}
       searchKeywordOnChangeHandler={searchKeywordHandler}
       searchKeyword={searchKeyword}
-      tableHeaderTitleList={["Título", "Categoría", "Creado", "Etiquetas", ""]}
+      tableHeaderTitleList={["Título", "Categoría", "Creado", "Etiquetas", "Aprobado", "Acciones"]}
       isLoading={isLoading}
       isFetching={isFetching}
-      data={postsData?.data}
+      data={updatedPosts}
       setCurrentPage={setCurrentPage}
       currentPage={currentPage}
       headers={postsData?.headers}
       userState={userState}
     >
-      {postsData?.data.map((post) => (
-        <tr>
+      {updatedPosts.map((post) => (
+        <tr key={post._id}>
           <td className="px-5 py-5 text-sm bg-white border-b border-gray-200">
             <div className="flex items-center">
               <div className="flex-shrink-0">
@@ -89,7 +95,7 @@ const ManagePosts = () => {
           </td>
           <td className="px-5 py-5 text-sm bg-white border-b border-gray-200">
             <p className="text-gray-900 whitespace-no-wrap">
-              {new Date(post.createdAt).toLocaleDateString("es- ES", {
+              {new Date(post.createdAt).toLocaleDateString("es-ES", {
                 day: "numeric",
                 month: "short",
                 year: "numeric",
@@ -100,13 +106,26 @@ const ManagePosts = () => {
             <div className="flex gap-x-2">
               {post.tags.length > 0
                 ? post.tags.map((tag, index) => (
-                    <p>
+                    <p key={index}>
                       {tag}
                       {post.tags.length - 1 !== index && ","}
                     </p>
                   ))
                 : "Sin etiquetas"}
             </div>
+          </td>
+          <td className="px-5 py-5 text-sm bg-white border-b border-gray-200"> 
+            <span
+              className={`${
+                post.approved ? "bg-[#36B37E]" : "bg-[#FF4A5A]"
+              } w-fit bg-opacity-20 rounded-full`}
+            >
+              {post.approved ? (
+                <BsCheckLg className=" text-[#36B37E]" />
+              ) : (
+                <AiOutlineClose className=" text-[#FF4A5A]" />
+              )}
+            </span>
           </td>
           <td className="px-5 py-5 text-sm bg-white border-b border-gray-200 space-x-5">
             <button

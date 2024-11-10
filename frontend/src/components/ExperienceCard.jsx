@@ -47,17 +47,17 @@ const ExperienceCard = ({ experience, className }) => {
                             </h4>
                             <div className="flex items-center gap-x-2">
                                 <span
-                                    className={`${experience.user.verified ? "bg-[#36B37E]" : "bg-[#FF4A5A]"
+                                    className={`${experience.approved ? "bg-[#36B37E]" : "bg-[#FF4A5A]"
                                         } w-fit bg-opacity-20 p-1.5 rounded-full`}
                                 >
-                                    {experience.user.verified ? (
+                                    {experience.approved ? (
                                         <BsCheckLg className="w-1.5 h-1.5 text-[#36B37E]" />
                                     ) : (
                                         <AiOutlineClose className="w-1.5 h-1.5 text-[#FF4A5A]" />
                                     )}
                                 </span>
                                 <span className="italic text-dark-light text-xs md:text-sm">
-                                    Experiencia {experience.user.verified ? "verificado" : "sin verificar"}
+                                    Experiencia {experience.approved ? "verificada" : "sin verificar"}
                                 </span>
                             </div>
                         </div>
