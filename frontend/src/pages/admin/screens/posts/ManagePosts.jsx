@@ -6,10 +6,12 @@ import DataTable from "../../components/DataTable";
 import { BsCheckLg } from "react-icons/bs";
 import { AiOutlineClose } from "react-icons/ai";
 import { useState, useEffect } from "react";
+import useUser from "../../../../hooks/useUser"; // Usar el hook useUser
 
 const ManagePosts = () => {
+  const { user, jwt } = useUser(); // Obtener el usuario y el token del contexto
+
   const {
-    userState,
     currentPage,
     searchKeyword,
     data: postsData,
@@ -24,10 +26,10 @@ const ManagePosts = () => {
     dataQueryFn: () => getAllPosts(searchKeyword, currentPage),
     dataQueryKey: "posts",
     deleteDataMessage: "Post borrado",
-    mutateDeleteFn: ({ slug, token }) => {
+    mutateDeleteFn: ({ slug }) => {
       return deletePost({
         slug,
-        token,
+        token: jwt,
       });
     },
   });
@@ -53,7 +55,6 @@ const ManagePosts = () => {
       setCurrentPage={setCurrentPage}
       currentPage={currentPage}
       headers={postsData?.headers}
-      userState={userState}
     >
       {updatedPosts.map((post) => (
         <tr key={post._id}>
@@ -135,7 +136,6 @@ const ManagePosts = () => {
               onClick={() => {
                 deleteDataHandler({
                   slug: post?.slug,
-                  token: userState.userInfo.token,
                 });
               }}
             >

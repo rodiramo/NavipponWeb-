@@ -1,38 +1,21 @@
+// src/pages/login/LoginPage.jsx
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
-import { useMutation } from "@tanstack/react-query";
 import toast from "react-hot-toast";
-import { useDispatch, useSelector } from "react-redux";
 import { FcGoogle } from 'react-icons/fc';
 import MainLayout from "../../components/MainLayout";
-import { login } from "../../services/index/users";
-import { userActions } from "../../store/reducers/userReducers";
+import useUser from "../../hooks/useUser"; // Corregir la ruta de importación
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
-  const userState = useSelector((state) => state.user);
-
-  const { mutate, isLoading } = useMutation({
-    mutationFn: ({ email, password }) => {
-      return login({ email, password });
-    },
-    onSuccess: (data) => {
-      dispatch(userActions.setUserInfo(data));
-      localStorage.setItem("account", JSON.stringify(data));
-    },
-    onError: (error) => {
-      toast.error(error.message);
-      console.log(error);
-    },
-  });
+  const { login, isLoginLoading, hasLoginError, isLogged } = useUser();
 
   useEffect(() => {
-    if (userState.userInfo) {
+    if (isLogged) {
       navigate("/");
     }
-  }, [navigate, userState.userInfo]);
+  }, [navigate, isLogged]);
 
   const {
     register,
@@ -48,7 +31,7 @@ const LoginPage = () => {
 
   const submitHandler = (data) => {
     const { email, password } = data;
-    mutate({ email, password });
+    login({ email, password });
   };
 
   return (
@@ -117,7 +100,7 @@ const LoginPage = () => {
               <Link to='/forget-password' className='text-[#FA5564]'>¿Olvidaste tu contraseña?</Link>
             </div>
 
-            <button type='submit' className='w-full mb-4 p-2 bg-[#FA5564] text-white rounded-full' disabled={!isValid || isLoading}>
+            <button type='submit' className='w-full mb-4 p-2 bg-[#FA5564] text-white rounded-full' disabled={!isValid || isLoginLoading}>
               Acceder
             </button>
 
@@ -131,6 +114,7 @@ const LoginPage = () => {
               <Link to='/register' className='ml-2 text-[#FA5564]'>Registrarse</Link>
             </div>
           </form>
+          {hasLoginError && <p className='text-[#FA5564] text-xs mt-1'>Credenciales inválidas</p>}
         </div>
       </section>
     </MainLayout>

@@ -3,6 +3,7 @@ import { FiMessageSquare, FiEdit2, FiTrash } from "react-icons/fi";
 
 import { images, stables } from "../../constants";
 import ReviewForm from "./ReviewForm";
+import useUser from "../../hooks/useUser"; // Usar el hook useUser
 
 const Review = ({
   review,
@@ -15,6 +16,7 @@ const Review = ({
   deleteReview,
   replies,
 }) => {
+  const { jwt } = useUser(); // Obtener el token del contexto
   const isUserLoggined = Boolean(logginedUserId);
   const reviewBelongsToUser = logginedUserId === review.user._id;
   const isReplying =
@@ -62,7 +64,7 @@ const Review = ({
         {isEditing && (
           <ReviewForm
             btnLabel="Update"
-            formSubmitHanlder={(value) => updateReview(value, review._id)}
+            formSubmitHanlder={(value) => updateReview(value, review._id, jwt)}
             formCancelHandler={() => setAffectedReview(null)}
             initialText={review.desc}
           />
@@ -92,7 +94,7 @@ const Review = ({
               </button>
               <button
                 className="flex items-center space-x-2"
-                onClick={() => deleteReview(review._id)}
+                onClick={() => deleteReview(review._id, jwt)}
               >
                 <FiTrash className="w-4 h-auto" />
                 <span>Delete</span>
@@ -104,7 +106,7 @@ const Review = ({
           <ReviewForm
             btnLabel="Reply"
             formSubmitHanlder={(value) =>
-              addReview(value, repliedReviewId, replyOnUserId)
+              addReview(value, repliedReviewId, replyOnUserId, jwt)
             }
             formCancelHandler={() => setAffectedReview(null)}
           />

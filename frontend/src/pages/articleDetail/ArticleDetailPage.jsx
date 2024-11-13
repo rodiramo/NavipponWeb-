@@ -11,13 +11,13 @@ import { useQuery } from "@tanstack/react-query";
 import { getAllPosts, getSinglePost } from "../../services/index/posts";
 import ArticleDetailSkeleton from "./components/ArticleDetailSkeleton";
 import ErrorMessage from "../../components/ErrorMessage";
-import { useSelector } from "react-redux";
 import parseJsonToHtml from "../../utils/parseJsonToHtml";
 import Editor from "../../components/editor/Editor";
+import useUser from "../../hooks/useUser"; // Usar el hook useUser
 
 const ArticleDetailPage = () => {
   const { slug } = useParams();
-  const userState = useSelector((state) => state.user);
+  const { user, jwt } = useUser(); // Obtener el usuario y el token del contexto
   const [breadCrumbsData, setbreadCrumbsData] = useState([]);
   const [setBody] = useState(null);
 
@@ -83,8 +83,9 @@ const ArticleDetailPage = () => {
             <CommentsContainer
               comments={data?.comments}
               className="mt-10"
-              logginedUserId={userState?.userInfo?._id}
+              logginedUserId={user?._id}
               postSlug={slug}
+              jwt={jwt} // Pasar el token JWT al componente CommentsContainer
             />
           </article>
           <div>

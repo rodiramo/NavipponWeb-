@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { AiOutlineMenu, AiOutlineClose } from "react-icons/ai";
 import { FaRegUserCircle } from "react-icons/fa";
 import { MdKeyboardArrowDown } from "react-icons/md";
@@ -6,7 +6,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 
 import { images, stables } from "../constants";
-import { logout } from "../store/actions/user";
+import useUser from "../hooks/useUser"; // Usar el hook useUser
 
 const navItemsInfo = [
   { name: 'Inicio', type: 'link', href: '/' },
@@ -51,7 +51,6 @@ const NavItem = ({ item }) => {
           >
             <ul className="bg-[#0A0330] lg:bg-white text-center flex flex-col shadow-lg rounded-lg overflow-hidden space-y-8">
               {item.items.map((page, index) => (
-
                 <Link
                   key={index}
                   to={page.href}
@@ -71,9 +70,10 @@ const NavItem = ({ item }) => {
 const Header = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { user, logout } = useUser(); // Usar el hook useUser
   const [navIsVisible, setNavIsVisible] = useState(false);
-  const userState = useSelector((state) => state.user);
-  const [profileDrowpdown, setProfileDrowpdown] = useState(false);
+  const [profileDropdown, setProfileDropdown] = useState(false);
+  const profileRef = useRef(null);
 
   const navVisibilityHandler = () => {
     setNavIsVisible((curState) => {
@@ -82,8 +82,21 @@ const Header = () => {
   };
 
   const logoutHandler = () => {
-    dispatch(logout());
+    logout();
   };
+
+  const handleClickOutside = (event) => {
+    if (profileRef.current && !profileRef.current.contains(event.target)) {
+      setProfileDropdown(false);
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   return (
     <section className="w-full">
@@ -103,24 +116,24 @@ const Header = () => {
         </div>
         <div
           className={`${navIsVisible ? 'block' : 'hidden'
-            } md:flex flex-col md:flex-row gap-x-5 mt-8 md:mt-0 md:w-3/4 `} o
+            } md:flex flex-col md:flex-row gap-x-5 mt-8 md:mt-0 md:w-3/4`}
         >
           <ul className="flex flex-col md:flex-row gap-x-5 items-center justify-center w-full">
             {navItemsInfo.map((item) => (
               <NavItem key={item.name} item={item} />
             ))}
           </ul>
-          {userState.userInfo ? (
+          {user ? (
             <div className="text-white bg-[#0A0330] items-center gap-y-5 lg:text-dark-soft flex flex-col lg:flex-row gap-x-2 font-semibold z-50">
-              <div className="relative group">
-                <div className="flex flex-col items-center ">
+              <div className="relative group" ref={profileRef}>
+                <div className="flex flex-col items-center">
                   <button
                     className="flex items-center justify-center w-20 h-20 bg-[#fa5564] rounded-full text-white font-semibold hover:bg-white hover:text-[#fa5564] transition-all duration-300"
-                    onClick={() => setProfileDrowpdown(!profileDrowpdown)}
+                    onClick={() => setProfileDropdown(!profileDropdown)}
                   >
-                    {userState.userInfo?.avatar ? (
+                    {user.avatar ? (
                       <img
-                        src={`${stables.UPLOAD_FOLDER_BASE_URL}${userState.userInfo.avatar}`}
+                        src={`${stables.UPLOAD_FOLDER_BASE_URL}${user.avatar}`}
                         alt="Profile"
                         className="w-full h-full rounded-full object-cover"
                       />
@@ -129,11 +142,11 @@ const Header = () => {
                     )}
                   </button>
                   <div
-                    className={`${profileDrowpdown ? "block" : "hidden"
+                    className={`${profileDropdown ? "block" : "hidden"
                       } lg:hidden transition-all duration-500 pt-4 lg:absolute lg:bottom-0 lg:right-0 lg:transform lg:translate-y-full lg:group-hover:block w-max`}
                   >
-                    <ul className="bg-dark-soft lg:bg-[#0A0330] text-center flex flex-col shadow-lg rounded-lg overflow-hidden z-50">
-                      {userState?.userInfo?.admin && (
+                    <ul className="bg-[#0A0330] lg:bg-[#0A0330] text-center flex flex-col shadow-lg rounded-lg overflow-hidden z-50">
+                      {user.admin && (
                         <button
                           onClick={() => navigate("/admin")}
                           type="button"

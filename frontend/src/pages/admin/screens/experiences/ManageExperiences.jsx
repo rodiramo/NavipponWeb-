@@ -6,10 +6,12 @@ import DataTable from "../../components/DataTable";
 import { BsCheckLg } from "react-icons/bs";
 import { AiOutlineClose } from "react-icons/ai";
 import { useState, useEffect } from "react";
+import useUser from "../../../../hooks/useUser"; // Usar el hook useUser
 
 const ManageExperiences = () => {
+  const { user, jwt } = useUser(); // Obtener el usuario y el token del contexto
+
   const {
-    userState,
     currentPage,
     searchKeyword,
     data: experiencesData,
@@ -24,10 +26,10 @@ const ManageExperiences = () => {
     dataQueryFn: () => getAllExperiences(searchKeyword, currentPage),
     dataQueryKey: "experiences",
     deleteDataMessage: "Experiencia Borrada",
-    mutateDeleteFn: ({ slug, token }) => {
+    mutateDeleteFn: ({ slug }) => {
       return deleteExperience({
         slug,
-        token,
+        token: jwt,
       });
     },
   });
@@ -53,7 +55,6 @@ const ManageExperiences = () => {
       setCurrentPage={setCurrentPage}
       currentPage={currentPage}
       headers={experiencesData?.headers}
-      userState={userState}
     >
       {updatedExperiences.map((experience) => (
         <tr key={experience._id}>
@@ -124,7 +125,6 @@ const ManageExperiences = () => {
               onClick={() => {
                 deleteDataHandler({
                   slug: experience?.slug,
-                  token: userState.userInfo.token,
                 });
               }}
             >

@@ -10,6 +10,7 @@ import {
   updateReview,
 } from "../../services/index/reviews";
 import { toast } from "react-hot-toast";
+import useUser from "../../hooks/useUser"; // Usar el hook useUser
 
 const ReviewsContainer = ({
   className,
@@ -18,7 +19,7 @@ const ReviewsContainer = ({
   experienceSlug,
 }) => {
   const queryClient = useQueryClient();
-  const userState = useSelector((state) => state.user);
+  const { user, jwt } = useUser(); // Obtener el usuario y el token del contexto
   const [affectedReview, setAffectedReview] = useState(null);
 
   const { mutate: mutateNewReview, isLoading: isLoadingNewReview } =
@@ -28,7 +29,7 @@ const ReviewsContainer = ({
       },
       onSuccess: () => {
         toast.success(
-          "Tu comentario se ha enviado con éxito, será visible tras la confirmación del Administrador"
+          "Tu reseña se ha enviado con éxito, será visible tras la confirmación del Administrador"
         );
       },
       onError: (error) => {
@@ -42,7 +43,7 @@ const ReviewsContainer = ({
       return updateReview({ token, desc, reviewId });
     },
     onSuccess: () => {
-      toast.success("Tu comentario se ha actualizado correctamente");
+      toast.success("Tu reseña se ha actualizado correctamente");
       queryClient.invalidateQueries(["experience", experienceSlug]);
     },
     onError: (error) => {
@@ -52,11 +53,11 @@ const ReviewsContainer = ({
   });
 
   const { mutate: mutateDeleteReview } = useMutation({
-    mutationFn: ({ token, desc, reviewId }) => {
+    mutationFn: ({ token, reviewId }) => {
       return deleteReview({ token, reviewId });
     },
     onSuccess: () => {
-      toast.success("Tu comentario se borró correctamente");
+      toast.success("Tu reseña se borró correctamente");
       queryClient.invalidateQueries(["experience", experienceSlug]);
     },
     onError: (error) => {
@@ -70,7 +71,7 @@ const ReviewsContainer = ({
       desc: value,
       parent,
       replyOnUser,
-      token: userState.userInfo.token,
+      token: jwt,
       slug: experienceSlug,
     });
     setAffectedReview(null);
@@ -78,7 +79,7 @@ const ReviewsContainer = ({
 
   const updateReviewHandler = (value, reviewId) => {
     mutateUpdateReview({
-      token: userState.userInfo.token,
+      token: jwt,
       desc: value,
       reviewId,
     });
@@ -86,7 +87,7 @@ const ReviewsContainer = ({
   };
 
   const deleteReviewHandler = (reviewId) => {
-    mutateDeleteReview({ token: userState.userInfo.token, reviewId });
+    mutateDeleteReview({ token: jwt, reviewId });
   };
 
   return (

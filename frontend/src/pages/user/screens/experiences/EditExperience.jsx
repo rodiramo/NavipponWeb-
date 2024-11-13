@@ -8,7 +8,7 @@ import ErrorMessage from "../../../../components/ErrorMessage";
 import { stables } from "../../../../constants";
 import { HiOutlineCamera } from "react-icons/hi";
 import { toast } from "react-hot-toast";
-import { useSelector } from "react-redux";
+import useUser from "../../../../hooks/useUser"; // Usar el hook useUser
 import Editor from "../../../../components/editor/Editor";
 import MultiSelectTagDropdown from "../../components/select-dropdown/MultiSelectTagDropdown";
 
@@ -18,7 +18,7 @@ const EditExperience = () => {
   const { slug } = useParams();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const userState = useSelector((state) => state.user);
+  const { user, jwt } = useUser(); // Obtener el usuario y el token del contexto
   const [initialPhoto, setInitialPhoto] = useState(null);
   const [photo, setPhoto] = useState(null);
   const [body, setBody] = useState(null);
@@ -29,7 +29,7 @@ const EditExperience = () => {
   const [caption, setCaption] = useState("");
 
   const { data, isLoading, isError } = useQuery({
-    queryFn: () => getSingleUserExperience({ slug, token: userState.userInfo.token }),
+    queryFn: () => getSingleUserExperience({ slug, token: jwt }),
     queryKey: ["userExperience", slug],
     onSuccess: (data) => {
       setInitialPhoto(data?.photo);
@@ -96,7 +96,7 @@ const EditExperience = () => {
     mutateUpdateExperienceDetail({
       updatedData,
       slug,
-      token: userState.userInfo.token,
+      token: jwt,
     });
   };
 

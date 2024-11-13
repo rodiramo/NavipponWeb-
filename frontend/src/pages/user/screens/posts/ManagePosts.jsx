@@ -1,12 +1,17 @@
 import { images, stables } from "../../../../constants";
-import { deleteUserPost, getUserPosts } from "../../../../services/index/userPosts"; 
+import { deletePost, getAllPosts } from "../../../../services/index/posts";
 import { Link } from "react-router-dom";
 import { useDataTable } from "../../../../hooks/useDataTable";
 import DataTable from "../../components/DataTable";
+import { BsCheckLg } from "react-icons/bs";
+import { AiOutlineClose } from "react-icons/ai";
+import { useState, useEffect } from "react";
+import useUser from "../../../../hooks/useUser"; // Usar el hook useUser
 
 const ManagePosts = () => {
+  const { user, jwt } = useUser(); // Obtener el usuario y el token del contexto
+
   const {
-    userState,
     currentPage,
     searchKeyword,
     data: postsData,
@@ -18,35 +23,40 @@ const ManagePosts = () => {
     deleteDataHandler,
     setCurrentPage,
   } = useDataTable({
-    dataQueryFn: () => getUserPosts(searchKeyword, currentPage, 10, userState.userInfo.token),
-    dataQueryKey: "userPosts",
+    dataQueryFn: () => getAllPosts(searchKeyword, currentPage),
+    dataQueryKey: "posts",
     deleteDataMessage: "Post borrado",
-    mutateDeleteFn: ({ slug, token }) => {
-      return deleteUserPost({
+    mutateDeleteFn: ({ slug }) => {
+      return deletePost({
         slug,
-        token,
+        token: jwt,
       });
     },
   });
 
+  const [updatedPosts, setUpdatedPosts] = useState(postsData?.data || []);
+
+  useEffect(() => {
+    setUpdatedPosts(postsData?.data || []);
+  }, [postsData]);
+
   return (
     <DataTable
-      pageTitle="Administrar tus Posts"
+      pageTitle="Administrar Posts"
       dataListName="Posts"
       searchInputPlaceHolder="Título Post..."
       searchKeywordOnSubmitHandler={submitSearchKeywordHandler}
       searchKeywordOnChangeHandler={searchKeywordHandler}
       searchKeyword={searchKeyword}
-      tableHeaderTitleList={["Título", "Categoría", "Creado", "Etiquetas", ""]}
+      tableHeaderTitleList={["Título", "Categoría", "Creado", "Etiquetas", "Aprobado", "Acciones"]}
       isLoading={isLoading}
       isFetching={isFetching}
-      data={postsData?.data}
+      data={updatedPosts}
       setCurrentPage={setCurrentPage}
       currentPage={currentPage}
       headers={postsData?.headers}
-      userState={userState}
     >
-      {postsData?.data.map((post) => (
+      {updatedPosts.map((post) => (
         <tr key={post._id}>
           <td className="px-5 py-5 text-sm bg-white border-b border-gray-200">
             <div className="flex items-center">
@@ -105,6 +115,19 @@ const ManagePosts = () => {
                 : "Sin etiquetas"}
             </div>
           </td>
+          <td className="px-5 py-5 text-sm bg-white border-b border-gray-200"> 
+            <span
+              className={`${
+                post.approved ? "bg-[#36B37E]" : "bg-[#FF4A5A]"
+              } w-fit bg-opacity-20 rounded-full`}
+            >
+              {post.approved ? (
+                <BsCheckLg className=" text-[#36B37E]" />
+              ) : (
+                <AiOutlineClose className=" text-[#FF4A5A]" />
+              )}
+            </span>
+          </td>
           <td className="px-5 py-5 text-sm bg-white border-b border-gray-200 space-x-5">
             <button
               disabled={isLoadingDeleteData}
@@ -113,7 +136,6 @@ const ManagePosts = () => {
               onClick={() => {
                 deleteDataHandler({
                   slug: post?.slug,
-                  token: userState.userInfo.token,
                 });
               }}
             >

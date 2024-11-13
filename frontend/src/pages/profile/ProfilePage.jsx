@@ -1,7 +1,7 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import MainLayout from "../../components/MainLayout";
@@ -9,46 +9,48 @@ import { getUserProfile, updateProfile } from "../../services/index/users";
 import ProfilePicture from "../../components/ProfilePicture";
 import { userActions } from "../../store/reducers/userReducers";
 import { toast } from "react-hot-toast";
-import { useMemo } from "react";
+import useUser from "../../hooks/useUser"; // Usar el hook useUser
 
 const ProfilePage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const queryClient = useQueryClient();
-  const userState = useSelector((state) => state.user);
+  const { user, jwt } = useUser(); // Obtener el usuario y el token del contexto
+
+  useEffect(() => {
+    if (!jwt) {
+      navigate("/login");
+      toast.error("Debes estar logueado para acceder al perfil");
+    }
+  }, [jwt, navigate]);
 
   const { data: profileData, isLoading: profileIsLoading } = useQuery({
     queryFn: () => {
-      return getUserProfile({ token: userState.userInfo.token });
+      return getUserProfile({ token: jwt });
     },
     queryKey: ["profile"],
+    enabled: !!jwt, // Solo habilitar la consulta si jwt está presente
   });
 
   const { mutate, isLoading: updateProfileIsLoading } = useMutation({
     mutationFn: ({ name, email, password }) => {
       return updateProfile({
-        token: userState.userInfo.token,
+        token: jwt,
         userData: { name, email, password },
-        userId: userState.userInfo._id,
+        userId: user._id,
       });
     },
     onSuccess: (data) => {
       dispatch(userActions.setUserInfo(data));
       localStorage.setItem("account", JSON.stringify(data));
       queryClient.invalidateQueries(["profile"]);
-      toast.success("Profile is updated");
+      toast.success("Perfil actualizado");
     },
     onError: (error) => {
       toast.error(error.message);
       console.log(error);
     },
   });
-
-  useEffect(() => {
-    if (!userState.userInfo) {
-      navigate("/");
-    }
-  }, [navigate, userState.userInfo]);
 
   const {
     register,
@@ -124,7 +126,7 @@ const ProfilePage = () => {
                 {...register("email", {
                   pattern: {
                     value:
-                      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
+                      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
                     message: "Ingresa un email válido",
                   },
                   required: {

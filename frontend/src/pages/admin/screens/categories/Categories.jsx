@@ -9,8 +9,10 @@ import {
 } from "../../../../services/index/postCategories";
 import DataTable from "../../components/DataTable";
 import { useState } from "react";
+import useUser from "../../../../hooks/useUser"; // Usar el hook useUser
 
 const Categories = () => {
+  const { user, jwt } = useUser(); // Obtener el usuario y el token del contexto
   const [categoryTitle, seTcategoryTitle] = useState("");
 
   const { mutate: mutateCreateCategory, isLoading: isLoadingCreateCategory } =
@@ -32,7 +34,6 @@ const Categories = () => {
     });
 
   const {
-    userState,
     currentPage,
     searchKeyword,
     data: categoriesData,
@@ -57,10 +58,14 @@ const Categories = () => {
   });
 
   const handleCreateCategory = () => {
-    mutateCreateCategory({
-      token: userState.userInfo.token,
-      title: categoryTitle,
-    });
+    if (jwt) {
+      mutateCreateCategory({
+        token: jwt,
+        title: categoryTitle,
+      });
+    } else {
+      toast.error("Debes estar logueado para crear una nueva categoría");
+    }
   };
 
   return (
@@ -99,10 +104,9 @@ const Categories = () => {
           setCurrentPage={setCurrentPage}
           currentPage={currentPage}
           headers={categoriesData?.headers}
-          userState={userState}
         >
           {categoriesData?.data.map((category) => (
-            <tr>
+            <tr key={category._id}>
               <td className="px-5 py-5 text-sm bg-white border-b border-gray-200">
                 <div className="flex items-center">
                   <p className="text-gray-900 whitespace-no-wrap">
@@ -127,7 +131,7 @@ const Categories = () => {
                   onClick={() => {
                     deleteDataHandler({
                       slug: category?._id,
-                      token: userState.userInfo.token,
+                      token: jwt,
                     });
                   }}
                 >

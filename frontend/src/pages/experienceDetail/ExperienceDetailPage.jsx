@@ -11,13 +11,13 @@ import { useQuery } from "@tanstack/react-query";
 import { getAllExperiences, getSingleExperience } from "../../services/index/experiences";
 import ExperienceDetailSkeleton from "./components/ExperienceDetailSkeleton";
 import ErrorMessage from "../../components/ErrorMessage";
-import { useSelector } from "react-redux";
 import parseJsonToHtml from "../../utils/parseJsonToHtml";
 import Editor from "../../components/editor/Editor";
+import useUser from "../../hooks/useUser"; // Usar el hook useUser
 
 const ExperienceDetailPage = () => {
   const { slug } = useParams();
-  const userState = useSelector((state) => state.user);
+  const { user, jwt } = useUser(); // Obtener el usuario y el token del contexto
   const [breadCrumbsData, setbreadCrumbsData] = useState([]);
   const [body, setBody] = useState(null);
 
@@ -84,8 +84,9 @@ const ExperienceDetailPage = () => {
             <ReviewsContainer
               reviews={data?.reviews}
               className="mt-10"
-              logginedUserId={userState?.userInfo?._id}
+              logginedUserId={user?._id}
               experienceSlug={slug}
+              jwt={jwt} // Pasar el token JWT al componente ReviewsContainer
             />
           </article>
           <div>

@@ -9,10 +9,12 @@ import {
 } from "../../../../services/index/users";
 import DataTable from "../../components/DataTable";
 import { images, stables } from "../../../../constants";
+import useUser from "../../../../hooks/useUser"; // Usar el hook useUser
 
 const Users = () => {
+  const { user, jwt } = useUser(); // Obtener el usuario y el token del contexto
+
   const {
-    userState,
     currentPage,
     searchKeyword,
     data: usersData,
@@ -26,9 +28,9 @@ const Users = () => {
     setCurrentPage,
   } = useDataTable({
     dataQueryFn: () =>
-      getAllUsers(userState.userInfo.token, searchKeyword, currentPage),
+      getAllUsers(jwt, searchKeyword, currentPage),
     dataQueryKey: "users",
-    deleteDataMessage: "User is deleted",
+    deleteDataMessage: "Usuario eliminado",
     mutateDeleteFn: ({ slug, token }) => {
       return deleteUser({
         slug,
@@ -41,14 +43,14 @@ const Users = () => {
     useMutation({
       mutationFn: ({ isAdmin, userId }) => {
         return updateProfile({
-          token: userState.userInfo.token,
+          token: jwt,
           userData: { admin: isAdmin },
           userId,
         });
       },
       onSuccess: (data) => {
         queryClient.invalidateQueries(["users"]);
-        toast.success("User is updated");
+        toast.success("Usuario actualizado");
       },
       onError: (error) => {
         toast.error(error.message);
@@ -60,7 +62,7 @@ const Users = () => {
     const initialCheckValue = !event.target.checked;
 
     if (
-      window.confirm("Do you want to change the admin status of this user?")
+      window.confirm("¿Quieres cambiar el estado de administrador de este usuario?")
     ) {
       mutateUpdateUser({ isAdmin: event.target.checked, userId });
     } else {
@@ -90,7 +92,6 @@ const Users = () => {
       setCurrentPage={setCurrentPage}
       currentPage={currentPage}
       headers={usersData?.headers}
-      userState={userState}
     >
       {usersData?.data.map((user) => (
         <tr key={user._id}>
@@ -148,7 +149,7 @@ const Users = () => {
               onClick={() => {
                 deleteDataHandler({
                   slug: user?._id,
-                  token: userState.userInfo.token,
+                  token: jwt,
                 });
               }}
             >

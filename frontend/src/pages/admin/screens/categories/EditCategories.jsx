@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
 import { useParams, useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
+import useUser from "../../../../hooks/useUser"; // Usar el hook useUser
 import {
   getSingleCategory,
   updateCategory,
@@ -13,7 +13,7 @@ const EditCategories = () => {
   const [categoryTitle, setCategoryTitle] = useState("");
   const navigate = useNavigate();
   const { slug } = useParams();
-  const userState = useSelector((state) => state.user);
+  const { user, jwt } = useUser(); // Obtener el usuario y el token del contexto
 
   const { isLoading, isError } = useQuery({
     queryFn: () => getSingleCategory({ slug }),
@@ -48,11 +48,15 @@ const EditCategories = () => {
 
   const handleUpdateCategory = () => {
     if (!categoryTitle) return;
-    mutateUpdateCategory({
-      title: categoryTitle,
-      slug,
-      token: userState.userInfo.token,
-    });
+    if (jwt) {
+      mutateUpdateCategory({
+        title: categoryTitle,
+        slug,
+        token: jwt,
+      });
+    } else {
+      toast.error("Debes estar logueado para actualizar la categoría");
+    }
   };
 
   return (

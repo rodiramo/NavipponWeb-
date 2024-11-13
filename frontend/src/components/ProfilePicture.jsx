@@ -9,15 +9,17 @@ import { useDispatch, useSelector } from "react-redux";
 import { updateProfilePicture } from "../services/index/users";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { userActions } from "../store/reducers/userReducers";
+import useUser from "../hooks/useUser"; // Usar el hook useUser
 
 const ProfilePicture = ({ avatar }) => {
+  const { user, jwt } = useUser(); // Obtener el usuario y el token del contexto
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
   const userState = useSelector((state) => state.user);
   const [openCrop, setOpenCrop] = useState(false);
   const [photo, setPhoto] = useState(null);
 
-  const { mutate} = useMutation({
+  const { mutate } = useMutation({
     mutationFn: ({ token, formData }) => {
       return updateProfilePicture({
         token: token,
@@ -49,7 +51,7 @@ const ProfilePicture = ({ avatar }) => {
         const formData = new FormData();
         formData.append("profilePicture", undefined);
 
-        mutate({ token: userState.userInfo.token, formData: formData });
+        mutate({ token: jwt, formData: formData });
       } catch (error) {
         toast.error(error.message);
         console.log(error);

@@ -1,13 +1,21 @@
 import { Outlet, useNavigate } from "react-router-dom";
-import Header from "./components/header/Header";
+import Header from "./components/header/Header"; // Asegúrate de que la ruta de importación sea correcta
 import { useQuery } from "@tanstack/react-query";
 import { getUserProfile } from "../../services/index/users";
-import { useSelector } from "react-redux";
+import useUser from "../../hooks/useUser"; // Usar el hook useUser
 import { toast } from "react-hot-toast";
+import { useEffect } from "react";
 
 const AdminLayout = () => {
   const navigate = useNavigate();
-  const userState = useSelector((state) => state.user);
+  const { user, jwt } = useUser(); // Obtener el usuario y el token del contexto
+
+  useEffect(() => {
+    if (!jwt) {
+      navigate("/login");
+      toast.error("Debes estar logueado para acceder al panel de administración");
+    }
+  }, [jwt, navigate]);
 
   const {
     //data: profileData,
@@ -15,9 +23,10 @@ const AdminLayout = () => {
     //error: profileError,
   } = useQuery({
     queryFn: () => {
-      return getUserProfile({ token: userState.userInfo.token });
+      return getUserProfile({ token: jwt });
     },
     queryKey: ["profile"],
+    enabled: !!jwt, // Solo habilitar la consulta si jwt está presente
     onSuccess: (data) => {
       if (!data?.admin) {
         navigate("/");

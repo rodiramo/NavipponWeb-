@@ -8,14 +8,14 @@ import NavItem from "./NavItem";
 import NavItemCollapse from "./NavItemCollapse";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
-import { useSelector } from "react-redux";
+import useUser from "../../../../hooks/useUser"; // Usar el hook useUser
 import { createUserPost } from "../../../../services/index/userPosts";
 import { createUserExperience } from "../../../../services/index/userExperiences";
 import { FaRegUserCircle } from "react-icons/fa";
 
 const Header = () => {
   const navigate = useNavigate();
-  const userState = useSelector((state) => state.user);
+  const { user, jwt } = useUser(); // Obtener el usuario y el token del contexto
   const queryClient = useQueryClient();
   const [isMenuActive, setIsMenuActive] = useState(false);
   const [activeNavName, setActiveNavName] = useState("dashboard");
@@ -73,21 +73,29 @@ const Header = () => {
     }
   }, [windowSize.width]);
 
-  const handleCreateNewPost = ({ token }) => {
-    mutateCreatePost({ token });
+  const handleCreateNewPost = () => {
+    if (jwt) {
+      mutateCreatePost({ token: jwt });
+    } else {
+      toast.error("Debes estar logueado para crear una nueva publicación");
+    }
   };
 
-  const handleCreateNewExperience = ({ token }) => {
-    mutateCreateExperience({ token });
+  const handleCreateNewExperience = () => {
+    if (jwt) {
+      mutateCreateExperience({ token: jwt });
+    } else {
+      toast.error("Debes estar logueado para crear una nueva experiencia");
+    }
   };
 
   return (
     <header className="flex h-fit w-full items-center justify-center p-4 lg:h-full lg:max-w-[300px] lg:flex-col lg:items-center lg:justify-center lg:p-0 bg-[#0A0330] text-white">
       {/* avatar */}
       <div className="flex items-center mt-4 p-4 justify-center gap-x-3">
-        {userState.userInfo?.avatar ? (
+        {user?.avatar ? (
           <img
-            src={`${stables.UPLOAD_FOLDER_BASE_URL}${userState.userInfo.avatar}`}
+            src={`${stables.UPLOAD_FOLDER_BASE_URL}${user.avatar}`}
             alt="Profile"
             className="w-24 h-24 rounded-full object-cover"
           />
@@ -142,10 +150,7 @@ const Header = () => {
                 <button
                   disabled={isLoadingCreatePost}
                   className="text-start disabled:opacity-60 disabled:cursor-not-allowed hover:text-[#FF4A5A]"
-                  onClick={() => {
-                    handleCreateNewPost({ token: userState.userInfo.token });
-                    if (isMobile()) toggleMenuHandler();
-                  }}
+                  onClick={handleCreateNewPost}
                 >
                   Crear nuevo post
                 </button>
@@ -164,10 +169,7 @@ const Header = () => {
                 <button
                   disabled={isLoadingCreateExperience}
                   className="text-start disabled:opacity-60 disabled:cursor-not-allowed hover:text-[#FF4A5A]"
-                  onClick={() => {
-                    handleCreateNewExperience({ token: userState.userInfo.token });
-                    if (isMobile()) toggleMenuHandler();
-                  }}
+                  onClick={handleCreateNewExperience}
                 >
                   Crear nueva experiencia
                 </button>

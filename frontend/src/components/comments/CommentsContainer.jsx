@@ -10,6 +10,7 @@ import {
   updateComment,
 } from "../../services/index/comments";
 import { toast } from "react-hot-toast";
+import useUser from "../../hooks/useUser"; // Usar el hook useUser
 
 const CommentsContainer = ({
   className,
@@ -18,7 +19,7 @@ const CommentsContainer = ({
   postSlug,
 }) => {
   const queryClient = useQueryClient();
-  const userState = useSelector((state) => state.user);
+  const { user, jwt } = useUser(); // Obtener el usuario y el token del contexto
   const [affectedComment, setAffectedComment] = useState(null);
 
   const { mutate: mutateNewComment, isLoading: isLoadingNewComment } =
@@ -30,6 +31,7 @@ const CommentsContainer = ({
         toast.success(
           "Tu comentario se ha enviado con éxito, será visible tras la confirmación del Administrador"
         );
+        queryClient.invalidateQueries(["blog", postSlug]);
       },
       onError: (error) => {
         toast.error(error.message);
@@ -52,7 +54,7 @@ const CommentsContainer = ({
   });
 
   const { mutate: mutateDeleteComment } = useMutation({
-    mutationFn: ({ token, desc, commentId }) => {
+    mutationFn: ({ token, commentId }) => {
       return deleteComment({ token, commentId });
     },
     onSuccess: () => {
@@ -66,19 +68,27 @@ const CommentsContainer = ({
   });
 
   const addCommentHandler = (value, parent = null, replyOnUser = null) => {
+    if (!jwt) {
+      toast.error("Debes estar autenticado para agregar un comentario");
+      return;
+    }
     mutateNewComment({
       desc: value,
       parent,
       replyOnUser,
-      token: userState.userInfo.token,
+      token: jwt,
       slug: postSlug,
     });
     setAffectedComment(null);
   };
 
   const updateCommentHandler = (value, commentId) => {
+    if (!jwt) {
+      toast.error("Debes estar autenticado para actualizar un comentario");
+      return;
+    }
     mutateUpdateComment({
-      token: userState.userInfo.token,
+      token: jwt,
       desc: value,
       commentId,
     });
@@ -86,7 +96,11 @@ const CommentsContainer = ({
   };
 
   const deleteCommentHandler = (commentId) => {
-    mutateDeleteComment({ token: userState.userInfo.token, commentId });
+    if (!jwt) {
+      toast.error("Debes estar autenticado para eliminar un comentario");
+      return;
+    }
+    mutateDeleteComment({ token: jwt, commentId });
   };
 
   return (

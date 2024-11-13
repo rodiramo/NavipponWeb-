@@ -10,10 +10,12 @@ import {
 import DataTable from "../../components/DataTable";
 import { images, stables } from "../../../../constants";
 import { Link } from "react-router-dom";
+import useUser from "../../../../hooks/useUser"; // Usar el hook useUser
 
 const Reviews = () => {
+  const { user, jwt } = useUser(); // Obtener el usuario y el token del contexto
+
   const {
-    userState,
     currentPage,
     searchKeyword,
     data: reviewsData,
@@ -27,7 +29,7 @@ const Reviews = () => {
     setCurrentPage,
   } = useDataTable({
     dataQueryFn: () =>
-      getAllReviews(userState.userInfo.token, searchKeyword, currentPage),
+      getAllReviews(jwt, searchKeyword, currentPage),
     dataQueryKey: "reviews",
     deleteDataMessage: "Reseña eliminada",
     mutateDeleteFn: ({ slug, token }) => {
@@ -80,7 +82,7 @@ const Reviews = () => {
       headers={reviewsData?.headers}
     >
       {reviewsData?.data.map((review) => (
-        <tr>
+        <tr key={review._id}>
           <td className="px-5 py-5 text-sm bg-white border-b border-gray-200">
             <div className="flex items-center">
               <div className="flex-shrink-0">
@@ -148,7 +150,7 @@ const Reviews = () => {
                 } disabled:opacity-70 disabled:cursor-not-allowed`}
               onClick={() => {
                 mutateUpdateReviewCheck({
-                  token: userState.userInfo.token,
+                  token: jwt,
                   check: review?.check ? false : true,
                   reviewId: review._id,
                 });
@@ -163,14 +165,13 @@ const Reviews = () => {
               onClick={() => {
                 deleteDataHandler({
                   slug: review?._id,
-                  token: userState.userInfo.token,
+                  token: jwt,
                 });
               }}
             >
               Borrar
             </button>
           </td>
-          
         </tr>
       ))}
     </DataTable>

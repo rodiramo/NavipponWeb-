@@ -1,6 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useWindowSize } from "@uidotdev/usehooks";
-
 import { images } from "../../../../constants";
 import { useEffect, useState } from "react";
 import { AiFillDashboard, AiOutlineClose, AiOutlineMenu } from "react-icons/ai";
@@ -10,13 +9,13 @@ import NavItem from "./NavItem";
 import NavItemCollapse from "./NavItemCollapse";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
-import { useSelector } from "react-redux";
+import useUser from "../../../../hooks/useUser"; // Usar el hook useUser
 import { createPost } from "../../../../services/index/posts";
 import { createExperience } from "../../../../services/index/experiences";  
 
 const Header = () => {
   const navigate = useNavigate();
-  const userState = useSelector((state) => state.user);
+  const { user, jwt } = useUser(); // Obtener el usuario y el token del contexto
   const queryClient = useQueryClient();
   const [isMenuActive, setIsMenuActive] = useState(false);
   const [activeNavName, setActiveNavName] = useState("dashboard");
@@ -24,7 +23,7 @@ const Header = () => {
 
   const { mutate: mutateCreatePost, isLoading: isLoadingCreatePost } =
     useMutation({
-      mutationFn: ({ slug, token }) => {
+      mutationFn: ({ token }) => {
         return createPost({
           token,
         });
@@ -42,7 +41,7 @@ const Header = () => {
 
   const { mutate: mutateCreateExperience, isLoading: isLoadingCreateExperience } =
     useMutation({
-      mutationFn: ({ slug, token }) => {
+      mutationFn: ({ token }) => {
         return createExperience({
           token,
         });
@@ -70,12 +69,20 @@ const Header = () => {
     }
   }, [windowSize.width]);
 
-  const handleCreateNewPost = ({ token }) => {
-    mutateCreatePost({ token });
+  const handleCreateNewPost = () => {
+    if (jwt) {
+      mutateCreatePost({ token: jwt });
+    } else {
+      toast.error("Debes estar logueado para crear una nueva publicación");
+    }
   };
 
-  const handleCreateNewExperience = ({ token }) => {
-    mutateCreateExperience({ token });
+  const handleCreateNewExperience = () => {
+    if (jwt) {
+      mutateCreateExperience({ token: jwt });
+    } else {
+      toast.error("Debes estar logueado para crear una nueva experiencia");
+    }
   };
 
   return (
@@ -149,9 +156,7 @@ const Header = () => {
                 <button
                   disabled={isLoadingCreatePost}
                   className="text-start disabled:opacity-60 disabled:cursor-not-allowed hover:text-[#FF4A5A]"
-                  onClick={() =>
-                    handleCreateNewPost({ token: userState.userInfo.token })
-                  }
+                  onClick={handleCreateNewPost}
                 >
                   Crear nuevo post
                 </button>
@@ -170,9 +175,7 @@ const Header = () => {
                 <button
                   disabled={isLoadingCreateExperience}
                   className="text-start disabled:opacity-60 disabled:cursor-not-allowed hover:text-[#FF4A5A]"
-                  onClick={() =>
-                    handleCreateNewExperience({ token: userState.userInfo.token })
-                  }
+                  onClick={handleCreateNewExperience}
                 >
                   Crear nueva experiencia
                 </button>                
