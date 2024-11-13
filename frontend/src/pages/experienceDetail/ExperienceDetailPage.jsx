@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { Link, useParams } from "react-router-dom";
-
+import { AiFillHeart, AiOutlineHeart } from "react-icons/ai";
+import { toast } from "react-hot-toast";
 import BreadCrumbs from "../../components/BreadCrumbs";
 import ReviewsContainer from "../../components/reviews/ReviewsContainer";
 import MainLayout from "../../components/MainLayout";
@@ -13,13 +14,17 @@ import ExperienceDetailSkeleton from "./components/ExperienceDetailSkeleton";
 import ErrorMessage from "../../components/ErrorMessage";
 import parseJsonToHtml from "../../utils/parseJsonToHtml";
 import Editor from "../../components/editor/Editor";
-import useUser from "../../hooks/useUser"; // Usar el hook useUser
+import useUser from "../../hooks/useUser";  
+import { addFavorite as addFavoriteService, removeFavorite as removeFavoriteService } from "../../services/index/favorites";  
+import FavoriteContext from "../../context/FavoriteContext";  
 
 const ExperienceDetailPage = () => {
   const { slug } = useParams();
-  const { user, jwt } = useUser(); // Obtener el usuario y el token del contexto
+  const { user, jwt: token } = useUser();  
+  const { favorites, addFavorite, removeFavorite } = useContext(FavoriteContext);
   const [breadCrumbsData, setbreadCrumbsData] = useState([]);
   const [body, setBody] = useState(null);
+  const [isFavorite, setIsFavorite] = useState(false);
 
   const { data, isLoading, isError } = useQuery({
     queryFn: () => getSingleExperience({ slug }),
@@ -42,6 +47,37 @@ const ExperienceDetailPage = () => {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+
+  useEffect(() => {
+    const isFav = favorites.some(fav => fav.experienceId === data?._id);
+    setIsFavorite(isFav);
+  }, [favorites, data]);
+
+  const handleFavoriteClick = async () => {
+    if (!user || !token) {
+      toast.error("Debes iniciar sesión para agregar a favoritos");
+      console.log("User or token is not defined");
+      return;
+    }
+
+    try {
+      if (isFavorite) {
+        console.log("Removing favorite for user:", user);
+        await removeFavoriteService({ userId: user._id, experienceId: data._id, token });
+        removeFavorite(data._id);
+        toast.success("Se eliminó de favoritos");
+      } else {
+        console.log("Adding favorite for user:", user);
+        await addFavoriteService({ userId: user._id, experienceId: data._id, token });
+        addFavorite({ userId: user._id, experienceId: data._id });
+        toast.success("Se agregó a favoritos");
+      }
+      setIsFavorite(!isFavorite);
+    } catch (error) {
+      toast.error("Error al actualizar favoritos");
+      console.error("Error updating favorites:", error);
+    }
+  };
 
   return (
     <MainLayout>
@@ -73,10 +109,22 @@ const ExperienceDetailPage = () => {
                 </Link>
               ))}
             </div>
-            <h2 className="text-xl font-medium mt-4 text-dark-hard md:text-[26px]">
-              {data?.title}
-            </h2>
-            <div className="w-full">
+            <div className="flex justify-between items-center mt-4">
+              <h2 className="text-xl font-medium text-dark-hard md:text-[26px]">
+                {data?.title}
+              </h2>
+              <button
+                onClick={handleFavoriteClick}
+                className="bg-[#FF4A5A] p-2 rounded-full focus:outline-none"
+              >
+                {isFavorite ? (
+                  <AiFillHeart className="text-white text-2xl" />
+                ) : (
+                  <AiOutlineHeart className="text-white text-2xl" />
+                )}
+              </button>
+            </div>
+            <div className="w-full mt-4">
               {!isLoading && !isError && (
                 <Editor content={body} editable={false} />
               )}
@@ -86,7 +134,7 @@ const ExperienceDetailPage = () => {
               className="mt-10"
               logginedUserId={user?._id}
               experienceSlug={slug}
-              jwt={jwt} // Pasar el token JWT al componente ReviewsContainer
+              jwt={token}  
             />
           </article>
           <div>

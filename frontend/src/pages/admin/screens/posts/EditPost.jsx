@@ -8,7 +8,7 @@ import ErrorMessage from "../../../../components/ErrorMessage";
 import { stables } from "../../../../constants";
 import { HiOutlineCamera } from "react-icons/hi";
 import { toast } from "react-hot-toast";
-import useUser from "../../../../hooks/useUser"; // Usar el hook useUser
+import useUser from "../../../../hooks/useUser";  
 import Editor from "../../../../components/editor/Editor";
 import MultiSelectTagDropdown from "../../components/select-dropdown/MultiSelectTagDropdown";
 import { getAllCategories } from "../../../../services/index/postCategories";
@@ -26,7 +26,7 @@ const EditPost = () => {
   const { slug } = useParams();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const { user, jwt } = useUser(); // Obtener el usuario y el token del contexto
+  const { user, jwt } = useUser();  
   const [initialPhoto, setInitialPhoto] = useState(null);
   const [photo, setPhoto] = useState(null);
   const [body, setBody] = useState(null);

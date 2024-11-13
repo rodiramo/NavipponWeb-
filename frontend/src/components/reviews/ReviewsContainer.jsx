@@ -10,7 +10,7 @@ import {
   updateReview,
 } from "../../services/index/reviews";
 import { toast } from "react-hot-toast";
-import useUser from "../../hooks/useUser"; // Usar el hook useUser
+import useUser from "../../hooks/useUser";  
 
 const ReviewsContainer = ({
   className,
@@ -19,7 +19,7 @@ const ReviewsContainer = ({
   experienceSlug,
 }) => {
   const queryClient = useQueryClient();
-  const { user, jwt } = useUser(); // Obtener el usuario y el token del contexto
+  const { user, jwt } = useUser();  
   const [affectedReview, setAffectedReview] = useState(null);
 
   const { mutate: mutateNewReview, isLoading: isLoadingNewReview } =

@@ -35,7 +35,6 @@ const updatePost = async (req, res, next) => {
       return;
     }
 
-    // Verifica que el usuario autenticado es el propietario de la publicación
     if (post.user.toString() !== req.user._id.toString()) {
       res.status(401);
       throw new Error("No autorizado");
@@ -92,8 +91,7 @@ const deletePost = async (req, res, next) => {
       const error = new Error("Post no encontrado");
       return next(error);
     }
-
-    // Verifica que el usuario autenticado es el propietario de la publicación
+    
     if (post.user.toString() !== req.user._id.toString()) {
       res.status(401);
       throw new Error("No autorizado");

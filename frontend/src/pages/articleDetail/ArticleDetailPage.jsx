@@ -13,11 +13,11 @@ import ArticleDetailSkeleton from "./components/ArticleDetailSkeleton";
 import ErrorMessage from "../../components/ErrorMessage";
 import parseJsonToHtml from "../../utils/parseJsonToHtml";
 import Editor from "../../components/editor/Editor";
-import useUser from "../../hooks/useUser"; // Usar el hook useUser
+import useUser from "../../hooks/useUser";  
 
 const ArticleDetailPage = () => {
   const { slug } = useParams();
-  const { user, jwt } = useUser(); // Obtener el usuario y el token del contexto
+  const { user, jwt } = useUser();  
   const [breadCrumbsData, setbreadCrumbsData] = useState([]);
   const [setBody] = useState(null);
 
@@ -85,7 +85,7 @@ const ArticleDetailPage = () => {
               className="mt-10"
               logginedUserId={user?._id}
               postSlug={slug}
-              jwt={jwt} // Pasar el token JWT al componente CommentsContainer
+              jwt={jwt}  
             />
           </article>
           <div>

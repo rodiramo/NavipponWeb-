@@ -3,10 +3,10 @@ import { deleteUserExperience, getUserExperiences } from "../../../../services/i
 import { Link } from "react-router-dom";
 import { useDataTable } from "../../../../hooks/useDataTable";
 import DataTable from "../../components/DataTable";
-import useUser from "../../../../hooks/useUser"; // Usar el hook useUser
+import useUser from "../../../../hooks/useUser";  
 
 const ManageExperiences = () => {
-  const { user, jwt } = useUser(); // Obtener el usuario y el token del contexto
+  const { user, jwt } = useUser();  
 
   const {
     currentPage,

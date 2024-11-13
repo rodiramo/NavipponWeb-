@@ -9,13 +9,13 @@ import { getUserProfile, updateProfile } from "../../services/index/users";
 import ProfilePicture from "../../components/ProfilePicture";
 import { userActions } from "../../store/reducers/userReducers";
 import { toast } from "react-hot-toast";
-import useUser from "../../hooks/useUser"; // Usar el hook useUser
+import useUser from "../../hooks/useUser";  
 
 const ProfilePage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const queryClient = useQueryClient();
-  const { user, jwt } = useUser(); // Obtener el usuario y el token del contexto
+  const { user, jwt } = useUser();  
 
   useEffect(() => {
     if (!jwt) {
@@ -29,7 +29,7 @@ const ProfilePage = () => {
       return getUserProfile({ token: jwt });
     },
     queryKey: ["profile"],
-    enabled: !!jwt, // Solo habilitar la consulta si jwt está presente
+    enabled: !!jwt,  
   });
 
   const { mutate, isLoading: updateProfileIsLoading } = useMutation({

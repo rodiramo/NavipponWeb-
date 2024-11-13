@@ -8,7 +8,7 @@ import ErrorMessage from "../../../../components/ErrorMessage";
 import { stables } from "../../../../constants";
 import { HiOutlineCamera } from "react-icons/hi";
 import { toast } from "react-hot-toast";
-import useUser from "../../../../hooks/useUser"; // Usar el hook useUser
+import useUser from "../../../../hooks/useUser";  
 import Editor from "../../../../components/editor/Editor";
 import MultiSelectTagDropdown from "../../components/select-dropdown/MultiSelectTagDropdown";
 
@@ -18,7 +18,7 @@ const EditExperience = () => {
   const { slug } = useParams();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const { user, jwt } = useUser(); // Obtener el usuario y el token del contexto
+  const { user, jwt } = useUser();  
   const [initialPhoto, setInitialPhoto] = useState(null);
   const [photo, setPhoto] = useState(null);
   const [body, setBody] = useState(null);
@@ -27,7 +27,7 @@ const EditExperience = () => {
   const [tags, setTags] = useState([]);
   const [experienceSlug, setExperienceSlug] = useState(slug);
   const [caption, setCaption] = useState("");
-  const [approved, setApproved] = useState(false); // Campo de aprobación
+  const [approved, setApproved] = useState(false);  
 
   const { data, isLoading, isError } = useQuery({
     queryFn: () => getSingleExperience({ slug }),
@@ -39,7 +39,7 @@ const EditExperience = () => {
       setTags(data.tags);
       setBody(data.body);
       setCaption(data.caption);
-      setApproved(data.approved); // Campo de aprobación
+      setApproved(data.approved);  
     },
     refetchOnWindowFocus: false,
   });
@@ -92,7 +92,7 @@ const EditExperience = () => {
 
     updatedData.append(
       "document",
-      JSON.stringify({ body, categories, title, tags, slug: experienceSlug, caption, approved }) // Campo de aprobación
+      JSON.stringify({ body, categories, title, tags, slug: experienceSlug, caption, approved })  
     );
 
     mutateUpdateExperienceDetail({
@@ -120,7 +120,7 @@ const EditExperience = () => {
       ) : (
         <section className="container mx-auto max-w-5xl flex flex-col px-5 py-5 lg:flex-row lg:gap-x-5 lg:items-start">
           <article className="flex-1">
-            <div className="flex items-center justify-center w-full mb-4"> {/* Campo de aprobación */}
+            <div className="flex items-center justify-center w-full mb-4">  
               <label className="flex items-center space-x-2">
                 <span className="text-2xl font-bold">Aprobado</span>
                 <input

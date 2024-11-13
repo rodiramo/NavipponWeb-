@@ -9,10 +9,10 @@ import {
 } from "../../../../services/index/users";
 import DataTable from "../../components/DataTable";
 import { images, stables } from "../../../../constants";
-import useUser from "../../../../hooks/useUser"; // Usar el hook useUser
+import useUser from "../../../../hooks/useUser";  
 
 const Users = () => {
-  const { user, jwt } = useUser(); // Obtener el usuario y el token del contexto
+  const { user, jwt } = useUser();  
 
   const {
     currentPage,

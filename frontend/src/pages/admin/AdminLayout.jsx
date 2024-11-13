@@ -1,14 +1,14 @@
 import { Outlet, useNavigate } from "react-router-dom";
-import Header from "./components/header/Header"; // Asegúrate de que la ruta de importación sea correcta
+import Header from "./components/header/Header";  
 import { useQuery } from "@tanstack/react-query";
 import { getUserProfile } from "../../services/index/users";
-import useUser from "../../hooks/useUser"; // Usar el hook useUser
+import useUser from "../../hooks/useUser";  
 import { toast } from "react-hot-toast";
 import { useEffect } from "react";
 
 const AdminLayout = () => {
   const navigate = useNavigate();
-  const { user, jwt } = useUser(); // Obtener el usuario y el token del contexto
+  const { user, jwt } = useUser();  
 
   useEffect(() => {
     if (!jwt) {
@@ -26,7 +26,7 @@ const AdminLayout = () => {
       return getUserProfile({ token: jwt });
     },
     queryKey: ["profile"],
-    enabled: !!jwt, // Solo habilitar la consulta si jwt está presente
+    enabled: !!jwt,  
     onSuccess: (data) => {
       if (!data?.admin) {
         navigate("/");

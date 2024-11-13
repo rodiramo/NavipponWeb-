@@ -35,7 +35,6 @@ const updateExperience = async (req, res, next) => {
             return;
         }
 
-        // Verifica que el usuario autenticado es el propietario de la experiencia
         if (experience.user.toString() !== req.user._id.toString()) {
             res.status(401);
             throw new Error("No autorizado");
@@ -93,7 +92,6 @@ const deleteExperience = async (req, res, next) => {
             return next(error);
         }
 
-        // Verifica que el usuario autenticado es el propietario de la experiencia
         if (experience.user.toString() !== req.user._id.toString()) {
             res.status(401);
             throw new Error("No autorizado");
@@ -154,7 +152,6 @@ const getUserExperiences = async (req, res, next) => {
     }
 };
 
-// Añadir la función para obtener una experiencia específica
 const getSingleUserExperience = async (req, res, next) => {
     try {
         const experience = await Experience.findOne({ slug: req.params.slug, user: req.user._id });

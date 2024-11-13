@@ -1,14 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import React, { useState, useEffect } from "react";
 import CreatableSelect from "react-select/creatable";
-import { getSingleUserExperience, updateUserExperience } from "../../../../services/index/userExperiences"; // Importa desde userExperiences.js
+import { getSingleUserExperience, updateUserExperience } from "../../../../services/index/userExperiences";  
 import { Link, useParams, useNavigate } from "react-router-dom";
 import ExperienceDetailSkeleton from "../../../experienceDetail/components/ExperienceDetailSkeleton";
 import ErrorMessage from "../../../../components/ErrorMessage";
 import { stables } from "../../../../constants";
 import { HiOutlineCamera } from "react-icons/hi";
 import { toast } from "react-hot-toast";
-import useUser from "../../../../hooks/useUser"; // Usar el hook useUser
+import useUser from "../../../../hooks/useUser";  
 import Editor from "../../../../components/editor/Editor";
 import MultiSelectTagDropdown from "../../components/select-dropdown/MultiSelectTagDropdown";
 
@@ -18,7 +18,7 @@ const EditExperience = () => {
   const { slug } = useParams();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const { user, jwt } = useUser(); // Obtener el usuario y el token del contexto
+  const { user, jwt } = useUser();  
   const [initialPhoto, setInitialPhoto] = useState(null);
   const [photo, setPhoto] = useState(null);
   const [body, setBody] = useState(null);

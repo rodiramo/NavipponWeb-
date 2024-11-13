@@ -17,6 +17,7 @@ import userPostRoutes from "./routes/userPostRoutes";
 import commentRoutes from "./routes/commentRoutes";
 import reviewRoutes from "./routes/reviewRoutes";
 import postCategoriesRoutes from "./routes/postCategoriesRoutes";
+import favoriteRoutes from "./routes/favoriteRoutes";  
 
 dotenv.config();
 connectDB();
@@ -36,8 +37,9 @@ app.use("/api/user-posts", userPostRoutes);
 app.use("/api/comments", commentRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/post-categories", postCategoriesRoutes);
+app.use("/api/favorites", favoriteRoutes);  
 
-// Carpeta para guardas las imagenes
+// Carpeta para guardar las imágenes
 app.use("/uploads", express.static(path.join(__dirname, "/uploads")));
 
 app.use(invalidPathHandler);
@@ -45,4 +47,4 @@ app.use(errorResponserHandler);
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => console.log(`El servidor esta corriendo en puerto ${PORT}`));
+app.listen(PORT, () => console.log(`El servidor está corriendo en puerto ${PORT}`));

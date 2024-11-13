@@ -5,12 +5,12 @@ import getCroppedImg from "./cropImage";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { updateProfilePicture } from "../../services/index/users";
 import { useDispatch } from "react-redux";
-import useUser from "../../hooks/useUser"; // Usar el hook useUser
+import useUser from "../../hooks/useUser";  
 import { userActions } from "../../store/reducers/userReducers";
 import { toast } from "react-hot-toast";
 
 const CropEasy = ({ photo, setOpenCrop }) => {
-  const { user, jwt } = useUser(); // Obtener el usuario y el token del contexto
+  const { user, jwt } = useUser();  
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
   const [crop, setCrop] = useState({ x: 0, y: 0 });

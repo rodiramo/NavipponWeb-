@@ -1,6 +1,5 @@
 import React from "react";
 import { FaArrowRight } from "react-icons/fa";
-
 import ExperienceCard from "../../../components/ExperienceCard";
 import { useQuery } from "@tanstack/react-query";
 import { getAllExperiences } from "../../../services/index/experiences";
@@ -9,7 +8,10 @@ import ExperienceCardSkeleton from "../../../components/ExperienceCardSkeleton";
 import ErrorMessage from "../../../components/ErrorMessage";
 import { Link } from "react-router-dom";
 
-const Experiences = () => {
+const Experiences = ({ user, token }) => {  
+    console.log("Experiences - user:", user);
+    console.log("Experiences - token:", token);
+
     const { data, isLoading, isError } = useQuery({
         queryFn: () => getAllExperiences("", 1, 6),
         queryKey: ["experiences"],
@@ -38,6 +40,8 @@ const Experiences = () => {
                             key={experience._id}
                             experience={experience}
                             className="w-full md:w-[calc(50%-20px)] lg:w-[calc(33.33%-21px)]"
+                            user={user}  
+                            token={token}  
                         />
                     ))
                 )}

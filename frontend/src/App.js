@@ -22,8 +22,8 @@ import BlogPage from "./pages/blog/BlogPage";
 import ExperiencePage from "./pages/experience/ExperiencePage";
 import AboutPage from './pages/about/AboutPage';
 import ExperienceDetailPage from './pages/experienceDetail/ExperienceDetailPage';
-import UserLayout from "./pages/user/UserLayout"; // Importa UserLayout
-import UserManagePosts from "./pages/user/screens/posts/ManagePosts"; // Importa los componentes de usuario
+import UserLayout from "./pages/user/UserLayout"; 
+import UserManagePosts from "./pages/user/screens/posts/ManagePosts";  
 import UserManageExperiences from "./pages/user/screens/experiences/ManageExperiences";
 import UserEditPost from "./pages/user/screens/posts/EditPost";
 import UserEditExperience from "./pages/user/screens/experiences/EditExperience";
@@ -56,7 +56,7 @@ function App() {
           />
           <Route path="users/manage" element={<Users />} />
         </Route>
-        <Route path="/user" element={<UserLayout />}> {/* Añade las rutas de usuario */}
+        <Route path="/user" element={<UserLayout />}> 
           <Route path="posts/manage" element={<UserManagePosts />} />
           <Route path="experiences/manage" element={<UserManageExperiences />} />
           <Route path="posts/manage/edit/:slug" element={<UserEditPost />} />

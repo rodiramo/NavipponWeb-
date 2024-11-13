@@ -1,4 +1,3 @@
-// src/context/UserContext.js
 import React, { useState, useEffect } from 'react';
 import { getUserProfile } from '../services/index/users';
 

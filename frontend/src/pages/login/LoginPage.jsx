@@ -1,11 +1,10 @@
-// src/pages/login/LoginPage.jsx
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { FcGoogle } from 'react-icons/fc';
 import MainLayout from "../../components/MainLayout";
-import useUser from "../../hooks/useUser"; // Corregir la ruta de importación
+import useUser from "../../hooks/useUser";  
 
 const LoginPage = () => {
   const navigate = useNavigate();

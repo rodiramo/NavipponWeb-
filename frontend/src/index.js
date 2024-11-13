@@ -5,7 +5,8 @@ import "./index.css";
 import App from "./App";
 import { Provider } from "react-redux";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
-import { UserContextProvider } from "./context/UserContext"; // Importa el UserContextProvider
+import { UserContextProvider } from "./context/UserContext";
+import { FavoriteProvider } from "./context/FavoriteContext"; 
 
 import store from "./store";
 
@@ -22,8 +23,10 @@ root.render(
   <BrowserRouter>
     <Provider store={store}>
       <QueryClientProvider client={queryClient}>
-        <UserContextProvider> {/* Envuelve tu aplicación con UserContextProvider */}
-          <App />
+        <UserContextProvider>
+          <FavoriteProvider>  
+            <App />
+          </FavoriteProvider>
         </UserContextProvider>
       </QueryClientProvider>
     </Provider>

@@ -10,7 +10,7 @@ import {
   updateComment,
 } from "../../services/index/comments";
 import { toast } from "react-hot-toast";
-import useUser from "../../hooks/useUser"; // Usar el hook useUser
+import useUser from "../../hooks/useUser";  
 
 const CommentsContainer = ({
   className,
@@ -19,7 +19,7 @@ const CommentsContainer = ({
   postSlug,
 }) => {
   const queryClient = useQueryClient();
-  const { user, jwt } = useUser(); // Obtener el usuario y el token del contexto
+  const { user, jwt } = useUser();  
   const [affectedComment, setAffectedComment] = useState(null);
 
   const { mutate: mutateNewComment, isLoading: isLoadingNewComment } =

@@ -6,7 +6,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 
 import { images, stables } from "../constants";
-import useUser from "../hooks/useUser"; // Usar el hook useUser
+import useUser from "../hooks/useUser";  
 
 const navItemsInfo = [
   { name: 'Inicio', type: 'link', href: '/' },
@@ -70,7 +70,7 @@ const NavItem = ({ item }) => {
 const Header = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { user, logout } = useUser(); // Usar el hook useUser
+  const { user, logout } = useUser();  
   const [navIsVisible, setNavIsVisible] = useState(false);
   const [profileDropdown, setProfileDropdown] = useState(false);
   const profileRef = useRef(null);

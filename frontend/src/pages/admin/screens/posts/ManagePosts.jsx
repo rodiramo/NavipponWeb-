@@ -6,10 +6,10 @@ import DataTable from "../../components/DataTable";
 import { BsCheckLg } from "react-icons/bs";
 import { AiOutlineClose } from "react-icons/ai";
 import { useState, useEffect } from "react";
-import useUser from "../../../../hooks/useUser"; // Usar el hook useUser
+import useUser from "../../../../hooks/useUser"; 
 
 const ManagePosts = () => {
-  const { user, jwt } = useUser(); // Obtener el usuario y el token del contexto
+  const { user, jwt } = useUser();  
 
   const {
     currentPage,

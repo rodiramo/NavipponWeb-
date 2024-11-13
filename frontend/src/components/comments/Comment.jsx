@@ -3,7 +3,7 @@ import { FiMessageSquare, FiEdit2, FiTrash } from "react-icons/fi";
 
 import { images, stables } from "../../constants";
 import CommentForm from "./CommentForm";
-import useUser from "../../hooks/useUser"; // Usar el hook useUser
+import useUser from "../../hooks/useUser";  
 
 const Comment = ({
   comment,
@@ -16,7 +16,7 @@ const Comment = ({
   deleteComment,
   replies,
 }) => {
-  const { jwt } = useUser(); // Obtener el token del contexto
+  const { jwt } = useUser();  
   const isUserLoggined = Boolean(logginedUserId);
   const commentBelongsToUser = logginedUserId === comment.user._id;
   const isReplying =
