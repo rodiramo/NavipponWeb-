@@ -17,6 +17,7 @@ const createExperience = async (req, res, next) => {
             approved: false,
             categories: categories || "Hoteles",
             tags: tags || [],
+            favoritesCount: 0,  
         });
 
         const createdExperience = await experience.save();

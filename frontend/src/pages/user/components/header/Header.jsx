@@ -8,14 +8,14 @@ import NavItem from "./NavItem";
 import NavItemCollapse from "./NavItemCollapse";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
-import useUser from "../../../../hooks/useUser";  
+import useUser from "../../../../hooks/useUser";
 import { createUserPost } from "../../../../services/index/userPosts";
 import { createUserExperience } from "../../../../services/index/userExperiences";
 import { FaRegUserCircle } from "react-icons/fa";
 
 const Header = () => {
   const navigate = useNavigate();
-  const { user, jwt } = useUser();  
+  const { user, jwt } = useUser();
   const queryClient = useQueryClient();
   const [isMenuActive, setIsMenuActive] = useState(false);
   const [activeNavName, setActiveNavName] = useState("dashboard");
@@ -173,6 +173,18 @@ const Header = () => {
                 >
                   Crear nueva experiencia
                 </button>
+              </NavItemCollapse>
+
+              <NavItemCollapse
+                title="Favoritos"
+                icon={<FaRegUserCircle className="text-xl text-white" />}
+                name="favorites"
+                activeNavName={activeNavName}
+                setActiveNavName={setActiveNavName}
+                className="hover:text-[#FF4A5A]"
+                onClick={isMobile() ? toggleMenuHandler : undefined}
+              >
+                <Link to="/user/favorites/manage" className="hover:text-[#FF4A5A]" onClick={isMobile() ? toggleMenuHandler : undefined}>Administrar Favoritos</Link>
               </NavItemCollapse>
             </div>
           </div>

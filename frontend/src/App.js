@@ -27,6 +27,7 @@ import UserManagePosts from "./pages/user/screens/posts/ManagePosts";
 import UserManageExperiences from "./pages/user/screens/experiences/ManageExperiences";
 import UserEditPost from "./pages/user/screens/posts/EditPost";
 import UserEditExperience from "./pages/user/screens/experiences/EditExperience";
+import ManageFavorites from "./pages/user/screens/favorites/ManageFavorites"; 
 
 function App() {
   return (
@@ -61,6 +62,7 @@ function App() {
           <Route path="experiences/manage" element={<UserManageExperiences />} />
           <Route path="posts/manage/edit/:slug" element={<UserEditPost />} />
           <Route path="experiences/manage/edit/:slug" element={<UserEditExperience />} />
+          <Route path="favorites/manage" element={<ManageFavorites />} />  
         </Route>
       </Routes>
       <Toaster />

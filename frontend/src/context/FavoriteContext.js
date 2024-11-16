@@ -14,14 +14,14 @@ export const FavoriteProvider = ({ children }) => {
 
             try {
                 const favorites = await getUserFavorites({ userId: user._id, token });
-                setFavorites(favorites);
+                setFavorites(favorites);  
             } catch (error) {
                 console.error("Error fetching favorites:", error);
             }
         };
 
         fetchFavorites();
-    }, [user, token]);
+    }, [user, token]);  
 
     const addFavorite = (favorite) => {
         setFavorites([...favorites, favorite]);
@@ -32,7 +32,7 @@ export const FavoriteProvider = ({ children }) => {
     };
 
     return (
-        <FavoriteContext.Provider value={{ favorites, addFavorite, removeFavorite }}>
+        <FavoriteContext.Provider value={{ favorites, setFavorites, addFavorite, removeFavorite }}>
             {children}
         </FavoriteContext.Provider>
     );

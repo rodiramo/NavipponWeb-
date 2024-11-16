@@ -36,6 +36,8 @@ const ExperienceDetailPage = () => {
         { name: "Detalle", link: `/experience/${data.slug}` },
       ]);
       setBody(parseJsonToHtml(data?.body));
+      const isFav = favorites.some(fav => fav.experienceId._id === data._id);
+      setIsFavorite(isFav);
     },
   });
 
@@ -49,8 +51,10 @@ const ExperienceDetailPage = () => {
   }, []);
 
   useEffect(() => {
-    const isFav = favorites.some(fav => fav.experienceId === data?._id);
-    setIsFavorite(isFav);
+    if (data) {
+      const isFav = favorites.some(fav => fav.experienceId._id === data._id);
+      setIsFavorite(isFav);
+    }
   }, [favorites, data]);
 
   const handleFavoriteClick = async () => {
@@ -72,9 +76,13 @@ const ExperienceDetailPage = () => {
         addFavorite({ userId: user._id, experienceId: data._id });
         toast.success("Se agregó a favoritos");
       }
-      setIsFavorite(!isFavorite);
+      window.location.reload(); // Recarga toda la página, esto hay que arreglar!!!
     } catch (error) {
-      toast.error("Error al actualizar favoritos");
+      if (error.response && error.response.status === 400) {
+        toast.error("La experiencia ya está en tus favoritos");
+      } else {
+        toast.error("Error al actualizar favoritos");
+      }
       console.error("Error updating favorites:", error);
     }
   };
@@ -120,7 +128,7 @@ const ExperienceDetailPage = () => {
                 {isFavorite ? (
                   <AiFillHeart className="text-white text-2xl" />
                 ) : (
-                  <AiOutlineHeart className="text-white text-2xl" />
+                  <AiOutlineHeart className="text-white text-2xl" /> 
                 )}
               </button>
             </div>

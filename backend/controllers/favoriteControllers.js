@@ -1,12 +1,25 @@
 const Favorite = require('../models/Favorite');
+const Experience = require('../models/Experience');
 
 const addFavorite = async (req, res) => {
     try {
-        const { userId, experienceId } = req.body;
+        const { experienceId } = req.body;
+        const userId = req.user.id;
         console.log("Datos recibidos en addFavorite:", { userId, experienceId });
+
+
+        const existingFavorite = await Favorite.findOne({ userId, experienceId });
+        if (existingFavorite) {
+            return res.status(400).json({ error: 'La experiencia ya está en tus favoritos' });
+        }
+
         const favorite = new Favorite({ userId, experienceId });
         await favorite.save();
-        res.status(201).json(favorite);
+
+
+        const favoritesCount = await Favorite.countDocuments({ experienceId });
+
+        res.status(201).json({ favorite, favoritesCount });
     } catch (error) {
         console.error("Error en addFavorite:", error);
         res.status(500).json({ error: 'Error al agregar a favoritos' });
@@ -15,10 +28,18 @@ const addFavorite = async (req, res) => {
 
 const removeFavorite = async (req, res) => {
     try {
-        const { userId, experienceId } = req.body;
+        const { experienceId } = req.body;
+        const userId = req.user.id;
         console.log("Datos recibidos en removeFavorite:", { userId, experienceId });
-        await Favorite.findOneAndDelete({ userId, experienceId });
-        res.status(200).json({ message: 'Eliminado de favoritos' });
+
+        const result = await Favorite.findOneAndDelete({ userId, experienceId });
+        if (!result) {
+            return res.status(404).json({ error: 'Favorito no encontrado' });
+        }
+
+        const favoritesCount = await Favorite.countDocuments({ experienceId });
+
+        res.status(200).json({ message: 'Eliminado de favoritos', favoritesCount });
     } catch (error) {
         console.error("Error en removeFavorite:", error);
         res.status(500).json({ error: 'Error al eliminar de favoritos' });
@@ -27,7 +48,7 @@ const removeFavorite = async (req, res) => {
 
 const getUserFavorites = async (req, res) => {
     try {
-        const { userId } = req.params;
+        const userId = req.user.id;
         console.log("Datos recibidos en getUserFavorites:", { userId });
         const favorites = await Favorite.find({ userId }).populate('experienceId');
         res.status(200).json(favorites);
@@ -37,8 +58,20 @@ const getUserFavorites = async (req, res) => {
     }
 };
 
+const getFavoritesCount = async (req, res) => {
+    try {
+        const { experienceId } = req.params;
+        const favoritesCount = await Favorite.countDocuments({ experienceId });
+        res.status(200).json({ favoritesCount });
+    } catch (error) {
+        console.error("Error en getFavoritesCount:", error);
+        res.status(500).json({ error: 'Error al obtener el contador de favoritos' });
+    }
+};
+
 module.exports = {
     addFavorite,
     removeFavorite,
-    getUserFavorites
+    getUserFavorites,
+    getFavoritesCount  
 };

@@ -1,4 +1,3 @@
-// src/hooks/useUser.js
 import { useCallback, useContext, useState } from 'react';
 import Context from '../context/UserContext';
 import { login as loginService, signup as signupService, getUserProfile } from '../services/index/users';

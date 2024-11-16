@@ -8,7 +8,7 @@ import ExperienceCardSkeleton from "../../../components/ExperienceCardSkeleton";
 import ErrorMessage from "../../../components/ErrorMessage";
 import { Link } from "react-router-dom";
 
-const Experiences = ({ user, token }) => {  
+const Experiences = ({ user, token, onFavoriteToggle }) => {  
     console.log("Experiences - user:", user);
     console.log("Experiences - token:", token);
 
@@ -42,6 +42,7 @@ const Experiences = ({ user, token }) => {
                             className="w-full md:w-[calc(50%-20px)] lg:w-[calc(33.33%-21px)]"
                             user={user}  
                             token={token}  
+                            onFavoriteToggle={onFavoriteToggle}  
                         />
                     ))
                 )}
