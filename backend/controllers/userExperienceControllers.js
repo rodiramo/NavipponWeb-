@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from "uuid";
 
 const createExperience = async (req, res, next) => {
     try {
-        const { title, caption, body, photo, categories, tags } = req.body;
+        const { title, caption, body, photo, categories, tags, region, prefecture } = req.body;
         const experience = new Experience({
             title: title || "sample title",
             caption: caption || "sample caption",
@@ -16,6 +16,8 @@ const createExperience = async (req, res, next) => {
             user: req.user._id,
             categories: categories || "Hoteles", 
             tags: tags || [],
+            region: region || "Hokkaido",
+            prefecture: prefecture || "Hokkaido",
         });
 
         const createdExperience = await experience.save();
@@ -43,13 +45,15 @@ const updateExperience = async (req, res, next) => {
         const upload = uploadPicture.single("experiencePicture");
 
         const handleUpdateExperienceData = async (data) => {
-            const { title, caption, slug, body, tags, categories } = JSON.parse(data);
+            const { title, caption, slug, body, tags, categories, region, prefecture } = JSON.parse(data);
             experience.title = title || experience.title;
             experience.caption = caption || experience.caption;
             experience.slug = slug || experience.slug;
             experience.body = body || experience.body;    
             experience.tags = tags || experience.tags;
             experience.categories = categories || experience.categories;
+            experience.region = region || experience.region;
+            experience.prefecture = prefecture || experience.prefecture;
             const updatedExperience = await experience.save();
             return res.json(updatedExperience);
         };

@@ -15,11 +15,10 @@ const ExperienceCard = ({ experience, user, token, className }) => {
     console.log("Favorites in ExperienceCard:", favorites);  
 
     useEffect(() => {
-        const isFav = favorites.some(fav => fav.experienceId._id === experience._id);
+        const isFav = favorites.some(fav => fav.experienceId && fav.experienceId._id === experience._id);
         setIsFavorite(isFav);
         console.log("Is experience favorite?", experience._id, isFav); 
 
-        
         const fetchFavoritesCount = async () => {
             try {
                 const response = await getFavoritesCountService(experience._id);

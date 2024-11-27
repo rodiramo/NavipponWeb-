@@ -28,6 +28,10 @@ import UserManageExperiences from "./pages/user/screens/experiences/ManageExperi
 import UserEditPost from "./pages/user/screens/posts/EditPost";
 import UserEditExperience from "./pages/user/screens/experiences/EditExperience";
 import ManageFavorites from "./pages/user/screens/favorites/ManageFavorites"; 
+import ManageItineraries from "./pages/user/screens/itineraries/ManageItineraries";  
+import EditItinerary from "./pages/user/screens/itineraries/EditItinerary";  
+import ItineraryDetailPage from "./pages/user/screens/itineraries/ItineraryDetailPage";
+
 
 function App() {
   return (
@@ -63,6 +67,9 @@ function App() {
           <Route path="posts/manage/edit/:slug" element={<UserEditPost />} />
           <Route path="experiences/manage/edit/:slug" element={<UserEditExperience />} />
           <Route path="favorites/manage" element={<ManageFavorites />} />  
+          <Route path="itineraries/manage" element={<ManageItineraries />} /> 
+          <Route path="itineraries/manage/edit/:id" element={<EditItinerary />} />
+          <Route path="itineraries/manage/view/:id" element={<ItineraryDetailPage />} /> {/* Nueva ruta */} 
         </Route>
       </Routes>
       <Toaster />

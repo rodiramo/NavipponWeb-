@@ -11,6 +11,7 @@ import toast from "react-hot-toast";
 import useUser from "../../../../hooks/useUser";
 import { createUserPost } from "../../../../services/index/userPosts";
 import { createUserExperience } from "../../../../services/index/userExperiences";
+import { createItinerary } from "../../../../services/index/itinerary";
 import { FaRegUserCircle } from "react-icons/fa";
 
 const Header = () => {
@@ -57,6 +58,33 @@ const Header = () => {
       },
     });
 
+  const { mutate: mutateCreateItinerary, isLoading: isLoadingCreateItinerary } =
+    useMutation({
+      mutationFn: ({ token }) => {
+        return createItinerary({
+          itineraryData: {
+            title: "Nuevo Itinerario",
+            startDate: new Date(),
+            endDate: new Date(),
+            region: "Hokkaido",
+            prefecture: "Hokkaido",
+            days: [],
+            totalBudget: 0,
+          },
+          token,
+        });
+      },
+      onSuccess: (data) => {
+        queryClient.invalidateQueries(["userItineraries"]);
+        toast.success("¡Itinerario creado, edítalo ahora!");
+        navigate(`/user/itineraries/manage/edit/${data._id}`);
+      },
+      onError: (error) => {
+        toast.error(error.message);
+        console.log(error);
+      },
+    });
+
   const isMobile = () => windowSize.width < 1024;
 
   const toggleMenuHandler = () => {
@@ -86,6 +114,14 @@ const Header = () => {
       mutateCreateExperience({ token: jwt });
     } else {
       toast.error("Debes estar logueado para crear una nueva experiencia");
+    }
+  };
+
+  const handleCreateNewItinerary = () => {
+    if (jwt) {
+      mutateCreateItinerary({ token: jwt });
+    } else {
+      toast.error("Debes estar logueado para crear un nuevo itinerario");
     }
   };
 
@@ -185,6 +221,25 @@ const Header = () => {
                 onClick={isMobile() ? toggleMenuHandler : undefined}
               >
                 <Link to="/user/favorites/manage" className="hover:text-[#FF4A5A]" onClick={isMobile() ? toggleMenuHandler : undefined}>Administrar Favoritos</Link>
+              </NavItemCollapse>
+
+              <NavItemCollapse
+                title="Itinerarios"
+                icon={<MdDashboard className="text-xl text-white" />}
+                name="itineraries"
+                activeNavName={activeNavName}
+                setActiveNavName={setActiveNavName}
+                className="hover:text-[#FF4A5A]"
+                onClick={isMobile() ? toggleMenuHandler : undefined}
+              >
+                <Link to="/user/itineraries/manage" className="hover:text-[#FF4A5A]" onClick={isMobile() ? toggleMenuHandler : undefined}>Administrar tus itinerarios</Link>
+                <button
+                  disabled={isLoadingCreateItinerary}
+                  className="text-start disabled:opacity-60 disabled:cursor-not-allowed hover:text-[#FF4A5A]"
+                  onClick={handleCreateNewItinerary}
+                >
+                  Crear nuevo itinerario
+                </button>
               </NavItemCollapse>
             </div>
           </div>

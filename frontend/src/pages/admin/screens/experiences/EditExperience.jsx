@@ -8,17 +8,27 @@ import ErrorMessage from "../../../../components/ErrorMessage";
 import { stables } from "../../../../constants";
 import { HiOutlineCamera } from "react-icons/hi";
 import { toast } from "react-hot-toast";
-import useUser from "../../../../hooks/useUser";  
+import useUser from "../../../../hooks/useUser";
 import Editor from "../../../../components/editor/Editor";
 import MultiSelectTagDropdown from "../../components/select-dropdown/MultiSelectTagDropdown";
 
 const categoriesEnum = ["Hoteles", "Atractivos", "Restaurantes"];
+const regions = {
+  Hokkaido: ["Hokkaido"],
+  Tohoku: ["Aomori", "Iwate", "Miyagi", "Akita", "Yamagata", "Fukushima"],
+  Kanto: ["Tokio", "Kanagawa", "Chiba", "Saitama", "Ibaraki", "Tochigi", "Gunma"],
+  Chubu: ["Aichi", "Shizuoka", "Gifu", "Nagano", "Niigata", "Toyama", "Ishikawa", "Fukui"],
+  Kansai: ["Osaka", "Kyoto", "Hyogo", "Nara", "Wakayama", "Shiga", "Mie"],
+  Chugoku: ["Hiroshima", "Okayama", "Shimane", "Tottori", "Yamaguchi"],
+  Shikoku: ["Ehime", "Kagawa", "Kochi", "Tokushima"],
+  Kyushu: ["Fukuoka", "Nagasaki", "Kumamoto", "Oita", "Miyazaki", "Kagoshima", "Saga"],
+};
 
 const EditExperience = () => {
   const { slug } = useParams();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const { user, jwt } = useUser();  
+  const { user, jwt } = useUser();
   const [initialPhoto, setInitialPhoto] = useState(null);
   const [photo, setPhoto] = useState(null);
   const [body, setBody] = useState(null);
@@ -27,7 +37,10 @@ const EditExperience = () => {
   const [tags, setTags] = useState([]);
   const [experienceSlug, setExperienceSlug] = useState(slug);
   const [caption, setCaption] = useState("");
-  const [approved, setApproved] = useState(false);  
+  const [approved, setApproved] = useState(false);
+  const [region, setRegion] = useState("");
+  const [prefecture, setPrefecture] = useState("");
+  const [price, setPrice] = useState(0);  
 
   const { data, isLoading, isError } = useQuery({
     queryFn: () => getSingleExperience({ slug }),
@@ -39,7 +52,10 @@ const EditExperience = () => {
       setTags(data.tags);
       setBody(data.body);
       setCaption(data.caption);
-      setApproved(data.approved);  
+      setApproved(data.approved);
+      setRegion(data.region);
+      setPrefecture(data.prefecture);
+      setPrice(data.price);  
     },
     refetchOnWindowFocus: false,
   });
@@ -92,7 +108,7 @@ const EditExperience = () => {
 
     updatedData.append(
       "document",
-      JSON.stringify({ body, categories, title, tags, slug: experienceSlug, caption, approved })  
+      JSON.stringify({ body, categories, title, tags, slug: experienceSlug, caption, approved, region, prefecture, price })  
     );
 
     mutateUpdateExperienceDetail({
@@ -120,7 +136,7 @@ const EditExperience = () => {
       ) : (
         <section className="container mx-auto max-w-5xl flex flex-col px-5 py-5 lg:flex-row lg:gap-x-5 lg:items-start">
           <article className="flex-1">
-            <div className="flex items-center justify-center w-full mb-4">  
+            <div className="flex items-center justify-center w-full mb-4">
               <label className="flex items-center space-x-2">
                 <span className="text-2xl font-bold">Aprobado</span>
                 <input
@@ -210,6 +226,61 @@ const EditExperience = () => {
                 placeholder="experience slug"
               />
             </div>
+
+            <div className="d-form-control w-full">
+              <label className="d-label" htmlFor="region">
+                <span className="d-label-text">Región</span>
+              </label>
+              <select
+                id="region"
+                value={region}
+                className="d-input d-input-bordered border-slate-300 !outline-slate-300 text-xl font-medium font-roboto text-dark-hard"
+                onChange={(e) => setRegion(e.target.value)}
+              >
+                <option value="">Selecciona una región</option>
+                {Object.keys(regions).map((region) => (
+                  <option key={region} value={region}>
+                    {region}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="d-form-control w-full">
+              <label className="d-label" htmlFor="prefecture">
+                <span className="d-label-text">Prefectura</span>
+              </label>
+              <select
+                id="prefecture"
+                value={prefecture}
+                className="d-input d-input-bordered border-slate-300 !outline-slate-300 text-xl font-medium font-roboto text-dark-hard"
+                onChange={(e) => setPrefecture(e.target.value)}
+                disabled={!region}
+              >
+                <option value="">Selecciona una prefectura</option>
+                {region &&
+                  regions[region].map((prefecture) => (
+                    <option key={prefecture} value={prefecture}>
+                      {prefecture}
+                    </option>
+                  ))}
+              </select>
+            </div>
+
+            <div className="d-form-control w-full">
+              <label className="d-label" htmlFor="price">
+                <span className="d-label-text">Precio</span>
+              </label>
+              <input
+                id="price"
+                type="number"
+                value={price}
+                className="d-input d-input-bordered border-slate-300 !outline-slate-300 text-xl font-medium font-roboto text-dark-hard"
+                onChange={(e) => setPrice(parseFloat(e.target.value))}
+                placeholder="Precio"
+              />
+            </div>
+
             <div className="mb-5 mt-2">
               <label className="d-label">
                 <span className="d-label-text">Categorías</span>

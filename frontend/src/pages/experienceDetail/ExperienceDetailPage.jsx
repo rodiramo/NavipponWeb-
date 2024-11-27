@@ -36,7 +36,7 @@ const ExperienceDetailPage = () => {
         { name: "Detalle", link: `/experience/${data.slug}` },
       ]);
       setBody(parseJsonToHtml(data?.body));
-      const isFav = favorites.some(fav => fav.experienceId._id === data._id);
+      const isFav = favorites?.some(fav => fav.experienceId?._id === data?._id);
       setIsFavorite(isFav);
     },
   });
@@ -52,7 +52,7 @@ const ExperienceDetailPage = () => {
 
   useEffect(() => {
     if (data) {
-      const isFav = favorites.some(fav => fav.experienceId._id === data._id);
+      const isFav = favorites?.some(fav => fav.experienceId?._id === data?._id);
       setIsFavorite(isFav);
     }
   }, [favorites, data]);
@@ -120,7 +120,7 @@ const ExperienceDetailPage = () => {
             <div className="flex justify-between items-center mt-4">
               <h2 className="text-xl font-medium text-dark-hard md:text-[26px]">
                 {data?.title}
-              </h2>
+              </h2> 
               <button
                 onClick={handleFavoriteClick}
                 className="bg-[#FF4A5A] p-2 rounded-full focus:outline-none"
@@ -132,6 +132,12 @@ const ExperienceDetailPage = () => {
                 )}
               </button>
             </div>
+            <p className="text-lg font-medium mt-2 text-dark-hard">
+              {data?.region} ({data?.prefecture})
+            </p>
+            <p className="text-lg font-medium mt-2 text-dark-hard">
+              Precio: {data?.price ? `${data.price} €` : "No disponible"}
+            </p>
             <div className="w-full mt-4">
               {!isLoading && !isError && (
                 <Editor content={body} editable={false} />

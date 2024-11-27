@@ -18,6 +18,7 @@ import commentRoutes from "./routes/commentRoutes";
 import reviewRoutes from "./routes/reviewRoutes";
 import postCategoriesRoutes from "./routes/postCategoriesRoutes";
 import favoriteRoutes from "./routes/favoriteRoutes";  
+import itineraryRoutes from "./routes/itineraryRoutes";
 
 dotenv.config();
 connectDB();
@@ -37,7 +38,8 @@ app.use("/api/user-posts", userPostRoutes);
 app.use("/api/comments", commentRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/post-categories", postCategoriesRoutes);
-app.use("/api/favorites", favoriteRoutes);  
+app.use("/api/favorites", favoriteRoutes);
+app.use("/api/itineraries", itineraryRoutes);  
 
 // Carpeta para guardar las imágenes
 app.use("/uploads", express.static(path.join(__dirname, "/uploads")));
