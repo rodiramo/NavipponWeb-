@@ -1,15 +1,23 @@
 const express = require('express');
 const router = express.Router();
-const { createItinerary, getItineraries, getItineraryById, updateItinerary, deleteItinerary, getFavoriteHotels, getFavoriteAttractions, getFavoriteRestaurants } = require('../controllers/itineraryControllers');
+const {
+    createItinerary,
+    getUserItineraries,
+    getItinerary,
+    getItineraryWithDetails,
+    updateItinerary,
+    deleteItinerary,
+    getDaysWithExperiences,
+} = require('../controllers/itineraryControllers');
 const { authGuard } = require('../middleware/authMiddleware');
 
+// Rutas para itinerarios
 router.post('/', authGuard, createItinerary);
-router.get('/', authGuard, getItineraries);
-router.get('/:id', authGuard, getItineraryById);
+router.get('/', authGuard, getUserItineraries);
+router.get('/:id', authGuard, getItinerary);
+router.get('/:id/details', authGuard, getItineraryWithDetails); // Nueva ruta para obtener los detalles del itinerario
 router.put('/:id', authGuard, updateItinerary);
 router.delete('/:id', authGuard, deleteItinerary);
-router.get('/favorites/hotels', authGuard, getFavoriteHotels);
-router.get('/favorites/attractions', authGuard, getFavoriteAttractions);
-router.get('/favorites/restaurants', authGuard, getFavoriteRestaurants);
+router.get('/days/experiences', authGuard, getDaysWithExperiences);
 
 module.exports = router;

@@ -1,189 +1,136 @@
 const Itinerary = require('../models/Itinerary');
+const Day = require('../models/Day');
 const Favorite = require('../models/Favorite');
+const Experience = require('../models/Experience');
+const mongoose = require('mongoose');
 
-// Función para generar los días entre dos fechas
-const generateDays = (startDate, endDate) => {
-    const days = [];
-    let currentDate = new Date(startDate);
-    let dayNumber = 1;
-    while (currentDate <= new Date(endDate)) {
-        days.push({
-            dayNumber: dayNumber,
-            date: new Date(currentDate)
-        });
-        currentDate.setDate(currentDate.getDate() + 1);
-        dayNumber++;
-    }
-    return days;
-};
-
-const createItinerary = async (req, res) => {
+// Crear un nuevo itinerario
+const createItinerary = async (req, res, next) => {
     try {
-        const { title, startDate, endDate, region, prefecture } = req.body;
-        const validRegion = region || "Hokkaido";
-        const validPrefecture = prefecture || "Hokkaido";
+        const { title, startDate, endDate } = req.body;
+        const userId = req.user._id;
 
-        const days = generateDays(startDate || new Date(), endDate || new Date());
-        const itineraryDays = await Promise.all(days.map(async day => {
-            const favorites = await Favorite.find({ userId: req.user._id, region: validRegion, prefecture: validPrefecture }).populate('experienceId');
-            const hotel = favorites.find(fav => fav.experienceId && fav.experienceId.categories === 'Hoteles') || null;
-            const activities = favorites.filter(fav => fav.experienceId && fav.experienceId.categories === 'Atractivos');
-            const restaurants = favorites.filter(fav => fav.experienceId && fav.experienceId.categories === 'Restaurantes');
-
-            const budget = (hotel ? hotel.experienceId.price : 0) +
-                activities.reduce((sum, fav) => sum + fav.experienceId.price, 0) +
-                restaurants.reduce((sum, fav) => sum + fav.experienceId.price, 0);
-
-            return {
-                ...day,
-                region: validRegion,
-                prefecture: validPrefecture,
-                hotel: hotel ? hotel._id : null,
-                activities: activities.map(fav => fav._id),
-                restaurants: restaurants.map(fav => fav._id),
-                budget,
-                notes: ''
-            };
-        }));
-
-        const totalBudget = itineraryDays.reduce((sum, day) => sum + day.budget, 0);
-
-        const itinerary = new Itinerary({
+        const newItinerary = new Itinerary({
             title: title || "Nuevo Itinerario",
             startDate: startDate || new Date(),
             endDate: endDate || new Date(),
-            region: validRegion,
-            prefecture: validPrefecture,
-            userId: req.user._id,
-            days: itineraryDays,
-            totalBudget
+            userId,
+            totalBudget: 0,
+            days: []
         });
 
-        await itinerary.save();
-        res.status(201).json(itinerary);
+        const createdItinerary = await newItinerary.save();
+        return res.json(createdItinerary);
     } catch (error) {
-        res.status(400).json({ message: error.message });
+        next(error);
     }
 };
 
-const getFavoritesByCategory = async (req, res) => {
+// Obtener días con experiencias
+const getDaysWithExperiences = async (req, res) => {
     try {
-        const { userId, region, prefecture, category } = req.query;
-        const query = { userId };
-        if (region) query.region = region;
-        if (prefecture) query.prefecture = prefecture;
-        if (category) query['experienceId.categories'] = category;
-        const favorites = await Favorite.find(query).populate('experienceId');
-        res.status(200).json(favorites);
-    } catch (error) {
-        res.status(400).json({ message: error.message });
-    }
-};
+        const userId = req.query.userId;
 
-const getFavoriteHotels = (req, res) => getFavoritesByCategory({ ...req, query: { ...req.query, category: 'Hoteles' } }, res);
-const getFavoriteAttractions = (req, res) => getFavoritesByCategory({ ...req, query: { ...req.query, category: 'Atractivos' } }, res);
-const getFavoriteRestaurants = (req, res) => getFavoritesByCategory({ ...req, query: { ...req.query, category: 'Restaurantes' } }, res);
+        const days = await Day.find({ userId }).populate({
+            path: 'hotel',
+            model: 'Favorite',
+            populate: {
+                path: 'experienceId',
+                model: 'Experience',
+            },
+        }).populate({
+            path: 'activities',
+            model: 'Favorite',
+            populate: {
+                path: 'experienceId',
+                model: 'Experience',
+            },
+        }).populate({
+            path: 'restaurants',
+            model: 'Favorite',
+            populate: {
+                path: 'experienceId',
+                model: 'Experience',
+            },
+        });
 
-const getItineraries = async (req, res) => {
-    try {
-        const itineraries = await Itinerary.find({ userId: req.user._id });
-        res.status(200).json(itineraries);
-    } catch (error) {
-        res.status(400).json({ message: error.message });
-    }
-};
-
-const getItineraryById = async (req, res) => {
-    try {
-        const itinerary = await Itinerary.findById(req.params.id)
-            .populate('days.hotel')
-            .populate('days.activities')
-            .populate('days.restaurants')
-            .populate({
-                path: 'days.hotel',
-                populate: { path: 'experienceId' }
-            })
-            .populate({
-                path: 'days.activities',
-                populate: { path: 'experienceId' }
-            })
-            .populate({
-                path: 'days.restaurants',
-                populate: { path: 'experienceId' }
-            });
-        if (!itinerary) {
-            return res.status(404).json({ message: 'Itinerario no encontrado' });
-        }
-        res.status(200).json(itinerary);
-    } catch (error) {
-        res.status(400).json({ message: error.message });
-    }
-};
-
-const updateItinerary = async (req, res) => {
-    try {
-        const { title, startDate, endDate, days } = req.body;
-
-        const generatedDays = generateDays(startDate || new Date(), endDate || new Date());
-
-        const updatedDays = await Promise.all(generatedDays.map(async (generatedDay, index) => {
-            const day = days[index] || {};
-            const favorites = await Favorite.find({ userId: req.user._id, region: day.region, prefecture: day.prefecture }).populate('experienceId');
-            const hotel = favorites.find(fav => fav.experienceId && fav.experienceId.categories === 'Hoteles') || null;
-            const activities = day.activities.map(activityId => {
-                const activity = favorites.find(fav => fav._id.toString() === activityId.toString() && fav.experienceId.categories === 'Atractivos');
-                return activity ? activity._id : null;
-            }).filter(Boolean);
-            const restaurants = day.restaurants.map(restaurantId => {
-                const restaurant = favorites.find(fav => fav._id.toString() === restaurantId.toString() && fav.experienceId.categories === 'Restaurantes');
-                return restaurant ? restaurant._id : null;
-            }).filter(Boolean);
-
-            const budget = (hotel ? hotel.experienceId.price : 0) +
-                activities.reduce((sum, activityId) => {
-                    const activity = favorites.find(fav => fav._id.toString() === activityId.toString());
-                    return sum + (activity ? activity.experienceId.price : 0);
-                }, 0) +
-                restaurants.reduce((sum, restaurantId) => {
-                    const restaurant = favorites.find(fav => fav._id.toString() === restaurantId.toString());
-                    return sum + (restaurant ? restaurant.experienceId.price : 0);
-                }, 0);
-
-            return {
-                ...generatedDay,
-                region: day.region || "Hokkaido",
-                prefecture: day.prefecture || "Hokkaido",
-                hotel: hotel ? hotel._id : null,
-                activities,
-                restaurants,
-                budget,
-                notes: day.notes || ''
-            };
+        // Filtrar datos inválidos
+        const filteredDays = days.map(day => ({
+            ...day.toObject(),
+            activities: day.activities.filter(fav => fav.experienceId !== null),
+            restaurants: day.restaurants.filter(fav => fav.experienceId !== null),
+            hotel: day.hotel && day.hotel.experienceId ? day.hotel : null,
         }));
 
-        const totalBudget = updatedDays.reduce((sum, day) => sum + day.budget, 0);
-
-        const itinerary = await Itinerary.findByIdAndUpdate(req.params.id, {
-            title,
-            startDate,
-            endDate,
-            days: updatedDays,
-            totalBudget
-        }, { new: true });
-
-        if (!itinerary) {
-            return res.status(404).json({ message: 'Itinerario no encontrado' });
-        }
-
-        res.status(200).json(itinerary);
+        console.log('Filtered days with experiences:', JSON.stringify(filteredDays, null, 2));
+        res.status(200).json(filteredDays);
     } catch (error) {
-        res.status(400).json({ message: error.message });
+        console.error('Error fetching days with experiences:', error);
+        res.status(500).json({ error: error.message });
     }
 };
 
+// Actualizar un itinerario
+const updateItinerary = async (req, res, next) => {
+    try {
+        const itinerary = await Itinerary.findById(req.params.id);
+
+        if (!itinerary) {
+            const error = new Error("Itinerario no encontrado");
+            next(error);
+            return;
+        }
+
+        const { title, startDate, endDate, days } = req.body;
+
+        console.log('Updating itinerary with data:', { title, startDate, endDate, days });
+
+        // Validar que los arrays estén definidos
+        const validDays = days.map(day => ({
+            ...day,
+            activities: day.activities || [],
+            restaurants: day.restaurants || [],
+            hotel: day.hotel || null,
+        }));
+
+        // Actualizar los días y obtener sus IDs
+        const dayIds = await Promise.all(validDays.map(async (day) => {
+            if (day._id) {
+                await Day.findByIdAndUpdate(day._id, day);
+                return day._id;
+            } else if (day.date || day.activities.length || day.restaurants.length || day.hotel) {
+                const newDay = new Day({ ...day, userId: req.user._id });
+                await newDay.save();
+                return newDay._id;
+            }
+        }).filter(Boolean)); // Filtrar undefined
+
+        console.log('Updated day IDs:', dayIds);
+
+        // Calcular el presupuesto total sumando los presupuestos de los días
+        const totalBudget = await Day.aggregate([
+            { $match: { _id: { $in: dayIds.map(day => mongoose.Types.ObjectId(day)) } } },
+            { $group: { _id: null, total: { $sum: "$budget" } } }
+        ]);
+
+        itinerary.title = title || itinerary.title;
+        itinerary.startDate = startDate || itinerary.startDate;
+        itinerary.endDate = endDate || itinerary.endDate;
+        itinerary.days = dayIds;
+        itinerary.totalBudget = totalBudget[0] ? totalBudget[0].total : 0;
+
+        const updatedItinerary = await itinerary.save();
+        console.log('Itinerary updated:', updatedItinerary);
+        return res.json(updatedItinerary);
+    } catch (error) {
+        console.error('Error updating itinerary:', error);
+        next(error);
+    }
+};
+
+// Eliminar un itinerario
 const deleteItinerary = async (req, res, next) => {
     try {
-        console.log("Deleting itinerary with id:", req.params.id);  
         const itinerary = await Itinerary.findByIdAndDelete(req.params.id);
 
         if (!itinerary) {
@@ -191,22 +138,120 @@ const deleteItinerary = async (req, res, next) => {
             return next(error);
         }
 
+        // Eliminar los días asociados
+        await Day.deleteMany({ _id: { $in: itinerary.days } });
+
+        console.log('Itinerary and associated days deleted:', itinerary);
         return res.json({
-            message: "El itinerario ha sido eliminado",
+            message: "Itinerario eliminado con éxito",
         });
     } catch (error) {
+        console.error('Error deleting itinerary:', error);
+        next(error);
+    }
+};
+
+// Obtener un itinerario
+const getItinerary = async (req, res, next) => {
+    try {
+        const itinerary = await Itinerary.findById(req.params.id).populate({
+            path: 'days',
+            populate: {
+                path: 'hotel activities restaurants',
+                populate: {
+                    path: 'experienceId',
+                    model: 'Experience'
+                }
+            }
+        });
+
+        if (!itinerary) {
+            const error = new Error("Itinerario no encontrado");
+            return next(error);
+        }
+
+        console.log('Fetched itinerary:', itinerary);
+        return res.json(itinerary);
+    } catch (error) {
+        console.error('Error fetching itinerary:', error);
+        next(error);
+    }
+};
+
+// Obtener todos los itinerarios del usuario
+const getUserItineraries = async (req, res, next) => {
+    try {
+        const { searchKeyword, page, limit } = req.query;
+        const query = {
+            userId: req.user._id,
+            title: { $regex: searchKeyword, $options: 'i' },
+        };
+        const itineraries = await Itinerary.find(query)
+            .skip((page - 1) * limit)
+            .limit(parseInt(limit));
+        const total = await Itinerary.countDocuments(query);
+
+        console.log('Fetched user itineraries:', itineraries);
+        res.status(200).json({ data: itineraries, headers: { total } });
+    } catch (error) {
+        console.error('Error fetching user itineraries:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// Obtener un itinerario con detalles
+const getItineraryWithDetails = async (req, res, next) => {
+    try {
+        const itinerary = await Itinerary.findById(req.params.id).populate({
+            path: 'days',
+            model: 'Day',
+            populate: [
+                {
+                    path: 'hotel',
+                    model: 'Favorite',
+                    populate: {
+                        path: 'experienceId',
+                        model: 'Experience',
+                    },
+                },
+                {
+                    path: 'activities',
+                    model: 'Favorite',
+                    populate: {
+                        path: 'experienceId',
+                        model: 'Experience',
+                    },
+                },
+                {
+                    path: 'restaurants',
+                    model: 'Favorite',
+                    populate: {
+                        path: 'experienceId',
+                        model: 'Experience',
+                    },
+                },
+            ],
+        });
+
+        if (!itinerary) {
+            const error = new Error("Itinerario no encontrado");
+            return next(error);
+        }
+
+        console.log('Fetched itinerary with details:', itinerary);
+        return res.json(itinerary);
+    } catch (error) {
+        console.error('Error fetching itinerary with details:', error);
         next(error);
     }
 };
 
 module.exports = {
     createItinerary,
-    getFavoritesByCategory,
-    getFavoriteHotels,
-    getFavoriteAttractions,
-    getFavoriteRestaurants,
-    getItineraries,
-    getItineraryById,
+    getUserItineraries,
+    getItinerary,
     updateItinerary,
-    deleteItinerary
+    deleteItinerary,
+    getDaysWithExperiences,
+    getItineraryWithDetails,
 };

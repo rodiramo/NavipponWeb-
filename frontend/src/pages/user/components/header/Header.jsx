@@ -66,8 +66,6 @@ const Header = () => {
             title: "Nuevo Itinerario",
             startDate: new Date(),
             endDate: new Date(),
-            region: "Hokkaido",
-            prefecture: "Hokkaido",
             days: [],
             totalBudget: 0,
           },

@@ -5,8 +5,8 @@ import Modal from 'react-modal';
 import useUser from "../../../../hooks/useUser";
 import FavoriteContext from "../../../../context/FavoriteContext";
 import { toast } from "react-hot-toast";
-import { useNavigate, useParams } from "react-router-dom";
-import { getSingleItinerary, updateItinerary } from "../../../../services/index/itinerary";
+import { useNavigate } from "react-router-dom";
+import { createItinerary, getDaysWithExperiences } from "../../../../services/index/itinerary";
 import { createDay, getFavoriteHotels, getFavoriteAttractions, getFavoriteRestaurants, deleteDay } from "../../../../services/index/day";
 import { AiOutlineClose } from 'react-icons/ai';
 import { stables, images } from "../../../../constants"; 
@@ -49,7 +49,7 @@ const responsive = {
 
 Modal.setAppElement('#root');
 
-const EditItinerary = () => {
+const CreateItinerary = () => {
   const { user, jwt } = useUser();
   const { favorites } = useContext(FavoriteContext);
   const [title, setTitle] = useState('');
@@ -68,25 +68,6 @@ const EditItinerary = () => {
   const [restaurantsList, setRestaurantsList] = useState([]);
   const [days, setDays] = useState([]);
   const navigate = useNavigate();
-  const { id } = useParams();
-
-  useEffect(() => {
-    const fetchItinerary = async () => {
-        try {
-            const data = await getSingleItinerary(id, jwt);
-            console.log('Fetched itinerary:', data);
-            setTitle(data.title);
-            setStartDate(new Date(data.startDate));
-            setEndDate(new Date(data.endDate));
-            setDays(data.days);
-            setTotalBudget(data.totalBudget);
-        } catch (error) {
-            console.error('Error fetching itinerary:', error);
-        }
-    };
-
-    fetchItinerary();
-}, [id, jwt]);
 
   useEffect(() => {
     if (region && prefecture) {
@@ -98,7 +79,21 @@ const EditItinerary = () => {
     calculateDailyBudget();
   }, [activities, restaurants, hotel]);
 
-  const fetchFavorites = async (region, prefecture) => {
+  useEffect(() => {
+    const fetchDaysWithExperiences = async () => {
+      try {
+        const data = await getDaysWithExperiences({ userId: user._id, token: jwt });
+        console.log('Fetched days with experiences:', data);
+        setDays(data);
+      } catch (error) {
+        console.error('Error fetching days with experiences:', error);
+      }
+    };
+
+    fetchDaysWithExperiences();
+  }, [user, jwt]);
+
+  const fetchFavorites = async () => {
     try {
       const [hotelsRes, activitiesRes, restaurantsRes] = await Promise.all([
         getFavoriteHotels({ userId: user._id, region, prefecture, token: jwt }),
@@ -142,31 +137,31 @@ const EditItinerary = () => {
 
   const handleSaveDay = async () => {
     const newDay = {
-        date: startDate,
-        region,
-        prefecture,
-        hotel: hotel || null,
-        activities,
-        restaurants,
-        budget: dailyBudget,
+      date: startDate,
+      region,
+      prefecture,
+      hotel: hotel || null,
+      activities,
+      restaurants,
+      budget: dailyBudget,
     };
 
     console.log('Saving day with data:', newDay);
 
     try {
-        const savedDay = await createDay({ token: jwt, dayData: newDay });
-        console.log('Saved day:', savedDay);
-        setDays([...days, savedDay]);
-        setTotalBudget(totalBudget + dailyBudget);
-        setModalIsOpen(false);
-        toast.success("Día guardado exitosamente");
+      const savedDay = await createDay({ token: jwt, dayData: newDay });
+      console.log('Saved day:', savedDay);
+      setDays([...days, savedDay]);
+      setTotalBudget(totalBudget + dailyBudget);
+      setModalIsOpen(false);
+      toast.success("Día guardado exitosamente");
     } catch (error) {
-        toast.error("Error al guardar el día");
-        console.error('Error saving day:', error);
+      toast.error("Error al guardar el día");
+      console.error('Error saving day:', error);
     }
-};
+  };
 
-  const handleUpdateItinerary = async () => {
+  const handleCreateItinerary = async () => {
     try {
       const itineraryData = {
         title,
@@ -176,13 +171,13 @@ const EditItinerary = () => {
         totalBudget,
         days: days.map(day => day._id),
       };
-      console.log('Updating itinerary with data:', itineraryData);
-      await updateItinerary({ id, token: jwt, updatedData: itineraryData });
-      toast.success("Itinerario actualizado exitosamente");
+      console.log('Creating itinerary with data:', itineraryData);
+      await createItinerary({ token: jwt, itineraryData });
+      toast.success("Itinerario creado exitosamente");
       navigate('/user/itineraries/manage');
     } catch (error) {
-      toast.error("Error al actualizar el itinerario");
-      console.error('Error updating itinerary:', error);
+      toast.error("Error al crear el itinerario");
+      console.error('Error creating itinerary:', error);
     }
   };
 
@@ -223,7 +218,7 @@ const EditItinerary = () => {
   return (
     <div className="container mx-auto max-w-5xl flex flex-col px-5 py-5 lg:flex-row lg:gap-x-5 lg:items-start">
       <article className="flex-1">
-        <h1 className="text-2xl font-semibold mb-5">Editar Itinerario</h1>
+        <h1 className="text-2xl font-semibold mb-5">Crear Itinerario</h1>
         <div className="d-form-control w-full mb-4">
           <label className="d-label" htmlFor="title">
             <span className="d-label-text">Título del itinerario</span>
@@ -394,79 +389,75 @@ const EditItinerary = () => {
         </Modal>
         <div className="d-form-control w-full mb-4">
           <h2 className="text-xl font-semibold">Días Guardados</h2>
+
+
           <div className="w-full" style={{ maxWidth: '950px', margin: '0 auto' }}>
           <Carousel responsive={responsive} itemClass="px-2">
-  {days.sort((a, b) => new Date(a.date) - new Date(b.date)).map((day, index) => {
-    console.log('Day data:', day);
-    const hotelData = hotels.find(h => h._id === day.hotel);
-    return (
-      <div key={day._id} className="px-2">
-        <div className="card mb-4 border p-4 rounded-lg" style={{ height: '400px', width: '100%' }}>
-          <div className="flex justify-between items-start">
-            <div>
-              <h3 className="text-lg font-semibold">Fecha</h3>
-              <p>{new Date(day.date).toLocaleDateString()}</p>
-              <h3 className="text-lg font-semibold">Prefectura</h3>
-              <p>{day.prefecture}</p>
-              <h3 className="text-lg font-semibold">Hotel</h3>
-              {hotelData && hotelData.experienceId ? (
-                <div className="flex items-center gap-2">
-                  <img className="rounded-xl w-16 h-16 object-cover" src={hotelData.experienceId.photo ? stables.UPLOAD_FOLDER_BASE_URL + hotelData.experienceId.photo : images.sampleExperienceImage} alt={hotelData.experienceId.title} />
-                  <span>{hotelData.experienceId.title}</span>
+        {days.sort((a, b) => new Date(a.date) - new Date(b.date)).map((day, index) => {
+          console.log('Day data:', day);
+          return (
+            <div key={day._id} className="px-2">
+              <div className="card mb-4 border p-4 rounded-lg" style={{ height: '400px', width: '100%' }}>
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="text-lg font-semibold">Fecha</h3>
+                    <p>{new Date(day.date).toLocaleDateString()}</p>
+                    <h3 className="text-lg font-semibold">Prefectura</h3>
+                    <p>{day.prefecture}</p>
+                    <h3 className="text-lg font-semibold">Hotel</h3>
+                    {day.hotel && day.hotel.experienceId && (
+                      <div className="flex items-center gap-2">
+                        <img className="rounded-xl w-16 h-16 object-cover" src={day.hotel.experienceId?.photo ? stables.UPLOAD_FOLDER_BASE_URL + day.hotel.experienceId.photo : images.sampleExperienceImage} alt={day.hotel.experienceId?.title} />
+                        <span>{day.hotel.experienceId?.title}</span>
+                      </div>
+                    )}
+                    <h3 className="text-lg font-semibold">Actividades</h3>
+                    {day.activities.map(activity => (
+                      <div key={activity._id} className="flex items-center gap-2">
+                        <img className="rounded-xl w-16 h-16 object-cover" src={activity.experienceId?.photo ? stables.UPLOAD_FOLDER_BASE_URL + activity.experienceId.photo : images.sampleExperienceImage} alt={activity.experienceId?.title} />
+                        <span>{activity.experienceId?.title}</span>
+                      </div>
+                    ))}
+                    <h3 className="text-lg font-semibold">Restaurantes</h3>
+                    {day.restaurants.map(restaurant => (
+                      <div key={restaurant._id} className="flex items-center gap-2">
+                        <img className="rounded-xl w-16 h-16 object-cover" src={restaurant.experienceId?.photo ? stables.UPLOAD_FOLDER_BASE_URL + restaurant.experienceId.photo : images.sampleExperienceImage} alt={restaurant.experienceId?.title} />
+                        <span>{restaurant.experienceId?.title}</span>
+                      </div>
+                    ))}
+                    <h3 className="text-lg font-semibold">Presupuesto del día</h3>
+                    <p>{day.budget}</p>
+                  </div>
+                  <button
+                    onClick={() => handleDeleteDay(day._id)}
+                    className="text-red-500 hover:text-red-700"
+                  >
+                    <AiOutlineClose className="w-6 h-6" />
+                  </button>
                 </div>
-              ) : (
-                <p>No hay hotel seleccionado</p>
-              )}
-              <h3 className="text-lg font-semibold">Actividades</h3>
-              {day.activities.map(activity => {
-                const activityData = activitiesList.find(a => a._id === activity);
-                return (
-                  <div key={activity} className="flex items-center gap-2">
-                    <img className="rounded-xl w-16 h-16 object-cover" src={activityData?.experienceId?.photo ? stables.UPLOAD_FOLDER_BASE_URL + activityData.experienceId.photo : images.sampleExperienceImage} alt={activityData?.experienceId?.title} />
-                    <span>{activityData?.experienceId?.title}</span>
-                  </div>
-                );
-              })}
-              <h3 className="text-lg font-semibold">Restaurantes</h3>
-              {day.restaurants.map(restaurant => {
-                const restaurantData = restaurantsList.find(r => r._id === restaurant);
-                return (
-                  <div key={restaurant} className="flex items-center gap-2">
-                    <img className="rounded-xl w-16 h-16 object-cover" src={restaurantData?.experienceId?.photo ? stables.UPLOAD_FOLDER_BASE_URL + restaurantData.experienceId.photo : images.sampleExperienceImage} alt={restaurantData?.experienceId?.title} />
-                    <span>{restaurantData?.experienceId?.title}</span>
-                  </div>
-                );
-              })}
-              <h3 className="text-lg font-semibold">Presupuesto del día</h3>
-              <p>{day.budget}</p>
+              </div>
             </div>
-            <button
-              onClick={() => handleDeleteDay(day._id)}
-              className="text-red-500 hover:text-red-700"
-            >
-              <AiOutlineClose className="w-6 h-6" />
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  })}
-</Carousel>
-          </div>
+          );
+        })}
+      </Carousel>
+  </div>
+
+
+
         </div>
         <div className="d-form-control w-full mb-4">
           <h2 className="text-xl font-semibold">Presupuesto total: {totalBudget}</h2>
         </div>
         <button
           type="button"
-          onClick={handleUpdateItinerary}
+          onClick={handleCreateItinerary}
           className="w-full bg-blue-500 text-white font-semibold rounded-lg px-4 py-2"
         >
-          Actualizar Itinerario
+          Crear Itinerario
         </button>
       </article>
     </div>
   );
 };
 
-export default EditItinerary;
+export default CreateItinerary;

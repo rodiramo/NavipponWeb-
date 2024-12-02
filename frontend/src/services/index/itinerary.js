@@ -1,15 +1,28 @@
-import axios from 'axios';
+import axios from "axios";
 
-export const createItinerary = async ({ itineraryData, token }) => {
+export const getAllItineraries = async () => {
+    try {
+        const { data } = await axios.get('/api/itineraries');
+        return data;
+    } catch (error) {
+        if (error.response && error.response.data.message)
+            throw new Error(error.response.data.message);
+        throw new Error(error.message);
+    }
+};
+
+export const getUserItineraries = async (searchKeyword = "", page = 1, limit = 10, token) => {
     try {
         const config = {
             headers: {
                 Authorization: `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
+            },
         };
-        const { data } = await axios.post('/api/itineraries', itineraryData, config);
-        return data;
+        const { data, headers } = await axios.get(
+            `/api/itineraries?searchKeyword=${searchKeyword}&page=${page}&limit=${limit}`,
+            config
+        );
+        return { data, headers };
     } catch (error) {
         if (error.response && error.response.data.message)
             throw new Error(error.response.data.message);
@@ -17,28 +30,12 @@ export const createItinerary = async ({ itineraryData, token }) => {
     }
 };
 
-export const getItineraries = async ({ token }) => {
+export const getSingleItinerary = async (id, token) => {
     try {
         const config = {
             headers: {
-                Authorization: `Bearer ${token}`
-            }
-        };
-        const { data } = await axios.get('/api/itineraries', config);
-        return data;
-    } catch (error) {
-        if (error.response && error.response.data.message)
-            throw new Error(error.response.data.message);
-        throw new Error(error.message);
-    }
-};
-
-export const getItineraryById = async ({ id, token }) => {
-    try {
-        const config = {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
+                Authorization: `Bearer ${token}`,
+            },
         };
         const { data } = await axios.get(`/api/itineraries/${id}`, config);
         return data;
@@ -49,15 +46,32 @@ export const getItineraryById = async ({ id, token }) => {
     }
 };
 
-export const updateItinerary = async ({ id, itineraryData, token }) => {
+export const createItinerary = async ({ token, itineraryData }) => {
     try {
         const config = {
             headers: {
                 Authorization: `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
+            },
         };
-        const { data } = await axios.put(`/api/itineraries/${id}`, itineraryData, config);
+
+        const { data } = await axios.post('/api/itineraries', itineraryData, config);
+        return data;
+    } catch (error) {
+        if (error.response && error.response.data.message)
+            throw new Error(error.response.data.message);
+        throw new Error(error.message);
+    }
+};
+
+export const updateItinerary = async ({ id, token, updatedData }) => {
+    try {
+        const config = {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        };
+
+        const { data } = await axios.put(`/api/itineraries/${id}`, updatedData, config);
         return data;
     } catch (error) {
         if (error.response && error.response.data.message)
@@ -68,12 +82,12 @@ export const updateItinerary = async ({ id, itineraryData, token }) => {
 
 export const deleteItinerary = async ({ id, token }) => {
     try {
-        console.log("Deleting itinerary with id:", id); // Verificar el id
         const config = {
             headers: {
-                Authorization: `Bearer ${token}`
-            }
+                Authorization: `Bearer ${token}`,
+            },
         };
+
         const { data } = await axios.delete(`/api/itineraries/${id}`, config);
         return data;
     } catch (error) {
@@ -83,15 +97,15 @@ export const deleteItinerary = async ({ id, token }) => {
     }
 };
 
-// Función para obtener un itinerario por su ID
-export const getSingleItinerary = async ({ id, token }) => {
+// Nuevo método para obtener días con experiencias
+export const getDaysWithExperiences = async ({ userId, token }) => {
     try {
         const config = {
             headers: {
-                Authorization: `Bearer ${token}`
-            }
+                Authorization: `Bearer ${token}`,
+            },
         };
-        const { data } = await axios.get(`/api/itineraries/${id}`, config);
+        const { data } = await axios.get(`/api/itineraries/days/experiences?userId=${userId}`, config);
         return data;
     } catch (error) {
         if (error.response && error.response.data.message)
@@ -100,88 +114,12 @@ export const getSingleItinerary = async ({ id, token }) => {
     }
 };
 
-// Función para obtener los favoritos de un usuario
-export const getFavorites = async ({ userId, token }) => {
-    try {
-        const config = {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-        };
-        const { data } = await axios.get(`/api/favorites?userId=${userId}`, config);
-        return data;
-    } catch (error) {
-        if (error.response && error.response.data.message)
-            throw new Error(error.response.data.message);
-        throw new Error(error.message);
-    }
-};
-
-// Función para obtener los favoritos de hoteles de un usuario
-export const getFavoriteHotels = async ({ userId, token, region, prefecture }) => {
-    try {
-        const config = {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-        };
-        const { data } = await axios.get(`/api/favorites/hotels?userId=${userId}&region=${region}&prefecture=${prefecture}`, config);
-        return data;
-    } catch (error) {
-        if (error.response && error.response.data.message)
-            throw new Error(error.response.data.message);
-        throw new Error(error.message);
-    }
-};
-
-// Función para obtener los favoritos de atractivos de un usuario
-export const getFavoriteAttractions = async ({ userId, token, region, prefecture }) => {
-    try {
-        const config = {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-        };
-        const { data } = await axios.get(`/api/favorites/attractions?userId=${userId}&region=${region}&prefecture=${prefecture}`, config);
-        return data;
-    } catch (error) {
-        if (error.response && error.response.data.message)
-            throw new Error(error.response.data.message);
-        throw new Error(error.message);
-    }
-};
-
-// Función para obtener los favoritos de restaurantes de un usuario
-export const getFavoriteRestaurants = async ({ userId, token, region, prefecture }) => {
-    try {
-        const config = {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-        };
-        const { data } = await axios.get(`/api/favorites/restaurants?userId=${userId}&region=${region}&prefecture=${prefecture}`, config);
-        return data;
-    } catch (error) {
-        if (error.response && error.response.data.message)
-            throw new Error(error.response.data.message);
-        throw new Error(error.message);
-    }
-};
-
-// Función para obtener los itinerarios de un usuario
-export const getUserItineraries = async ({ searchKeyword, page, limit, token }) => {
-    try {
-        const config = {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-        };
-        const { data } = await axios.get(`/api/itineraries?search=${searchKeyword}&page=${page}&limit=${limit}`, config);
-        console.log("Itineraries data:", data);  
-        return data;
-    } catch (error) {
-        if (error.response && error.response.data.message)
-            throw new Error(error.response.data.message);
-        throw new Error(error.message);
-    }
+// Nuevo método para obtener los detalles completos del itinerario
+export const getSingleItineraryWithDetails = async (id, token) => {
+    const response = await axios.get(`/api/itineraries/${id}/details`, {
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    });
+    return response.data;
 };

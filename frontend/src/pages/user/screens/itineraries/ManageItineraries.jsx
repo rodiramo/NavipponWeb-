@@ -1,138 +1,98 @@
-import React, { useContext } from 'react';
-import { images, stables } from "../../../../constants";
-import { deleteItinerary, getUserItineraries } from "../../../../services/index/itinerary";
-import { Link } from "react-router-dom";
-import { useDataTable } from "../../../../hooks/useDataTable";
-import DataTable from "../../components/DataTable";
+import React, { useState, useEffect } from 'react';
+import { getUserItineraries, deleteItinerary } from "../../../../services/index/itinerary";
 import useUser from "../../../../hooks/useUser";
-import FavoriteContext from "../../../../context/FavoriteContext";
+import { toast } from "react-hot-toast";
+import { Link, useNavigate } from "react-router-dom";
 
 const ManageItineraries = () => {
   const { user, jwt } = useUser();
-  const { favorites, setFavorites, addFavorite, removeFavorite } = useContext(FavoriteContext);
-  console.log("User token:", jwt);  
+  const [itineraries, setItineraries] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
-  const {
-    currentPage,
-    searchKeyword,
-    data: itinerariesData,
-    isLoading,
-    isFetching,
-    isLoadingDeleteData,
-    searchKeywordHandler,
-    submitSearchKeywordHandler,
-    deleteDataHandler,
-    setCurrentPage,
-  } = useDataTable({
-    dataQueryFn: () => getUserItineraries({ searchKeyword, page: currentPage, limit: 10, token: jwt }),
-    dataQueryKey: "userItineraries",
-    deleteDataMessage: "Itinerario Borrado",
-    mutateDeleteFn: ({ slug, token }) => {
-      console.log("mutateDeleteFn slug:", slug);  
-      if (!slug) {
-        console.error("Slug is undefined, cannot delete itinerary.");
-        return;
+  useEffect(() => {
+    const fetchItineraries = async () => {
+      try {
+        const { data } = await getUserItineraries("", 1, 10, jwt);
+        setItineraries(data.data || []); // Asegurarse de que data.data sea un array
+      } catch (error) {
+        setError(error.message);
+        toast.error("Error al cargar los itinerarios");
+      } finally {
+        setLoading(false);
       }
-      return deleteItinerary({
-        slug,
-        token,
-      });
-    },
-  });
+    };
 
-  console.log("Itineraries data:", itinerariesData);  
+    fetchItineraries();
+  }, [jwt]);
+
+  const handleDelete = async (id) => {
+    if (window.confirm("¿Estás seguro de que deseas eliminar este itinerario?")) {
+      try {
+        await deleteItinerary({ id, token: jwt });
+        setItineraries(itineraries.filter(itinerary => itinerary._id !== id));
+        toast.success("Itinerario eliminado exitosamente");
+      } catch (error) {
+        toast.error("Error al eliminar el itinerario");
+      }
+    }
+  };
+
+  if (loading) {
+    return <div>Cargando...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
 
   return (
-    <DataTable
-      pageTitle="Administrar tus Itinerarios"
-      dataListName="Itinerarios"
-      searchInputPlaceHolder="Título Itinerario..."
-      searchKeywordOnSubmitHandler={submitSearchKeywordHandler}
-      searchKeywordOnChangeHandler={searchKeywordHandler}
-      searchKeyword={searchKeyword}
-      tableHeaderTitleList={["Título", "Fecha de Inicio", "Fecha de Fin", "Presupuesto Total", ""]}
-      isLoading={isLoading}
-      isFetching={isFetching}
-      data={itinerariesData}
-      setCurrentPage={setCurrentPage}
-      currentPage={currentPage}
-      headers={itinerariesData?.headers}
-    >
-      {itinerariesData?.length > 0 ? (
-        itinerariesData.map((itinerary) => (
-          <tr key={itinerary._id}>
-            <td className="px-5 py-5 text-sm bg-white border-b border-gray-200">
-              <div className="flex items-center">
-                <div className="ml-3">
-                  <p className="text-gray-900 whitespace-no-wrap">{itinerary.title}</p>
+    <div className="container mx-auto max-w-5xl px-5 py-5">
+      <div className="flex justify-between items-center mb-5">
+        <h1 className="text-2xl font-semibold">Mis Itinerarios</h1>
+      </div>
+      {itineraries.length === 0 ? (
+        <p>No tienes itinerarios guardados.</p>
+      ) : (
+        <ul>
+          {itineraries.map(itinerary => (
+            <li key={itinerary._id} className="mb-4">
+              <div className="flex justify-between items-center">
+                <div>
+                  <Link to={`/user/itineraries/${itinerary._id}`} className="text-blue-500">
+                    {itinerary.title}
+                  </Link>
+                  <p>Presupuesto Total: {itinerary.totalBudget}</p>
+                  <p>Fecha de Inicio: {new Date(itinerary.startDate).toLocaleDateString()}</p>
+                  <p>Fecha de Fin: {new Date(itinerary.endDate).toLocaleDateString()}</p>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => navigate(`/user/itineraries/manage/edit/${itinerary._id}`)}
+                    className="bg-yellow-500 text-white font-semibold rounded-lg px-4 py-2"
+                  >
+                    Modificar
+                  </button>
+                  <button
+                    onClick={() => navigate(`/user/itineraries/manage/view/${itinerary._id}`)}
+                    className="bg-green-500 text-white font-semibold rounded-lg px-4 py-2"
+                  >
+                    Ver
+                  </button>
+                  <button
+                    onClick={() => handleDelete(itinerary._id)}
+                    className="bg-red-500 text-white font-semibold rounded-lg px-4 py-2"
+                  >
+                    Eliminar
+                  </button>
                 </div>
               </div>
-            </td>
-            <td className="px-5 py-5 text-sm bg-white border-b border-gray-200">
-              <p className="text-gray-900 whitespace-no-wrap">
-                {new Date(itinerary.startDate).toLocaleDateString("es-ES", {
-                  day: "numeric",
-                  month: "short",
-                  year: "numeric",
-                })}
-              </p>
-            </td>
-            <td className="px-5 py-5 text-sm bg-white border-b border-gray-200">
-              <p className="text-gray-900 whitespace-no-wrap">
-                {new Date(itinerary.endDate).toLocaleDateString("es-ES", {
-                  day: "numeric",
-                  month: "short",
-                  year: "numeric",
-                })}
-              </p>
-            </td>
-            <td className="px-5 py-5 text-sm bg-white border-b border-gray-200">
-              <p className="text-gray-900 whitespace-no-wrap">
-                {itinerary.totalBudget.toLocaleString("es-ES", {
-                  style: "currency",
-                  currency: "EUR",
-                })}
-              </p>
-            </td>
-            <td className="px-5 py-5 text-sm bg-white border-b border-gray-200 space-x-5">
-            <button
-                disabled={isLoadingDeleteData}
-                type="button"
-                className="text-red-600 hover:text-red-900 disabled:opacity-70 disabled:cursor-not-allowed"
-                onClick={() => {
-                  const slug = itinerary.slug || itinerary._id;  
-                  console.log("Deleting itinerary with slug:", slug);  
-                  deleteDataHandler({
-                    slug,  
-                    token: jwt,
-                  });
-                }}
-              >
-                Borrar
-              </button>
-              <Link
-                to={`/user/itineraries/manage/edit/${itinerary._id}`}
-                className="text-green-600 hover:text-green-900"
-              >
-                Editar
-              </Link>
-              <Link
-                to={`/user/itineraries/manage/view/${itinerary._id}`}
-                className="text-blue-600 hover:text-blue-900"
-              >
-                Vista
-              </Link>
-            </td>
-          </tr>
-        ))
-      ) : (
-        <tr>
-          <td colSpan="5" className="px-5 py-5 text-sm bg-white border-b border-gray-200 text-center">
-            No se encontraron itinerarios
-          </td>
-        </tr>
+            </li>
+          ))}
+        </ul>
       )}
-    </DataTable>
+    </div>
   );
 };
 
