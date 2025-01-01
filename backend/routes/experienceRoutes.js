@@ -6,6 +6,7 @@ import {
   getAllExperiences,
   getExperience,
   updateExperience,
+  getExperienceById, 
 } from "../controllers/experienceControllers";
 import { authGuard, adminGuard } from "../middleware/authMiddleware";
 
@@ -15,5 +16,8 @@ router
   .put(authGuard, adminGuard, updateExperience)
   .delete(authGuard, adminGuard, deleteExperience)
   .get(getExperience);
+
+
+router.route("/id/:id").get(getExperienceById);
 
 export default router;

@@ -1,128 +1,80 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { useParams } from 'react-router-dom';
-import Carousel from 'react-multi-carousel';
-import 'react-multi-carousel/lib/styles.css';
-import useUser from "../../../../hooks/useUser";
-import FavoriteContext from "../../../../context/FavoriteContext";
-import { getSingleItineraryWithDetails } from "../../../../services/index/itinerary";
-import { stables, images } from "../../../../constants";
+import React, { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import { toast } from "react-hot-toast";
-
-const responsive = {
-    superLargeDesktop: {
-        breakpoint: { max: 4000, min: 3000 },
-        items: 5,
-        slidesToSlide: 1
-    },
-    desktop: {
-        breakpoint: { max: 3000, min: 1024 },
-        items: 3,
-        slidesToSlide: 1
-    },
-    tablet: {
-        breakpoint: { max: 1024, min: 464 },
-        items: 2,
-        slidesToSlide: 1
-    },
-    mobile: {
-        breakpoint: { max: 464, min: 0 },
-        items: 1,
-        slidesToSlide: 1
-    }
-};
+import axios from "axios";
+import { stables, images } from "../../../../constants";
+import useUser from "../../../../hooks/useUser";
 
 const ItineraryDetailPage = () => {
-    const { id } = useParams();
-    const { user, jwt } = useUser();
-    const { favorites } = useContext(FavoriteContext);
-    const [itinerary, setItinerary] = useState(null);
-    const [days, setDays] = useState([]);
-    const [hotels, setHotels] = useState([]);
-    const [activitiesList, setActivitiesList] = useState([]);
-    const [restaurantsList, setRestaurantsList] = useState([]);
+  const [itinerary, setItinerary] = useState(null);
+  const { id } = useParams();
+  const { user, jwt } = useUser(); // Asegurarse de que estamos obteniendo el usuario y el token
 
-    useEffect(() => {
-        const fetchItinerary = async () => {
-            try {
-                const data = await getSingleItineraryWithDetails(id, jwt);
-                console.log('Fetched itinerary with details:', data);
-                // Filtrar días vacíos o no deseados
-                const validDays = data.days.filter(day => day.date || day.activities.length || day.restaurants.length || day.hotel);
-                setItinerary(data);
-                setDays(validDays);
-                // Aquí puedes cargar los hoteles, actividades y restaurantes si es necesario
-            } catch (error) {
-                toast.error('Error fetching itinerary');
-                console.error('Error fetching itinerary:', error);
-            }
+  useEffect(() => {
+    const fetchItinerary = async () => {
+      try {
+        const config = {
+          headers: {
+            Authorization: `Bearer ${jwt}`,
+          },
         };
+        const { data } = await axios.get(`/api/itineraries/${id}`, config);
+        setItinerary(data);
+      } catch (error) {
+        toast.error("Error fetching itinerary");
+        console.error("Error fetching itinerary:", error);
+      }
+    };
 
-        fetchItinerary();
-    }, [id, jwt]);
-
-    if (!itinerary) {
-        return <div>Cargando...</div>;
+    if (jwt) {
+      fetchItinerary();
     }
+  }, [id, jwt]);
 
-    return (
-        <div className="container mx-auto max-w-5xl flex flex-col px-5 py-5">
-            <h2 className="text-2xl font-semibold mb-5">{itinerary.title}</h2>
-            <p>Fecha de inicio: {new Date(itinerary.startDate).toLocaleDateString()}</p>
-            <p>Fecha de fin: {new Date(itinerary.endDate).toLocaleDateString()}</p>
-            <p>Presupuesto total: {itinerary.totalBudget}</p>
-            <Carousel responsive={responsive} itemClass="px-2">
-                {days.sort((a, b) => new Date(a.date) - new Date(b.date)).map((day, index) => {
-                    console.log('Day data:', day);
-                    const hotelData = hotels.find(h => h._id === day.hotel);
-                    return (
-                        <div key={day._id} className="px-2">
-                            <div className="card mb-4 border p-4 rounded-lg" style={{ height: '400px', width: '100%' }}>
-                                <div className="flex justify-between items-start">
-                                    <div>
-                                        <h3 className="text-lg font-semibold">Fecha</h3>
-                                        <p>{new Date(day.date).toLocaleDateString()}</p>
-                                        <h3 className="text-lg font-semibold">Prefectura</h3>
-                                        <p>{day.prefecture}</p>
-                                        <h3 className="text-lg font-semibold">Hotel</h3>
-                                        {hotelData && hotelData.experienceId ? (
-                                            <div className="flex items-center gap-2">
-                                                <img className="rounded-xl w-16 h-16 object-cover" src={hotelData.experienceId.photo ? stables.UPLOAD_FOLDER_BASE_URL + hotelData.experienceId.photo : images.sampleExperienceImage} alt={hotelData.experienceId.title} />
-                                                <span>{hotelData.experienceId.title}</span>
-                                            </div>
-                                        ) : (
-                                            <p>No hay hotel seleccionado</p>
-                                        )}
-                                        <h3 className="text-lg font-semibold">Actividades</h3>
-                                        {day.activities.map(activity => {
-                                            const activityData = activitiesList.find(a => a._id === activity);
-                                            return (
-                                                <div key={activity} className="flex items-center gap-2">
-                                                    <img className="rounded-xl w-16 h-16 object-cover" src={activityData?.experienceId?.photo ? stables.UPLOAD_FOLDER_BASE_URL + activityData.experienceId.photo : images.sampleExperienceImage} alt={activityData?.experienceId?.title} />
-                                                    <span>{activityData?.experienceId?.title}</span>
-                                                </div>
-                                            );
-                                        })}
-                                        <h3 className="text-lg font-semibold">Restaurantes</h3>
-                                        {day.restaurants.map(restaurant => {
-                                            const restaurantData = restaurantsList.find(r => r._id === restaurant);
-                                            return (
-                                                <div key={restaurant} className="flex items-center gap-2">
-                                                    <img className="rounded-xl w-16 h-16 object-cover" src={restaurantData?.experienceId?.photo ? stables.UPLOAD_FOLDER_BASE_URL + restaurantData.experienceId.photo : images.sampleExperienceImage} alt={restaurantData?.experienceId?.title} />
-                                                    <span>{restaurantData?.experienceId?.title}</span>
-                                                </div>
-                                            );
-                                        })}
-                                        <h3 className="text-lg font-semibold">Presupuesto del día</h3>
-                                        <p>{day.budget}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    );
-                })}
-            </Carousel>
-        </div>
-    );
+  if (!itinerary) {
+    return <div>Loading...</div>;
+  }
+
+  return (
+    <div className="itinerary-detail container mx-auto max-w-5xl px-5 py-5">
+      <h1 className="text-2xl font-bold mb-4">{itinerary.name}</h1>
+      <p><strong>Travel Days:</strong> {itinerary.travelDays}</p>
+      <p><strong>Total Budget:</strong> {itinerary.totalBudget}</p>
+      <p><strong>Notes:</strong> {itinerary.notes}</p>
+      <div className="boards mt-4">
+        {itinerary.boards.map((board, index) => (
+          <div key={index} className="board mb-4 p-4 border border-gray-300 rounded-md">
+            <h3 className="text-lg font-medium mb-2">Day {index + 1} - {board.date}</h3>
+            <p><strong>Daily Budget:</strong> {board.dailyBudget}</p>
+            <div>
+              <h4 className="text-md font-medium mb-2">Favorites</h4>
+              <ul>
+                {board.favorites.length > 0 ? (
+                  board.favorites.map((favorite, favIndex) => (
+                    <li key={`${index}-${favorite.favoriteId || favIndex}`} className="flex items-center mb-2">
+                      <img
+                        src={favorite.experience?.photo
+                          ? stables.UPLOAD_FOLDER_BASE_URL + favorite.experience.photo
+                          : images.sampleFavoriteImage}
+                        alt={favorite.experience?.title || "Default Image"}
+                        className="w-10 h-10 object-cover rounded-lg mr-2"
+                      />
+                      <div>
+                        <p className="text-sm font-medium">{favorite.experience?.title || "No Title"}</p>
+                        <p className="text-sm text-gray-500">{favorite.experience?.prefecture || "No Prefecture"}</p>
+                      </div>
+                    </li>
+                  ))
+                ) : (
+                  <p>No favorites available for this day.</p>
+                )}
+              </ul>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 };
 
 export default ItineraryDetailPage;

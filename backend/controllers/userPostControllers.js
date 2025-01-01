@@ -35,7 +35,7 @@ const updatePost = async (req, res, next) => {
       return;
     }
 
-    if (post.user.toString() !== req.user._id.toString()) {
+    if (post.user.toString() !== req.user._id.toString() && !req.user.admin) {
       res.status(401);
       throw new Error("No autorizado");
     }
@@ -92,7 +92,7 @@ const deletePost = async (req, res, next) => {
       return next(error);
     }
     
-    if (post.user.toString() !== req.user._id.toString()) {
+    if (post.user.toString() !== req.user._id.toString() && !req.user.admin) {
       res.status(401);
       throw new Error("No autorizado");
     }

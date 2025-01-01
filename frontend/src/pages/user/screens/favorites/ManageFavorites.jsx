@@ -11,7 +11,7 @@ import { toast } from "react-hot-toast";
 const ManageFavorites = () => {
   const { user, jwt } = useUser();
   const { favorites, setFavorites, addFavorite, removeFavorite } = useContext(FavoriteContext);  
-  const [filteredFavorites, setFilteredFavorites] = useState(null);
+  const [filteredFavorites, setFilteredFavorites] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isFetching, setIsFetching] = useState(false);
   const [isLoadingDeleteData, setIsLoadingDeleteData] = useState(false);
@@ -20,7 +20,9 @@ const ManageFavorites = () => {
 
   useEffect(() => {
     if (favorites) {
-      const updatedFavorites = favorites.map(fav => ({ ...fav, isFavorite: true }));
+      const updatedFavorites = favorites
+        .filter(fav => fav !== null && fav.experienceId !== null) // Filtrar favoritos nulos
+        .map(fav => ({ ...fav, isFavorite: true }));
       setFilteredFavorites(updatedFavorites);
       setIsLoading(false);
     }
@@ -33,9 +35,11 @@ const ManageFavorites = () => {
   const submitSearchKeywordHandler = (e) => {
     e.preventDefault();
     if (favorites) {
-      const filtered = favorites.filter((favorite) =>
-        favorite.experienceId.title.toLowerCase().includes(searchKeyword.toLowerCase())
-      );
+      const filtered = favorites
+        .filter(favorite => favorite !== null && favorite.experienceId !== null) // Filtrar favoritos nulos
+        .filter((favorite) =>
+          favorite.experienceId.title.toLowerCase().includes(searchKeyword.toLowerCase())
+        );
       setFilteredFavorites(filtered);
     }
   };

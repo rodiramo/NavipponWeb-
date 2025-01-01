@@ -1,28 +1,14 @@
 import axios from "axios";
 
-export const getAllItineraries = async () => {
-    try {
-        const { data } = await axios.get('/api/itineraries');
-        return data;
-    } catch (error) {
-        if (error.response && error.response.data.message)
-            throw new Error(error.response.data.message);
-        throw new Error(error.message);
-    }
-};
-
-export const getUserItineraries = async (searchKeyword = "", page = 1, limit = 10, token) => {
+export const getUserItineraries = async (userId, token) => {
     try {
         const config = {
             headers: {
                 Authorization: `Bearer ${token}`,
             },
         };
-        const { data, headers } = await axios.get(
-            `/api/itineraries?searchKeyword=${searchKeyword}&page=${page}&limit=${limit}`,
-            config
-        );
-        return { data, headers };
+        const { data } = await axios.get(`/api/itineraries?userId=${userId}`, config);
+        return data;
     } catch (error) {
         if (error.response && error.response.data.message)
             throw new Error(error.response.data.message);
@@ -46,15 +32,29 @@ export const getSingleItinerary = async (id, token) => {
     }
 };
 
-export const createItinerary = async ({ token, itineraryData }) => {
+export const deleteItinerary = async (id, token) => {
     try {
         const config = {
             headers: {
                 Authorization: `Bearer ${token}`,
             },
         };
+        await axios.delete(`/api/itineraries/${id}`, config);
+    } catch (error) {
+        if (error.response && error.response.data.message)
+            throw new Error(error.response.data.message);
+        throw new Error(error.message);
+    }
+};
 
-        const { data } = await axios.post('/api/itineraries', itineraryData, config);
+export const updateItinerary = async (id, updatedData, token) => {
+    try {
+        const config = {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        };
+        const { data } = await axios.patch(`/api/itineraries/${id}`, updatedData, config);
         return data;
     } catch (error) {
         if (error.response && error.response.data.message)
@@ -63,63 +63,18 @@ export const createItinerary = async ({ token, itineraryData }) => {
     }
 };
 
-export const updateItinerary = async ({ id, token, updatedData }) => {
+export const createItinerary = async (itineraryData, token) => {
     try {
         const config = {
             headers: {
                 Authorization: `Bearer ${token}`,
             },
         };
-
-        const { data } = await axios.put(`/api/itineraries/${id}`, updatedData, config);
+        const { data } = await axios.post(`/api/itineraries`, itineraryData, config);
         return data;
     } catch (error) {
         if (error.response && error.response.data.message)
             throw new Error(error.response.data.message);
         throw new Error(error.message);
     }
-};
-
-export const deleteItinerary = async ({ id, token }) => {
-    try {
-        const config = {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
-        };
-
-        const { data } = await axios.delete(`/api/itineraries/${id}`, config);
-        return data;
-    } catch (error) {
-        if (error.response && error.response.data.message)
-            throw new Error(error.response.data.message);
-        throw new Error(error.message);
-    }
-};
-
-// Nuevo método para obtener días con experiencias
-export const getDaysWithExperiences = async ({ userId, token }) => {
-    try {
-        const config = {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
-        };
-        const { data } = await axios.get(`/api/itineraries/days/experiences?userId=${userId}`, config);
-        return data;
-    } catch (error) {
-        if (error.response && error.response.data.message)
-            throw new Error(error.response.data.message);
-        throw new Error(error.message);
-    }
-};
-
-// Nuevo método para obtener los detalles completos del itinerario
-export const getSingleItineraryWithDetails = async (id, token) => {
-    const response = await axios.get(`/api/itineraries/${id}/details`, {
-        headers: {
-            Authorization: `Bearer ${token}`
-        }
-    });
-    return response.data;
 };

@@ -12,7 +12,7 @@ import useUser from "../../../../hooks/useUser";
 import { createUserPost } from "../../../../services/index/userPosts";
 import { createUserExperience } from "../../../../services/index/userExperiences";
 import { createItinerary } from "../../../../services/index/itinerary";
-import { FaRegUserCircle } from "react-icons/fa";
+import { FaRegUserCircle, FaRobot } from "react-icons/fa";
 
 const Header = () => {
   const navigate = useNavigate();
@@ -239,10 +239,39 @@ const Header = () => {
                   Crear nuevo itinerario
                 </button>
               </NavItemCollapse>
+
+      {/* Nuevo apartado de Navibot */}
+      <NavItem
+        title="Navibot"
+        link="/user/chat/bot"
+        icon={<FaRobot className="text-xl text-white" />} // Cambiar el icono a un robot
+        name="navibot"
+        activeNavName={activeNavName}
+        setActiveNavName={setActiveNavName}
+        className="hover:text-[#FF4A5A]"
+        onClick={isMobile() ? toggleMenuHandler : undefined}
+      />
+
+              { }
+              <NavItem
+                title="Volver a inicio"
+                link="/"
+                icon={<MdDashboard className="text-xl text-white" />}
+                name="home"
+                activeNavName={activeNavName}
+                setActiveNavName={setActiveNavName}
+                className="hover:text-[#FF4A5A]"
+                onClick={isMobile() ? toggleMenuHandler : undefined}
+              />
             </div>
+            
           </div>
         </div>
       )}
+      {/* logo */}
+      <Link to="/">
+        <img src={images.Logo} alt="logo" className="w-16 lg:hidden" />
+      </Link>
     </header>
   );
 };

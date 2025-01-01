@@ -1,6 +1,7 @@
 import { Routes, Route } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 
+
 import "./App.css";
 import ArticleDetailPage from "./pages/articleDetail/ArticleDetailPage";
 import HomePage from "./pages/home/HomePage";
@@ -32,6 +33,9 @@ import ManageItineraries from "./pages/user/screens/itineraries/ManageItinerarie
 import EditItinerary from "./pages/user/screens/itineraries/EditItinerary";  
 import CreateItinerary from "./pages/user/screens/itineraries/CreateItinerary";  
 import ItineraryDetailPage from "./pages/user/screens/itineraries/ItineraryDetailPage";
+import ChatWithBot from "./pages/user/screens/chat/ChatWithBot";  
+
+
 
 function App() {
   return (
@@ -70,7 +74,8 @@ function App() {
           <Route path="itineraries/manage" element={<ManageItineraries />} /> 
           <Route path="itineraries/manage/create" element={<CreateItinerary />} />
           <Route path="itineraries/manage/edit/:id" element={<EditItinerary />} />
-          <Route path="itineraries/manage/view/:id" element={<ItineraryDetailPage />} />  
+          <Route path="itineraries/manage/view/:id" element={<ItineraryDetailPage />} />
+          <Route path="chat/bot" element={<ChatWithBot />} />            
         </Route>
       </Routes>
       <Toaster />

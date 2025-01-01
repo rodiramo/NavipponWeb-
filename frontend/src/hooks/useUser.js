@@ -1,10 +1,16 @@
-import { useCallback, useContext, useState } from 'react';
+import { useCallback, useContext, useState, useEffect } from 'react';
 import Context from '../context/UserContext';
 import { login as loginService, signup as signupService, getUserProfile } from '../services/index/users';
 
 export default function useUser() {
   const { user, jwt, setUser, setJWT } = useContext(Context);
   const [state, setState] = useState({ loading: false, error: false });
+
+  // Agregar useEffect para obtener el perfil del usuario cuando el JWT cambie
+  useEffect(() => {
+    if (!jwt) return;
+    getUserProfile({ token: jwt }).then(setUser).catch(() => setUser(null));
+  }, [jwt, setUser]);
 
   const login = useCallback(async ({ email, password }) => {
     setState({ loading: true, error: false });

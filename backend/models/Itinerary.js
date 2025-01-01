@@ -1,14 +1,28 @@
-const mongoose = require('mongoose');
-const { Schema } = mongoose;
+import { Schema, model } from "mongoose";
 
-const itinerarySchema = new Schema({
-    title: { type: String, required: false },
-    startDate: { type: Date, required: false },
-    endDate: { type: Date, required: false },
-    userId: { type: Schema.Types.ObjectId, ref: 'User', required: false },
-    totalBudget: { type: Number, required: false, default: 0 },
-    days: [{ type: Schema.Types.ObjectId, ref: 'Day' }]
-});
+const ItinerarySchema = new Schema(
+    {
+        name: { type: String, required: true },
+        travelDays: { type: Number, required: true },
+        totalBudget: { type: Number, required: true },
+        boards: [
+            {
+                date: { type: String, required: true },
+                favorites: [
+                    {
+                        type: Schema.Types.ObjectId,
+                        ref: 'Favorite',
+                        required: true
+                    }
+                ],
+                dailyBudget: { type: Number, required: true },
+            },
+        ],
+        notes: { type: String },
+        user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    },
+    { timestamps: true }
+);
 
-const Itinerary = mongoose.model('Itinerary', itinerarySchema);
-module.exports = Itinerary;
+const Itinerary = model("Itinerary", ItinerarySchema);
+export default Itinerary;

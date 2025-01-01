@@ -152,7 +152,7 @@ const EditPost = () => {
             <button
               type="button"
               onClick={handleDeleteImage}
-              className="w-fit bg-red-500 text-sm text-white font-semibold rounded-lg px-2 py-1 mt-5"
+              className="w-fit bg-red-500 text-sm text-white font-semibold rounded-lg px-2 py-1 mt-5" 
             >
               Borrar imagen
             </button>

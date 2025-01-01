@@ -196,4 +196,16 @@ const getAllExperiences = async (req, res, next) => {
     }
 };
 
-export { createExperience, updateExperience, deleteExperience, getExperience, getAllExperiences };
+const getExperienceById = async (req, res) => {
+    try {
+        const experience = await Experience.findById(req.params.id);
+        if (!experience) {
+            return res.status(404).json({ error: 'Experiencia no encontrada' });
+        }
+        res.json(experience);
+    } catch (error) {
+        res.status(400).json({ error: 'ID inválido o solicitud mal formada' });
+    }
+};
+
+export { createExperience, updateExperience, deleteExperience, getExperience, getAllExperiences, getExperienceById };
