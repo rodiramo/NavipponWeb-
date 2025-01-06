@@ -36,11 +36,14 @@ const CreateItinerary = () => {
   useEffect(() => {
     const fetchFavorites = async () => {
       try {
+        console.log("Fetching favorites for user:", user);
         const data = await getUserFavorites({ userId: user._id, token: jwt });
+        console.log("Favorites data:", data);
         setFavorites(data.filter(favorite => favorite.experienceId !== null));
         setFilteredFavorites(data.filter(favorite => favorite.experienceId !== null));
       } catch (error) {
         toast.error('Error fetching favorites');
+        console.log("Error fetching favorites:", error);
       }
     };
 
@@ -119,6 +122,7 @@ const CreateItinerary = () => {
       navigate(`/user/itineraries/manage/view/${response._id}`);
     } catch (error) {
       toast.error('Error creating itinerary');
+      console.log("Error creating itinerary:", error);
     }
   };
 

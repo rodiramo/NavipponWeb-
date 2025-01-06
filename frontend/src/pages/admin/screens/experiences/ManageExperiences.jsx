@@ -94,13 +94,13 @@ const ManageExperiences = () => {
           </td>
           <td className="px-5 py-5 text-sm bg-white border-b border-gray-200">
             <div className="flex gap-x-2">
-              {experience.tags.length > 0
+              {experience.tags && experience.tags.length > 0
                 ? experience.tags.map((tag, index) => (
-                    <p key={index}>
-                      {tag}
-                      {experience.tags.length - 1 !== index && ","}
-                    </p>
-                  ))
+                  <p key={index}>
+                    {tag}
+                    {experience.tags.length - 1 !== index && ","}
+                  </p>
+                ))
                 : "Sin etiquetas"}
             </div>
           </td>

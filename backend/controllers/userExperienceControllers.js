@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from "uuid";
 
 const createExperience = async (req, res, next) => {
     try {
-        const { title, caption, body, photo, categories, tags, region, prefecture } = req.body;
+        const { title, caption, body, photo, categories, generalTags, hotelTags, attractionTags, restaurantTags, region, prefecture, price, phone, email, website, schedule, map, address } = req.body;
         const experience = new Experience({
             title: title || "sample title",
             caption: caption || "sample caption",
@@ -14,10 +14,22 @@ const createExperience = async (req, res, next) => {
             body: body || { type: "doc", content: [] },
             photo: photo || "",
             user: req.user._id,
-            categories: categories || "Hoteles", 
-            tags: tags || [],
+            approved: false,
+            categories: categories || "Hoteles",
+            generalTags: generalTags || {},
+            hotelTags: hotelTags || {},
+            attractionTags: attractionTags || [],
+            restaurantTags: restaurantTags || {},
             region: region || "Hokkaido",
             prefecture: prefecture || "Hokkaido",
+            price: price !== undefined ? price : 0,
+            phone: phone || "",
+            email: email || "",
+            website: website || "",
+            schedule: schedule || "",
+            map: map || "",
+            address: address || "",
+            favoritesCount: 0,
         });
 
         const createdExperience = await experience.save();
@@ -45,15 +57,26 @@ const updateExperience = async (req, res, next) => {
         const upload = uploadPicture.single("experiencePicture");
 
         const handleUpdateExperienceData = async (data) => {
-            const { title, caption, slug, body, tags, categories, region, prefecture } = JSON.parse(data);
+            const { title, caption, slug, body, generalTags, hotelTags, attractionTags, restaurantTags, categories, approved, region, prefecture, price, phone, email, website, schedule, map, address } = JSON.parse(data);
             experience.title = title || experience.title;
             experience.caption = caption || experience.caption;
             experience.slug = slug || experience.slug;
-            experience.body = body || experience.body;    
-            experience.tags = tags || experience.tags;
+            experience.body = body || experience.body;
+            experience.generalTags = generalTags || experience.generalTags;
+            experience.hotelTags = hotelTags || experience.hotelTags;
+            experience.attractionTags = attractionTags || experience.attractionTags;
+            experience.restaurantTags = restaurantTags || experience.restaurantTags;
             experience.categories = categories || experience.categories;
+            experience.approved = approved !== undefined ? approved : experience.approved;
             experience.region = region || experience.region;
             experience.prefecture = prefecture || experience.prefecture;
+            experience.price = price !== undefined ? price : experience.price;
+            experience.phone = phone || experience.phone;
+            experience.email = email || experience.email;
+            experience.website = website || experience.website;
+            experience.schedule = schedule || experience.schedule;
+            experience.map = map || experience.map;
+            experience.address = address || experience.address;
             const updatedExperience = await experience.save();
             return res.json(updatedExperience);
         };
@@ -158,14 +181,14 @@ const getUserExperiences = async (req, res, next) => {
 
 const getSingleUserExperience = async (req, res, next) => {
     try {
-        const experience = await Experience.findOne({ slug: req.params.slug, user: req.user._id });
-        if (!experience) {
-            return res.status(404).json({ message: "Experiencia no encontrada" });
-        }
-        res.json(experience);
+      const experience = await Experience.findOne({ slug: req.params.slug, user: req.user._id });
+      if (!experience) {
+        return res.status(404).json({ message: "Experiencia no encontrada" });
+      }
+      res.json(experience);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+      res.status(500).json({ message: error.message });
     }
-};
+  };
 
 export { createExperience, updateExperience, deleteExperience, getUserExperiences, getSingleUserExperience };

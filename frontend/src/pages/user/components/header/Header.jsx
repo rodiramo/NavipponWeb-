@@ -117,7 +117,7 @@ const Header = () => {
 
   const handleCreateNewItinerary = () => {
     if (jwt) {
-      mutateCreateItinerary({ token: jwt });
+      navigate("/user/itineraries/manage/create", { state: { token: jwt } });
     } else {
       toast.error("Debes estar logueado para crear un nuevo itinerario");
     }
