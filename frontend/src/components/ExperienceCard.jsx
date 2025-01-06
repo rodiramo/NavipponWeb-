@@ -1,24 +1,16 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import { AiFillHeart, AiOutlineHeart, AiOutlineClose } from "react-icons/ai";
 import { BsCheckLg } from "react-icons/bs";
 import { Link } from "react-router-dom";
 import { toast } from "react-hot-toast";
-import { addFavorite as addFavoriteService, removeFavorite as removeFavoriteService, getFavoritesCount as getFavoritesCountService } from "../services/index/favorites";
-import FavoriteContext from "../context/FavoriteContext"; 
+import { addFavorite as addFavoriteService, removeFavorite as removeFavoriteService, getFavoritesCount as getFavoritesCountService, getUserFavorites } from "../services/index/favorites";
 import { images, stables } from "../constants";
 
-const ExperienceCard = ({ experience, user, token, className }) => {
-    const { favorites, addFavorite, removeFavorite } = useContext(FavoriteContext);
+const ExperienceCard = ({ experience, user, token, className, onFavoriteToggle }) => {
     const [isFavorite, setIsFavorite] = useState(false);
     const [favoritesCount, setFavoritesCount] = useState(0);
 
-    console.log("Favorites in ExperienceCard:", favorites);  
-
     useEffect(() => {
-        const isFav = favorites.some(fav => fav.experienceId && fav.experienceId._id === experience._id);
-        setIsFavorite(isFav);
-        console.log("Is experience favorite?", experience._id, isFav); 
-
         const fetchFavoritesCount = async () => {
             try {
                 const response = await getFavoritesCountService(experience._id);
@@ -29,7 +21,23 @@ const ExperienceCard = ({ experience, user, token, className }) => {
         };
 
         fetchFavoritesCount();
-    }, [favorites, experience._id]);
+    }, [experience._id]);
+
+    useEffect(() => {
+        if (user && token) {
+            const fetchFavorites = async () => {
+                try {
+                    const favorites = await getUserFavorites({ userId: user._id, token });
+                    const isFav = favorites.some(fav => fav.experienceId && fav.experienceId._id === experience._id);
+                    setIsFavorite(isFav);
+                } catch (error) {
+                    console.error("Error fetching user favorites:", error);
+                }
+            };
+
+            fetchFavorites();
+        }
+    }, [user, token, experience._id]);
 
     const handleFavoriteClick = async () => {
         if (!user || !token) {
@@ -40,18 +48,16 @@ const ExperienceCard = ({ experience, user, token, className }) => {
         try {
             if (isFavorite) {
                 const response = await removeFavoriteService({ userId: user._id, experienceId: experience._id, token });
-                removeFavorite(experience._id);   
-                setIsFavorite(false);  
-                setFavoritesCount(response.favoritesCount);   
+                setIsFavorite(false);
+                setFavoritesCount(response.favoritesCount);
                 toast.success("Se eliminó de favoritos");
             } else {
                 const response = await addFavoriteService({ userId: user._id, experienceId: experience._id, token });
-                addFavorite({ userId: user._id, experienceId: experience._id });   
-                setIsFavorite(true); 
-                setFavoritesCount(response.favoritesCount);  
+                setIsFavorite(true);
+                setFavoritesCount(response.favoritesCount);
                 toast.success("Se agregó a favoritos");
             }
-            window.location.reload();  
+            onFavoriteToggle();
         } catch (error) {
             if (error.response && error.response.status === 400) {
                 toast.error("La experiencia ya está en tus favoritos");

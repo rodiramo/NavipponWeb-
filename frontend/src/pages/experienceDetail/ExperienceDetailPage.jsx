@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { AiFillHeart, AiOutlineHeart } from "react-icons/ai";
 import { toast } from "react-hot-toast";
@@ -14,14 +14,12 @@ import ExperienceDetailSkeleton from "./components/ExperienceDetailSkeleton";
 import ErrorMessage from "../../components/ErrorMessage";
 import parseJsonToHtml from "../../utils/parseJsonToHtml";
 import Editor from "../../components/editor/Editor";
-import useUser from "../../hooks/useUser";  
-import { addFavorite as addFavoriteService, removeFavorite as removeFavoriteService } from "../../services/index/favorites";  
-import FavoriteContext from "../../context/FavoriteContext";  
+import useUser from "../../hooks/useUser";
+import { addFavorite as addFavoriteService, removeFavorite as removeFavoriteService, getUserFavorites } from "../../services/index/favorites";
 
 const ExperienceDetailPage = () => {
   const { slug } = useParams();
-  const { user, jwt: token } = useUser();  
-  const { favorites, addFavorite, removeFavorite } = useContext(FavoriteContext);
+  const { user, jwt } = useUser();
   const [breadCrumbsData, setbreadCrumbsData] = useState([]);
   const [body, setBody] = useState(null);
   const [isFavorite, setIsFavorite] = useState(false);
@@ -29,15 +27,18 @@ const ExperienceDetailPage = () => {
   const { data, isLoading, isError } = useQuery({
     queryFn: () => getSingleExperience({ slug }),
     queryKey: ["experience", slug],
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       setbreadCrumbsData([
         { name: "Home", link: "/" },
         { name: "Experience", link: "/experience" },
         { name: "Detalle", link: `/experience/${data.slug}` },
       ]);
       setBody(parseJsonToHtml(data?.body));
-      const isFav = favorites?.some(fav => fav.experienceId?._id === data?._id);
-      setIsFavorite(isFav);
+      if (user && jwt) {
+        const favorites = await getUserFavorites({ userId: user._id, token: jwt });
+        const isFav = favorites.some(fav => fav.experienceId && fav.experienceId._id === data._id);
+        setIsFavorite(isFav);
+      }
     },
   });
 
@@ -47,43 +48,34 @@ const ExperienceDetailPage = () => {
   });
 
   useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
-
-  useEffect(() => {
-    if (data) {
-      const isFav = favorites?.some(fav => fav.experienceId?._id === data?._id);
-      setIsFavorite(isFav);
+    if (data && user && jwt) {
+      getUserFavorites({ userId: user._id, token: jwt })
+        .then(favorites => {
+          const isFav = favorites.some(fav => fav.experienceId && fav.experienceId._id === data._id);
+          setIsFavorite(isFav);
+        })
+        .catch(error => console.error("Error fetching user favorites:", error));
     }
-  }, [favorites, data]);
+  }, [user, jwt, data]);
 
   const handleFavoriteClick = async () => {
-    if (!user || !token) {
+    if (!user || !jwt) {
       toast.error("Debes iniciar sesión para agregar a favoritos");
-      console.log("User or token is not defined");
       return;
     }
 
     try {
       if (isFavorite) {
-        console.log("Removing favorite for user:", user);
-        await removeFavoriteService({ userId: user._id, experienceId: data._id, token });
-        removeFavorite(data._id);
+        await removeFavoriteService({ userId: user._id, experienceId: data._id, token: jwt });
+        setIsFavorite(false);
         toast.success("Se eliminó de favoritos");
       } else {
-        console.log("Adding favorite for user:", user);
-        await addFavoriteService({ userId: user._id, experienceId: data._id, token });
-        addFavorite({ userId: user._id, experienceId: data._id });
+        await addFavoriteService({ userId: user._id, experienceId: data._id, token: jwt });
+        setIsFavorite(true);
         toast.success("Se agregó a favoritos");
       }
-      window.location.reload(); // Recarga toda la página, esto hay que arreglar!!!
     } catch (error) {
-      if (error.response && error.response.status === 400) {
-        toast.error("La experiencia ya está en tus favoritos");
-      } else {
-        toast.error("Error al actualizar favoritos");
-      }
-      console.error("Error updating favorites:", error);
+      toast.error("Error al actualizar favoritos");
     }
   };
 
@@ -99,11 +91,7 @@ const ExperienceDetailPage = () => {
             <BreadCrumbs data={breadCrumbsData} />
             <img
               className="rounded-xl w-full"
-              src={
-                data?.photo
-                  ? stables.UPLOAD_FOLDER_BASE_URL + data?.photo
-                  : images.sampleExperienceImage
-              }
+              src={data?.photo ? stables.UPLOAD_FOLDER_BASE_URL + data?.photo : images.sampleExperienceImage}
               alt={data?.title}
             />
             <div className="mt-4 flex gap-2">
@@ -139,22 +127,20 @@ const ExperienceDetailPage = () => {
               Precio: {data?.price ? `${data.price} €` : "No disponible"}
             </p>
             <div className="w-full mt-4">
-              {!isLoading && !isError && (
-                <Editor content={body} editable={false} />
-              )}
+              <Editor content={body} editable={false} />
             </div>
             <ReviewsContainer
               reviews={data?.reviews}
               className="mt-10"
               logginedUserId={user?._id}
               experienceSlug={slug}
-              jwt={token}  
+              jwt={jwt}  
             />
           </article>
           <div>
             <SuggestedExperiences
               header="Últimas experiencias"
-              experiences={ExperiencesData?.data}  
+              experiences={ExperiencesData?.data}
               tags={data?.tags}
               className="mt-8 lg:mt-0 lg:max-w-xs"
             />
