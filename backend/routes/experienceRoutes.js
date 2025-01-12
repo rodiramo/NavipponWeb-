@@ -7,6 +7,7 @@ import {
   getExperience,
   updateExperience,
   getExperienceById, 
+  getRelatedExperiences,
 } from "../controllers/experienceControllers";
 import { authGuard, adminGuard } from "../middleware/authMiddleware";
 
@@ -19,5 +20,6 @@ router
 
 
 router.route("/id/:id").get(getExperienceById);
+router.route("/related/:category").get(getRelatedExperiences)
 
 export default router;

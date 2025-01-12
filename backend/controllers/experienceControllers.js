@@ -226,4 +226,16 @@ const getExperienceById = async (req, res) => {
     }
 };
 
-export { createExperience, updateExperience, deleteExperience, getExperience, getAllExperiences, getExperienceById };
+const getRelatedExperiences = async (req, res, next) => {
+    try {
+      const { category } = req.params;
+      console.log("Backend category:", category); // Verificar la categoría en el backend
+      const experiences = await Experience.find({ categories: category }).limit(4);
+      console.log("Related experiences:", experiences); // Verificar las experiencias relacionadas en el backend
+      return res.json(experiences);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+export { createExperience, updateExperience, deleteExperience, getExperience, getAllExperiences, getExperienceById, getRelatedExperiences, };

@@ -5,7 +5,7 @@ const ReviewSchema = new Schema(
         user: { type: Schema.Types.ObjectId, ref: "User", required: true },
         desc: { type: String, required: true },
         experience: { type: Schema.Types.ObjectId, ref: "Experience", required: true },  
-        check: { type: Boolean, default: false },
+        check: { type: Boolean, default: true },
         parent: {
             type: Schema.Types.ObjectId,
             ref: "Review",

@@ -10,10 +10,11 @@ import {
 import DataTable from "../../components/DataTable";
 import { images, stables } from "../../../../constants";
 import { Link } from "react-router-dom";
-import useUser from "../../../../hooks/useUser";  
+import useUser from "../../../../hooks/useUser";
+import { FaCheckCircle, FaTimesCircle } from "react-icons/fa"; // Importar íconos
 
 const Comments = () => {
-  const { user, jwt } = useUser();  
+  const { user, jwt } = useUser();
 
   const {
     currentPage,
@@ -28,8 +29,7 @@ const Comments = () => {
     deleteDataHandler,
     setCurrentPage,
   } = useDataTable({
-    dataQueryFn: () =>
-      getAllComments(jwt, searchKeyword, currentPage),
+    dataQueryFn: () => getAllComments(jwt, searchKeyword, currentPage),
     dataQueryKey: "comments",
     deleteDataMessage: "Comentario eliminado",
     mutateDeleteFn: ({ slug, token }) => {
@@ -49,9 +49,7 @@ const Comments = () => {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries(["comments"]);
-      toast.success(
-        data?.check ? "Comentario aprobado" : "Comentario desaprobado"
-      );
+      toast.success(data?.check ? "Comentario aprobado" : "Comentario desaprobado");
     },
     onError: (error) => {
       toast.error(error.message);
@@ -72,7 +70,7 @@ const Comments = () => {
         "Comentario",
         "En respuesta a",
         "Creado",
-        "",
+        "Aprobado", // Cambiar el nombre de la columna
       ]}
       isFetching={isFetching}
       isLoading={isLoading}
@@ -108,7 +106,7 @@ const Comments = () => {
           <td className="px-5 py-5 text-sm bg-white border-b border-gray-200">
             {comment?.replyOnUser !== null && (
               <p className="text-gray-900 whitespace-no-wrap">
-                En respuesta a {" "}
+                En respuesta a{" "}
                 <Link
                   to={`/blog/${comment?.post?.slug}/#comment-${comment?._id}`}
                   className="text-blue-500"
@@ -144,10 +142,7 @@ const Comments = () => {
             <button
               disabled={isLoadingDeleteData}
               type="button"
-              className={`${comment?.check
-                  ? "text-yellow-600 hover:text-yellow-900"
-                  : "text-green-600 hover:text-green-900"
-                } disabled:opacity-70 disabled:cursor-not-allowed`}
+              className="disabled:opacity-70 disabled:cursor-not-allowed"
               onClick={() => {
                 mutateUpdateCommentCheck({
                   token: jwt,
@@ -156,7 +151,11 @@ const Comments = () => {
                 });
               }}
             >
-              {comment?.check ? "Desaprobado" : "Aprobado"}
+              {comment?.check ? (
+                <FaCheckCircle className="text-green-600" />
+              ) : (
+                <FaTimesCircle className="text-red-600" />
+              )}
             </button>
             <button
               disabled={isLoadingDeleteData}

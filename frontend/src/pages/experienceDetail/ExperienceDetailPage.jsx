@@ -16,6 +16,10 @@ import parseJsonToHtml from "../../utils/parseJsonToHtml";
 import Editor from "../../components/editor/Editor";
 import useUser from "../../hooks/useUser";
 import { addFavorite as addFavoriteService, removeFavorite as removeFavoriteService, getUserFavorites } from "../../services/index/favorites";
+import Aside from "./container/Aside";  
+import Hero from "./container/Hero";  
+import { Tabs, Tab } from "./container/Tabs"; 
+import RelativeExperiences from "./container/RelativeExperiences"; 
 
 const ExperienceDetailPage = () => {
   const { slug } = useParams();
@@ -79,6 +83,8 @@ const ExperienceDetailPage = () => {
     }
   };
 
+  console.log("ExperienceDetailPage data:", data); // Verificar los datos de la experiencia
+
   return (
     <MainLayout>
       {isLoading ? (
@@ -86,22 +92,21 @@ const ExperienceDetailPage = () => {
       ) : isError ? (
         <ErrorMessage message="No se pudieron obtener los detalles de la publicación" />
       ) : (
-        <section className="container mx-auto max-w-5xl flex flex-col px-5 py-5 lg:flex-row lg:gap-x-5 lg:items-start">
-          <article className="flex-1">
+        <>
+          <Hero 
+            imageUrl={data?.photo ? stables.UPLOAD_FOLDER_BASE_URL + data?.photo : images.sampleExperienceImage} 
+            imageAlt={data?.title} 
+          />
+          <section className="container mx-auto max-w-5xl px-5 py-5">
             <BreadCrumbs data={breadCrumbsData} />
-            <img
-              className="rounded-xl w-full"
-              src={data?.photo ? stables.UPLOAD_FOLDER_BASE_URL + data?.photo : images.sampleExperienceImage}
-              alt={data?.title}
-            />
             <div className="mt-4 flex gap-2">
               {Array.isArray(data?.categories) && data.categories.map((category) => (
                 <Link
-                  key={category.name}
-                  to={`/experience?category=${category.name}`}
+                  key={category}
+                  to={`/experience?category=${category}`}
                   className="text-primary text-sm inline-block md:text-base"
                 >
-                  {category.name}
+                  {category}
                 </Link>
               ))}
             </div>
@@ -126,35 +131,50 @@ const ExperienceDetailPage = () => {
             <p className="text-lg font-medium mt-2 text-dark-hard">
               Precio: {data?.price ? `${data.price} €` : "No disponible"}
             </p>
-            <div className="w-full mt-4">
-              <Editor content={body} editable={false} />
-            </div>
-            <ReviewsContainer
-              reviews={data?.reviews}
-              className="mt-10"
-              logginedUserId={user?._id}
-              experienceSlug={slug}
-              jwt={jwt}  
-            />
-          </article>
-          <div>
-            <SuggestedExperiences
-              header="Últimas experiencias"
-              experiences={ExperiencesData?.data}
-              tags={data?.tags}
-              className="mt-8 lg:mt-0 lg:max-w-xs"
-            />
-            <div className="mt-7">
-              <h2 className="font-medium text-dark-hard mb-4 md:text-xl">
-                Compartir con:
-              </h2>
-              <SocialShareButtons
-                url={encodeURI(window.location.href)}
-                title={encodeURIComponent(data?.title)}
-              />
-            </div>
-          </div>
-        </section>
+            <Tabs>
+              <Tab label="Descripción">
+                <div className="flex flex-col lg:flex-row lg:gap-x-5">
+                  <div className="flex-1">
+                    <div className="w-full mt-4">
+                      <Editor content={data.body} editable={false} />
+                    </div>
+                    <RelativeExperiences category={data?.categories[0]} header="Experiencias Relacionadas" /> {/* Asegúrate de pasar la categoría completa */}
+                  </div>
+                  <Aside info={data} />
+                </div>
+              </Tab>
+              <Tab label="Reseñas">
+                <div className="flex flex-col lg:flex-row lg:gap-x-5">
+                  <div className="flex-1">
+                    <ReviewsContainer
+                      reviews={data?.reviews}
+                      className="mt-10"
+                      logginedUserId={user?._id}
+                      experienceSlug={slug}
+                      jwt={jwt}  
+                    />
+                  </div>
+                  <div>
+                    <SuggestedExperiences
+                      header="Últimas experiencias"
+                      experiences={ExperiencesData?.data}
+                      className="mt-8 lg:mt-0 lg:max-w-xs"
+                    />
+                    <div className="mt-7">
+                      <h2 className="font-medium text-dark-hard mb-4 md:text-xl">
+                        Compartir con:
+                      </h2>
+                      <SocialShareButtons
+                        url={encodeURI(window.location.href)}
+                        title={encodeURIComponent(data?.title)}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </Tab>
+            </Tabs>
+          </section>
+        </>
       )}
     </MainLayout>
   );

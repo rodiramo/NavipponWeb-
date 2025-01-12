@@ -175,13 +175,7 @@ const RegisterPage = () => {
                     >
                         Registrarse
                     </button>
-                    <button
-                        type="button"
-                        className="w-full p-2 border border-[#FA5564] text-black bg-white rounded-full flex items-center justify-center"
-                    >
-                        <FcGoogle className="mr-2" /> Registrarse con Google
-                    </button>
-                    <div className="mt-4 text-center">
+                        <div className="mt-4 text-center">
                         <span>¿Ya tienes cuenta? </span>
                         <Link to="/login" className="text-[#FA5564]">Iniciar Sesión</Link>
                     </div>

@@ -1,8 +1,6 @@
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
-import toast from "react-hot-toast";
-import { FcGoogle } from 'react-icons/fc';
 import MainLayout from "../../components/MainLayout";
 import useUser from "../../hooks/useUser";  
 
@@ -101,11 +99,6 @@ const LoginPage = () => {
 
             <button type='submit' className='w-full mb-4 p-2 bg-[#FA5564] text-white rounded-full' disabled={!isValid || isLoginLoading}>
               Acceder
-            </button>
-
-            <button className='w-full mb-4 p-2 border border-[#FA5564] text-black rounded-full flex items-center justify-center'>
-              <FcGoogle className='mr-2' />
-              Conectarse con Google
             </button>
 
             <div className='flex justify-center'>

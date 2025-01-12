@@ -81,7 +81,7 @@ const restaurantServices = [
   { icon: <FaChild />, label: "Menús infantiles" }
 ];
 
-const accommodations = [
+const accommodation = [
   { icon: <FaHotel />, label: "Hoteles de lujo" },
   { icon: <MdOutlineSpa />, label: "Ryokan (tradicional)" },
   { icon: <FaCapsules />, label: "Hoteles cápsula" },
@@ -146,8 +146,8 @@ const EditExperience = () => {
     restaurantServices: [],
   });
   const [selectedHotelTags, setSelectedHotelTags] = useState({
-    accommodations: [],
-    services: [],
+    accommodation: [],
+    hotelServices: [],
     typeTrip: [],
   });
 
@@ -191,8 +191,8 @@ const EditExperience = () => {
         restaurantServices: [],
       });
       setSelectedHotelTags(data.hotelTags || {  
-        accommodations: [],  
-        services: [],
+        accommodation: [],  
+        hotelServices: [],
         typeTrip: [],
       });
     },
@@ -671,12 +671,12 @@ const EditExperience = () => {
           </label>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             <select
-              value={selectedHotelTags.accommodations?.[0] || ""}
-              onChange={(e) => handleHotelTagChange("accommodations", e.target.value)}
+              value={selectedHotelTags.accommodation?.[0] || ""}
+              onChange={(e) => handleHotelTagChange("accommodation", e.target.value)}
               className="form-select"
             >
               <option value="" disabled>Selecciona un alojamiento</option>
-              {accommodations.map((accommodation) => (
+              {accommodation.map((accommodation) => (
                 <option key={accommodation.label} value={accommodation.label}>
                   {accommodation.label}
                 </option>
@@ -688,17 +688,17 @@ const EditExperience = () => {
             <span className="d-label-text">Servicios de Hoteles</span>
           </label>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {hotelServices.map((service) => (
-              <label key={service.label} className="flex items-center space-x-2">
+            {hotelServices.map((hotelServices) => (
+              <label key={hotelServices.label} className="flex items-center space-x-2">
                 <input
                   type="checkbox"
-                  checked={selectedHotelTags.services?.includes(service.label)}
-                  onChange={() => handleHotelTagChange("services", service.label)}
+                  checked={selectedHotelTags.hotelServices?.includes(hotelServices.label)}
+                  onChange={() => handleHotelTagChange("hotelServices", hotelServices.label)}
                   className="form-checkbox h-4 w-4 text-primary"
                 />
                 <span className="flex items-center">
-                  {service.icon}
-                  <span className="ml-2">{service.label}</span>
+                  {hotelServices.icon}
+                  <span className="ml-2">{hotelServices.label}</span>
                 </span>
               </label>
             ))}

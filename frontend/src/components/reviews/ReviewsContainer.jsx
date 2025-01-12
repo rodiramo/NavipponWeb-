@@ -29,8 +29,9 @@ const ReviewsContainer = ({
       },
       onSuccess: () => {
         toast.success(
-          "Tu reseña se ha enviado con éxito, será visible tras la confirmación del Administrador"
+          "Tu reseña se ha enviado con éxito"
         );
+        queryClient.invalidateQueries(["experience", experienceSlug]); // Invalida la consulta para actualizar las reseñas
       },
       onError: (error) => {
         toast.error(error.message);

@@ -29,7 +29,7 @@ const CommentsContainer = ({
       },
       onSuccess: () => {
         toast.success(
-          "Tu comentario se ha enviado con éxito, será visible tras la confirmación del Administrador"
+          "Tu comentario se ha enviado con éxito"
         );
         queryClient.invalidateQueries(["blog", postSlug]);
       },
