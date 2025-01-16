@@ -4,17 +4,19 @@ import { toast } from "react-hot-toast";
 import { getAllExperiences } from "../../services/index/experiences";
 import ExperienceCardSkeleton from "../../components/ExperienceCardSkeleton";
 import ErrorMessage from "../../components/ErrorMessage";
-import ExperienceCard from "../../components/ExperienceCard";
+import HorizontalExperienceCard from "./container/HorizontalExperienceCard";
 import MainLayout from "../../components/MainLayout";
 import Hero from './container/Hero';
 import Pagination from "../../components/Pagination";
 import { useSearchParams } from "react-router-dom";
 import Search from "../../components/Search";
+import useUser from "../../hooks/useUser";
 
 let isFirstRun = true;
 
 const ExperiencePage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const { user, jwt } = useUser();
 
   const searchParamsValue = Object.fromEntries([...searchParams]);
 
@@ -42,12 +44,15 @@ const ExperiencePage = () => {
   }, [currentPage, searchKeyword, refetch]);
 
   const handlePageChange = (page) => {
-
     setSearchParams({ page, search: searchKeyword });
   };
 
   const handleSearch = ({ searchKeyword }) => {
     setSearchParams({ page: 1, search: searchKeyword });
+  };
+
+  const handleFavoriteToggle = () => {
+    refetch();
   };
 
   return (
@@ -74,10 +79,13 @@ const ExperiencePage = () => {
             <p className="text-orange-500">Experiencia no encontrada!</p>
           ) : (
             data?.data.map((experience) => (
-              <ExperienceCard
+              <HorizontalExperienceCard
                 key={experience._id}
                 experience={experience}
+                user={user}
+                token={jwt}
                 className="w-full md:w-[calc(50%-20px)] lg:w-[calc(33.33%-21px)]"
+                onFavoriteToggle={handleFavoriteToggle}
               />
             ))
           )}

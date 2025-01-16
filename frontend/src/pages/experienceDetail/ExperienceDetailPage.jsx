@@ -7,10 +7,10 @@ import ReviewsContainer from "../../components/reviews/ReviewsContainer";
 import MainLayout from "../../components/MainLayout";
 import SocialShareButtons from "../../components/SocialShareButtons";
 import { images, stables } from "../../constants";
-import SuggestedExperiences from "./container/SuggestedExperiences";
 import { useQuery } from "@tanstack/react-query";
-import { getAllExperiences, getSingleExperience, getRelatedExperiences } from "../../services/index/experiences";
+import { getAllExperiences, getSingleExperience } from "../../services/index/experiences";
 import ExperienceDetailSkeleton from "./components/ExperienceDetailSkeleton";
+import ErrorMessage from "../../components/ErrorMessage";
 import parseJsonToHtml from "../../utils/parseJsonToHtml";
 import Editor from "../../components/editor/Editor";
 import useUser from "../../hooks/useUser";
@@ -18,6 +18,9 @@ import { addFavorite as addFavoriteService, removeFavorite as removeFavoriteServ
 import Aside from "./container/Aside";  
 import Hero from "./container/Hero";  
 import { Tabs, Tab } from "./container/Tabs"; 
+import CarouselExperiences from "./container/CarouselExperiences"; 
+import SuggestedExperiences from "./container/SuggestedExperiences";
+
 
 const ExperienceDetailPage = () => {
   const { slug } = useParams();
@@ -25,7 +28,6 @@ const ExperienceDetailPage = () => {
   const [breadCrumbsData, setbreadCrumbsData] = useState([]);
   const [body, setBody] = useState(null);
   const [isFavorite, setIsFavorite] = useState(false);
-  const [relatedExperiences, setRelatedExperiences] = useState([]);
 
   const { data, isLoading, isError } = useQuery({
     queryFn: () => getSingleExperience({ slug }),
@@ -41,11 +43,6 @@ const ExperienceDetailPage = () => {
         const favorites = await getUserFavorites({ userId: user._id, token: jwt });
         const isFav = favorites.some(fav => fav.experienceId && fav.experienceId._id === data._id);
         setIsFavorite(isFav);
-      }
-      if (Array.isArray(data?.categories) && data.categories.length > 0) {
-        const relatedData = await getRelatedExperiences(data.categories[0]);
-        setRelatedExperiences(relatedData);
-        console.log("Related Experiences Titles:", relatedData.map(item => item.title)); // Mostrar los títulos en consola
       }
     },
   });
@@ -87,16 +84,14 @@ const ExperienceDetailPage = () => {
     }
   };
 
-  console.log("ExperienceDetailPage data:", data); // Verificar los datos de la experiencia
-  console.log("Categoría original:", data?.categories); // Asegúrate de que sea el valor completo.
-  console.log("Related Experiences:", relatedExperiences); // Verificar las experiencias relacionadas
+  //console.log("ExperienceDetailPage data:", data); 
 
   return (
     <MainLayout>
       {isLoading ? (
         <ExperienceDetailSkeleton />
       ) : isError ? (
-        toast.error("No se pudieron obtener los detalles de la publicación")
+        <ErrorMessage message="No se pudieron obtener los detalles de la publicación" />
       ) : (
         <>
           <Hero 
@@ -140,26 +135,13 @@ const ExperienceDetailPage = () => {
             <Tabs>
               <Tab label="Descripción">
                 <div className="flex flex-col lg:flex-row lg:gap-x-5">
+                  <Aside info={data} />
                   <div className="flex-1">
                     <div className="w-full mt-4">
                       <Editor content={data.body} editable={false} />
                     </div>
-                    <div className="mt-4">
-                      <h2 className="font-roboto font-medium text-dark-hard md:text-xl">
-                        Experiencias Relacionadas
-                      </h2>
-                      <ul className="mt-5">
-                        {relatedExperiences.map((item) => (
-                          <li key={item._id} className="mb-2">
-                            <Link to={`/experience/${item.slug}`} className="text-primary">
-                              {item.title}
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
+                    <CarouselExperiences header="Navega Experiencias" experiences={ExperiencesData?.data} />  
                   </div>
-                  <Aside info={data} />
                 </div>
               </Tab>
               <Tab label="Reseñas">

@@ -90,14 +90,3 @@ export const getExperienceById = async (id, token) => {
         throw new Error(error.message);
     }
 };
-
-export const getRelatedExperiences = async (category) => {
-    try {
-      const { data } = await axios.get(`/api/experiences/related/${category}`);
-      console.log("Experiencias relacionadas recibidas:", data);
-      return data;
-    } catch (error) {
-      console.error("Error al obtener experiencias relacionadas:", error);
-      throw error;
-    }
-  };
