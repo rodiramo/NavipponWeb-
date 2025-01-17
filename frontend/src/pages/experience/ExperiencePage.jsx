@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 import { getAllExperiences } from "../../services/index/experiences";
@@ -11,12 +11,14 @@ import Pagination from "../../components/Pagination";
 import { useSearchParams } from "react-router-dom";
 import Search from "../../components/Search";
 import useUser from "../../hooks/useUser";
+import Aside from './container/Aside';
 
 let isFirstRun = true;
 
 const ExperiencePage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { user, jwt } = useUser();
+  const [filters, setFilters] = useState({});
 
   const searchParamsValue = Object.fromEntries([...searchParams]);
 
@@ -25,7 +27,7 @@ const ExperiencePage = () => {
 
   const { data, isLoading, isError, isFetching, refetch } = useQuery({
     queryFn: () => getAllExperiences(searchKeyword, currentPage, 12),
-    queryKey: ["experiences"],
+    queryKey: ["experiences", searchKeyword, currentPage],
     onError: (error) => {
       toast.error(error.message);
       console.log(error);
@@ -55,48 +57,59 @@ const ExperiencePage = () => {
     refetch();
   };
 
+  const handleFilterChange = (newFilters) => {
+    setFilters(newFilters);
+  };
+
   return (
     <MainLayout>
-      <Hero/>
+      <Hero />
       <section className="flex flex-col container mx-auto px-5 py-10">
-        <div className="flex justify-center mb-10 ">  
+        <div className="flex justify-center mb-10">
           <Search
             className="w-full max-w-xl"
             onSearchKeyword={handleSearch}
           />
         </div>
-        <div className="flex flex-wrap md:gap-x-5 gap-y-5 pb-10 ">
-          {isLoading || isFetching ? (
-            [...Array(3)].map((item, index) => (
-              <ExperienceCardSkeleton
-                key={index}
-                className="w-full md:w-[calc(50%-20px)] lg:w-[calc(33.33%-21px)]"
+        <div className="flex flex-row gap-5">
+          <div className="w-full md:w-1/4">
+            <Aside onFilterChange={handleFilterChange} />
+          </div>
+          <div className="w-full md:w-3/4">
+            <div className="flex flex-col gap-y-5 pb-10">
+              {isLoading || isFetching ? (
+                [...Array(3)].map((item, index) => (
+                  <ExperienceCardSkeleton
+                    key={index}
+                    className="w-full"
+                  />
+                ))
+              ) : isError ? (
+                <ErrorMessage message="No se pudieron obtener los datos de las experiencias." />
+              ) : data?.data.length === 0 ? (
+                <p className="text-orange-500">Experiencia no encontrada!</p>
+              ) : (
+                data?.data.map((experience) => (
+                  <HorizontalExperienceCard
+                    key={experience._id}
+                    experience={experience}
+                    user={user}
+                    token={jwt}
+                    className="w-full"
+                    onFavoriteToggle={handleFavoriteToggle}
+                  />
+                ))
+              )}
+            </div>
+            {!isLoading && (
+              <Pagination
+                onPageChange={(page) => handlePageChange(page)}
+                currentPage={currentPage}
+                totalPageCount={JSON.parse(data?.headers?.["x-totalpagecount"])}
               />
-            ))
-          ) : isError ? (
-            <ErrorMessage message="No se pudieron obtener los datos de las experiencias." />
-          ) : data?.data.length === 0 ? (
-            <p className="text-orange-500">Experiencia no encontrada!</p>
-          ) : (
-            data?.data.map((experience) => (
-              <HorizontalExperienceCard
-                key={experience._id}
-                experience={experience}
-                user={user}
-                token={jwt}
-                className="w-full md:w-[calc(50%-20px)] lg:w-[calc(33.33%-21px)]"
-                onFavoriteToggle={handleFavoriteToggle}
-              />
-            ))
-          )}
+            )}
+          </div>
         </div>
-        {!isLoading && (
-          <Pagination
-            onPageChange={(page) => handlePageChange(page)}
-            currentPage={currentPage}
-            totalPageCount={JSON.parse(data?.headers?.["x-totalpagecount"])}
-          />
-        )}
       </section>
     </MainLayout>
   );
