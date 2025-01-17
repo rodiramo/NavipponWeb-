@@ -1,3 +1,4 @@
+// filepath: /c:/Users/Eli/Desktop/React/NavipponWeb/frontend/src/pages/experience/ExperiencePage.jsx
 import React, { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
@@ -26,8 +27,8 @@ const ExperiencePage = () => {
   const searchKeyword = searchParamsValue?.search || "";
 
   const { data, isLoading, isError, isFetching, refetch } = useQuery({
-    queryFn: () => getAllExperiences(searchKeyword, currentPage, 12),
-    queryKey: ["experiences", searchKeyword, currentPage],
+    queryFn: () => getAllExperiences(searchKeyword, currentPage, 12, filters),
+    queryKey: ["experiences", searchKeyword, currentPage, filters],
     onError: (error) => {
       toast.error(error.message);
       console.log(error);
@@ -43,7 +44,7 @@ const ExperiencePage = () => {
       return;
     }
     refetch();
-  }, [currentPage, searchKeyword, refetch]);
+  }, [currentPage, searchKeyword, filters, refetch]);
 
   const handlePageChange = (page) => {
     setSearchParams({ page, search: searchKeyword });
@@ -59,7 +60,10 @@ const ExperiencePage = () => {
 
   const handleFilterChange = (newFilters) => {
     setFilters(newFilters);
+    refetch();
   };
+
+  const totalPageCount = parseInt(data?.headers?.["x-totalpagecount"], 10);
 
   return (
     <MainLayout>
@@ -105,7 +109,7 @@ const ExperiencePage = () => {
               <Pagination
                 onPageChange={(page) => handlePageChange(page)}
                 currentPage={currentPage}
-                totalPageCount={JSON.parse(data?.headers?.["x-totalpagecount"])}
+                totalPageCount={isNaN(totalPageCount) ? 0 : totalPageCount}
               />
             )}
           </div>

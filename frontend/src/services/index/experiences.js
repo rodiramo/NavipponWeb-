@@ -1,10 +1,15 @@
 import axios from "axios";
 
-export const getAllExperiences = async (searchKeyword = "", page = 1, limit = 10) => {
+export const getAllExperiences = async (searchKeyword = "", page = 1, limit = 10, filters = {}) => {
     try {
-        const { data, headers } = await axios.get(
-            `/api/experiences?searchKeyword=${searchKeyword}&page=${page}&limit=${limit}`
-        );
+        const params = {
+            searchKeyword,
+            page,
+            limit,
+            ...filters,
+        };
+
+        const { data, headers } = await axios.get('/api/experiences', { params });
         return { data, headers };
     } catch (error) {
         if (error.response && error.response.data.message)

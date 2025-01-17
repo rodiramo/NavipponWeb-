@@ -158,7 +158,6 @@ const Aside = ({ onFilterChange }) => {
       ...prevFilters,
       [filterType]: value
     }));
-    onFilterChange({ ...selectedFilters, [filterType]: value });
   };
 
   const handleTagChange = (tag) => {
@@ -169,7 +168,20 @@ const Aside = ({ onFilterChange }) => {
       ...prevFilters,
       tags: newTags
     }));
-    onFilterChange({ ...selectedFilters, tags: newTags });
+  };
+
+  const applyFilters = () => {
+    onFilterChange(selectedFilters);
+  };
+
+  const clearFilters = () => {
+    const clearedFilters = {
+      category: "",
+      region: "",
+      tags: []
+    };
+    setSelectedFilters(clearedFilters);
+    onFilterChange(clearedFilters);
   };
 
   return (
@@ -184,7 +196,6 @@ const Aside = ({ onFilterChange }) => {
           <option value="">Selecciona una categoría</option>
           {categoriesEnum.map((category) => (
             <option key={category.title} value={category.title}>
-              {category.icon}
               {category.title}
             </option>
           ))}
@@ -230,7 +241,6 @@ const Aside = ({ onFilterChange }) => {
                     onChange={() => handleTagChange(tag.title)}
                     className="mr-2"
                   />
-                  {React.cloneElement(tag.icon, { className: "text-[#FF4A5A]" })}
                   <span className="ml-2">{tag.title}</span>
                 </label>
               ))}
@@ -243,7 +253,6 @@ const Aside = ({ onFilterChange }) => {
                     onChange={() => handleTagChange(tag.title)}
                     className="mr-2"
                   />
-                  {React.cloneElement(tag.icon, { className: "text-[#FF4A5A]" })}
                   <span className="ml-2">{tag.title}</span>
                 </label>
               ))}
@@ -272,7 +281,6 @@ const Aside = ({ onFilterChange }) => {
                     onChange={() => handleTagChange(tag.title)}
                     className="mr-2"
                   />
-                  {React.cloneElement(tag.icon, { className: "text-[#FF4A5A]" })}
                   <span className="ml-2">{tag.title}</span>
                 </label>
               ))}
@@ -300,7 +308,6 @@ const Aside = ({ onFilterChange }) => {
                     onChange={() => handleTagChange(tag.title)}
                     className="mr-2"
                   />
-                  {React.cloneElement(tag.icon, { className: "text-[#FF4A5A]" })}
                   <span className="ml-2">{tag.title}</span>
                 </label>
               ))}
@@ -329,7 +336,6 @@ const Aside = ({ onFilterChange }) => {
                     onChange={() => handleTagChange(tag.title)}
                     className="mr-2"
                   />
-                  {React.cloneElement(tag.icon, { className: "text-[#FF4A5A]" })}
                   <span className="ml-2">{tag.title}</span>
                 </label>
               ))}
@@ -342,7 +348,6 @@ const Aside = ({ onFilterChange }) => {
                     onChange={() => handleTagChange(tag.title)}
                     className="mr-2"
                   />
-                  {React.cloneElement(tag.icon, { className: "text-[#FF4A5A]" })}
                   <span className="ml-2">{tag.title}</span>
                 </label>
               ))}
@@ -355,7 +360,6 @@ const Aside = ({ onFilterChange }) => {
                     onChange={() => handleTagChange(tag.title)}
                     className="mr-2"
                   />
-                  {React.cloneElement(tag.icon, { className: "text-[#FF4A5A]" })}
                   <span className="ml-2">{tag.title}</span>
                 </label>
               ))}
@@ -384,7 +388,6 @@ const Aside = ({ onFilterChange }) => {
                     onChange={() => handleTagChange(tag.title)}
                     className="mr-2"
                   />
-                  {React.cloneElement(tag.icon, { className: "text-[#FF4A5A]" })}
                   <span className="ml-2">{tag.title}</span>
                 </label>
               ))}
@@ -397,7 +400,6 @@ const Aside = ({ onFilterChange }) => {
                     onChange={() => handleTagChange(tag.title)}
                     className="mr-2"
                   />
-                  {React.cloneElement(tag.icon, { className: "text-[#FF4A5A]" })}
                   <span className="ml-2">{tag.title}</span>
                 </label>
               ))}
@@ -410,7 +412,6 @@ const Aside = ({ onFilterChange }) => {
                     onChange={() => handleTagChange(tag.title)}
                     className="mr-2"
                   />
-                  {React.cloneElement(tag.icon, { className: "text-[#FF4A5A]" })}
                   <span className="ml-2">{tag.title}</span>
                 </label>
               ))}
@@ -418,6 +419,20 @@ const Aside = ({ onFilterChange }) => {
           </>
         )}
       </Disclosure>
+      <div className="flex justify-between mt-4">
+        <button
+          onClick={applyFilters}
+          className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-700"
+        >
+          Aplicar Filtros
+        </button>
+        <button
+          onClick={clearFilters}
+          className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-700"
+        >
+          Borrar Filtros
+        </button>
+      </div>
     </aside>
   );
 };

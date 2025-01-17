@@ -171,13 +171,38 @@ const getExperience = async (req, res, next) => {
     }
 };
 
+// filepath: /c:/Users/Eli/Desktop/React/NavipponWeb/backend/controllers/experienceControllers.js
 const getAllExperiences = async (req, res, next) => {
     try {
-        const filter = req.query.searchKeyword;
+        const { searchKeyword, category, region, tags } = req.query;
         let where = {};
-        if (filter) {
-            where.title = { $regex: filter, $options: "i" };
+
+        if (searchKeyword) {
+            where.title = { $regex: searchKeyword, $options: "i" };
         }
+        if (category) {
+            where.categories = category;
+        }
+        if (region) {
+            where.region = region;
+        }
+        if (tags && typeof tags === 'string') {
+            const tagsArray = tags.split(',');
+            where.$or = [
+                { 'generalTags.season': { $in: tagsArray } },
+                { 'generalTags.budget': { $in: tagsArray } },
+                { 'generalTags.rating': { $in: tagsArray.map(Number) } },
+                { 'generalTags.location': { $in: tagsArray } },
+                { 'hotelTags.accommodation': { $in: tagsArray } },
+                { 'hotelTags.hotelServices': { $in: tagsArray } },
+                { 'hotelTags.typeTrip': { $in: tagsArray } },
+                { 'attractionTags': { $in: tagsArray } },
+                { 'restaurantTags.restaurantTypes': { $in: tagsArray } },
+                { 'restaurantTags.cuisines': { $in: tagsArray } },
+                { 'restaurantTags.restaurantServices': { $in: tagsArray } },
+            ];
+        }
+
         let query = Experience.find(where);
         const page = parseInt(req.query.page) || 1;
         const pageSize = parseInt(req.query.limit) || 10;
@@ -186,7 +211,7 @@ const getAllExperiences = async (req, res, next) => {
         const pages = Math.ceil(total / pageSize);
 
         res.header({
-            "x-filter": filter,
+            "x-filter": searchKeyword,
             "x-totalcount": JSON.stringify(total),
             "x-currentpage": JSON.stringify(page),
             "x-pagesize": JSON.stringify(pageSize),

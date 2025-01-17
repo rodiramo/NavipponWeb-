@@ -1,3 +1,4 @@
+// filepath: /c:/Users/Eli/Desktop/React/NavipponWeb/frontend/src/pages/experienceDetail/ExperienceDetailPage.jsx
 import React, { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { AiFillHeart, AiOutlineHeart } from "react-icons/ai";
@@ -20,7 +21,6 @@ import Hero from "./container/Hero";
 import { Tabs, Tab } from "./container/Tabs"; 
 import CarouselExperiences from "./container/CarouselExperiences"; 
 import SuggestedExperiences from "./container/SuggestedExperiences";
-
 
 const ExperienceDetailPage = () => {
   const { slug } = useParams();
@@ -83,8 +83,6 @@ const ExperienceDetailPage = () => {
       toast.error("Error al actualizar favoritos");
     }
   };
-
-  //console.log("ExperienceDetailPage data:", data); 
 
   return (
     <MainLayout>
