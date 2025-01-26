@@ -2,14 +2,18 @@ import axios from "axios";
 
 export const getAllExperiences = async (searchKeyword = "", page = 1, limit = 10, filters = {}) => {
     try {
-        const params = {
-            searchKeyword,
+        const queryParams = new URLSearchParams({
+            searchKeyword: searchKeyword || "",
             page,
             limit,
-            ...filters,
-        };
+            category: filters.category || "",
+            region: filters.region || "",
+            tags: filters.tags && filters.tags.length > 0 ? filters.tags.join(",") : ""
+        });
 
-        const { data, headers } = await axios.get('/api/experiences', { params });
+        console.log("Sending params:", queryParams.toString()); // Agrega este log
+
+        const { data, headers } = await axios.get(`/api/experiences?${queryParams.toString()}`);
         return { data, headers };
     } catch (error) {
         if (error.response && error.response.data.message)

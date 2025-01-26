@@ -188,20 +188,25 @@ const getAllExperiences = async (req, res, next) => {
         }
         if (tags && typeof tags === 'string') {
             const tagsArray = tags.split(',');
-            where.$or = [
-                { 'generalTags.season': { $in: tagsArray } },
-                { 'generalTags.budget': { $in: tagsArray } },
-                { 'generalTags.rating': { $in: tagsArray.map(Number) } },
-                { 'generalTags.location': { $in: tagsArray } },
-                { 'hotelTags.accommodation': { $in: tagsArray } },
-                { 'hotelTags.hotelServices': { $in: tagsArray } },
-                { 'hotelTags.typeTrip': { $in: tagsArray } },
-                { 'attractionTags': { $in: tagsArray } },
-                { 'restaurantTags.restaurantTypes': { $in: tagsArray } },
-                { 'restaurantTags.cuisines': { $in: tagsArray } },
-                { 'restaurantTags.restaurantServices': { $in: tagsArray } },
-            ];
+            where.$or = tagsArray.map(tag => ({
+                $or: [
+                    { 'generalTags.season': tag },
+                    { 'generalTags.budget': tag },
+                    // { 'generalTags.rating': !isNaN(tag) ? Number(tag) : { $ne: null } }, // Comentado para verificar el resto
+                    { 'generalTags.location': tag },
+                    { 'hotelTags.accommodation': tag },
+                    { 'hotelTags.hotelServices': tag },
+                    { 'hotelTags.typeTrip': tag },
+                    { 'attractionTags': tag },
+                    { 'restaurantTags.restaurantTypes': tag },
+                    { 'restaurantTags.cuisines': tag },
+                    { 'restaurantTags.restaurantServices': tag }
+                ]
+            }));
         }
+
+        console.log("Received query parameters:", req.query); // Agrega este log
+        console.log("Filters applied to MongoDB query:", JSON.stringify(where, null, 2)); // Agrega este log
 
         let query = Experience.find(where);
         const page = parseInt(req.query.page) || 1;

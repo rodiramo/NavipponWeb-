@@ -59,6 +59,7 @@ const ExperiencePage = () => {
   };
 
   const handleFilterChange = (newFilters) => {
+    console.log("Received filters:", newFilters); // Agrega este log
     setFilters(newFilters);
     refetch();
   };

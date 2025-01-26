@@ -18,16 +18,16 @@ const categoriesEnum = [
   { icon: <FaIcons.FaUtensils className="text-[#FF4A5A]" />, title: "Restaurantes" }
 ];
 
-const regions = {
-  Hokkaido: ["Hokkaido"],
-  Tohoku: ["Aomori", "Iwate", "Miyagi", "Akita", "Yamagata", "Fukushima"],
-  Kanto: ["Tokio", "Kanagawa", "Chiba", "Saitama", "Ibaraki", "Tochigi", "Gunma"],
-  Chubu: ["Aichi", "Shizuoka", "Gifu", "Nagano", "Niigata", "Toyama", "Ishikawa", "Fukui"],
-  Kansai: ["Osaka", "Kyoto", "Hyogo", "Nara", "Wakayama", "Shiga", "Mie"],
-  Chugoku: ["Hiroshima", "Okayama", "Shimane", "Tottori", "Yamaguchi"],
-  Shikoku: ["Ehime", "Kagawa", "Kochi", "Tokushima"],
-  Kyushu: ["Fukuoka", "Nagasaki", "Kumamoto", "Oita", "Miyazaki", "Kagoshima", "Saga"],
-};
+const regions = [
+  "Hokkaido",
+  "Tohoku",
+  "Kanto",
+  "Chubu",
+  "Kansai",
+  "Chugoku",
+  "Shikoku",
+  "Kyushu"
+];
 
 const generalTags = {
   season: [
@@ -43,7 +43,7 @@ const generalTags = {
     { icon: <TbIcons.TbCoin className="text-[#FF4A5A]" />, title: "Moderado" },
     { icon: <TbIcons.TbCoin className="text-[#FF4A5A]" />, title: "Lujo" }
   ],
-  rating: [1, 2, 3, 4, 5],
+
   location: [
     { icon: <FaIcons.FaTrain className="text-[#FF4A5A]" />, title: 'Cerca de estaciones de tren o metro' },
     { icon: <FaIcons.FaPlane className="text-[#FF4A5A]" />, title: 'Cerca de aeropuertos' },
@@ -171,7 +171,12 @@ const Aside = ({ onFilterChange }) => {
   };
 
   const applyFilters = () => {
-    onFilterChange(selectedFilters);
+    const formattedFilters = {
+      ...selectedFilters,
+      tags: selectedFilters.tags.length > 0 ? selectedFilters.tags : []
+    };
+    console.log("Applying filters:", formattedFilters);
+    onFilterChange(formattedFilters);
   };
 
   const clearFilters = () => {
@@ -181,6 +186,7 @@ const Aside = ({ onFilterChange }) => {
       tags: []
     };
     setSelectedFilters(clearedFilters);
+    console.log("Clearing filters:", clearedFilters); // Agrega este log
     onFilterChange(clearedFilters);
   };
 
@@ -209,14 +215,10 @@ const Aside = ({ onFilterChange }) => {
           className="w-full p-2 border rounded"
         >
           <option value="">Selecciona una región</option>
-          {Object.keys(regions).map((region) => (
-            <optgroup key={region} label={region}>
-              {regions[region].map((prefecture) => (
-                <option key={prefecture} value={prefecture}>
-                  {prefecture}
-                </option>
-              ))}
-            </optgroup>
+          {regions.map((region) => (
+            <option key={region} value={region}>
+              {region}
+            </option>
           ))}
         </select>
       </div>
@@ -241,7 +243,9 @@ const Aside = ({ onFilterChange }) => {
                     onChange={() => handleTagChange(tag.title)}
                     className="mr-2"
                   />
-                  <span className="ml-2">{tag.title}</span>
+                  <span className="flex items-center ml-2">
+                    {tag.icon} <span className="ml-2">{tag.title}</span>
+                  </span>
                 </label>
               ))}
               <h5 className="font-semibold mt-3 mb-1">Presupuesto</h5>
@@ -253,23 +257,9 @@ const Aside = ({ onFilterChange }) => {
                     onChange={() => handleTagChange(tag.title)}
                     className="mr-2"
                   />
-                  <span className="ml-2">{tag.title}</span>
-                </label>
-              ))}
-              <h5 className="font-semibold mt-3 mb-1">Valoración</h5>
-              {generalTags.rating.map((rating) => (
-                <label key={rating} className="flex items-center mb-2">
-                  <input
-                    type="checkbox"
-                    checked={selectedFilters.tags.includes(`${rating} estrellas`)}
-                    onChange={() => handleTagChange(`${rating} estrellas`)}
-                    className="mr-2"
-                  />
-                  <div className="flex text-[#FF4A5A]">
-                    {Array.from({ length: rating }, (_, index) => (
-                      <FaIcons.FaStar key={index} />
-                    ))}
-                  </div>
+                  <span className="flex items-center ml-2">
+                    {tag.icon} <span className="ml-2">{tag.title}</span>
+                  </span>
                 </label>
               ))}
               <h5 className="font-semibold mt-3 mb-1">Localización</h5>
@@ -281,7 +271,9 @@ const Aside = ({ onFilterChange }) => {
                     onChange={() => handleTagChange(tag.title)}
                     className="mr-2"
                   />
-                  <span className="ml-2">{tag.title}</span>
+                  <span className="flex items-center ml-2">
+                    {tag.icon} <span className="ml-2">{tag.title}</span>
+                  </span>
                 </label>
               ))}
             </Disclosure.Panel>
@@ -308,7 +300,9 @@ const Aside = ({ onFilterChange }) => {
                     onChange={() => handleTagChange(tag.title)}
                     className="mr-2"
                   />
-                  <span className="ml-2">{tag.title}</span>
+                  <span className="flex items-center ml-2">
+                    {tag.icon} <span className="ml-2">{tag.title}</span>
+                  </span>
                 </label>
               ))}
             </Disclosure.Panel>
@@ -336,7 +330,9 @@ const Aside = ({ onFilterChange }) => {
                     onChange={() => handleTagChange(tag.title)}
                     className="mr-2"
                   />
-                  <span className="ml-2">{tag.title}</span>
+                  <span className="flex items-center ml-2">
+                    {tag.icon} <span className="ml-2">{tag.title}</span>
+                  </span>
                 </label>
               ))}
               <h5 className="font-semibold mt-3 mb-1">Servicios de hotel</h5>
@@ -348,7 +344,9 @@ const Aside = ({ onFilterChange }) => {
                     onChange={() => handleTagChange(tag.title)}
                     className="mr-2"
                   />
-                  <span className="ml-2">{tag.title}</span>
+                  <span className="flex items-center ml-2">
+                    {tag.icon} <span className="ml-2">{tag.title}</span>
+                  </span>
                 </label>
               ))}
               <h5 className="font-semibold mt-3 mb-1">Tipo de Viaje</h5>
@@ -360,7 +358,9 @@ const Aside = ({ onFilterChange }) => {
                     onChange={() => handleTagChange(tag.title)}
                     className="mr-2"
                   />
-                  <span className="ml-2">{tag.title}</span>
+                  <span className="flex items-center ml-2">
+                    {tag.icon} <span className="ml-2">{tag.title}</span>
+                  </span>
                 </label>
               ))}
             </Disclosure.Panel>
@@ -388,7 +388,9 @@ const Aside = ({ onFilterChange }) => {
                     onChange={() => handleTagChange(tag.title)}
                     className="mr-2"
                   />
-                  <span className="ml-2">{tag.title}</span>
+                  <span className="flex items-center ml-2">
+                    {tag.icon} <span className="ml-2">{tag.title}</span>
+                  </span>
                 </label>
               ))}
               <h5 className="font-semibold mt-3 mb-1">Tipo de cocina</h5>
@@ -400,7 +402,9 @@ const Aside = ({ onFilterChange }) => {
                     onChange={() => handleTagChange(tag.title)}
                     className="mr-2"
                   />
-                  <span className="ml-2">{tag.title}</span>
+                  <span className="flex items-center ml-2">
+                    {tag.icon} <span className="ml-2">{tag.title}</span>
+                  </span>
                 </label>
               ))}
               <h5 className="font-semibold mt-3 mb-1">Servicio de Restaurante</h5>
@@ -412,7 +416,9 @@ const Aside = ({ onFilterChange }) => {
                     onChange={() => handleTagChange(tag.title)}
                     className="mr-2"
                   />
-                  <span className="ml-2">{tag.title}</span>
+                  <span className="flex items-center ml-2">
+                    {tag.icon} <span className="ml-2">{tag.title}</span>
+                  </span>
                 </label>
               ))}
             </Disclosure.Panel>
