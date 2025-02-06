@@ -1,4 +1,3 @@
-// filepath: /c:/Users/Eli/Desktop/React/NavipponWeb/frontend/src/pages/experience/ExperiencePage.jsx
 import React, { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
@@ -16,10 +15,15 @@ import Aside from './container/Aside';
 
 let isFirstRun = true;
 
-const ExperiencePage = () => {
+const ExperiencePage = ({ filters: initialFilters }) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { user, jwt } = useUser();
-  const [filters, setFilters] = useState({});
+  const categoryFilter = searchParams.get("category");
+  const regionFilter = searchParams.get("region");
+
+  const [filters, setFilters] = useState(
+    categoryFilter || regionFilter ? { category: categoryFilter, region: regionFilter } : initialFilters || {}
+  );
 
   const searchParamsValue = Object.fromEntries([...searchParams]);
 
@@ -34,8 +38,6 @@ const ExperiencePage = () => {
       console.log(error);
     },
   });
-
-  console.log(data);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -59,8 +61,15 @@ const ExperiencePage = () => {
   };
 
   const handleFilterChange = (newFilters) => {
-    console.log("Received filters:", newFilters); // Agrega este log
-    setFilters(newFilters);
+    console.log("Received filters:", newFilters);
+    setFilters((prevFilters) => ({
+      ...prevFilters,
+      ...newFilters,
+    }));
+    setSearchParams({
+      ...Object.fromEntries([...searchParams]),
+      ...newFilters,
+    });
     refetch();
   };
 

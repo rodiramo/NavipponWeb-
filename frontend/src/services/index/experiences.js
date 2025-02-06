@@ -11,7 +11,7 @@ export const getAllExperiences = async (searchKeyword = "", page = 1, limit = 10
             tags: filters.tags && filters.tags.length > 0 ? filters.tags.join(",") : ""
         });
 
-        console.log("Sending params:", queryParams.toString()); // Agrega este log
+        console.log("Sending params:", queryParams.toString());
 
         const { data, headers } = await axios.get(`/api/experiences?${queryParams.toString()}`);
         return { data, headers };
