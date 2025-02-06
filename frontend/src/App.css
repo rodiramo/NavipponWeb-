@@ -10,10 +10,10 @@
   border-radius: 0.5rem;
   box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
   z-index: 50;
-  max-height: 80vh; /* Altura máxima del 80% de la pantalla */
-  overflow-y: auto; /* Permitir desplazamiento vertical */
-  width: 90%; /* Ajustar el ancho del modal */
-  max-width: 600px; /* Ancho máximo del modal */
+  max-height: 80vh;  
+  overflow-y: auto;  
+  width: 90%; 
+  max-width: 600px;  
 }
 
 .modal-overlay {

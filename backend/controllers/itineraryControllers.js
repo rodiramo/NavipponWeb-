@@ -2,7 +2,6 @@ import Itinerary from "../models/Itinerary.js";
 import Favorite from "../models/Favorite.js";
 import Experience from "../models/Experience.js";
 
-// Crear un nuevo itinerario
 const createItinerary = async (req, res, next) => {
     try {
         const { name, travelDays, totalBudget, boards, notes } = req.body;
@@ -22,7 +21,6 @@ const createItinerary = async (req, res, next) => {
     }
 };
 
-// Obtener todos los itinerarios
 const getAllItineraries = async (req, res, next) => {
     try {
         const itineraries = await Itinerary.find().populate('boards.favorites').populate('user');
@@ -32,7 +30,6 @@ const getAllItineraries = async (req, res, next) => {
     }
 };
 
-// Obtener un itinerario por ID (vista individual)
 const getItinerary = async (req, res, next) => {
     try {
         const itinerary = await Itinerary.findById(req.params.id).populate('user');
@@ -40,7 +37,6 @@ const getItinerary = async (req, res, next) => {
             return res.status(404).json({ message: "Itinerario no encontrado" });
         }
 
-        // Procesar los favoritos y sus experiencias asociadas
         const boardsWithFavorites = await Promise.all(
             itinerary.boards.map(async (board) => {
                 const favoritesWithDetails = await Promise.all(
@@ -48,10 +44,9 @@ const getItinerary = async (req, res, next) => {
                         const favorite = await Favorite.findById(favoriteId).populate('experienceId');
                         if (!favorite || !favorite.experienceId) {
                             console.error(`Invalid Favorite or missing experienceId: ${favoriteId}`);
-                            return null; // Devuelve null para elementos no válidos
+                            return null; 
                         }
 
-                        // Devolver el detalle de la experiencia junto con el favorito
                         return {
                             favoriteId: favorite._id,
                             experience: favorite.experienceId,
@@ -61,12 +56,11 @@ const getItinerary = async (req, res, next) => {
 
                 return {
                     ...board.toObject(),
-                    favorites: favoritesWithDetails.filter(Boolean), // Filtra valores nulos
+                    favorites: favoritesWithDetails.filter(Boolean), 
                 };
             })
         );
 
-        // Devuelve el itinerario con los favoritos procesados
         return res.status(200).json({ ...itinerary.toObject(), boards: boardsWithFavorites });
     } catch (error) {
         console.error("Error en getItinerary:", error);
@@ -74,15 +68,14 @@ const getItinerary = async (req, res, next) => {
     }
 };
 
-// Obtener un itinerario por ID (para edición)
 const getItineraryForEdit = async (req, res, next) => {
     try {
         const itinerary = await Itinerary.findById(req.params.id)
             .populate({
                 path: 'boards.favorites',
                 populate: {
-                    path: 'experienceId', // Asegúrate de que cada favorito tiene la experiencia asociada
-                    model: 'Experience'  // Asegúrate de que se está usando el modelo adecuado
+                    path: 'experienceId', 
+                    model: 'Experience'  
                 }
             })
             .populate('user');
@@ -98,7 +91,6 @@ const getItineraryForEdit = async (req, res, next) => {
     }
 };
 
-// Actualizar un itinerario por ID
 const updateItinerary = async (req, res, next) => {
     try {
         const { name, travelDays, totalBudget, boards, notes } = req.body;
@@ -139,7 +131,6 @@ const updateItinerary = async (req, res, next) => {
     }
 };
 
-// Eliminar un itinerario por ID
 const deleteItinerary = async (req, res, next) => {
     try {
         const itinerary = await Itinerary.findByIdAndDelete(req.params.id);
@@ -152,7 +143,6 @@ const deleteItinerary = async (req, res, next) => {
     }
 };
 
-// Obtener todos los itinerarios del usuario autenticado
 const getUserItineraries = async (req, res, next) => {
     try {
         const userId = req.user._id;

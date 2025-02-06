@@ -4,7 +4,7 @@ import { IoLocationSharp } from "react-icons/io5";
 import { generalTags, attractionTags, hotelTags, restaurantTags } from './tags';
 
 const Aside = ({ info }) => {
-    console.log('Info:', info); // Agregar console.log para verificar los datos
+    console.log('Info:', info);  
 
     const renderTags = (tags, availableTags) => {
         return tags.map((tag, index) => {

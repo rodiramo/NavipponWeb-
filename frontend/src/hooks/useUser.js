@@ -6,7 +6,6 @@ export default function useUser() {
   const { user, jwt, setUser, setJWT } = useContext(Context);
   const [state, setState] = useState({ loading: false, error: false });
 
-  // Agregar useEffect para obtener el perfil del usuario cuando el JWT cambie
   useEffect(() => {
     if (!jwt) return;
     getUserProfile({ token: jwt }).then(setUser).catch(() => setUser(null));

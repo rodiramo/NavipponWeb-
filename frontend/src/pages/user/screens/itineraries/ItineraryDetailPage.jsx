@@ -8,7 +8,7 @@ import useUser from "../../../../hooks/useUser";
 const ItineraryDetailPage = () => {
   const [itinerary, setItinerary] = useState(null);
   const { id } = useParams();
-  const { user, jwt } = useUser(); // Asegurarse de que estamos obteniendo el usuario y el token
+  const { user, jwt } = useUser();  
 
   useEffect(() => {
     const fetchItinerary = async () => {

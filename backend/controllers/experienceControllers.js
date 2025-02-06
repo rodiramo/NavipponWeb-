@@ -217,8 +217,8 @@ const getAllExperiences = async (req, res, next) => {
         }));
       }
   
-      console.log("Received query parameters:", req.query); // Agrega este log
-      console.log("Filters applied to MongoDB query:", JSON.stringify(where, null, 2)); // Agrega este log
+      console.log("Received query parameters:", req.query); 
+      console.log("Filters applied to MongoDB query:", JSON.stringify(where, null, 2)); 
   
       let query = Experience.find(where);
       const page = parseInt(req.query.page) || 1;

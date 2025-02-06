@@ -21,7 +21,7 @@ const ManageFavorites = () => {
   useEffect(() => {
     if (favorites) {
       const updatedFavorites = favorites
-        .filter(fav => fav !== null && fav.experienceId !== null) // Filtrar favoritos nulos
+        .filter(fav => fav !== null && fav.experienceId !== null)  
         .map(fav => ({ ...fav, isFavorite: true }));
       setFilteredFavorites(updatedFavorites);
       setIsLoading(false);
@@ -36,7 +36,7 @@ const ManageFavorites = () => {
     e.preventDefault();
     if (favorites) {
       const filtered = favorites
-        .filter(favorite => favorite !== null && favorite.experienceId !== null) // Filtrar favoritos nulos
+        .filter(favorite => favorite !== null && favorite.experienceId !== null)  
         .filter((favorite) =>
           favorite.experienceId.title.toLowerCase().includes(searchKeyword.toLowerCase())
         );

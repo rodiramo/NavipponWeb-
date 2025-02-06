@@ -186,7 +186,7 @@ const Aside = ({ onFilterChange }) => {
       tags: []
     };
     setSelectedFilters(clearedFilters);
-    console.log("Clearing filters:", clearedFilters); // Agrega este log
+    console.log("Clearing filters:", clearedFilters);  
     onFilterChange(clearedFilters);
   };
 

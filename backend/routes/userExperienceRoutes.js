@@ -9,7 +9,6 @@ import {
 } from "../controllers/userExperienceControllers";
 import { authGuard } from "../middleware/authMiddleware";
 
-// Rutas para los usuarios autenticados
 router.route("/").post(authGuard, createExperience);
 router.route("/user").get(authGuard, getUserExperiences);
 router

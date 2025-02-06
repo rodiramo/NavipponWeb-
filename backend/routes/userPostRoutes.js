@@ -9,7 +9,6 @@ import {
 } from "../controllers/userPostControllers";
 import { authGuard } from "../middleware/authMiddleware";
 
-// Rutas para los usuarios autenticados
 router.route("/").post(authGuard, createPost);
 router.route("/user").get(authGuard, getUserPosts);
 router

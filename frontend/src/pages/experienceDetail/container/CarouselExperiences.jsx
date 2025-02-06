@@ -1,4 +1,3 @@
-// filepath: /c:/Users/Eli/Desktop/React/NavipponWeb/frontend/src/pages/experienceDetail/container/CarouselExperiences.jsx
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { images, stables } from "../../../constants";
@@ -9,7 +8,6 @@ const CarouselExperiences = ({ className, header, experiences }) => {
 
   useEffect(() => {
     if (experiences && experiences.length > 0) {
-      // Seleccionar aleatoriamente 15 experiencias
       const shuffled = experiences.sort(() => 0.5 - Math.random());
       setRandomExperiences(shuffled.slice(0, 15));
     }

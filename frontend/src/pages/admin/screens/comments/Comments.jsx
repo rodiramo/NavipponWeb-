@@ -11,7 +11,7 @@ import DataTable from "../../components/DataTable";
 import { images, stables } from "../../../../constants";
 import { Link } from "react-router-dom";
 import useUser from "../../../../hooks/useUser";
-import { FaCheckCircle, FaTimesCircle } from "react-icons/fa"; // Importar íconos
+import { FaCheckCircle, FaTimesCircle } from "react-icons/fa";  
 
 const Comments = () => {
   const { user, jwt } = useUser();
@@ -70,7 +70,7 @@ const Comments = () => {
         "Comentario",
         "En respuesta a",
         "Creado",
-        "Aprobado", // Cambiar el nombre de la columna
+        "Aprobado",  
       ]}
       isFetching={isFetching}
       isLoading={isLoading}
