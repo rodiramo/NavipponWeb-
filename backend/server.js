@@ -47,6 +47,6 @@ app.use("/uploads", express.static(path.join(process.cwd(), "/uploads")));
 app.use(invalidPathHandler);
 app.use(errorResponserHandler);
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 
 app.listen(PORT, () => console.log(`El servidor está corriendo en puerto ${PORT}`));

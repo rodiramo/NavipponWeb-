@@ -12,6 +12,7 @@ module.exports = {
         },
       },
       fontFamily: {
+        sifonn: ["SifonnPro", "sans-serif"],
         opensans: ["'Open Sans'", "sans-serif"],
         roboto: ["'Roboto'", "sans-serif"],
       },

@@ -1,8 +1,13 @@
+import { useMemo } from "react";
 import { Routes, Route } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
-
+import { useSelector } from "react-redux";
 
 import "./App.css";
+import { ThemeProvider } from "@mui/material";
+import CssBaseline from "@mui/material/CssBaseline";
+import createTheme from "@mui/material/styles/createTheme";
+import { themeSettings } from "./theme.js";
 import ArticleDetailPage from "./pages/articleDetail/ArticleDetailPage";
 import HomePage from "./pages/home/HomePage";
 import RegisterPage from "./pages/register/RegisterPage";
@@ -34,11 +39,15 @@ import EditItinerary from "./pages/user/screens/itineraries/EditItinerary";
 import CreateItinerary from "./pages/user/screens/itineraries/CreateItinerary";  
 import ItineraryDetailPage from "./pages/user/screens/itineraries/ItineraryDetailPage";
 import ChatWithBot from "./pages/user/screens/chat/ChatWithBot";  
-
+import NotFound from "./pages/NotFound.jsx";
 
 
 function App() {
+   const mode = useSelector((state) => state.mode);
+  const theme = useMemo(() => createTheme(themeSettings(mode)), [mode]);
+
   return (
+    <ThemeProvider theme={theme}>
     <div className="App font-opensans">
       <Routes>
         <Route index path="/" element={<HomePage />} />
@@ -76,10 +85,12 @@ function App() {
           <Route path="itineraries/manage/edit/:id" element={<EditItinerary />} />
           <Route path="itineraries/manage/view/:id" element={<ItineraryDetailPage />} />
           <Route path="chat/bot" element={<ChatWithBot />} />            
-        </Route>
+        </Route>  {/* 404 Not Found route */}
+        <Route path="*" element={<NotFound />} />
       </Routes>
       <Toaster />
     </div>
+    </ThemeProvider>
   );
 }
 
