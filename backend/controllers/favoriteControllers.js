@@ -1,12 +1,11 @@
-const Favorite = require('../models/Favorite');
-const Experience = require('../models/Experience');
+import Favorite from '../models/Favorite.js';
+import Experience from '../models/Experience.js';
 
-const addFavorite = async (req, res) => {
+export const addFavorite = async (req, res) => {
     try {
         const { experienceId } = req.body;
         const userId = req.user.id;
         console.log("Datos recibidos en addFavorite:", { userId, experienceId });
-
 
         const existingFavorite = await Favorite.findOne({ userId, experienceId });
         if (existingFavorite) {
@@ -15,7 +14,6 @@ const addFavorite = async (req, res) => {
 
         const favorite = new Favorite({ userId, experienceId });
         await favorite.save();
-
 
         const favoritesCount = await Favorite.countDocuments({ experienceId });
 
@@ -26,7 +24,7 @@ const addFavorite = async (req, res) => {
     }
 };
 
-const removeFavorite = async (req, res) => {
+export const removeFavorite = async (req, res) => {
     try {
         const { experienceId } = req.body;
         const userId = req.user.id;
@@ -46,7 +44,7 @@ const removeFavorite = async (req, res) => {
     }
 };
 
-const getUserFavorites = async (req, res) => {
+export const getUserFavorites = async (req, res) => {
     try {
         const userId = req.user.id;
         console.log("Datos recibidos en getUserFavorites:", { userId });
@@ -58,7 +56,7 @@ const getUserFavorites = async (req, res) => {
     }
 };
 
-const getFavoritesCount = async (req, res) => {
+export const getFavoritesCount = async (req, res) => {
     try {
         const { experienceId } = req.params;
         const favoritesCount = await Favorite.countDocuments({ experienceId });
@@ -69,9 +67,9 @@ const getFavoritesCount = async (req, res) => {
     }
 };
 
-module.exports = {
+export default {
     addFavorite,
     removeFavorite,
     getUserFavorites,
-    getFavoritesCount  
+    getFavoritesCount
 };

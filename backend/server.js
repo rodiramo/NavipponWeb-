@@ -1,25 +1,24 @@
 import express from "express";
 import dotenv from "dotenv";
 import path from "path";
-import connectDB from "./config/db";
+import connectDB from "./config/db.js";
 import cors from "cors";
 import {
   errorResponserHandler,
   invalidPathHandler,
-} from "./middleware/errorHandler";
+} from "./middleware/errorHandler.js";
 
 // Routes
-import userRoutes from "./routes/userRoutes";
-import postRoutes from "./routes/postRoutes";
-import experienceRoutes from "./routes/experienceRoutes";
-import userExperienceRoutes from "./routes/userExperienceRoutes";
-import userPostRoutes from "./routes/userPostRoutes";
-import commentRoutes from "./routes/commentRoutes";
-import reviewRoutes from "./routes/reviewRoutes";
-import postCategoriesRoutes from "./routes/postCategoriesRoutes";
-import favoriteRoutes from "./routes/favoriteRoutes";  
-import itineraryRoutes from "./routes/itineraryRoutes";
-
+import userRoutes from "./routes/userRoutes.js";
+import postRoutes from "./routes/postRoutes.js";
+import experienceRoutes from "./routes/experienceRoutes.js";
+import userExperienceRoutes from "./routes/userExperienceRoutes.js";
+import userPostRoutes from "./routes/userPostRoutes.js";
+import commentRoutes from "./routes/commentRoutes.js";
+import reviewRoutes from "./routes/reviewRoutes.js";
+import postCategoriesRoutes from "./routes/postCategoriesRoutes.js";
+import favoriteRoutes from "./routes/favoriteRoutes.js";  
+import itineraryRoutes from "./routes/itineraryRoutes.js";
 
 dotenv.config();
 connectDB();
@@ -42,9 +41,8 @@ app.use("/api/post-categories", postCategoriesRoutes);
 app.use("/api/favorites", favoriteRoutes);
 app.use("/api/itineraries", itineraryRoutes);  
 
-
 // Carpeta para guardar las imágenes
-app.use("/uploads", express.static(path.join(__dirname, "/uploads")));
+app.use("/uploads", express.static(path.join(process.cwd(), "/uploads")));
 
 app.use(invalidPathHandler);
 app.use(errorResponserHandler);
