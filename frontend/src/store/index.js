@@ -1,5 +1,5 @@
 import { configureStore } from "@reduxjs/toolkit";
-
+import themeReducer from "../themeSlice";
 import { userReducer } from "./reducers/userReducers";
 
 const userInfoFromStorage = localStorage.getItem("account")
@@ -12,6 +12,7 @@ const initialState = {
 
 const store = configureStore({
   reducer: {
+    theme: themeReducer, // Add theme reducer
     user: userReducer,
   },
   preloadedState: initialState,

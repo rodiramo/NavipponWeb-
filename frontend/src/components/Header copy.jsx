@@ -1,16 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
 import { AiOutlineMenu, AiOutlineClose } from "react-icons/ai";
 import { FaRegUserCircle } from "react-icons/fa";
-import { FaRegUser } from "react-icons/fa";
-import { MdFavoriteBorder, MdOutlineAdminPanelSettings } from "react-icons/md";
-import { BiTrip } from "react-icons/bi";
-import { RiLogoutBoxLine } from "react-icons/ri";
 import { MdKeyboardArrowDown } from "react-icons/md";
 import { BsSun, BsMoon } from "react-icons/bs"; // Import sun and moon icons
 import { useSelector, useDispatch } from "react-redux";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
-import { IconButton, Menu, MenuItem, Typography } from "@mui/material";
+import { IconButton } from "@mui/material";
 import { images, stables } from "../constants";
 import useUser from "../hooks/useUser";
 import { toggleMode } from "../themeSlice";
@@ -49,7 +45,6 @@ const Header = () => {
   const dispatch = useDispatch();
   const mode = useSelector((state) => state.theme.mode);
 
-  const [profileAnchor, setProfileAnchor] = useState(null);
   const { user, logout } = useUser();
   const [navIsVisible, setNavIsVisible] = useState(false);
   const [profileDropdown, setProfileDropdown] = useState(false);
@@ -124,11 +119,12 @@ const Header = () => {
             {mode === "dark" ? <BsSun size={24} /> : <BsMoon size={24} />}
           </IconButton>
           {user ? (
-            <div className=" items-center gap-y-5 lg:text-dark-soft flex flex-col lg:flex-row gap-x-2 font-semibold z-50">
+            <div className="text-white bg-[#0A0330] items-center gap-y-5 lg:text-dark-soft flex flex-col lg:flex-row gap-x-2 font-semibold z-50">
               <div className="relative group" ref={profileRef}>
                 <div className="flex flex-col items-center">
-                  <IconButton
-                    onClick={(e) => setProfileAnchor(e.currentTarget)}
+                  <button
+                    className="flex items-center justify-center w-20 h-20 bg-[#fa5564] rounded-full text-white font-semibold hover:bg-white hover:text-[#fa5564] transition-all duration-300"
+                    onClick={() => setProfileDropdown(!profileDropdown)}
                   >
                     {user.avatar ? (
                       <img
@@ -139,63 +135,45 @@ const Header = () => {
                     ) : (
                       <FaRegUserCircle className="text-3xl" />
                     )}
-                  </IconButton>
-                  <Menu
-                    anchorEl={profileAnchor}
-                    open={Boolean(profileAnchor)}
-                    onClose={() => setProfileAnchor(null)}
-                    PaperProps={{
-                      sx: {
-                        bgcolor: "white",
-                        borderRadius: "0.5rem",
-                        boxShadow: theme.shadows[5],
-                        mt: 1,
-                        minWidth: "150px",
-                      },
-                    }}
+                  </button>
+                  <div
+                    className={`${
+                      profileDropdown ? "block" : "hidden"
+                    } lg:hidden transition-all duration-500 pt-4 lg:absolute lg:bottom-0 lg:right-0 lg:transform lg:translate-y-full lg:group-hover:block w-max`}
                   >
-                    {user.admin && (
-                      <MenuItem component={Link} to="/admin">
-                        <MdOutlineAdminPanelSettings
-                          style={{
-                            marginRight: "1rem",
-                            color: theme.palette.primary.main,
-                          }}
-                        />
-                        <Typography>Admin Panel</Typography>
-                      </MenuItem>
-                    )}
-                    <MenuItem component={Link} to={`/profile`}>
-                      <FaRegUser
-                        style={{
-                          marginRight: "1rem",
-                          color: theme.palette.primary.main,
-                        }}
-                      />
-                      <Typography>Mi Perfil</Typography>
-                    </MenuItem>
-                    <MenuItem component={Link} to="/trips">
-                      <BiTrip
-                        style={{
-                          marginRight: "1rem",
-                          color: theme.palette.primary.main,
-                        }}
-                      />
-                      <Typography>Mis Viajes</Typography>
-                    </MenuItem>
-                    <MenuItem component={Link} to="/user">
-                      Panel de Usuario
-                    </MenuItem>
-                    <MenuItem onClick={logoutHandler}>
-                      <RiLogoutBoxLine
-                        style={{
-                          marginRight: "1rem",
-                          color: theme.palette.primary.main,
-                        }}
-                      />
-                      <Typography>Cerrar Sesión</Typography>
-                    </MenuItem>
-                  </Menu>
+                    <ul className="bg-[#0A0330] lg:bg-[#0A0330] text-center flex flex-col shadow-lg rounded-lg overflow-hidden z-50">
+                      {user.admin && (
+                        <button
+                          onClick={() => navigate("/admin")}
+                          type="button"
+                          className="hover:bg-[#fa5564] hover:text-white px-4 py-2 text-white lg:text-white"
+                        >
+                          Panel Administrador
+                        </button>
+                      )}
+                      <button
+                        onClick={() => navigate("/profile")}
+                        type="button"
+                        className="hover:bg-[#fa5564] hover:text-white px-4 py-2 text-white lg:text-white"
+                      >
+                        Perfil
+                      </button>
+                      <button
+                        onClick={() => navigate("/user")}
+                        type="button"
+                        className="hover:bg-[#fa5564] hover:text-white px-4 py-2 text-white lg:text-white"
+                      >
+                        Panel de Usuario
+                      </button>
+                      <button
+                        onClick={logoutHandler}
+                        type="button"
+                        className="hover:bg-[#fa5564] hover:text-white px-4 py-2 text-white lg:text-white"
+                      >
+                        Cerrar Sesión
+                      </button>
+                    </ul>
+                  </div>
                 </div>
               </div>
             </div>
