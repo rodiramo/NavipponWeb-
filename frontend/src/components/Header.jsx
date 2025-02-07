@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { AiOutlineMenu, AiOutlineClose } from "react-icons/ai";
 import { FaRegUserCircle } from "react-icons/fa";
 import { FaRegUser } from "react-icons/fa";
+import ManageAccountsOutlinedIcon from "@mui/icons-material/ManageAccountsOutlined";
 import { MdFavoriteBorder, MdOutlineAdminPanelSettings } from "react-icons/md";
 import { BiTrip } from "react-icons/bi";
 import { RiLogoutBoxLine } from "react-icons/ri";
@@ -80,29 +81,139 @@ const Header = () => {
           color: theme.palette.text.primary,
         }}
       >
-        <div className="flex items-center gap-x-3 mb-4 md:mb-0 md:w-1/4">
+        <div
+          className="flex items-center mb-4 md:mb-0 w-full"
+          style={{
+            justifyContent: "space-between",
+          }}
+        >
           <Link to="/" className="flex items-center">
             <img
-              src={mode === "dark" ? images.LogoWhite : images.LogoBlack} // Change logo based on theme
+              src={mode === "dark" ? images.LogoWhite : images.LogoBlack}
               alt="Logo"
               className="h-20"
             />
             <h1 className="font-bold pl-2" style={{ fontSize: "1.75rem" }}>
               Navippon
             </h1>
-          </Link>
-          <div className="lg:hidden z-50 ml-4">
-            {navIsVisible ? (
-              <AiOutlineClose
-                className="w-6 h-6"
-                onClick={navVisibilityHandler}
-              />
+          </Link>{" "}
+          <div style={{ display: "flex", alignItems: "center" }}>
+            {user ? (
+              <div className=" items-center gap-y-5 lg:text-dark-soft flex flex-col lg:flex-row gap-x-2 font-semibold z-50">
+                <div className="relative group" ref={profileRef}>
+                  <div className="flex flex-col items-center">
+                    <IconButton
+                      onClick={(e) => setProfileAnchor(e.currentTarget)}
+                    >
+                      {user.avatar ? (
+                        <img
+                          src={
+                            user.avatar
+                              ? `${stables.UPLOAD_FOLDER_BASE_URL}${user.avatar}`
+                              : images.DefaultAvatar
+                          }
+                          alt="Profile"
+                          className=" rounded-full object-cover"
+                          style={{
+                            width: "60px",
+                            height: "60px",
+                            border: `1px solid ${theme.palette.primary.main}`,
+                          }}
+                        />
+                      ) : (
+                        <FaRegUserCircle className="text-3xl" />
+                      )}
+                    </IconButton>
+                    <Menu
+                      anchorEl={profileAnchor}
+                      open={Boolean(profileAnchor)}
+                      onClose={() => setProfileAnchor(null)}
+                      PaperProps={{
+                        sx: {
+                          bgcolor: "white",
+                          borderRadius: "0.5rem",
+                          boxShadow: theme.shadows[5],
+                          mt: 1,
+                          minWidth: "150px",
+                        },
+                      }}
+                    >
+                      {user.admin && (
+                        <MenuItem component={Link} to="/admin">
+                          <MdOutlineAdminPanelSettings
+                            style={{
+                              marginRight: "1rem",
+                              color: theme.palette.primary.main,
+                            }}
+                          />
+                          <Typography>Admin Panel</Typography>
+                        </MenuItem>
+                      )}
+                      <MenuItem component={Link} to={`/profile`}>
+                        <FaRegUser
+                          style={{
+                            marginRight: "1rem",
+                            color: theme.palette.primary.main,
+                          }}
+                        />
+                        <Typography>Mi Perfil</Typography>
+                      </MenuItem>
+                      <MenuItem component={Link} to="/trips">
+                        <BiTrip
+                          style={{
+                            marginRight: "1rem",
+                            color: theme.palette.primary.main,
+                          }}
+                        />
+                        <Typography>Mis Viajes</Typography>
+                      </MenuItem>
+                      <MenuItem component={Link} to="/user">
+                        <ManageAccountsOutlinedIcon
+                          style={{
+                            marginRight: "1rem",
+                            color: theme.palette.primary.main,
+                          }}
+                        />
+                        Panel de Usuario
+                      </MenuItem>
+                      <MenuItem onClick={logoutHandler}>
+                        <RiLogoutBoxLine
+                          style={{
+                            marginRight: "1rem",
+                            color: theme.palette.primary.main,
+                          }}
+                        />
+                        <Typography>Cerrar Sesión</Typography>
+                      </MenuItem>
+                    </Menu>
+                  </div>
+                </div>
+              </div>
             ) : (
-              <AiOutlineMenu
-                className="w-6 h-6"
-                onClick={navVisibilityHandler}
-              />
+              <button
+                onClick={() => navigate("/login")}
+                className="px-6 py-2 rounded-full"
+                style={{
+                  backgroundColor: theme.palette.primary.main,
+                  color: theme.palette.primary.white,
+                }}
+              >
+                Ingresar
+              </button>
             )}
+            <div className="lg:hidden z-50 ml-4">
+              {navIsVisible ? (
+                <AiOutlineClose
+                  className="w-6 h-6"
+                  onClick={navVisibilityHandler}
+                />
+              ) : (
+                <AiOutlineMenu
+                  className="w-6 h-6"
+                  onClick={navVisibilityHandler}
+                />
+              )}
+            </div>
           </div>
         </div>
         <div
@@ -123,94 +234,6 @@ const Header = () => {
           <IconButton onClick={() => dispatch(toggleMode())}>
             {mode === "dark" ? <BsSun size={24} /> : <BsMoon size={24} />}
           </IconButton>
-          {user ? (
-            <div className=" items-center gap-y-5 lg:text-dark-soft flex flex-col lg:flex-row gap-x-2 font-semibold z-50">
-              <div className="relative group" ref={profileRef}>
-                <div className="flex flex-col items-center">
-                  <IconButton
-                    onClick={(e) => setProfileAnchor(e.currentTarget)}
-                  >
-                    {user.avatar ? (
-                      <img
-                        src={`${stables.UPLOAD_FOLDER_BASE_URL}${user.avatar}`}
-                        alt="Profile"
-                        className="w-full h-full rounded-full object-cover"
-                      />
-                    ) : (
-                      <FaRegUserCircle className="text-3xl" />
-                    )}
-                  </IconButton>
-                  <Menu
-                    anchorEl={profileAnchor}
-                    open={Boolean(profileAnchor)}
-                    onClose={() => setProfileAnchor(null)}
-                    PaperProps={{
-                      sx: {
-                        bgcolor: "white",
-                        borderRadius: "0.5rem",
-                        boxShadow: theme.shadows[5],
-                        mt: 1,
-                        minWidth: "150px",
-                      },
-                    }}
-                  >
-                    {user.admin && (
-                      <MenuItem component={Link} to="/admin">
-                        <MdOutlineAdminPanelSettings
-                          style={{
-                            marginRight: "1rem",
-                            color: theme.palette.primary.main,
-                          }}
-                        />
-                        <Typography>Admin Panel</Typography>
-                      </MenuItem>
-                    )}
-                    <MenuItem component={Link} to={`/profile`}>
-                      <FaRegUser
-                        style={{
-                          marginRight: "1rem",
-                          color: theme.palette.primary.main,
-                        }}
-                      />
-                      <Typography>Mi Perfil</Typography>
-                    </MenuItem>
-                    <MenuItem component={Link} to="/trips">
-                      <BiTrip
-                        style={{
-                          marginRight: "1rem",
-                          color: theme.palette.primary.main,
-                        }}
-                      />
-                      <Typography>Mis Viajes</Typography>
-                    </MenuItem>
-                    <MenuItem component={Link} to="/user">
-                      Panel de Usuario
-                    </MenuItem>
-                    <MenuItem onClick={logoutHandler}>
-                      <RiLogoutBoxLine
-                        style={{
-                          marginRight: "1rem",
-                          color: theme.palette.primary.main,
-                        }}
-                      />
-                      <Typography>Cerrar Sesión</Typography>
-                    </MenuItem>
-                  </Menu>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <button
-              onClick={() => navigate("/login")}
-              className="px-6 py-2 rounded-full"
-              style={{
-                backgroundColor: theme.palette.primary.main,
-                color: theme.palette.primary.white,
-              }}
-            >
-              Ingresar
-            </button>
-          )}
         </div>
       </header>
     </section>
