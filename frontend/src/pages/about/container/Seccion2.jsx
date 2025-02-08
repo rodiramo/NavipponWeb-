@@ -1,39 +1,50 @@
-import React from 'react';
-import nube2 from '../../../assets/nube2.png';
-import { BsBullseye } from "react-icons/bs";
-import { FaRegHandshake, FaRegEye } from "react-icons/fa";
+import { useTheme } from "@mui/material/styles";
 
 const Seccion2 = () => {
-    return (
-        <div className="bg-white flex flex-col items-center mt-0 pt-0">
-            <img src={nube2} alt="Nube" className="mb-4 mx-auto" />
-            <h2 className="text-2xl font-bold mb-2">Nuestros principios</h2>
-            <span className="text-lg mb-8">Navippon te ayuda a planificar tu viaje</span>
-            <div className="flex flex-col md:flex-row justify-around w-full">
-                <div className="flex flex-col items-center p-4">
-                    <BsBullseye className="text-8xl text-[#FA5564] mb-2" />
-                    <h3 className="text-xl font-bold mb-2">Misión</h3>
-                    <p className="text-center md:text-left">
-                        Nuestra misión en Navippon es ser el <span className="text-[#FA5564]">compañero de confianza</span> de los viajeros que desean explorar la riqueza y la belleza de Japón. Nos dedicamos a proporcionar a nuestros usuarios las herramientas y la información necesaria para <span className="text-[#FA5564]">planificar viajes personalizados</span> y significativos.
-                    </p>
-                </div>
-                <div className="flex flex-col items-center p-4">
-                    <FaRegHandshake className="text-8xl text-[#FA5564] mb-2" />
-                    <h3 className="text-xl font-bold mb-2">Valores</h3>
-                    <p className="text-center md:text-left">
-                        Amamos Japón en todas sus dimensiones y compartimos esa <span className="text-[#FA5564]">pasión</span> con nuestros usuarios. Nos esforzamos por promover la comprensión y el <span className="text-[#FA5564]">respeto</span> por la cultura japonesa en cada experiencia de viaje que ofrecemos.
-                    </p>
-                </div>
-                <div className="flex flex-col items-center p-4">
-                    <FaRegEye className="text-8xl text-[#FA5564] mb-2" />
-                    <h3 className="text-xl font-bold mb-2">Visión</h3>
-                    <p className="text-center md:text-left">
-                        Nuestra visión en Navippon es convertirnos en la <span className="text-[#FA5564]">plataforma líder</span> para la exploración y planificación de viajes en Japón. Buscamos ser <span className="text-[#FA5564]">reconocidos por nuestra excelencia</span> en proporcionar a los viajeros una experiencia donde puedan descubrir la autenticidad de Japón.
-                    </p>
-                </div>
-            </div>
-        </div>
-    );
-}
+  const theme = useTheme();
+  const primaryLight = theme.palette.primary.light;
+
+  return (
+    <div
+      style={{
+        display: "flex",
+        fontSize: "1rem",
+        height: "45vh",
+        backgroundColor: primaryLight,
+        alignItems: "center",
+        marginBottom: "2rem",
+        padding: "2rem",
+        borderRadius: "20rem 0rem 0rem 20rem",
+      }}
+    >
+      {/* Video Section */}
+      <div className="w-full md:w-1/2 flex justify-center p-4">
+        <iframe
+          width="560"
+          height="315"
+          src="https://www.youtube.com/embed/WLIv7HnZ_fE?start=13"
+          title="YouTube video player"
+          frameBorder="0"
+          allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+        ></iframe>
+      </div>
+
+      {/* Text Section */}
+      <div className="w-full md:w-1/2 flex flex-col md:items-start p-4 md:p-12">
+        <h2 className="text-2xl font-bold mb-4">¿Por qué Japón?</h2>
+        <p>
+          Viajar a Japón es una experiencia única que te sumerge en una cultura
+          milenaria, paisajes impresionantes y tecnología de vanguardia.
+          Descubrirás la serenidad de antiguos templos, la emoción de las
+          ciudades modernas y la deliciosa gastronomía japonesa.{" "}
+          <span className="font-bold">
+            ¡Japón te espera con maravillas inigualables!
+          </span>
+        </p>
+      </div>
+    </div>
+  );
+};
 
 export default Seccion2;

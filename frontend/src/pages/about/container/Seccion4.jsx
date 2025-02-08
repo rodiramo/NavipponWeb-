@@ -1,27 +1,55 @@
-import React from 'react';
+import { useTheme } from "@mui/material/styles";
 
-const Seccion4 = () => {
-    return (
-        <div className="bg-[#FA5564] mt-8 mb-8 flex flex-col md:flex-row items-center md:rounded-l-full py-12">
-            <div className="w-full md:w-1/2 flex flex-col  md:items-start p-20">
-                <h2 className="text-2xl font-bold mb-4">¿Por qué Japón?</h2>
-                <p>
-                    Viajar a Japón es una experiencia única que te sumerge en una cultura milenaria, paisajes impresionantes y tecnología de vanguardia. Descubrirás la serenidad de antiguos templos, la emoción de las ciudades modernas y la deliciosa gastronomía japonesa. <span className="font-bold">¡Japón te espera con maravillas inigualables!</span>
-                </p>
-            </div>
-            <div className="w-full md:w-1/2 flex justify-center p-4">
-                <iframe 
-                    width="560" 
-                    height="315" 
-                    src="https://www.youtube.com/embed/WLIv7HnZ_fE?start=13" 
-                    title="YouTube video player" 
-                    frameBorder="0" 
-                    allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                    allowFullScreen>
-                </iframe>
-            </div>
-        </div>
-    );
-}
+const CommunitySection = () => {
+  const theme = useTheme();
+  const lightBlue = theme.palette.secondary.light;
 
-export default Seccion4;
+  return (
+    <div
+      style={{
+        backgroundColor: lightBlue,
+        borderRadius: "8px",
+        display: "flex",
+        flexDirection: "row",
+        fontSize: "1rem",
+        height: "45vh",
+        alignItems: "center",
+        marginBottom: "2rem",
+      }}
+    >
+      <div style={{ flex: 1, textAlign: "center" }}>
+        <img
+          src="/assets/community.jpg"
+          alt="Nuestra Comunidad"
+          style={{
+            width: "95%",
+            height: "auto",
+            maxWidth: "100%",
+            borderRadius: "0rem 20rem 20rem 0rem",
+          }}
+        />
+      </div>
+      <div style={{ flex: 1, textAlign: "left" }}>
+        <h2
+          style={{
+            marginBottom: "1rem",
+            fontWeight: "bold",
+            fontSize: "1.5rem",
+          }}
+        >
+          Nuestra Comunidad
+        </h2>
+        <p style={{ width: "80%" }}>
+          Nuestra comunidad es fundamental para nosotros. Estamos deseando verla
+          <span style={{ fontWeight: "bold" }}> crecer y florecer </span>con
+          nuevos miembros apasionados por{" "}
+          <span style={{ fontWeight: "bold" }}>Japón</span>. Que se animen a
+          discusiones, compartir aventuras y conectar con amantes de la cultura
+          japonesa de <span style={{ fontWeight: "bold" }}>todo el mundo.</span>
+        </p>
+      </div>
+    </div>
+  );
+};
+
+export default CommunitySection;
