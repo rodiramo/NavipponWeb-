@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { Routes, Route } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { useSelector } from "react-redux";
-
+import { useEffect } from "react";
 import "./App.css";
 import store from "./store/index.js";
 import { ThemeProvider } from "@mui/material";
@@ -45,7 +45,13 @@ import NotFound from "./pages/NotFound.jsx";
 function App() {
   const mode = useSelector((state) => state.theme.mode);
   const theme = useMemo(() => createTheme(themeSettings(mode)), [mode]);
-
+  useEffect(() => {
+    document.body.style.setProperty(
+      "--bg-color",
+      theme.palette.background.default
+    );
+    document.body.style.setProperty("--text-color", theme.palette.text.primary);
+  }, [theme]);
   return (
     <ThemeProvider theme={theme}>
       <div className="App font-opensans">

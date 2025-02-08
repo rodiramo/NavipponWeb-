@@ -3,18 +3,9 @@ module.exports = {
   content: ["./src/**/*.{js,jsx,ts,tsx}"],
   theme: {
     extend: {
-      colors: {
-        primary: "#222B45",
-        dark: {
-          light: "#4493B3",
-          hard: "#0A0330",
-          soft: "#222B45",
-        },
-      },
       fontFamily: {
         sifonn: ["SifonnPro", "sans-serif"],
-        opensans: ["'Open Sans'", "sans-serif"],
-        roboto: ["'Roboto'", "sans-serif"],
+        poppins: ["Poppins", "sans-serif"],
       },
     },
   },

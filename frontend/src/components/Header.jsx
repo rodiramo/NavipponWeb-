@@ -1,13 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import { AiOutlineMenu, AiOutlineClose } from "react-icons/ai";
-import { FaRegUserCircle } from "react-icons/fa";
-import { FaRegUser } from "react-icons/fa";
-import ManageAccountsOutlinedIcon from "@mui/icons-material/ManageAccountsOutlined";
+import { FaRegUserCircle, FaRegUser } from "react-icons/fa";
 import { MdFavoriteBorder, MdOutlineAdminPanelSettings } from "react-icons/md";
 import { BiTrip } from "react-icons/bi";
 import { RiLogoutBoxLine } from "react-icons/ri";
-import { MdKeyboardArrowDown } from "react-icons/md";
-import { BsSun, BsMoon } from "react-icons/bs"; // Import sun and moon icons
+import { BsSun, BsMoon } from "react-icons/bs"; // Theme toggle icons
+import ManageAccountsOutlinedIcon from "@mui/icons-material/ManageAccountsOutlined";
 import { useSelector, useDispatch } from "react-redux";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
@@ -49,145 +47,153 @@ const Header = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const mode = useSelector((state) => state.theme.mode);
+  const { user, logout } = useUser();
 
   const [profileAnchor, setProfileAnchor] = useState(null);
-  const { user, logout } = useUser();
   const [navIsVisible, setNavIsVisible] = useState(false);
-  const [profileDropdown, setProfileDropdown] = useState(false);
+  const [isMobile, setIsMobile] = useState(
+    window.matchMedia("(max-width: 800px)").matches
+  );
   const profileRef = useRef(null);
 
-  const navVisibilityHandler = () => setNavIsVisible((prev) => !prev);
-  const logoutHandler = () => logout();
+  // Toggle burger menu
+  const toggleNav = () => setNavIsVisible((prev) => !prev);
 
-  const handleClickOutside = (event) => {
-    if (profileRef.current && !profileRef.current.contains(event.target)) {
-      setProfileDropdown(false);
-    }
-  };
-
+  // Detect screen resize
   useEffect(() => {
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+    const handleResize = () => {
+      const isNowMobile = window.matchMedia("(max-width: 800px)").matches;
+      setIsMobile(isNowMobile);
+      if (!isNowMobile) {
+        setNavIsVisible(false); // Close menu when resizing above 800px
+      }
     };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (profileRef.current && !profileRef.current.contains(event.target)) {
+        setProfileAnchor(null);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   return (
     <section className="w-full" style={{ position: "fixed", zIndex: 1000 }}>
       <header
-        className="w-full px-5 py-8 flex flex-col md:flex-row justify-between items-center"
+        className="w-full px-5 py-4 flex flex-col md:flex-row justify-between items-center"
         style={{
           backgroundColor: theme.palette.background.default,
           color: theme.palette.text.primary,
         }}
       >
-        <div
-          className="flex items-center mb-4 md:mb-0 w-full"
-          style={{
-            justifyContent: "space-between",
-          }}
-        >
+        <div className="flex items-center justify-between w-full">
+          {/* Logo */}
           <Link to="/" className="flex items-center">
             <img
               src={mode === "dark" ? images.LogoWhite : images.LogoBlack}
               alt="Logo"
-              className="h-20"
+              className="h-16"
             />
             <h1 className="font-bold pl-2" style={{ fontSize: "1.75rem" }}>
               Navippon
             </h1>
-          </Link>{" "}
-          <div style={{ display: "flex", alignItems: "center" }}>
+          </Link>
+
+          {/* User Profile, Theme Toggle, & Burger Button */}
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            {/* Theme Toggle Button */}
+            <IconButton onClick={() => dispatch(toggleMode())}>
+              {mode === "dark" ? <BsSun size={24} /> : <BsMoon size={24} />}
+            </IconButton>
+
+            {/* User Profile */}
             {user ? (
-              <div className=" items-center gap-y-5 lg:text-dark-soft flex flex-col lg:flex-row gap-x-2 font-semibold z-50">
-                <div className="relative group" ref={profileRef}>
-                  <div className="flex flex-col items-center">
-                    <IconButton
-                      onClick={(e) => setProfileAnchor(e.currentTarget)}
-                    >
-                      {user.avatar ? (
-                        <img
-                          src={
-                            user.avatar
-                              ? `${stables.UPLOAD_FOLDER_BASE_URL}${user.avatar}`
-                              : images.DefaultAvatar
-                          }
-                          alt="Profile"
-                          className=" rounded-full object-cover"
-                          style={{
-                            width: "60px",
-                            height: "60px",
-                            border: `1px solid ${theme.palette.primary.main}`,
-                          }}
-                        />
-                      ) : (
-                        <FaRegUserCircle className="text-3xl" />
-                      )}
-                    </IconButton>
-                    <Menu
-                      anchorEl={profileAnchor}
-                      open={Boolean(profileAnchor)}
-                      onClose={() => setProfileAnchor(null)}
-                      PaperProps={{
-                        sx: {
-                          bgcolor: "white",
-                          borderRadius: "0.5rem",
-                          boxShadow: theme.shadows[5],
-                          mt: 1,
-                          minWidth: "150px",
-                        },
+              <div className="flex items-center">
+                <IconButton onClick={(e) => setProfileAnchor(e.currentTarget)}>
+                  <img
+                    src={
+                      user.avatar
+                        ? `${stables.UPLOAD_FOLDER_BASE_URL}${user.avatar}`
+                        : images.DefaultAvatar
+                    }
+                    alt="Profile"
+                    className="rounded-full object-cover"
+                    style={{
+                      width: "50px",
+                      height: "50px",
+                      border: `1px solid ${theme.palette.primary.main}`,
+                    }}
+                  />
+                </IconButton>
+                <Menu
+                  anchorEl={profileAnchor}
+                  open={Boolean(profileAnchor)}
+                  onClose={() => setProfileAnchor(null)}
+                  PaperProps={{
+                    sx: {
+                      bgcolor: "white",
+                      borderRadius: "0.5rem",
+                      boxShadow: theme.shadows[5],
+                      mt: 1,
+                      minWidth: "150px",
+                    },
+                  }}
+                >
+                  {user.admin && (
+                    <MenuItem component={Link} to="/admin">
+                      <MdOutlineAdminPanelSettings
+                        style={{
+                          marginRight: "1rem",
+                          color: theme.palette.primary.main,
+                        }}
+                      />
+                      <Typography>Admin Panel</Typography>
+                    </MenuItem>
+                  )}
+                  <MenuItem component={Link} to={`/profile`}>
+                    <FaRegUser
+                      style={{
+                        marginRight: "1rem",
+                        color: theme.palette.primary.main,
                       }}
-                    >
-                      {user.admin && (
-                        <MenuItem component={Link} to="/admin">
-                          <MdOutlineAdminPanelSettings
-                            style={{
-                              marginRight: "1rem",
-                              color: theme.palette.primary.main,
-                            }}
-                          />
-                          <Typography>Admin Panel</Typography>
-                        </MenuItem>
-                      )}
-                      <MenuItem component={Link} to={`/profile`}>
-                        <FaRegUser
-                          style={{
-                            marginRight: "1rem",
-                            color: theme.palette.primary.main,
-                          }}
-                        />
-                        <Typography>Mi Perfil</Typography>
-                      </MenuItem>
-                      <MenuItem component={Link} to="/trips">
-                        <BiTrip
-                          style={{
-                            marginRight: "1rem",
-                            color: theme.palette.primary.main,
-                          }}
-                        />
-                        <Typography>Mis Viajes</Typography>
-                      </MenuItem>
-                      <MenuItem component={Link} to="/user">
-                        <ManageAccountsOutlinedIcon
-                          style={{
-                            marginRight: "1rem",
-                            color: theme.palette.primary.main,
-                          }}
-                        />
-                        Panel de Usuario
-                      </MenuItem>
-                      <MenuItem onClick={logoutHandler}>
-                        <RiLogoutBoxLine
-                          style={{
-                            marginRight: "1rem",
-                            color: theme.palette.primary.main,
-                          }}
-                        />
-                        <Typography>Cerrar Sesión</Typography>
-                      </MenuItem>
-                    </Menu>
-                  </div>
-                </div>
+                    />
+                    <Typography>Mi Perfil</Typography>
+                  </MenuItem>
+                  <MenuItem component={Link} to="/trips">
+                    <BiTrip
+                      style={{
+                        marginRight: "1rem",
+                        color: theme.palette.primary.main,
+                      }}
+                    />
+                    <Typography>Mis Viajes</Typography>
+                  </MenuItem>
+                  <MenuItem component={Link} to="/user">
+                    <ManageAccountsOutlinedIcon
+                      style={{
+                        marginRight: "1rem",
+                        color: theme.palette.primary.main,
+                      }}
+                    />
+                    <Typography>Panel de Usuario</Typography>
+                  </MenuItem>
+                  <MenuItem onClick={logout}>
+                    <RiLogoutBoxLine
+                      style={{
+                        marginRight: "1rem",
+                        color: theme.palette.primary.main,
+                      }}
+                    />
+                    <Typography>Cerrar Sesión</Typography>
+                  </MenuItem>
+                </Menu>
               </div>
             ) : (
               <button
@@ -201,24 +207,28 @@ const Header = () => {
                 Ingresar
               </button>
             )}
-            <div className="lg:hidden z-50 ml-4">
-              {navIsVisible ? (
-                <AiOutlineClose
-                  className="w-6 h-6"
-                  onClick={navVisibilityHandler}
-                />
-              ) : (
-                <AiOutlineMenu
-                  className="w-6 h-6"
-                  onClick={navVisibilityHandler}
-                />
-              )}
-            </div>
+
+            {/* Burger Menu Button */}
+            {isMobile && (
+              <IconButton onClick={toggleNav}>
+                {navIsVisible ? (
+                  <AiOutlineClose size={24} />
+                ) : (
+                  <AiOutlineMenu size={24} />
+                )}
+              </IconButton>
+            )}
           </div>
         </div>
+
+        {/* Navigation Items */}
         <div
-          className={`md:flex flex-col md:flex-row gap-x-5 mt-8 md:mt-0 md:w-3/4 ${
-            navIsVisible ? "block" : "hidden"
+          className={`mt-6 md:mt-0 md:flex gap-x-5 w-full ${
+            isMobile
+              ? navIsVisible
+                ? "flex flex-col items-center"
+                : "hidden"
+              : "flex"
           }`}
         >
           <ul className="flex flex-col md:flex-row gap-x-5 items-center justify-center w-full">
@@ -231,9 +241,6 @@ const Header = () => {
               />
             ))}
           </ul>
-          <IconButton onClick={() => dispatch(toggleMode())}>
-            {mode === "dark" ? <BsSun size={24} /> : <BsMoon size={24} />}
-          </IconButton>
         </div>
       </header>
     </section>

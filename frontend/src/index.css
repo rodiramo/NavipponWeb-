@@ -1,7 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap");
 
 @layer components {
   .editor-btn {
@@ -13,12 +13,11 @@
   }
 }
 
-
 @font-face {
-    font-family: 'SifonnBasic';
-    src: url('./assets/fonts/SIFONN_BASIC.otf') format('opentype');
-    font-weight: normal;
-    font-style: normal;
+  font-family: "SifonnBasic";
+  src: url("./assets/fonts/SIFONN_BASIC.otf") format("opentype");
+  font-weight: normal;
+  font-style: normal;
 }
 @font-face {
   font-family: "SifonnPro";
@@ -28,7 +27,7 @@
 }
 @layer base {
   body {
-      font-family: 'Poppins', sans-serif;
+    font-family: "Poppins", sans-serif !important;
   }
 }
 
@@ -39,7 +38,7 @@
   h4,
   h5,
   h6 {
-      font-family: "SifonnPro", sans-serif !important;
+    font-family: "SifonnPro", sans-serif !important;
   }
 }
 
@@ -54,4 +53,9 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+}
+/* index.css */
+body {
+  background-color: var(--bg-color);
+  color: var(--text-color);
 }

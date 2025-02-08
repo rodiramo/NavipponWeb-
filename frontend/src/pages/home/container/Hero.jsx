@@ -1,27 +1,93 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import herohome from '../../../assets/herohome.png';
-import nube from '../../../assets/nube.png';
-import Search from '../../../components/Search';
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Box, Typography } from "@mui/material";
+import Search from "../../../components/Search";
+import nube from "../../../assets/nube.png";
+
+// Background images array
+const backgroundImages = [
+  "/assets/bg-home1.jpg",
+  "/assets/bg-home2.jpg",
+  "/assets/bg-home3.jpg",
+  "/assets/bg-home4.jpg",
+  "/assets/bg-home5.jpg",
+];
 
 const Hero = () => {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
+  const [currentImage, setCurrentImage] = useState(0);
+  const [fade, setFade] = useState(true);
 
-    const handleSearch = ({ searchKeyword }) => {
-        navigate(`/experience?search=${encodeURIComponent(searchKeyword)}`);
-    };
+  // Background image auto-transition effect
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setFade(false);
+      setTimeout(() => {
+        setCurrentImage((prev) => (prev + 1) % backgroundImages.length);
+        setFade(true);
+      }, 500);
+    }, 5000); // Change every 5 seconds
 
-    return (
-        <section className="relative bg-cover bg-center h-screen" style={{ backgroundImage: `url(${herohome})` }}>
-            <div className="flex flex-col items-center justify-center h-full bg-black bg-opacity-50">
-                <h2 className="text-white text-4xl md:text-6xl font-bold mb-4 text-center">Navega Japón a tu manera</h2>
-                <img src={nube} alt="Nube" className="mb-4" />
-                <div className="bg-[#d7edfc] bg-opacity-50 p-6 rounded-lg w-11/12 md:w-3/4 lg:w-2/3">
-                    <Search onSearchKeyword={handleSearch} />
-                </div>
-            </div>
-        </section>
-    );
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleSearch = ({ searchKeyword }) => {
+    navigate(`/experience?search=${encodeURIComponent(searchKeyword)}`);
+  };
+
+  return (
+    <Box
+      className="h-screen"
+      sx={{
+        position: "relative",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        textAlign: "center",
+        overflow: "hidden",
+      }}
+    >
+      {/* Background Image Transition */}
+      {backgroundImages.map((image, index) => (
+        <Box
+          key={index}
+          sx={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            background: `linear-gradient(to bottom, rgba(0,0,0,0.7), rgba(0,0,0,0.3)), url(${image})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            transition: "opacity 1s ease-in-out",
+            opacity: index === currentImage && fade ? 1 : 0,
+          }}
+        />
+      ))}
+
+      {/* Content Overlay */}
+      <Box
+        sx={{
+          position: "relative",
+          zIndex: 2,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+        }}
+      >
+        <Typography
+          variant="h1"
+          sx={{ color: "white", fontWeight: "bold", mb: 2 }}
+        >
+          Navega Japón a Tu Manera
+        </Typography>
+
+        <Search onSearchKeyword={handleSearch} />
+      </Box>
+    </Box>
+  );
 };
 
 export default Hero;

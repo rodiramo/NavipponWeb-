@@ -1,36 +1,80 @@
-import React, { useState } from "react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Box, InputBase, IconButton } from "@mui/material";
 import { FiSearch } from "react-icons/fi";
+import { useTheme } from "@mui/material/styles";
 
 const Search = ({ className, onSearchKeyword }) => {
   const [searchKeyword, setSearchKeyword] = useState("");
+  const theme = useTheme();
+  const navigate = useNavigate();
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSearchKeyword({ searchKeyword });
+    if (searchKeyword.trim()) {
+      onSearchKeyword({ searchKeyword });
+      navigate(`/experience?search=${encodeURIComponent(searchKeyword)}`);
+    }
   };
 
   return (
-    <form
+    <Box
+      component="form"
       onSubmit={handleSubmit}
-      className={`flex flex-col gap-y-2.5 relative ${className}`}
+      className={`relative flex items-center w-full md:w-3/4 ${className}`}
+      sx={{
+        backgroundColor: "rgba(255, 255, 255, 0.3)",
+        backdropFilter: "blur(10px)",
+        borderRadius: "50px", // Fully rounded edges
+        border: `1.2px solid ${theme.palette.secondary.light}`,
+        padding: "0.6rem",
+        display: "flex",
+        alignItems: "center",
+        gap: "10px",
+      }}
     >
-      <div className="relative p-1">
-        <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-6 h-6 text-[#959EAD]" />
-        <input
-          className=" placeholder:font-bold font-semibold text-dark-soft placeholder:text-[#959EAD] rounded-lg pl-12 pr-3 w-full py-3 focus:outline-none  shadow-[rgba(13,_38,_76,_0.19)_0px_9px_20px] md:py-4"
-          type="text"
-          placeholder="Buscar"
-          value={searchKeyword}
-          onChange={(e) => setSearchKeyword(e.target.value)}
-        />
-      </div>
-      <button
+      {/* Search Icon */}
+      <FiSearch
+        className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6"
+        style={{ color: theme.palette.primary.main, zIndex: 1000 }}
+      />
+
+      {/* Search Input - Rounded with Background */}
+      <InputBase
+        placeholder="Buscar..."
+        value={searchKeyword}
+        onChange={(e) => setSearchKeyword(e.target.value)}
+        sx={{
+          flex: 1,
+          padding: "12px 15px",
+          paddingLeft: "3rem",
+          borderRadius: "50px", // Makes input rounded
+          backgroundColor: theme.palette.secondary.light, // Background color
+          color: theme.palette.text.primary,
+          "&::placeholder": {
+            color: theme.palette.secondary.dark,
+            fontWeight: "bold",
+          },
+        }}
+      />
+
+      {/* Search Button */}
+      <IconButton
         type="submit"
-        className="w-full bg-[#FF4A5A] text-white font-semibold rounded-lg px-5 py-3 md:absolute md:right-2 md:top-1/2 md:-translate-y-1/2 md:w-fit md:py-2"
+        sx={{
+          backgroundColor: theme.palette.primary.main,
+          color: "white",
+          fontSize: "1rem",
+          padding: "0.8rem 1.5rem",
+          borderRadius: "50px",
+          "&:hover": {
+            backgroundColor: theme.palette.primary.dark,
+          },
+        }}
       >
         Buscar
-      </button>
-    </form>
+      </IconButton>
+    </Box>
   );
 };
 
