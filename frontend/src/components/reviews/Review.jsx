@@ -3,7 +3,7 @@ import { FiMessageSquare, FiEdit2, FiTrash } from "react-icons/fi";
 
 import { images, stables } from "../../constants";
 import ReviewForm from "./ReviewForm";
-import useUser from "../../hooks/useUser";  
+import useUser from "../../hooks/useUser";
 
 const Review = ({
   review,
@@ -16,7 +16,7 @@ const Review = ({
   deleteReview,
   replies,
 }) => {
-  const { jwt } = useUser();  
+  const { jwt } = useUser();
   const isUserLoggined = Boolean(logginedUserId);
   const reviewBelongsToUser = logginedUserId === review.user._id;
   const isReplying =
@@ -78,7 +78,7 @@ const Review = ({
               }
             >
               <FiMessageSquare className="w-4 h-auto" />
-              <span>Reply</span>
+              <span>Contestar</span>
             </button>
           )}
           {reviewBelongsToUser && (
@@ -90,14 +90,14 @@ const Review = ({
                 }
               >
                 <FiEdit2 className="w-4 h-auto" />
-                <span>Edit</span>
+                <span>Editar</span>
               </button>
               <button
                 className="flex items-center space-x-2"
                 onClick={() => deleteReview(review._id, jwt)}
               >
                 <FiTrash className="w-4 h-auto" />
-                <span>Delete</span>
+                <span>Eliminar</span>
               </button>
             </>
           )}

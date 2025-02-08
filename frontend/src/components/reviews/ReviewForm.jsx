@@ -21,7 +21,7 @@ const ReviewForm = ({
         <textarea
           className="w-full focus:outline-none bg-transparent"
           rows="5"
-          placeholder="Deja tu comentario aquí..."
+          placeholder="Deja tu reseña aquí..."
           value={value}
           onChange={(e) => setValue(e.target.value)}
         />

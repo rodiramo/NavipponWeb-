@@ -2,45 +2,53 @@ import React, { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { AiFillHeart, AiOutlineHeart } from "react-icons/ai";
 import { toast } from "react-hot-toast";
-import BreadCrumbs from "../../components/BreadCrumbs";
+import BgShape from "../../components/Shapes/BgShape.jsx";
+import BreadcrumbBack from "../../components/BreadcrumbBack.jsx";
 import ReviewsContainer from "../../components/reviews/ReviewsContainer";
 import MainLayout from "../../components/MainLayout";
 import SocialShareButtons from "../../components/SocialShareButtons";
 import { images, stables } from "../../constants";
 import { useQuery } from "@tanstack/react-query";
-import { getAllExperiences, getSingleExperience } from "../../services/index/experiences";
+import {
+  getAllExperiences,
+  getSingleExperience,
+} from "../../services/index/experiences";
+import { useTheme } from "@mui/material";
 import ExperienceDetailSkeleton from "./components/ExperienceDetailSkeleton";
 import ErrorMessage from "../../components/ErrorMessage";
 import parseJsonToHtml from "../../utils/parseJsonToHtml";
 import Editor from "../../components/editor/Editor";
 import useUser from "../../hooks/useUser";
-import { addFavorite as addFavoriteService, removeFavorite as removeFavoriteService, getUserFavorites } from "../../services/index/favorites";
-import Aside from "./container/Aside";  
-import Hero from "./container/Hero";  
-import { Tabs, Tab } from "./container/Tabs"; 
-import CarouselExperiences from "./container/CarouselExperiences"; 
+import {
+  addFavorite as addFavoriteService,
+  removeFavorite as removeFavoriteService,
+  getUserFavorites,
+} from "../../services/index/favorites";
+import Aside from "./container/Aside";
+import Hero from "./container/Hero";
+import { Tabs, Tab } from "./container/Tabs";
+import CarouselExperiences from "./container/CarouselExperiences";
 import SuggestedExperiences from "./container/SuggestedExperiences";
 
 const ExperienceDetailPage = () => {
   const { slug } = useParams();
   const { user, jwt } = useUser();
-  const [breadCrumbsData, setbreadCrumbsData] = useState([]);
   const [body, setBody] = useState(null);
   const [isFavorite, setIsFavorite] = useState(false);
-
+  const theme = useTheme(true);
   const { data, isLoading, isError } = useQuery({
     queryFn: () => getSingleExperience({ slug }),
     queryKey: ["experience", slug],
     onSuccess: async (data) => {
-      setbreadCrumbsData([
-        { name: "Home", link: "/" },
-        { name: "Experience", link: "/experience" },
-        { name: "Detalle", link: `/experience/${data.slug}` },
-      ]);
       setBody(parseJsonToHtml(data?.body));
       if (user && jwt) {
-        const favorites = await getUserFavorites({ userId: user._id, token: jwt });
-        const isFav = favorites.some(fav => fav.experienceId && fav.experienceId._id === data._id);
+        const favorites = await getUserFavorites({
+          userId: user._id,
+          token: jwt,
+        });
+        const isFav = favorites.some(
+          (fav) => fav.experienceId && fav.experienceId._id === data._id
+        );
         setIsFavorite(isFav);
       }
     },
@@ -54,11 +62,15 @@ const ExperienceDetailPage = () => {
   useEffect(() => {
     if (data && user && jwt) {
       getUserFavorites({ userId: user._id, token: jwt })
-        .then(favorites => {
-          const isFav = favorites.some(fav => fav.experienceId && fav.experienceId._id === data._id);
+        .then((favorites) => {
+          const isFav = favorites.some(
+            (fav) => fav.experienceId && fav.experienceId._id === data._id
+          );
           setIsFavorite(isFav);
         })
-        .catch(error => console.error("Error fetching user favorites:", error));
+        .catch((error) =>
+          console.error("Error fetching user favorites:", error)
+        );
     }
   }, [user, jwt, data]);
 
@@ -70,11 +82,19 @@ const ExperienceDetailPage = () => {
 
     try {
       if (isFavorite) {
-        await removeFavoriteService({ userId: user._id, experienceId: data._id, token: jwt });
+        await removeFavoriteService({
+          userId: user._id,
+          experienceId: data._id,
+          token: jwt,
+        });
         setIsFavorite(false);
         toast.success("Se eliminó de favoritos");
       } else {
-        await addFavoriteService({ userId: user._id, experienceId: data._id, token: jwt });
+        await addFavoriteService({
+          userId: user._id,
+          experienceId: data._id,
+          token: jwt,
+        });
         setIsFavorite(true);
         toast.success("Se agregó a favoritos");
       }
@@ -91,35 +111,43 @@ const ExperienceDetailPage = () => {
         <ErrorMessage message="No se pudieron obtener los detalles de la publicación" />
       ) : (
         <>
-          <Hero 
-            imageUrl={data?.photo ? stables.UPLOAD_FOLDER_BASE_URL + data?.photo : images.sampleExperienceImage} 
-            imageAlt={data?.title} 
+          <Hero
+            imageUrl={
+              data?.photo
+                ? stables.UPLOAD_FOLDER_BASE_URL + data?.photo
+                : images.sampleExperienceImage
+            }
+            imageAlt={data?.title}
           />
-          <section className="container mx-auto max-w-5xl px-5 py-5">
-            <BreadCrumbs data={breadCrumbsData} />
+          <BgShape />
+          <section className="container mx-auto px-5  py-5">
+            <BreadcrumbBack />
             <div className="mt-4 flex gap-2">
-              {Array.isArray(data?.categories) && data.categories.map((category) => (
-                <Link
-                  key={category}
-                  to={`/experience?category=${category}`}
-                  className="text-primary text-sm inline-block md:text-base"
-                >
-                  {category}
-                </Link>
-              ))}
+              {Array.isArray(data?.categories) &&
+                data.categories.map((category) => (
+                  <Link
+                    key={category}
+                    to={`/experience?category=${category}`}
+                    className="text-primary text-sm inline-block md:text-base"
+                  >
+                    {category}
+                  </Link>
+                ))}
             </div>
-            <div className="flex justify-between items-center mt-4">
-              <h2 className="text-xl font-medium text-dark-hard md:text-[26px]">
-                {data?.title}
-              </h2> 
+            <div className="flex justify-between items-center">
+              <h1 className="text-3xl mb-4">{data?.title}</h1>
               <button
                 onClick={handleFavoriteClick}
-                className="bg-[#FF4A5A] p-2 rounded-full focus:outline-none"
+                style={{
+                  background: theme.palette.primary.main,
+                  color: "white",
+                }}
+                className=" p-2 rounded-full focus:outline-none"
               >
                 {isFavorite ? (
                   <AiFillHeart className="text-white text-2xl" />
                 ) : (
-                  <AiOutlineHeart className="text-white text-2xl" /> 
+                  <AiOutlineHeart className="text-white text-2xl" />
                 )}
               </button>
             </div>
@@ -137,7 +165,10 @@ const ExperienceDetailPage = () => {
                     <div className="w-full mt-4">
                       <Editor content={data.body} editable={false} />
                     </div>
-                    <CarouselExperiences header="Navega Experiencias" experiences={ExperiencesData?.data} />  
+                    <CarouselExperiences
+                      header="Navega Experiencias"
+                      experiences={ExperiencesData?.data}
+                    />
                   </div>
                 </div>
               </Tab>
@@ -149,7 +180,7 @@ const ExperienceDetailPage = () => {
                       className="mt-10"
                       logginedUserId={user?._id}
                       experienceSlug={slug}
-                      jwt={jwt}  
+                      jwt={jwt}
                     />
                   </div>
                   <div>
