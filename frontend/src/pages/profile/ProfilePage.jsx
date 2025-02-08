@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
@@ -9,13 +9,15 @@ import { getUserProfile, updateProfile } from "../../services/index/users";
 import ProfilePicture from "../../components/ProfilePicture";
 import { userActions } from "../../store/reducers/userReducers";
 import { toast } from "react-hot-toast";
-import useUser from "../../hooks/useUser";  
+import useUser from "../../hooks/useUser";
+import { Button, Collapse } from "@mui/material"; // Used for animations
 
 const ProfilePage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const queryClient = useQueryClient();
-  const { user, jwt } = useUser();  
+  const { user, jwt } = useUser();
+  const [isEditing, setIsEditing] = useState(false); // Toggle form
 
   useEffect(() => {
     if (!jwt) {
@@ -25,26 +27,24 @@ const ProfilePage = () => {
   }, [jwt, navigate]);
 
   const { data: profileData, isLoading: profileIsLoading } = useQuery({
-    queryFn: () => {
-      return getUserProfile({ token: jwt });
-    },
+    queryFn: () => getUserProfile({ token: jwt }),
     queryKey: ["profile"],
-    enabled: !!jwt,  
+    enabled: !!jwt,
   });
 
   const { mutate, isLoading: updateProfileIsLoading } = useMutation({
-    mutationFn: ({ name, email, password }) => {
-      return updateProfile({
+    mutationFn: ({ name, email, password }) =>
+      updateProfile({
         token: jwt,
         userData: { name, email, password },
         userId: user._id,
-      });
-    },
+      }),
     onSuccess: (data) => {
       dispatch(userActions.setUserInfo(data));
       localStorage.setItem("account", JSON.stringify(data));
       queryClient.invalidateQueries(["profile"]);
       toast.success("Perfil actualizado");
+      setIsEditing(false); // Hide form after updating
     },
     onError: (error) => {
       toast.error(error.message);
@@ -62,119 +62,143 @@ const ProfilePage = () => {
       email: "",
       password: "",
     },
-    values: useMemo(() => {
-      return {
-        name: profileIsLoading ? "" : profileData.name,
-        email: profileIsLoading ? "" : profileData.email,
-      };
-    }, [profileData?.email, profileData?.name, profileIsLoading]),
+    values: useMemo(
+      () => ({
+        name: profileIsLoading ? "" : profileData?.name || "",
+        email: profileIsLoading ? "" : profileData?.email || "",
+      }),
+      [profileData?.email, profileData?.name, profileIsLoading]
+    ),
     mode: "onChange",
   });
 
   const submitHandler = (data) => {
-    const { name, email, password } = data;
-    mutate({ name, email, password });
+    mutate(data);
   };
 
   return (
     <MainLayout>
-      <section className="container mx-auto px-5 py-10">
-        <div className="w-full max-w-sm mx-auto">
+      <section
+        id="body"
+        className="container mx-auto px-5 "
+        style={{ paddingTop: "10rem" }}
+      >
+        <div className="w-full max-w-sm mx-auto text-center">
           <ProfilePicture avatar={profileData?.avatar} />
-          <form onSubmit={handleSubmit(submitHandler)}>
-            <div className="flex flex-col mb-6 w-full mt-6">
-              <label
-                htmlFor="name"
-                className="text-[#5a7184] font-semibold block"
-              >
-                Nombre
-              </label>
-              <input
-                type="text"
-                id="name"
-                {...register("name", {
-                  minLength: {
-                    value: 1,
-                    message: "El nombre debe tener al menos 1 caracter",
-                  },
-                  required: {
-                    value: true,
-                    message: "El nombre es requerido",
-                  },
-                })}
-                placeholder="Ingresar nombre"
-                className={`placeholder:text-[#959ead] text-dark-hard mt-3 rounded-lg px-5 py-4 font-semibold block outline-none border ${
-                  errors.name ? "border-red-500" : "border-[#c3cad9]"
-                }`}
-              />
-              {errors.name?.message && (
-                <p className="text-red-500 text-xs mt-1">
-                  {errors.name?.message}
-                </p>
-              )}
+
+          {/* Show user name and email if not editing */}
+          {!isEditing && (
+            <div className="my-6">
+              <h2 className="text-xl font-bold">
+                {profileData?.name || "Usuario"}
+              </h2>
+              <p className="text-gray-600">{profileData?.email}</p>
             </div>
-            <div className="flex flex-col mb-6 w-full">
-              <label
-                htmlFor="email"
-                className="text-[#5a7184] font-semibold block"
-              >
-                Email
-              </label>
-              <input
-                type="email"
-                id="email"
-                {...register("email", {
-                  pattern: {
-                    value:
-                      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
-                    message: "Ingresa un email válido",
-                  },
-                  required: {
-                    value: true,
-                    message: "Email es requerido",
-                  },
-                })}
-                placeholder="Ingresar email"
-                className={`placeholder:text-[#959ead] text-dark-hard mt-3 rounded-lg px-5 py-4 font-semibold block outline-none border ${
-                  errors.email ? "border-red-500" : "border-[#c3cad9]"
-                }`}
-              />
-              {errors.email?.message && (
-                <p className="text-red-500 text-xs mt-1">
-                  {errors.email?.message}
-                </p>
-              )}
-            </div>
-            <div className="flex flex-col mb-6 w-full">
-              <label
-                htmlFor="password"
-                className="text-[#5a7184] font-semibold block"
-              >
-                Nueva Contraseña (opcional)
-              </label>
-              <input
-                type="password"
-                id="password"
-                {...register("password")}
-                placeholder="Enter new password"
-                className={`placeholder:text-[#959ead] text-dark-hard mt-3 rounded-lg px-5 py-4 font-semibold block outline-none border ${
-                  errors.password ? "border-red-500" : "border-[#c3cad9]"
-                }`}
-              />
-              {errors.password?.message && (
-                <p className="text-red-500 text-xs mt-1">
-                  {errors.password?.message}
-                </p>
-              )}
-            </div>
-            <button
-              type="submit"
-              disabled={!isValid || profileIsLoading || updateProfileIsLoading}
-              className="bg-primary text-white font-bold text-lg py-4 px-8 w-full rounded-lg mb-6 disabled:opacity-70 disabled:cursor-not-allowed"
+          )}
+
+          {/* Edit Button */}
+          {!isEditing && (
+            <Button
+              variant="contained"
+              className="bg-primary text-white font-bold px-6 py-3 rounded-lg mt-4"
+              onClick={() => setIsEditing(true)}
             >
-              Update
-            </button>
-          </form>
+              Editar Perfil
+            </Button>
+          )}
+
+          {/* Form with animation */}
+          <Collapse in={isEditing}>
+            <form onSubmit={handleSubmit(submitHandler)} className="mt-6">
+              <div className="flex flex-col mb-6 w-full">
+                <label htmlFor="name" className="text-gray-600 font-semibold">
+                  Nombre
+                </label>
+                <input
+                  type="text"
+                  id="name"
+                  {...register("name", {
+                    required: "El nombre es requerido",
+                    minLength: {
+                      value: 1,
+                      message: "Debe tener al menos 1 caracter",
+                    },
+                  })}
+                  className={`mt-3 rounded-lg px-5 py-4 font-semibold block outline-none border ${
+                    errors.name ? "border-red-500" : "border-gray-300"
+                  }`}
+                />
+                {errors.name?.message && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.name.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="flex flex-col mb-6 w-full">
+                <label htmlFor="email" className="text-gray-600 font-semibold">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  id="email"
+                  {...register("email", {
+                    required: "El email es requerido",
+                    pattern: {
+                      value: /^\S+@\S+\.\S+$/,
+                      message: "Ingresa un email válido",
+                    },
+                  })}
+                  className={`mt-3 rounded-lg px-5 py-4 font-semibold block outline-none border ${
+                    errors.email ? "border-red-500" : "border-gray-300"
+                  }`}
+                />
+                {errors.email?.message && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.email.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="flex flex-col mb-6 w-full">
+                <label
+                  htmlFor="password"
+                  className="text-gray-600 font-semibold"
+                >
+                  Nueva Contraseña (opcional)
+                </label>
+                <input
+                  type="password"
+                  id="password"
+                  {...register("password")}
+                  className="mt-3 rounded-lg px-5 py-4 font-semibold block outline-none border border-gray-300"
+                  placeholder="Ingresar nueva contraseña"
+                />
+              </div>
+
+              {/* Submit & Cancel Buttons */}
+              <div className="flex justify-between">
+                <Button
+                  type="submit"
+                  variant="contained"
+                  className="bg-primary text-white font-bold px-6 py-3 rounded-lg w-full mr-2"
+                  disabled={
+                    !isValid || profileIsLoading || updateProfileIsLoading
+                  }
+                >
+                  Actualizar
+                </Button>
+
+                <Button
+                  variant="outlined"
+                  className="border border-primary text-primary font-bold px-6 py-3 rounded-lg w-full ml-2"
+                  onClick={() => setIsEditing(false)}
+                >
+                  Cancelar
+                </Button>
+              </div>
+            </form>
+          </Collapse>
         </div>
       </section>
     </MainLayout>
