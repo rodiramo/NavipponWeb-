@@ -14,6 +14,7 @@ import {
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { useMutation } from "@tanstack/react-query";
 import toast from "react-hot-toast";
+import HomeButton from "../../components/HomeButton";
 import { useDispatch } from "react-redux";
 import { signup } from "../../services/index/users";
 import { userActions } from "../../store/reducers/userReducers";
@@ -73,6 +74,7 @@ const RegisterPage = () => {
       backgroundColor={theme.palette.primary.white}
       flexDirection={isNonMobileScreens ? "row" : "column"}
     >
+      <HomeButton />
       {isNonMobileScreens ? (
         <Box
           flexBasis="40%"

@@ -18,6 +18,7 @@ import useUser from "../../hooks/useUser";
 import logoBlack from "../../assets/navippon-icon.png";
 import logo from "../../assets/navippon-logo-white.png";
 import backgroundImage from "../../assets/login-bg.jpg";
+import HomeButton from "../../components/HomeButton"; // Import HomeButton at the top
 
 const LoginPage = () => {
   const theme = useTheme();
@@ -56,6 +57,7 @@ const LoginPage = () => {
       backgroundColor={theme.palette.primary.white}
       flexDirection={isNonMobileScreens ? "row" : "column"}
     >
+      <HomeButton />
       {isNonMobileScreens ? (
         <Box
           flexBasis="40%"
