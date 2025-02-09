@@ -89,7 +89,7 @@ const Header = () => {
       <header
         className="w-full px-5 py-4 flex flex-col md:flex-row justify-between items-center"
         style={{
-          backgroundColor: theme.palette.background.default,
+          backgroundColor: theme.palette.secondary.light,
           color: theme.palette.text.primary,
         }}
       >
