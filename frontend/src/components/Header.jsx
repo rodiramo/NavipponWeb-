@@ -65,7 +65,7 @@ const Header = () => {
       const isNowMobile = window.matchMedia("(max-width: 800px)").matches;
       setIsMobile(isNowMobile);
       if (!isNowMobile) {
-        setNavIsVisible(false); // Close menu when resizing above 800px
+        setNavIsVisible(false);
       }
     };
 
