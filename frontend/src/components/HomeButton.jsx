@@ -1,8 +1,8 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { IconButton, Tooltip } from "@mui/material";
-import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
 import { useTheme } from "@mui/material";
+import { FiHome } from "react-icons/fi";
 const HomeButton = () => {
   const navigate = useNavigate();
   const theme = useTheme();
@@ -19,7 +19,7 @@ const HomeButton = () => {
           color: "white",
         }}
       >
-        <HomeOutlinedIcon fontSize="large" />
+        <FiHome fontSize="large" />
       </IconButton>
     </Tooltip>
   );

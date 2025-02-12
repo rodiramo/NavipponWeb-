@@ -1,7 +1,7 @@
 import React from "react";
-import pastilla1 from "../../../assets/pastilla1.png";
-import pastilla2 from "../../../assets/pastilla2.png";
-import pastilla3 from "../../../assets/pastilla3.png";
+import pastilla1 from "../../../assets/1.png";
+import pastilla2 from "../../../assets/2.png";
+import pastilla3 from "../../../assets/3.png";
 
 const InfoPill = () => {
   const pills = [
@@ -47,7 +47,7 @@ const InfoPill = () => {
             <img
               src={pill.img}
               alt={pill.title}
-              className="mb-2 w-72 h-72 object-contain"
+              className="mb-1 w-80 h-80 object-contain"
             />
             <h4
               className="text-lg font-bold mb-1"
