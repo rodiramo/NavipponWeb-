@@ -29,6 +29,7 @@
     "@tiptap/starter-kit": "^2.0.3",
     "@uidotdev/usehooks": "^2.0.1",
     "axios": "^1.7.9",
+    "date-fns": "^4.1.0",
     "firebase": "^11.1.0",
     "html-react-parser": "^3.0.15",
     "lowlight": "^2.9.0",

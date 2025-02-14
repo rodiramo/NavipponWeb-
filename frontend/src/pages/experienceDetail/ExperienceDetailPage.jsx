@@ -178,7 +178,7 @@ const ExperienceDetailPage = () => {
                     <ReviewsContainer
                       reviews={data?.reviews}
                       className="mt-10"
-                      logginedUserId={user?._id}
+                      loggedInUserId={user?._id}
                       experienceSlug={slug}
                       jwt={jwt}
                     />

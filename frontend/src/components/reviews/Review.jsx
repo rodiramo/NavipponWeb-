@@ -1,86 +1,129 @@
 import React from "react";
-import { FiMessageSquare, FiEdit2, FiTrash } from "react-icons/fi";
-
-import { images, stables } from "../../constants";
+import PropTypes from "prop-types";
+import { FiEdit2, FiTrash } from "react-icons/fi";
 import ReviewForm from "./ReviewForm";
-import useUser from "../../hooks/useUser";
+import { Avatar, useTheme } from "@mui/material";
+import StarIcon from "@mui/icons-material/Star";
+import { formatDistanceToNow } from "date-fns";
+import { es } from "date-fns/locale"; // ✅ Import Spanish locale
 
 const Review = ({
   review,
-  logginedUserId,
+  loggedInUserId,
   affectedReview,
   setAffectedReview,
-  addReview,
-  parentId = null,
   updateReview,
   deleteReview,
-  replies,
 }) => {
-  const { jwt } = useUser();
-  const isUserLoggined = Boolean(logginedUserId);
-  const reviewBelongsToUser = logginedUserId === review.user._id;
-  const isReplying =
-    affectedReview &&
-    affectedReview.type === "replying" &&
-    affectedReview._id === review._id;
+  const theme = useTheme();
+
+  const reviewBelongsToUser = review.user._id === loggedInUserId;
   const isEditing =
     affectedReview &&
     affectedReview.type === "editing" &&
     affectedReview._id === review._id;
-  const repliedReviewId = parentId ? parentId : review._id;
-  const replyOnUserId = review.user._id;
 
   return (
     <div
-      className="flex flex-nowrap items-start gap-x-3 bg-[#F2F4F5] p-3 rounded-lg"
-      id={`review-${review?._id}`}
+      className="flex flex-nowrap items-start gap-x-3 p-1 rounded-lg"
+      style={{
+        width: "80%",
+        flexDirection: "column",
+      }}
+      id={`review-${review._id}`}
     >
-      <img
-        src={
-          review?.user?.avatar
-            ? stables.UPLOAD_FOLDER_BASE_URL + review.user.avatar
-            : images.userImage
-        }
-        alt="user profile"
-        className="w-9 h-9 object-cover rounded-full"
-      />
-      <div className="flex-1 flex flex-col">
-        <h5 className="font-bold text-dark-hard text-xs lg:text-sm">
-          {review.user.name}
-        </h5>
-        <span className="text-xs text-dark-light">
-          {new Date(review.createdAt).toLocaleDateString("en-US", {
-            day: "numeric",
-            month: "short",
-            year: "numeric",
-            hour: "2-digit",
-          })}
-        </span>
-        {!isEditing && (
-          <p className="font-opensans mt-[10px] text-dark-light">
-            {review.desc}
-          </p>
-        )}
-        {isEditing && (
-          <ReviewForm
-            btnLabel="Update"
-            formSubmitHanlder={(value) => updateReview(value, review._id, jwt)}
-            formCancelHandler={() => setAffectedReview(null)}
-            initialText={review.desc}
+      <div
+        style={{
+          width: "100%",
+          background: theme.palette.primary.white,
+          padding: "1rem",
+          borderRadius: "1rem",
+          alignItems: "center",
+          display: "flex",
+          flexDirection: "row",
+        }}
+      >
+        {/* User Avatar & Info */}
+        <div
+          className="flex"
+          style={{
+            marginLeft: "2rem",
+            alignItems: "start",
+            flexDirection: "column",
+            width: "25%",
+          }}
+        >
+          <Avatar
+            src={
+              review.user.avatar
+                ? review.user.avatar
+                : "/assets/default-avatar.png"
+            }
+            sx={{ width: 60, height: 60 }}
           />
-        )}
-        <div className="flex items-center gap-x-3 text-dark-light text-sm mt-3 mb-3">
-          {isUserLoggined && (
-            <button
-              className="flex items-center space-x-2"
-              onClick={() =>
-                setAffectedReview({ type: "replying", _id: review._id })
-              }
-            >
-              <FiMessageSquare className="w-4 h-auto" />
-              <span>Contestar</span>
-            </button>
+          <h5 className="font-bold text-dark-hard text-xs lg:text-sm">
+            @{review.user.name}
+          </h5>
+        </div>
+
+        {/* Review Content */}
+        <div style={{ width: "100%" }}>
+          {!isEditing && (
+            <div>
+              {/* Star Rating */}
+              <div className="font-opensans text-dark-light flex items-center">
+                {Array.from({ length: 5 }, (_, index) => (
+                  <span key={index}>
+                    {index < Math.floor(review.rating) ? (
+                      <StarIcon
+                        style={{ color: theme.palette.primary.main }}
+                        fontSize="1.5rem"
+                      />
+                    ) : index < review.rating ? (
+                      <StarIcon
+                        style={{ color: theme.palette.primary.main }}
+                        fontSize="inherit"
+                      />
+                    ) : (
+                      <StarIcon style={{ color: "grey" }} fontSize="inherit" />
+                    )}
+                  </span>
+                ))}
+              </div>
+              {/* Review Title & Description */}
+              <p
+                className="font-opensans"
+                style={{
+                  fontWeight: "bold",
+                  marginTop: "10px",
+                  fontStyle: "italic",
+                }}
+              >
+                {review.title}
+              </p>
+              <p
+                className="font-opensans"
+                style={{
+                  color: theme.palette.secondary.main,
+                  fontStyle: "italic",
+                  marginTop: "5px",
+                }}
+              >
+                "{review.desc}"
+              </p>
+            </div>
           )}
+          {/* Review Timestamp (Spanish Format) */}
+          <span className="text-xs text-dark-light">
+            {formatDistanceToNow(new Date(review.createdAt), {
+              addSuffix: true,
+              locale: es, // ✅ Spanish Locale
+            })}
+          </span>
+        </div>
+
+        {/* Edit & Delete Buttons */}
+        <div className="flex items-center gap-x-3 text-dark-light text-sm mt-3 mb-3">
           {reviewBelongsToUser && (
             <>
               <button
@@ -94,7 +137,7 @@ const Review = ({
               </button>
               <button
                 className="flex items-center space-x-2"
-                onClick={() => deleteReview(review._id, jwt)}
+                onClick={() => deleteReview(review._id)}
               >
                 <FiTrash className="w-4 h-auto" />
                 <span>Eliminar</span>
@@ -102,36 +145,49 @@ const Review = ({
             </>
           )}
         </div>
-        {isReplying && (
+      </div>
+
+      {/* Editing Form */}
+      <div style={{ width: "100%" }}>
+        {isEditing && (
           <ReviewForm
-            btnLabel="Reply"
-            formSubmitHanlder={(value) =>
-              addReview(value, repliedReviewId, replyOnUserId, jwt)
-            }
+            btnLabel="Update"
+            formSubmitHandler={(rating, title, desc) => {
+              console.log("Updating review with ID:", review._id); // Debugging
+              updateReview({ rating, title, desc, reviewId: review._id });
+            }}
             formCancelHandler={() => setAffectedReview(null)}
+            initialText={review.desc}
+            initialTitle={review.title}
+            initialRating={review.rating}
           />
-        )}
-        {replies.length > 0 && (
-          <div>
-            {replies.map((reply) => (
-              <Review
-                key={reply._id}
-                addReview={addReview}
-                affectedReview={affectedReview}
-                setAffectedReview={setAffectedReview}
-                review={reply}
-                deleteReview={deleteReview}
-                logginedUserId={logginedUserId}
-                replies={[]}
-                updateReview={updateReview}
-                parentId={review._id}
-              />
-            ))}
-          </div>
         )}
       </div>
     </div>
   );
+};
+
+Review.propTypes = {
+  review: PropTypes.shape({
+    _id: PropTypes.string.isRequired,
+    title: PropTypes.string,
+    rating: PropTypes.number,
+    desc: PropTypes.string.isRequired,
+    createdAt: PropTypes.string.isRequired,
+    user: PropTypes.shape({
+      _id: PropTypes.string.isRequired,
+      name: PropTypes.string.isRequired,
+      avatar: PropTypes.string,
+    }).isRequired,
+  }).isRequired,
+  loggedInUserId: PropTypes.string.isRequired,
+  affectedReview: PropTypes.shape({
+    type: PropTypes.string,
+    _id: PropTypes.string,
+  }),
+  setAffectedReview: PropTypes.func.isRequired,
+  updateReview: PropTypes.func.isRequired,
+  deleteReview: PropTypes.func.isRequired,
 };
 
 export default Review;
