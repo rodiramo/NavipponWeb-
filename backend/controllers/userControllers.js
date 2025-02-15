@@ -1,5 +1,7 @@
-import { uploadPicture } from "../middleware/uploadPictureMiddleware.js";
+import upload from "../middleware/uploadPictureMiddleware.js";
 import Comment from "../models/Comment.js";
+import cloudinary from "../config/cloudinaryConfig.js";
+
 import Post from "../models/Post.js";
 import User from "../models/User.js";
 import { fileRemover } from "../utils/fileRemover.js";
@@ -133,51 +135,39 @@ const updateProfile = async (req, res, next) => {
 
 const updateProfilePicture = async (req, res, next) => {
   try {
-    const upload = uploadPicture.single("profilePicture");
+    if (!req.file) {
+      throw new Error("No file uploaded.");
+    }
 
-    upload(req, res, async function (err) {
-      if (err) {
-        const error = new Error(
-          "Se produjo un error desconocido al cargar  " + err.message
-        );
-        next(error);
-      } else {
-        if (req.file) {
-          let filename;
-          let updatedUser = await User.findById(req.user._id);
-          filename = updatedUser.avatar;
-          if (filename) {
-            fileRemover(filename);
-          }
-          updatedUser.avatar = req.file.filename;
-          await updatedUser.save();
-          res.json({
-            _id: updatedUser._id,
-            avatar: updatedUser.avatar,
-            name: updatedUser.name,
-            email: updatedUser.email,
-            verified: updatedUser.verified,
-            admin: updatedUser.admin,
-            token: await updatedUser.generateJWT(),
-          });
-        } else {
-          let filename;
-          let updatedUser = await User.findById(req.user._id);
-          filename = updatedUser.avatar;
-          updatedUser.avatar = "";
-          await updatedUser.save();
-          fileRemover(filename);
-          res.json({
-            _id: updatedUser._id,
-            avatar: updatedUser.avatar,
-            name: updatedUser.name,
-            email: updatedUser.email,
-            verified: updatedUser.verified,
-            admin: updatedUser.admin,
-            token: await updatedUser.generateJWT(),
-          });
-        }
-      }
+    let user = await User.findById(req.user._id);
+
+    if (!user) {
+      throw new Error("User not found.");
+    }
+
+    // ✅ Delete the old avatar if exists
+    if (user.avatar) {
+      await cloudinary.uploader.destroy(user.avatar);
+    }
+
+    // ✅ Upload the new avatar to Cloudinary
+    const result = await cloudinary.uploader.upload(req.file.path, {
+      folder: "uploads", // Store images inside 'uploads' folder
+    });
+
+    // ✅ Save only the `public_id` instead of full URL
+    user.avatar = result.public_id; // 👈 This saves only "uploads/1739621073399-activities"
+
+    await user.save();
+
+    res.json({
+      _id: user._id,
+      avatar: user.avatar, // Returns only `public_id`
+      name: user.name,
+      email: user.email,
+      verified: user.verified,
+      admin: user.admin,
+      token: await user.generateJWT(),
     });
   } catch (error) {
     next(error);
