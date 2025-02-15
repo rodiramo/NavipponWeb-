@@ -81,7 +81,7 @@ const Header = () => {
       <header
         className="w-full px-5 py-4 flex items-center justify-between"
         style={{
-          backgroundColor: `${theme.palette.background.nav}99`,
+          backgroundColor: "rgb(10 23 51 / 81%)",
           color: "white",
           backdropFilter: "blur(10px) saturate(180%)",
           WebkitBackdropFilter: "blur(10px) saturate(180%)",
@@ -154,7 +154,7 @@ const Header = () => {
                 slotProps={{
                   paper: {
                     sx: {
-                      backgroundColor: `${theme.palette.background.nav}99`,
+                      backgroundColor: "rgb(10 23 51 / 81%)",
                       color: "white",
                       backdropFilter: "blur(10px) saturate(180%)",
                       WebkitBackdropFilter: "blur(10px) saturate(180%)",

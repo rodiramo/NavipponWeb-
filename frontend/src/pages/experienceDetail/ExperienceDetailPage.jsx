@@ -157,14 +157,21 @@ const ExperienceDetailPage = () => {
             <p className="text-lg font-medium mt-2 text-dark-hard">
               Precio: {data?.price ? `${data.price} €` : "No disponible"}
             </p>
-            <Tabs>
+            <Tabs className="flex border-b">
               <Tab label="Descripción">
-                <div className="flex flex-col lg:flex-row lg:gap-x-5">
-                  <Aside info={data} />
-                  <div className="flex-1">
-                    <div className="w-full mt-4">
-                      <Editor content={data.body} editable={false} />
+                <div className="flex flex-col min-h-screen">
+                  {" "}
+                  {/* ✅ Full-height column layout */}
+                  <div className="flex-1 flex flex-col lg:flex-row lg:gap-x-5">
+                    <Aside info={data} />
+                    <div className="flex-1">
+                      <div className="w-full mt-4">
+                        <Editor content={data.body} editable={false} />
+                      </div>
                     </div>
+                  </div>
+                  {/* ✅ Carousel always at the bottom */}
+                  <div className="mt-auto pt-10">
                     <CarouselExperiences
                       header="Navega Experiencias"
                       experiences={ExperiencesData?.data}
@@ -172,7 +179,15 @@ const ExperienceDetailPage = () => {
                   </div>
                 </div>
               </Tab>
-              <Tab label="Reseñas">
+
+              <Tab
+                label="Reseñas"
+                className="group py-2 px-4 border-b-2 transition-colors"
+                style={{
+                  borderColor: theme.palette.primary.main, // ✅ Change border color dynamically
+                  color: theme.palette.primary.main,
+                }}
+              >
                 <div className="flex flex-col lg:flex-row lg:gap-x-5">
                   <div className="flex-1">
                     <ReviewsContainer
