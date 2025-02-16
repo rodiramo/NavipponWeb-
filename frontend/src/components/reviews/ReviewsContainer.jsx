@@ -244,20 +244,33 @@ const ReviewsContainer = ({
           alignItems: "center",
         }}
       >
-        {reviews.map((review) => (
-          <Review
-            key={review._id}
-            review={review}
-            loggedInUserId={loggedInUserId}
-            affectedReview={affectedReview}
-            setAffectedReview={setAffectedReview}
-            addReview={addReviewHandler}
-            formCancelHandler={handleFormCancel}
-            updateReview={updateReviewHandler}
-            deleteReview={deleteReviewHandler}
-            replies={review.replies}
-          />
-        ))}
+        {sortedReviews.length > 0 ? (
+          sortedReviews.map((review) => (
+            <Review
+              key={review._id}
+              review={review}
+              loggedInUserId={loggedInUserId}
+              affectedReview={affectedReview}
+              setAffectedReview={setAffectedReview}
+              addReview={addReviewHandler}
+              formCancelHandler={handleFormCancel}
+              updateReview={updateReviewHandler}
+              deleteReview={deleteReviewHandler}
+              replies={review.replies}
+            />
+          ))
+        ) : (
+          <Typography
+            variant="h6"
+            style={{
+              textAlign: "center",
+              marginTop: "20px",
+              color: theme.palette.secondary.main,
+            }}
+          >
+            No hay reseñas aún. ¡Sé el primero en escribir una!
+          </Typography>
+        )}
       </div>
     </div>
   );

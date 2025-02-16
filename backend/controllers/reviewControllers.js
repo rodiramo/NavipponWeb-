@@ -1,44 +1,43 @@
+import mongoose from "mongoose";
 import Review from "../models/Review.js";
 import Experience from "../models/Experience.js";
+
+const updateExperienceRating = async (experienceId) => {
+  console.log(`Updating rating for experience: ${experienceId}`);
+
+  const reviews = await Review.find({ experience: experienceId });
+
+  if (reviews.length === 0) {
+    console.log("No reviews found, resetting rating.");
+    await Experience.findByIdAndUpdate(experienceId, {
+      ratings: 0,
+      numReviews: 0,
+    });
+    return;
+  }
+
+  const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
+  const averageRating = totalRating / reviews.length;
+
+  console.log(
+    `Total Rating: ${totalRating}, Review Count: ${reviews.length}, New Avg: ${averageRating}`
+  );
+
+  await Experience.findByIdAndUpdate(experienceId, {
+    ratings: averageRating.toFixed(1), // Store as 1 decimal place
+    numReviews: reviews.length,
+  });
+};
 
 const createReview = async (req, res, next) => {
   try {
     const { rating, title, desc, slug } = req.body;
-
-    // Validate title
-    if (!title || typeof title !== "string") {
-      return res.status(400).json({
-        message: "Title is required and must be a string for new reviews.",
-      });
-    }
-
-    // Validate rating
-    if (typeof rating !== "number") {
-      return res.status(400).json({
-        message: "Rating is required and must be a number for new reviews.",
-      });
-    }
-
-    // Validate description
-    if (!desc || typeof desc !== "string") {
-      return res.status(400).json({
-        message: "Description is required and must be a string.",
-      });
-    }
-
-    // Find experience by slug
     const experience = await Experience.findOne({ slug });
 
     if (!experience) {
       return res.status(404).json({ message: "Experiencia no encontrada" });
     }
 
-    // Ensure `reviews` is an array
-    if (!Array.isArray(experience.reviews)) {
-      experience.reviews = [];
-    }
-
-    // Create new review
     const newReview = new Review({
       user: req.user._id,
       rating,
@@ -49,9 +48,8 @@ const createReview = async (req, res, next) => {
 
     const savedReview = await newReview.save();
 
-    // Push review to experience
-    experience.reviews.push(savedReview._id);
-    await experience.save();
+    // ✅ Update Experience Rating
+    await updateExperienceRating(experience._id);
 
     return res.status(201).json(savedReview);
   } catch (error) {
@@ -60,14 +58,11 @@ const createReview = async (req, res, next) => {
   }
 };
 
-import mongoose from "mongoose";
-
 const updateReview = async (req, res, next) => {
   try {
     const { desc, rating, title } = req.body;
     const { reviewId } = req.params;
 
-    // ✅ Check if `reviewId` is a valid ObjectId
     if (!mongoose.Types.ObjectId.isValid(reviewId)) {
       return res.status(400).json({ message: "Invalid review ID" });
     }
@@ -78,19 +73,21 @@ const updateReview = async (req, res, next) => {
       return res.status(404).json({ message: "Comentario no encontrado" });
     }
 
-    // ✅ Only update fields that exist in the request body
     if (desc !== undefined) review.desc = desc;
     if (rating !== undefined) review.rating = rating;
     if (title !== undefined) review.title = title;
 
     const updatedReview = await review.save();
+
+    // ⭐ Update Experience Rating
+    await updateExperienceRating(review.experience);
+
     return res.json(updatedReview);
   } catch (error) {
     console.error("Error updating review:", error);
     next(error);
   }
 };
-
 const deleteReview = async (req, res, next) => {
   try {
     const review = await Review.findById(req.params.reviewId);
@@ -99,8 +96,12 @@ const deleteReview = async (req, res, next) => {
       return res.status(404).json({ message: "Comentario no encontrado" });
     }
 
-    // Delete only the requested review
+    const experienceId = review.experience; // Save Experience ID before deleting
+
     await Review.findByIdAndDelete(req.params.reviewId);
+
+    // ⭐ Update Experience Rating
+    await updateExperienceRating(experienceId);
 
     return res.json({ message: "El comentario ha sido eliminado" });
   } catch (error) {

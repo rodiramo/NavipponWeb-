@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { AiFillHeart, AiOutlineHeart } from "react-icons/ai";
 import { toast } from "react-hot-toast";
+import StarRating from "../../components/Stars";
+import FavoriteIcon from "@mui/icons-material/Favorite";
+import FavoriteBorderOutlinedIcon from "@mui/icons-material/FavoriteBorderOutlined";
+import "leaflet/dist/leaflet.css"; // ✅ Required for Leaflet
+import L from "leaflet";
 import BgShape from "../../components/Shapes/BgShape.jsx";
 import BreadcrumbBack from "../../components/BreadcrumbBack.jsx";
 import ReviewsContainer from "../../components/reviews/ReviewsContainer";
 import MainLayout from "../../components/MainLayout";
-import SocialShareButtons from "../../components/SocialShareButtons";
 import { images, stables } from "../../constants";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -17,30 +20,50 @@ import { useTheme } from "@mui/material";
 import ExperienceDetailSkeleton from "./components/ExperienceDetailSkeleton";
 import ErrorMessage from "../../components/ErrorMessage";
 import parseJsonToHtml from "../../utils/parseJsonToHtml";
-import Editor from "../../components/editor/Editor";
 import useUser from "../../hooks/useUser";
 import {
   addFavorite as addFavoriteService,
   removeFavorite as removeFavoriteService,
   getUserFavorites,
 } from "../../services/index/favorites";
+import { Box, Typography } from "@mui/material";
 import Aside from "./container/Aside";
 import Hero from "./container/Hero";
 import { Tabs, Tab } from "./container/Tabs";
 import CarouselExperiences from "./container/CarouselExperiences";
 import SuggestedExperiences from "./container/SuggestedExperiences";
 
+// ✅ Fix Map Icons
+const markerIcon = new L.Icon({
+  iconUrl: "https://leafletjs.com/examples/custom-icons/leaf-green.png",
+  iconSize: [38, 95],
+});
+
 const ExperienceDetailPage = () => {
   const { slug } = useParams();
+  const [isMapReady, setIsMapReady] = useState(false);
   const { user, jwt } = useUser();
   const [body, setBody] = useState(null);
   const [isFavorite, setIsFavorite] = useState(false);
   const theme = useTheme(true);
+
+  const formatCategory = (category) => {
+    const categoryMap = {
+      restaurantes: "Restaurante",
+      hoteles: "Hotel",
+      atractivos: "Atractivo",
+    };
+
+    return categoryMap[category.toLowerCase()] || category; // Default to original if not found
+  };
+
   const { data, isLoading, isError } = useQuery({
     queryFn: () => getSingleExperience({ slug }),
     queryKey: ["experience", slug],
     onSuccess: async (data) => {
       setBody(parseJsonToHtml(data?.body));
+      setIsMapReady(true); // ✅ Enable map after data loads
+
       if (user && jwt) {
         const favorites = await getUserFavorites({
           userId: user._id,
@@ -134,59 +157,95 @@ const ExperienceDetailPage = () => {
                   </Link>
                 ))}
             </div>
-            <div className="flex justify-between items-center">
-              <h1 className="text-3xl mb-4">{data?.title}</h1>
-              <button
-                onClick={handleFavoriteClick}
+            <Box className="flex justify-between items-center">
+              <h1
+                className="text-3xl mb-2"
                 style={{
-                  background: theme.palette.primary.main,
-                  color: "white",
+                  display: "flex",
+                  flexDirection: "row",
+                  alignContent: "center",
+                  gap: 15,
+                  justifyContent: "center",
+                  alignItems: "center",
                 }}
-                className=" p-2 rounded-full focus:outline-none"
               >
-                {isFavorite ? (
-                  <AiFillHeart className="text-white text-2xl" />
-                ) : (
-                  <AiOutlineHeart className="text-white text-2xl" />
-                )}
-              </button>
-            </div>
-            <p className="text-lg font-medium mt-2 text-dark-hard">
-              {data?.region} ({data?.prefecture})
-            </p>
-            <p className="text-lg font-medium mt-2 text-dark-hard">
-              Precio: {data?.price ? `${data.price} €` : "No disponible"}
-            </p>
+                {data?.title}{" "}
+                <span
+                  style={{
+                    background: theme.palette.primary.light,
+                    color: theme.palette.primary.main,
+                  }}
+                  className="text-sm px-2 py-1 rounded-full"
+                >
+                  {data?.region}, {data?.prefecture}
+                </span>
+              </h1>{" "}
+              <div className="flex gap-5">
+                <button
+                  onClick={handleFavoriteClick}
+                  style={{
+                    background: isFavorite
+                      ? theme.palette.secondary.main // ✅ Secondary color when favorited
+                      : theme.palette.primary.main, // ✅ Primary color when not favorited
+                    color: "white",
+                    padding: "0.6rem 1rem",
+                  }}
+                  className="rounded-full focus:outline-none"
+                >
+                  <Typography
+                    variant="h6"
+                    className="text-white text-2xl flex items-center"
+                  >
+                    {isFavorite
+                      ? "Agregado a Favoritos"
+                      : "Agregar a Favoritos"}
+                    {isFavorite ? (
+                      <FavoriteIcon className="text-white text-2xl ml-2" />
+                    ) : (
+                      <FavoriteBorderOutlinedIcon className="text-white text-2xl ml-2" />
+                    )}
+                  </Typography>
+                </button>
+              </div>
+            </Box>
+
+            {/* ⭐ Add Rating Here */}
+            <Box display="flex" alignItems="center" gap={1} mb={2}>
+              <Typography
+                variant="h6"
+                sx={{ fontWeight: "bold", color: theme.palette.primary.main }}
+              >
+                {data?.ratings
+                  ? `${data.ratings.toFixed(1)} / 5`
+                  : "Sin calificaciones"}
+              </Typography>
+              <StarRating rating={data?.ratings || 0} isEditable={false} />
+
+              {/* Display stars */}
+              <Typography variant="body1" color="textSecondary">
+                ({data?.numReviews || 0} reseñas)
+              </Typography>
+            </Box>
             <Tabs className="flex border-b">
               <Tab label="Descripción">
-                <div className="flex flex-col min-h-screen">
-                  {" "}
-                  {/* ✅ Full-height column layout */}
-                  <div className="flex-1 flex flex-col lg:flex-row lg:gap-x-5">
+                <Box display="flex" flexDirection="column" minHeight="100vh">
+                  <Box width="100%">
                     <Aside info={data} />
-                    <div className="flex-1">
-                      <div className="w-full mt-4">
-                        <Editor content={data.body} editable={false} />
-                      </div>
-                    </div>
-                  </div>
-                  {/* ✅ Carousel always at the bottom */}
-                  <div className="mt-auto pt-10">
+                  </Box>
+
+                  <Box mt="auto" pt={5}>
                     <CarouselExperiences
-                      header="Navega Experiencias"
+                      header="Experiencias relacionadas"
                       experiences={ExperiencesData?.data}
+                      currentExperience={data}
                     />
-                  </div>
-                </div>
+                  </Box>
+                </Box>
               </Tab>
 
               <Tab
                 label="Reseñas"
                 className="group py-2 px-4 border-b-2 transition-colors"
-                style={{
-                  borderColor: theme.palette.primary.main, // ✅ Change border color dynamically
-                  color: theme.palette.primary.main,
-                }}
               >
                 <div className="flex flex-col lg:flex-row lg:gap-x-5">
                   <div className="flex-1">
@@ -197,22 +256,6 @@ const ExperienceDetailPage = () => {
                       experienceSlug={slug}
                       jwt={jwt}
                     />
-                  </div>
-                  <div>
-                    <SuggestedExperiences
-                      header="Últimas experiencias"
-                      experiences={ExperiencesData?.data}
-                      className="mt-8 lg:mt-0 lg:max-w-xs"
-                    />
-                    <div className="mt-7">
-                      <h2 className="font-medium text-dark-hard mb-4 md:text-xl">
-                        Compartir con:
-                      </h2>
-                      <SocialShareButtons
-                        url={encodeURI(window.location.href)}
-                        title={encodeURIComponent(data?.title)}
-                      />
-                    </div>
                   </div>
                 </div>
               </Tab>
