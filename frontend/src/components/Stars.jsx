@@ -28,7 +28,7 @@ const StarRating = ({ rating, setRating, isEditable = false }) => {
             aria-label={`Rating ${index + 1}`}
             style={{
               cursor: isEditable ? "pointer" : "default",
-              color: theme.palette.secondary.main, // Filled Star Color
+              color: theme.palette.secondary.medium, // Filled Star Color
             }}
           />
         ) : (
