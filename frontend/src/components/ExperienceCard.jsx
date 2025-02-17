@@ -161,7 +161,8 @@ const ExperienceCard = ({
         {/* Favorite Button */}
         <button
           onClick={handleFavoriteClick}
-          className="absolute top-2 right-2 bg-[#FF4A5A] p-2 rounded-full focus:outline-none"
+          className="absolute top-2 right-2 p-2 rounded-full focus:outline-none"
+          style={{ backgroundColor: theme.palette.primary.main }}
         >
           {isFavorite ? (
             <AiFillHeart className="text-white text-2xl" />
@@ -229,7 +230,7 @@ const ExperienceCard = ({
         <Button
           variant="contained"
           sx={{
-            backgroundColor: "#FF4A5A",
+            backgroundColor: theme.palette.primary.main,
             color: theme.palette.primary.white,
             borderRadius: "20px",
             marginTop: "15px",

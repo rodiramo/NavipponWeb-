@@ -3,7 +3,7 @@ import { FiStar } from "react-icons/fi"; // Outlined Star
 import { FaStar } from "react-icons/fa"; // Filled Star
 import { useTheme } from "@mui/material/styles";
 
-const StarRating = ({ rating, setRating, isEditable = false }) => {
+const StarRating = ({ rating, setRating, isEditable = false, size }) => {
   const theme = useTheme(); // ✅ Use Theme Colors
 
   const handleRatingClick = (index) => {
@@ -24,7 +24,7 @@ const StarRating = ({ rating, setRating, isEditable = false }) => {
             className={`cursor-pointer transition-colors duration-300 ${
               isEditable ? "hover:text-yellow-500" : ""
             }`}
-            size={24}
+            size={size}
             aria-label={`Rating ${index + 1}`}
             style={{
               cursor: isEditable ? "pointer" : "default",
@@ -38,7 +38,7 @@ const StarRating = ({ rating, setRating, isEditable = false }) => {
             className={`cursor-pointer transition-colors duration-300 ${
               isEditable ? "hover:text-yellow-500" : ""
             }`}
-            size={24}
+            size={size}
             aria-label={`Rating ${index + 1}`}
             style={{
               cursor: isEditable ? "pointer" : "default",
