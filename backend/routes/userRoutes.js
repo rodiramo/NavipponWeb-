@@ -1,5 +1,5 @@
 import express from "express";
-import upload from "../middleware/uploadPictureMiddleware.js"; // Import fixed middleware
+import upload from "../middleware/uploadPictureMiddleware.js";
 import {
   registerUser,
   loginUser,
@@ -8,6 +8,7 @@ import {
   updateProfilePicture,
   getAllUsers,
   deleteUser,
+  toggleFriend, // ✅ New function
 } from "../controllers/userControllers.js";
 import { adminGuard, authGuard } from "../middleware/authMiddleware.js";
 
@@ -25,5 +26,8 @@ router.put(
 );
 router.get("/", authGuard, adminGuard, getAllUsers);
 router.delete("/:userId", authGuard, adminGuard, deleteUser);
+
+// ✅ Friend Request Routes
+router.post("/toggleFriend/:userId", authGuard, toggleFriend); // Add/remove friend
 
 export default router;

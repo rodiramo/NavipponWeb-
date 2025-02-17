@@ -243,6 +243,52 @@ const deleteUser = async (req, res, next) => {
   }
 };
 
+export const toggleFriend = async (req, res) => {
+  try {
+    const { userId } = req.params; // Friend's ID
+    const currentUserId = req.user._id; // Logged-in user ID
+
+    if (userId === currentUserId.toString()) {
+      return res
+        .status(400)
+        .json({ message: "No puedes agregarte a ti mismo." });
+    }
+
+    const user = await User.findById(currentUserId);
+    const friend = await User.findById(userId);
+
+    if (!user || !friend) {
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    }
+
+    // Check if they are already friends
+    const isFriend = user.friends.includes(userId);
+
+    if (isFriend) {
+      // ❌ Remove friend
+      user.friends = user.friends.filter((id) => id.toString() !== userId);
+      friend.friends = friend.friends.filter(
+        (id) => id.toString() !== currentUserId.toString()
+      );
+    } else {
+      // ✅ Add friend
+      user.friends.push(userId);
+      friend.friends.push(currentUserId);
+    }
+
+    await user.save();
+    await friend.save();
+
+    res.json({
+      message: isFriend ? "Amigo eliminado" : "Amigo agregado",
+      isFriend: !isFriend,
+    });
+  } catch (error) {
+    console.error("Error en toggleFriend:", error);
+    res.status(500).json({ message: "Error en el servidor" });
+  }
+};
+
 export {
   registerUser,
   loginUser,

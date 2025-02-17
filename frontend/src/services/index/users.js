@@ -138,3 +138,39 @@ export const deleteUser = async ({ slug, token }) => {
     throw new Error(error.message);
   }
 };
+export const followUser = async ({ userId, token }) => {
+  try {
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    };
+
+    const { data } = await axios.post(
+      `/api/users/follow/${userId}`,
+      {},
+      config
+    );
+    return data;
+  } catch (error) {
+    if (error.response && error.response.data.message)
+      throw new Error(error.response.data.message);
+    throw new Error(error.message);
+  }
+};
+
+export const toggleFriend = async ({ userId, token }) => {
+  try {
+    const config = { headers: { Authorization: `Bearer ${token}` } };
+    const { data } = await axios.post(
+      `/api/users/toggleFriend/${userId}`,
+      {},
+      config
+    );
+    return data;
+  } catch (error) {
+    throw new Error(
+      error.response?.data?.message || "Error al actualizar amigos"
+    );
+  }
+};

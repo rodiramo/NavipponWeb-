@@ -4,10 +4,28 @@ const { hash, compare } = bcrypt;
 import jwt from "jsonwebtoken";
 const { sign } = jwt;
 
-
 const UserSchema = new Schema(
   {
     avatar: { type: String, default: "" },
+    username: {
+      type: String,
+      min: 2,
+      max: 50,
+    },
+    city: {
+      type: String,
+      required: false,
+      default: "",
+    },
+    country: {
+      type: String,
+      required: false,
+      default: "",
+    },
+    friends: {
+      type: Array,
+      default: [],
+    },
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
