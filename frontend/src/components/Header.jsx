@@ -89,8 +89,13 @@ const Header = () => {
       <header
         className="w-full px-5 py-4 flex flex-col md:flex-row justify-between items-center"
         style={{
-          backgroundColor: theme.palette.secondary.light,
-          color: theme.palette.text.primary,
+          zIndex: 9999,
+          backgroundColor: "rgb(10 23 51 / 81%)",
+          color: "white",
+          backdropFilter: "blur(10px) saturate(180%)",
+          WebkitBackdropFilter: "blur(10px) saturate(180%)",
+          borderRadius: "0 0 1rem 1rem",
+          boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
         }}
       >
         <div className="flex items-center justify-between w-full">

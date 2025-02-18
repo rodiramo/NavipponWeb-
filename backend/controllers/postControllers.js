@@ -1,81 +1,130 @@
-import { uploadPicture } from "../middleware/uploadPictureMiddleware.js";
-import Post from "../models/Post.js";
+import upload from "../middleware/uploadPictureMiddleware.js";
 import Comment from "../models/Comment.js";
-import { fileRemover } from "../utils/fileRemover.js";
 import { v4 as uuidv4 } from "uuid";
-
-const createPost = async (req, res, next) => {
-  try {
-    const post = new Post({
-      title: "sample title",
-      caption: "sample caption",
-      slug: uuidv4(),
-      body: {
-        type: "doc",
-        content: [],
-      },
-      photo: "",
-      user: req.user._id,
-      approved: false,
-    });
-
-    const createdPost = await post.save();
-    return res.json(createdPost);
-  } catch (error) {
-    next(error);
-  }
-};
+import cloudinary from "../config/cloudinaryConfig.js";
+import Post from "../models/Post.js";
+import { fileRemover } from "../utils/fileRemover.js";
 
 const updatePost = async (req, res, next) => {
   try {
     const post = await Post.findOne({ slug: req.params.slug });
 
     if (!post) {
-      const error = new Error("Post no encontrado");
-      next(error);
-      return;
+      return res.status(404).json({ message: "Post no encontrado" });
     }
 
-    const upload = uploadPicture.single("postPicture");
+    upload.single("postPicture")(req, res, async function (err) {
+      if (err) {
+        return next(new Error(`Se produjo un error al cargar: ${err.message}`));
+      }
 
-    const handleUpdatePostData = async (data) => {
-      const { title, caption, slug, body, tags, categories, approved } = JSON.parse(data);  
+      if (req.file) {
+        // ✅ Remove old image from Cloudinary if it exists
+        if (post.photo) {
+          const oldPublicId = post.photo; // Stored as "uploads/1739621073399-activities"
+          await cloudinary.uploader.destroy(oldPublicId);
+        }
+
+        // ✅ Upload new image to Cloudinary
+        const result = await cloudinary.uploader.upload(req.file.path, {
+          folder: "uploads", // Store images inside 'uploads' folder
+        });
+
+        // ✅ Store only the `public_id` instead of full URL
+        post.photo = result.public_id;
+      }
+
+      // ✅ Update other fields
+      const { title, caption, slug, body, tags, categories, approved } =
+        req.body;
       post.title = title || post.title;
       post.caption = caption || post.caption;
       post.slug = slug || post.slug;
       post.body = body || post.body;
       post.tags = tags || post.tags;
       post.categories = categories || post.categories;
-      post.approved = approved !== undefined ? approved : post.approved; 
+      post.approved = approved !== undefined ? approved : post.approved;
+
       const updatedPost = await post.save();
       return res.json(updatedPost);
-    };
-
-    upload(req, res, async function (err) {
-      if (err) {
-        const error = new Error(
-          "Se produjo un error desconocido al cargar " + err.message
-        );
-        next(error);
-      } else {
-        if (req.file) {
-          let filename;
-          filename = post.photo;
-          if (filename) {
-            fileRemover(filename);
-          }
-          post.photo = req.file.filename;
-          handleUpdatePostData(req.body.document);
-        } else {
-          let filename;
-          filename = post.photo;
-          post.photo = "";
-          fileRemover(filename);
-          handleUpdatePostData(req.body.document);
-        }
-      }
     });
   } catch (error) {
+    next(error);
+  }
+};
+
+const createPost = async (req, res, next) => {
+  try {
+    console.log("📸 Received File:", req.file);
+    console.log("📥 Received Data:", req.body);
+
+    // ✅ Debug which fields are missing
+    const requiredFields = ["title", "caption", "slug", "body"];
+    const missingFields = requiredFields.filter((field) => !req.body[field]);
+
+    if (missingFields.length > 0) {
+      console.log("❌ Missing Fields:", missingFields);
+      return res.status(400).json({
+        message: `Missing required fields: ${missingFields.join(", ")}`,
+      });
+    }
+
+    // ✅ Convert JSON string fields into proper objects
+    let { title, caption, slug, body, tags, categories } = req.body;
+
+    try {
+      categories = JSON.parse(categories || "[]");
+      tags = JSON.parse(tags || "[]");
+      body = JSON.parse(body || "{}");
+    } catch (error) {
+      console.log("❌ JSON Parsing Error:", error.message);
+      return res
+        .status(400)
+        .json({ message: "Invalid JSON format in request" });
+    }
+
+    console.log("✅ Parsed Data:", {
+      title,
+      caption,
+      slug,
+      body,
+      tags,
+      categories,
+    });
+
+    // ✅ Handle Image Upload
+    let photo = ""; // 👈 Default to empty (not the full URL)
+    if (req.file) {
+      console.log("📸 Uploading Image to Cloudinary:", req.file.path);
+      try {
+        const result = await cloudinary.uploader.upload(req.file.path, {
+          folder: "uploads",
+        });
+        photo = result.public_id; // ✅ Save only the `public_id`
+      } catch (uploadError) {
+        console.error("❌ Cloudinary Upload Error:", uploadError.message);
+      }
+    } else {
+      console.warn("⚠️ No image uploaded, saving empty string.");
+    }
+
+    // ✅ Create the post
+    const newPost = new Post({
+      title,
+      caption,
+      slug: slug || uuidv4(),
+      body,
+      tags,
+      categories,
+      photo, // ✅ Saves only the image name, like on update
+      user: req.user._id,
+      approved: false,
+    });
+
+    const createdPost = await newPost.save();
+    return res.status(201).json(createdPost);
+  } catch (error) {
+    console.error("❌ Error in createPost:", error);
     next(error);
   }
 };

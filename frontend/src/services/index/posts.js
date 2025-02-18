@@ -57,20 +57,24 @@ export const updatePost = async ({ updatedData, slug, token }) => {
     throw new Error(error.message);
   }
 };
-
-export const createPost = async ({ token }) => {
+export const createPost = async ({ postData, token }) => {
   try {
     const config = {
       headers: {
+        "Content-Type": "application/json", // ✅ Ensures JSON data
         Authorization: `Bearer ${token}`,
       },
     };
 
-    const { data } = await axios.post(`/api/posts`, {}, config);
+    console.log("Sending Data to Backend:", postData); // 🔍 Debugging line
+
+    const { data } = await axios.post(`/api/posts`, postData, config);
     return data;
   } catch (error) {
-    if (error.response && error.response.data.message)
-      throw new Error(error.response.data.message);
+    console.error(
+      "Error creating post:",
+      error.response?.data || error.message
+    );
     throw new Error(error.message);
   }
 };

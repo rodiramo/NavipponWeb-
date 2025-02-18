@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 import { getAllPosts } from "../../services/index/posts";
@@ -6,15 +6,22 @@ import ArticleCardSkeleton from "../../components/ArticleCardSkeleton";
 import ErrorMessage from "../../components/ErrorMessage";
 import ArticleCard from "../../components/ArticleCard";
 import MainLayout from "../../components/MainLayout";
-import Hero from './container/Hero';
+import Hero from "./container/Hero";
 import Pagination from "../../components/Pagination";
+import UserList from "./container/UserList";
+import PostForm from "../../components/PostForm";
 import { useSearchParams } from "react-router-dom";
 import Search from "../../components/Search";
+import useUser from "../../hooks/useUser";
+import { Button, Modal, Box, Typography } from "@mui/material";
+import { AddCircleOutline } from "@mui/icons-material";
 
 let isFirstRun = true;
 
 const BlogPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const [open, setOpen] = useState(false); // ✅ Modal State
+  const { user, jwt } = useUser();
 
   const searchParamsValue = Object.fromEntries([...searchParams]);
 
@@ -42,7 +49,6 @@ const BlogPage = () => {
   }, [currentPage, searchKeyword, refetch]);
 
   const handlePageChange = (page) => {
-
     setSearchParams({ page, search: searchKeyword });
   };
 
@@ -52,43 +58,93 @@ const BlogPage = () => {
 
   return (
     <MainLayout>
-      <Hero/>
-      <section className="flex flex-col container mx-auto px-5 py-10">
-        <div className="flex justify-center mb-10 ">  
-          <Search
-            className="w-full max-w-xl"
-            onSearchKeyword={handleSearch}
-          />
-        </div>
-        <div className="flex flex-wrap md:gap-x-5 gap-y-5 pb-10 ">
-          {isLoading || isFetching ? (
-            [...Array(3)].map((item, index) => (
-              <ArticleCardSkeleton
-                key={index}
-                className="w-full md:w-[calc(50%-20px)] lg:w-[calc(33.33%-21px)]"
+      <Hero />
+      <section className="container mx-auto px-5 py-10 relative">
+        <div className="flex flex-col md:flex-row gap-10">
+          {/* Blog Posts Section */}
+          <div className="flex-1">
+            <div className="flex flex-wrap md:gap-x-5 gap-y-5 pb-10">
+              {isLoading || isFetching ? (
+                [...Array(3)].map((_, index) => (
+                  <ArticleCardSkeleton
+                    key={index}
+                    className="w-full md:w-[calc(50%-20px)] lg:w-[calc(33.33%-21px)]"
+                  />
+                ))
+              ) : isError ? (
+                <ErrorMessage message="No se pudieron obtener los datos de las publicaciones." />
+              ) : data?.data.length === 0 ? (
+                <p className="text-orange-500">Post no encontrado!</p>
+              ) : (
+                data?.data.map((post) => (
+                  <ArticleCard
+                    key={post._id}
+                    post={post}
+                    currentUser={user}
+                    token={jwt}
+                    className="w-full md:w-[calc(50%-20px)] lg:w-[calc(33.33%-21px)]"
+                  />
+                ))
+              )}
+            </div>
+
+            {!isLoading && (
+              <Pagination
+                onPageChange={(page) => handlePageChange(page)}
+                currentPage={currentPage}
+                totalPageCount={JSON.parse(data?.headers?.["x-totalpagecount"])}
               />
-            ))
-          ) : isError ? (
-            <ErrorMessage message="No se pudieron obtener los datos de las publicaciones." />
-          ) : data?.data.length === 0 ? (
-            <p className="text-orange-500">Post no encontrado!</p>
-          ) : (
-            data?.data.map((post) => (
-              <ArticleCard
-                key={post._id}
-                post={post}
-                className="w-full md:w-[calc(50%-20px)] lg:w-[calc(33.33%-21px)]"
-              />
-            ))
+            )}
+          </div>
+
+          {/* Suggested Users Sidebar */}
+          {user && (
+            <div className="hidden lg:block w-[300px]">
+              <UserList currentUser={user} token={jwt} />
+            </div>
           )}
         </div>
-        {!isLoading && (
-          <Pagination
-            onPageChange={(page) => handlePageChange(page)}
-            currentPage={currentPage}
-            totalPageCount={JSON.parse(data?.headers?.["x-totalpagecount"])}
-          />
+
+        {/* ✅ Floating "Create Post" Button */}
+        {user && (
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => setOpen(true)}
+            sx={{
+              position: "fixed",
+              bottom: "20px",
+              right: "20px",
+              borderRadius: "50%",
+              width: "60px",
+              height: "60px",
+              minWidth: "auto",
+              boxShadow: "0px 4px 10px rgba(0,0,0,0.2)",
+            }}
+          >
+            <AddCircleOutline sx={{ fontSize: 30, color: "white" }} />
+          </Button>
         )}
+
+        {/* ✅ Create Post Modal */}
+        <Modal open={open} onClose={() => setOpen(false)}>
+          <Box
+            sx={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              bgcolor: "background.paper",
+              boxShadow: 24,
+              p: 4,
+              borderRadius: "10px",
+              maxWidth: "100%",
+              width: "90%",
+            }}
+          >
+            <PostForm onClose={() => setOpen(false)} token={jwt} />
+          </Box>
+        </Modal>
       </section>
     </MainLayout>
   );

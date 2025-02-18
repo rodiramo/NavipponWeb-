@@ -1,6 +1,11 @@
 import axios from "axios";
 
-export const getUserPosts = async (searchKeyword = "", page = 1, limit = 10, token) => {
+export const getUserPosts = async (
+  searchKeyword = "",
+  page = 1,
+  limit = 10,
+  token
+) => {
   try {
     const config = {
       headers: {
@@ -62,7 +67,11 @@ export const updateUserPost = async ({ updatedData, slug, token }) => {
       },
     };
 
-    const { data } = await axios.put(`/api/user-posts/${slug}`, updatedData, config);
+    const { data } = await axios.put(
+      `/api/user-posts/${slug}`,
+      updatedData,
+      config
+    );
     return data;
   } catch (error) {
     if (error.response && error.response.data.message)
@@ -71,19 +80,27 @@ export const updateUserPost = async ({ updatedData, slug, token }) => {
   }
 };
 
-export const createUserPost = async ({ token }) => {
+export const createUserPost = async ({ postData, token }) => {
   try {
     const config = {
       headers: {
+        "Content-Type": "multipart/form-data",
         Authorization: `Bearer ${token}`,
       },
     };
 
-    const { data } = await axios.post(`/api/user-posts`, {}, config);
+    console.log("📤 Sending Data to Backend:");
+    for (let [key, value] of postData.entries()) {
+      console.log(`✅ FormData Key: ${key}, Value:`, value);
+    }
+
+    const { data } = await axios.post(`/api/posts`, postData, config);
     return data;
   } catch (error) {
-    if (error.response && error.response.data.message)
-      throw new Error(error.response.data.message);
+    console.error(
+      "❌ Error creating post:",
+      error.response?.data || error.message
+    );
     throw new Error(error.message);
   }
 };

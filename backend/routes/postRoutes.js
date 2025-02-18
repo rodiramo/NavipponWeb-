@@ -8,8 +8,12 @@ import {
   updatePost,
 } from "../controllers/postControllers.js";
 import { authGuard, adminGuard } from "../middleware/authMiddleware.js";
+import upload from "../middleware/uploadPictureMiddleware.js";
 
-router.route("/").post(authGuard, adminGuard, createPost).get(getAllPosts);
+// ✅ Ensure multer processes the image **before** reaching the controller
+router.post("/", authGuard, upload.single("postPicture"), createPost);
+
+router.route("/").get(getAllPosts);
 router
   .route("/:slug")
   .put(authGuard, adminGuard, updatePost)

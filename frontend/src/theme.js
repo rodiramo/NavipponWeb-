@@ -18,7 +18,7 @@ export const colorTokens = {
     0: "#FFFFFF",
     10: "#FFE4E7",
     20: "#FFE0E9",
-    50: "#FFB3C1", // Lightest
+    50: "#FFB3C1",
     100: "#FF9CAA",
     200: "#FF85A3",
     300: "#FF6E8C",
@@ -28,6 +28,42 @@ export const colorTokens = {
     700: "#CC2D69",
     800: "#B3245D",
     900: "#991B51",
+  },
+  success: {
+    50: "#E6F4EA",
+    100: "#C3E6CB",
+    200: "#A8D5A4",
+    300: "#84C485",
+    400: "#5AB75A",
+    500: "#28A745", // Success green
+    600: "#218838",
+    700: "#1B7A30",
+    800: "#146C27",
+    900: "#0F5E20",
+  },
+  error: {
+    50: "#FDECEA",
+    100: "#F8D7DA",
+    200: "#F1AEB5",
+    300: "#EA868F",
+    400: "#E14D5C",
+    500: "#DC3545", // Error red
+    600: "#C82333",
+    700: "#B21E2A",
+    800: "#9A1623",
+    900: "#82101C",
+  },
+  warning: {
+    50: "#FFF3CD",
+    100: "#FFE69C",
+    200: "#FFD666",
+    300: "#FFC733",
+    400: "#FFB400",
+    500: "#FFA500", // Warning orange
+    600: "#E69500",
+    700: "#CC8500",
+    800: "#B37400",
+    900: "#996300",
   },
   lightBlue: {
     50: "#D7EDFC",
@@ -55,7 +91,7 @@ export const colorTokens = {
   },
 };
 
-// MUI theme settings
+// MUI Theme Settings
 export const themeSettings = (mode) => {
   return {
     palette: {
@@ -74,6 +110,21 @@ export const themeSettings = (mode) => {
               dark: colorTokens.darkBlue[200],
               main: colorTokens.darkBlue[500],
               light: colorTokens.darkBlue[800],
+            },
+            success: {
+              dark: colorTokens.success[700],
+              main: colorTokens.success[500],
+              light: colorTokens.success[300],
+            },
+            error: {
+              dark: colorTokens.error[700],
+              main: colorTokens.error[500],
+              light: colorTokens.error[300],
+            },
+            warning: {
+              dark: colorTokens.warning[700],
+              main: colorTokens.warning[500],
+              light: colorTokens.warning[300],
             },
             neutral: {
               dark: colorTokens.grey[100],
@@ -106,6 +157,21 @@ export const themeSettings = (mode) => {
               bg: colorTokens.lightBlue[200],
               medium: colorTokens.lightBlue[600],
               light: colorTokens.darkBlue[50],
+            },
+            success: {
+              dark: colorTokens.success[700],
+              main: colorTokens.success[500],
+              light: colorTokens.success[100],
+            },
+            error: {
+              dark: colorTokens.error[700],
+              main: colorTokens.error[500],
+              light: colorTokens.error[200],
+            },
+            warning: {
+              dark: colorTokens.warning[700],
+              main: colorTokens.warning[500],
+              light: colorTokens.warning[300],
             },
             neutral: {
               dark: colorTokens.grey[1000],

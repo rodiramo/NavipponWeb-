@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-
-import BreadCrumbs from "../../components/BreadCrumbs";
+import BreadcrumbBack from "../../components/BreadcrumbBack";
 import CommentsContainer from "../../components/comments/CommentsContainer";
 import MainLayout from "../../components/MainLayout";
 import SocialShareButtons from "../../components/SocialShareButtons";
@@ -13,11 +12,11 @@ import ArticleDetailSkeleton from "./components/ArticleDetailSkeleton";
 import ErrorMessage from "../../components/ErrorMessage";
 import parseJsonToHtml from "../../utils/parseJsonToHtml";
 import Editor from "../../components/editor/Editor";
-import useUser from "../../hooks/useUser";  
+import useUser from "../../hooks/useUser";
 
 const ArticleDetailPage = () => {
   const { slug } = useParams();
-  const { user, jwt } = useUser();  
+  const { user, jwt } = useUser();
   const [breadCrumbsData, setbreadCrumbsData] = useState([]);
   const [body, setBody] = useState(null);
 
@@ -50,9 +49,12 @@ const ArticleDetailPage = () => {
       ) : isError ? (
         <ErrorMessage message="No se pudieron obtener los detalles de la publicación" />
       ) : (
-        <section className="container mx-auto max-w-5xl flex flex-col px-5 py-5 lg:flex-row lg:gap-x-5 lg:items-start">
+        <section
+          className="container mx-auto max-w-5xl flex flex-col px-5 py-5 lg:flex-row lg:gap-x-5 lg:items-start"
+          style={{ marginTop: "5rem" }}
+        >
           <article className="flex-1">
-            <BreadCrumbs data={breadCrumbsData} />
+            <BreadcrumbBack />
             <img
               className="rounded-xl w-full"
               src={
@@ -85,7 +87,7 @@ const ArticleDetailPage = () => {
               className="mt-10"
               logginedUserId={user?._id}
               postSlug={slug}
-              jwt={jwt}  
+              jwt={jwt}
             />
           </article>
           <div>

@@ -4,16 +4,19 @@ import {
   createPost,
   deletePost,
   updatePost,
-  getUserPosts,  
+  getUserPosts,
   getPost,
 } from "../controllers/userPostControllers.js";
 import { authGuard } from "../middleware/authMiddleware.js";
+import upload from "../middleware/uploadPictureMiddleware.js";
 
-router.route("/").post(authGuard, createPost);
+// ✅ Ensure multer processes the image **before** reaching the controller
+router.post("/", authGuard, upload.single("postPicture"), createPost);
+
 router.route("/user").get(authGuard, getUserPosts);
 router
   .route("/:slug")
-  .put(authGuard, updatePost)
+  .put(authGuard, upload.single("postPicture"), updatePost) // ✅ Ensure Multer for updates
   .delete(authGuard, deletePost)
   .get(getPost);
 

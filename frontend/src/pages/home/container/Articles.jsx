@@ -8,9 +8,11 @@ import { toast } from "react-hot-toast";
 import ArticleCardSkeleton from "../../../components/ArticleCardSkeleton";
 import ErrorMessage from "../../../components/ErrorMessage";
 import { Link } from "react-router-dom";
+import useUser from "../../../hooks/useUser";
 
 const Articles = () => {
   const theme = useTheme();
+  const { user, jwt } = useUser();
   const { data, isLoading, isError } = useQuery({
     queryFn: () => getAllPosts("", 1, 6),
     queryKey: ["posts"],
@@ -40,6 +42,8 @@ const Articles = () => {
               <ArticleCard
                 key={post._id}
                 post={post}
+                currentUser={user}
+                token={jwt}
                 className="w-full md:w-[calc(50%-20px)] lg:w-[calc(33.33%-21px)]"
               />
             ))
