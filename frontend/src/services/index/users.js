@@ -77,12 +77,14 @@ export const updateProfilePicture = async ({ token, formData }) => {
     };
 
     const { data } = await axios.put(
-      "/api/users/updateProfilePicture",
+      "http://localhost:5001/api/users/updateProfilePicture", // Ensure this is correct
       formData,
       config
     );
+
     return data;
   } catch (error) {
+    console.error("Error updating profile picture:", error); // Debugging
     if (error.response && error.response.data.message)
       throw new Error(error.response.data.message);
     throw new Error(error.message);
@@ -102,8 +104,11 @@ export const getAllUsers = async (
       },
     };
 
-        console.log("URL:", `/api/users?searchKeyword=${searchKeyword}&page=${page}&limit=${limit}`);
-        console.log("Token:", token);
+    console.log(
+      "URL:",
+      `/api/users?searchKeyword=${searchKeyword}&page=${page}&limit=${limit}`
+    );
+    console.log("Token:", token);
 
     const { data, headers } = await axios.get(
       `/api/users?searchKeyword=${searchKeyword}&page=${page}&limit=${limit}`,
@@ -131,5 +136,41 @@ export const deleteUser = async ({ slug, token }) => {
     if (error.response && error.response.data.message)
       throw new Error(error.response.data.message);
     throw new Error(error.message);
+  }
+};
+export const followUser = async ({ userId, token }) => {
+  try {
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    };
+
+    const { data } = await axios.post(
+      `/api/users/follow/${userId}`,
+      {},
+      config
+    );
+    return data;
+  } catch (error) {
+    if (error.response && error.response.data.message)
+      throw new Error(error.response.data.message);
+    throw new Error(error.message);
+  }
+};
+
+export const toggleFriend = async ({ userId, token }) => {
+  try {
+    const config = { headers: { Authorization: `Bearer ${token}` } };
+    const { data } = await axios.post(
+      `/api/users/toggleFriend/${userId}`,
+      {},
+      config
+    );
+    return data;
+  } catch (error) {
+    throw new Error(
+      error.response?.data?.message || "Error al actualizar amigos"
+    );
   }
 };

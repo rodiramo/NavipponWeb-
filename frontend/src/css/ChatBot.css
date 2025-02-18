@@ -1,0 +1,44 @@
+.chatbot-button {
+  position: fixed;
+  bottom: 20px;
+  right: -30px; /* Start slightly hidden */
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  transition: right 0.3s ease-in-out, background 0.3s ease-in-out;
+  z-index: 1000;
+}
+
+/* Show the button fully when hovered */
+.chatbot-button:hover {
+  right: 20px;
+}
+
+/* Tooltip text */
+.chatbot-button::after {
+  content: "Presiona para chatear con NaviBot"; /* Tooltip message in Spanish */
+  position: absolute;
+  right: 70px; /* Position to the left of the button */
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 6px 10px;
+  border-radius: 5px;
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+  pointer-events: none;
+}
+
+/* Show tooltip on hover */
+.chatbot-button:hover::after {
+  opacity: 1;
+}

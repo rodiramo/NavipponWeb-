@@ -5,6 +5,7 @@ module.exports = {
     extend: {
       fontFamily: {
         sifonn: ["SifonnPro", "sans-serif"],
+        nurom: ["Nurom-Bold", "sans-serif"],
         poppins: ["Poppins", "sans-serif"],
       },
     },
