@@ -43,14 +43,13 @@ const CarouselExperiences = ({
       console.log("Filtered Experiences:", filtered);
 
       if (filtered.length === 0) {
-        // Final Fallback: Show Random Experiences
         filtered = experiences
           .filter((exp) => exp._id !== currentExperience._id)
           .sort(() => 0.5 - Math.random())
           .slice(0, 15);
       }
 
-      setFilteredExperiences(filtered.slice(0, 15)); // Limit to 15 items
+      setFilteredExperiences(filtered.slice(0, 15));
     }
   }, [experiences, currentExperience]);
 
