@@ -245,8 +245,8 @@ const deleteUser = async (req, res, next) => {
 
 export const toggleFriend = async (req, res) => {
   try {
-    const { userId } = req.params; // Friend's ID
-    const currentUserId = req.user._id; // Logged-in user ID
+    const { userId } = req.params;
+    const currentUserId = req.user._id;
 
     if (userId === currentUserId.toString()) {
       return res
