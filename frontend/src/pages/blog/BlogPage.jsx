@@ -98,12 +98,54 @@ const BlogPage = () => {
           </div>
 
           {/* Suggested Users Sidebar */}
+          {/* Suggested Users Sidebar */}
           {user && (
             <div className="hidden lg:block w-[300px]">
               <UserList currentUser={user} token={jwt} />
             </div>
           )}
         </div>
+
+        {/* ✅ Floating "Create Post" Button */}
+        {user && (
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => setOpen(true)}
+            sx={{
+              position: "fixed",
+              bottom: "20px",
+              right: "20px",
+              borderRadius: "50%",
+              width: "60px",
+              height: "60px",
+              minWidth: "auto",
+              boxShadow: "0px 4px 10px rgba(0,0,0,0.2)",
+            }}
+          >
+            <AddCircleOutline sx={{ fontSize: 30, color: "white" }} />
+          </Button>
+        )}
+
+        {/* ✅ Create Post Modal */}
+        <Modal open={open} onClose={() => setOpen(false)}>
+          <Box
+            sx={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              bgcolor: "background.paper",
+              boxShadow: 24,
+              p: 4,
+              borderRadius: "10px",
+              maxWidth: "100%",
+              width: "90%",
+            }}
+          >
+            <PostForm onClose={() => setOpen(false)} token={jwt} />
+          </Box>
+        </Modal>
 
         {/* ✅ Floating "Create Post" Button */}
         {user && (
