@@ -7,6 +7,7 @@ import ErrorMessage from "../../components/ErrorMessage";
 import ArticleCard from "../../components/ArticleCard";
 import MainLayout from "../../components/MainLayout";
 import Hero from "./container/Hero";
+import Hero from "./container/Hero";
 import Pagination from "../../components/Pagination";
 import UserList from "./container/UserList";
 import PostForm from "../../components/PostForm";
@@ -19,6 +20,7 @@ import { AddCircleOutline } from "@mui/icons-material";
 let isFirstRun = true;
 
 const BlogPage = () => {
+  const { user, jwt } = useUser();
   const [searchParams, setSearchParams] = useSearchParams();
   const [open, setOpen] = useState(false); // ✅ Modal State
   const { user, jwt } = useUser();
@@ -36,8 +38,6 @@ const BlogPage = () => {
       console.log(error);
     },
   });
-
-  console.log(data);
 
   useEffect(() => {
     window.scrollTo(0, 0);

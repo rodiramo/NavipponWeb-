@@ -12,7 +12,7 @@
 }
 
 .card-wrap {
-  margin: 1rem;
+  margin: 1px;
   transform: perspective(800px);
   transform-style: preserve-3d;
   cursor: pointer;
@@ -35,8 +35,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-end;
-  height: 250px; /* Initial height */
+  height: 250px;
   width: 250px;
   overflow: hidden;
   border-radius: 30rem;
@@ -106,4 +105,12 @@
   color: white;
   background-color: #04102bc2;
   height: 100%;
+}
+/* Change color of default slick arrows */
+.slick-prev::before,
+.slick-next::before {
+  color: #04102b00;
+
+  font-size: 0px !important; /* Adjust size if needed */
+  opacity: 0 !important; /* Ensure full visibility */
 }

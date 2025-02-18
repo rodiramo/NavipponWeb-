@@ -1,6 +1,8 @@
 import { useMemo } from "react";
 import { Routes, Route } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
+import "leaflet/dist/leaflet.css";
+
 import { useSelector } from "react-redux";
 import { useEffect } from "react";
 import "./App.css";
