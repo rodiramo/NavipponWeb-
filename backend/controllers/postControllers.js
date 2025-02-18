@@ -1,8 +1,56 @@
-import { uploadPicture } from "../middleware/uploadPictureMiddleware.js";
-import Post from "../models/Post.js";
+import upload from "../middleware/uploadPictureMiddleware.js";
 import Comment from "../models/Comment.js";
-import { fileRemover } from "../utils/fileRemover.js";
 import { v4 as uuidv4 } from "uuid";
+import cloudinary from "../config/cloudinaryConfig.js"; // ✅ Import Cloudinary
+import Post from "../models/Post.js";
+import { fileRemover } from "../utils/fileRemover.js";
+const updatePost = async (req, res, next) => {
+  try {
+    const post = await Post.findOne({ slug: req.params.slug });
+
+    if (!post) {
+      return res.status(404).json({ message: "Post no encontrado" });
+    }
+
+    upload.single("postPicture")(req, res, async function (err) {
+      if (err) {
+        return next(new Error(`Se produjo un error al cargar: ${err.message}`));
+      }
+
+      if (req.file) {
+        // ✅ Remove old image from Cloudinary if it exists
+        if (post.photo) {
+          const oldPublicId = post.photo; // Stored as "uploads/1739621073399-activities"
+          await cloudinary.uploader.destroy(oldPublicId);
+        }
+
+        // ✅ Upload new image to Cloudinary
+        const result = await cloudinary.uploader.upload(req.file.path, {
+          folder: "uploads", // Store images inside 'uploads' folder
+        });
+
+        // ✅ Store only the `public_id` instead of full URL
+        post.photo = result.public_id;
+      }
+
+      // ✅ Update other fields
+      const { title, caption, slug, body, tags, categories, approved } =
+        req.body;
+      post.title = title || post.title;
+      post.caption = caption || post.caption;
+      post.slug = slug || post.slug;
+      post.body = body || post.body;
+      post.tags = tags || post.tags;
+      post.categories = categories || post.categories;
+      post.approved = approved !== undefined ? approved : post.approved;
+
+      const updatedPost = await post.save();
+      return res.json(updatedPost);
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
 const createPost = async (req, res, next) => {
   try {
@@ -21,60 +69,6 @@ const createPost = async (req, res, next) => {
 
     const createdPost = await post.save();
     return res.json(createdPost);
-  } catch (error) {
-    next(error);
-  }
-};
-
-const updatePost = async (req, res, next) => {
-  try {
-    const post = await Post.findOne({ slug: req.params.slug });
-
-    if (!post) {
-      const error = new Error("Post no encontrado");
-      next(error);
-      return;
-    }
-
-    const upload = uploadPicture.single("postPicture");
-
-    const handleUpdatePostData = async (data) => {
-      const { title, caption, slug, body, tags, categories, approved } = JSON.parse(data);  
-      post.title = title || post.title;
-      post.caption = caption || post.caption;
-      post.slug = slug || post.slug;
-      post.body = body || post.body;
-      post.tags = tags || post.tags;
-      post.categories = categories || post.categories;
-      post.approved = approved !== undefined ? approved : post.approved; 
-      const updatedPost = await post.save();
-      return res.json(updatedPost);
-    };
-
-    upload(req, res, async function (err) {
-      if (err) {
-        const error = new Error(
-          "Se produjo un error desconocido al cargar " + err.message
-        );
-        next(error);
-      } else {
-        if (req.file) {
-          let filename;
-          filename = post.photo;
-          if (filename) {
-            fileRemover(filename);
-          }
-          post.photo = req.file.filename;
-          handleUpdatePostData(req.body.document);
-        } else {
-          let filename;
-          filename = post.photo;
-          post.photo = "";
-          fileRemover(filename);
-          handleUpdatePostData(req.body.document);
-        }
-      }
-    });
   } catch (error) {
     next(error);
   }

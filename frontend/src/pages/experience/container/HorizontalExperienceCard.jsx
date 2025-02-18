@@ -9,8 +9,17 @@ import {
   getUserFavorites,
 } from "../../../services/index/favorites";
 import { images, stables } from "../../../constants";
-import { IconButton, useTheme, Typography } from "@mui/material";
+import {
+  IconButton,
+  useTheme,
+  Typography,
+  Box,
+  Chip,
+  Button,
+} from "@mui/material";
+import StarRating from "../../../components/Stars"; // ⭐ Star Component
 import "../../../css/Items/ItemsPage.css";
+
 const HorizontalExperienceCard = ({
   experience,
   user,
@@ -20,8 +29,8 @@ const HorizontalExperienceCard = ({
 }) => {
   const [isFavorite, setIsFavorite] = useState(false);
   const [favoritesCount, setFavoritesCount] = useState(0);
-
   const { palette } = useTheme();
+
   useEffect(() => {
     const fetchFavoritesCount = async () => {
       try {
@@ -53,7 +62,9 @@ const HorizontalExperienceCard = ({
     }
   }, [user, token, experience._id]);
 
-  const handleFavoriteClick = async () => {
+  const handleFavoriteClick = async (event) => {
+    event.preventDefault();
+    event.stopPropagation();
     if (!user || !token) {
       toast.error("Debes iniciar sesión para agregar a favoritos");
       return;
@@ -79,6 +90,7 @@ const HorizontalExperienceCard = ({
         setFavoritesCount(response.favoritesCount);
         toast.success("Se agregó a favoritos");
       }
+
       onFavoriteToggle();
     } catch (error) {
       if (error.response && error.response.status === 400) {
@@ -90,21 +102,17 @@ const HorizontalExperienceCard = ({
     }
   };
 
-  const borderColor = "#96C6D9";
-  const titleColor = "#FF4A5A";
-  const buttonColor = "#96C6D9";
-  const likeColor = "#FF4A5A";
-
   return (
-    <div
-      className={`horizontal-experience-card flex flex-col md:flex-row bg-white rounded-lg overflow-hidden ${className}`}
-      style={{
+    <Box
+      className={`horizontal-experience-card flex flex-col md:flex-row rounded-lg overflow-hidden ${className}`}
+      sx={{
         border: `1.75px solid ${palette.secondary.light}`,
         backgroundColor: palette.background.default,
+        boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
       }}
     >
-      {/* Image Section */}
-      <div className="w-full md:w-1/2 flex items-center justify-center p-2">
+      {/* 📷 Image Section */}
+      <Box className="w-full md:w-1/2 relative">
         <img
           src={
             experience.photo
@@ -112,91 +120,117 @@ const HorizontalExperienceCard = ({
               : images.sampleExperienceImage
           }
           alt={experience.title}
-          className="object-cover rounded-lg activity-image"
+          className=" activity-image"
+          style={{
+            width: "309px",
+            borderRadius: "8px",
+          }}
         />
-      </div>
 
-      {/* Details Section */}
-      <div className="w-full md:w-1/2 p-4 flex flex-col justify-between">
+        {/* 🏷️ Category Badge */}
+        <Chip
+          label={experience.categories}
+          sx={{
+            position: "absolute",
+            top: "10px",
+            left: "10px",
+            backgroundColor: palette.secondary.medium,
+            color: "white",
+            fontSize: "0.75rem",
+            height: "24px",
+          }}
+        />
+      </Box>
+
+      {/* 📄 Details Section */}
+      <Box className="w-full p-4 flex flex-col justify-between">
         <div>
+          {/* 🏷️ Title + 📍 Location */}
           <Typography
-            variant="h5"
-            className="text-xl font-semibold activity-title"
-            style={{ color: palette.primary.main }}
+            variant="h4"
+            sx={{
+              color: palette.primary.main,
+              fontWeight: "100",
+              mt: 1,
+              fontFamily: "Poppins !important",
+            }}
           >
             {experience.title}{" "}
-            <span
-              className="location-badge"
-              style={{
+            <Chip
+              label={experience.prefecture || "Sin ubicación"}
+              sx={{
                 background: palette.primary.light,
-                padding: "0.5rem",
+                color: palette.primary.main,
                 marginLeft: "1rem",
-                borderRadius: "30px",
-                fontSize: "1rem",
+                fontSize: "0.85rem",
               }}
-            >
-              {experience.prefecture || "Sin ubicación"}
-            </span>
+            />
           </Typography>
+          {/* 🌟 Rating */}
+          <Box display="flex" alignItems="center" gap={0.5} marginTop={2}>
+            {/* Smaller Stars */}
+            <StarRating
+              rating={experience.ratings || 0}
+              isEditable={false}
+              size={16}
+            />
 
-          <Typography
-            className="text-md my-2 activity-description"
-            style={{ color: palette.text.primary }}
-          >
+            {/* Smaller Text */}
+            <Typography variant="body2" sx={{ fontSize: "0.75rem" }}>
+              {experience?.ratings?.toFixed(1) || "N/A"} (
+              {experience?.numReviews || 0} Reseñas)
+            </Typography>
+          </Box>
+          {/* 📝 Description */}
+          <Typography sx={{ color: palette.text.secondary, mt: 1 }}>
             {experience.caption.length > 150
               ? `${experience.caption.substring(0, 150)}...`
               : experience.caption}
           </Typography>
-
-          <Typography
-            className="text-sm"
-            style={{ color: palette.secondary.main }}
-          >
-            {experience.categories}
-          </Typography>
         </div>
 
-        {/* Buttons */}
-        <div className="flex justify-between items-center mt-4">
-          <Link
+        {/* ❤️ Favorite + 🔗 Ver Más Buttons */}
+        <Box display="flex" gap={2} alignItems="center" mt={2}>
+          <Button
+            variant="contained"
+            sx={{
+              border: `1px solid ${palette.primary.main}`,
+              background: palette.primary.white,
+              color: palette.primary.main,
+              textTransform: "none",
+              boxShadow: "0px 4px 6px rgba(0, 0, 0, 0)",
+              borderRadius: "10rem",
+            }}
+            component={Link}
             to={`/experience/${experience.slug}`}
-            className="px-4 py-2 rounded-full text-center"
-            style={{
-              backgroundColor: palette.secondary.main,
-              color: palette.primary.white,
-              textDecoration: "none",
-            }}
           >
-            Ver más
-          </Link>
+            Ver Detalles
+          </Button>
 
-          <IconButton
-            className="favorite"
-            style={{
-              backgroundColor: palette.primary.main,
-              color: palette.primary.white,
-            }}
+          <Button
             onClick={handleFavoriteClick}
+            sx={{
+              backgroundColor: isFavorite
+                ? palette.secondary.main
+                : palette.primary.main,
+              color: palette.primary.white,
+              textTransform: "none",
+              borderRadius: "10rem",
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+            }}
           >
             {isFavorite ? (
               <AiFillHeart size={24} />
             ) : (
               <AiOutlineHeart size={24} />
             )}
-          </IconButton>
-        </div>
-      </div>
-
-      {/* Price & Favorites */}
-      <div className="hidden md:flex w-full md:w-1/5 p-4 flex-col justify-between items-center">
-        <Typography
-          className="text-xl font-bold"
-          style={{ color: palette.primary.main }}
-        >
-          {experience.price ? `${experience.price} €` : "No disponible"}
-        </Typography>
-      </div>
-    </div>
+            {isFavorite ? "Agregado a Favoritos" : "Agregar a Favoritos"}
+          </Button>
+        </Box>
+      </Box>
+    </Box>
   );
 };
 

@@ -1,17 +1,48 @@
-import React from 'react';
-import heroblog from '../../../assets/heroblog.webp';
-import nube from '../../../assets/nube.png';
+import React from "react";
+import { useTheme } from "@mui/material/styles";
+import { Box, Typography, Button } from "@mui/material";
+import { Pencil, Users } from "lucide-react"; // Icons for modern look
 
 const Hero = () => {
-    return (
-        <div className="relative h-screen bg-cover bg-center" style={{ backgroundImage: `url(${heroblog})` }}>
-            <div className="absolute inset-0 bg-black opacity-50"></div>
-            <div className="relative flex flex-col items-center justify-center h-full text-white text-center">
-                <h2 className="text-4xl md:text-6xl font-bold">Lee los artículos más interesantes</h2>
-                <img src={nube} alt="Nube" className="mt-5" />
-            </div> 
-        </div>
-    );
-}
+  const theme = useTheme();
+
+  return (
+    <Box
+      sx={{
+        backgroundColor: theme.palette.background.light,
+        minHeight: "50vh",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        alignItems: "center",
+        textAlign: "center",
+        padding: "3rem 1rem",
+        borderRadius: "0 0 50px 50px",
+      }}
+    >
+      <Typography
+        variant="h2"
+        sx={{
+          fontWeight: "bold",
+          maxWidth: "800px",
+        }}
+      >
+        Comparte, Conecta y Descubre Japón 🇯🇵✨
+      </Typography>
+
+      <Typography
+        variant="h5"
+        sx={{
+          marginTop: "1rem",
+          maxWidth: "700px",
+          opacity: 0.85,
+        }}
+      >
+        Publica tus experiencias, descubre historias de otros viajeros y conecta
+        con una comunidad apasionada por Japón.
+      </Typography>
+    </Box>
+  );
+};
 
 export default Hero;

@@ -25,6 +25,12 @@
   font-weight: normal;
   font-style: normal;
 }
+@font-face {
+  font-family: "Nurom-Bold";
+  src: url("./assets/fonts/Nurom-Bold.otf") format("opentype");
+  font-weight: normal;
+  font-style: normal;
+}
 @layer base {
   body {
     font-family: "Poppins", sans-serif !important;
@@ -38,7 +44,7 @@
   h4,
   h5,
   h6 {
-    font-family: "SifonnPro", sans-serif !important;
+    font-family: "Nurom-Bold", sans-serif !important;
   }
 }
 
