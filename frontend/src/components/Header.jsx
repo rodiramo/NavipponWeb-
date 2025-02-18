@@ -90,18 +90,17 @@ const Header = () => {
           boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
         }}
       >
-        <div className="flex items-center justify-between w-full">
-          {/* Logo */}
-          <Link to="/" className="flex items-center">
-            <img
-              src={mode === "dark" ? images.LogoWhite : images.LogoBlack}
-              alt="Logo"
-              className="h-16"
-            />
-            <h1 className="font-bold pl-2" style={{ fontSize: "1.75rem" }}>
-              Navippon
-            </h1>
-          </Link>
+        {/* Logo */}
+        <Link to="/" className="flex items-center">
+          <img
+            src={mode === "dark" ? images.LogoWhite : images.LogoWhite}
+            alt="Logo"
+            className="h-16"
+          />
+          <h1 className="font-bold pl-2 text-xl md:text-2xl text-white">
+            Navippon
+          </h1>
+        </Link>
 
         {/* Navigation (Hidden below 1000px, Visible at 1000px+) */}
         {/* Navigation (Hidden below 1024px, visible at 1024px and above) */}
