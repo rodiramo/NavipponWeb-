@@ -1,5 +1,4 @@
 import upload from "../middleware/uploadPictureMiddleware.js";
-import upload from "../middleware/uploadPictureMiddleware.js";
 import Comment from "../models/Comment.js";
 import { v4 as uuidv4 } from "uuid";
 import cloudinary from "../config/cloudinaryConfig.js";
