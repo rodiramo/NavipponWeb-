@@ -125,26 +125,6 @@ const BlogPage = () => {
           </Button>
         )}
 
-        {/* ✅ Create Post Modal */}
-        <Modal open={open} onClose={() => setOpen(false)}>
-          <Box
-            sx={{
-              position: "absolute",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              bgcolor: "background.paper",
-              boxShadow: 24,
-              p: 4,
-              borderRadius: "10px",
-              maxWidth: "100%",
-              width: "90%",
-            }}
-          >
-            <PostForm onClose={() => setOpen(false)} token={jwt} />
-          </Box>
-        </Modal>
-
         {/* ✅ Floating "Create Post" Button */}
         {user && (
           <Button
@@ -171,18 +151,30 @@ const BlogPage = () => {
           <Box
             sx={{
               position: "absolute",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              bgcolor: "background.paper",
-              boxShadow: 24,
-              p: 4,
-              borderRadius: "10px",
-              maxWidth: "100%",
-              width: "90%",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              bgcolor: "rgba(0, 0, 0, 0.5)", // Semi-transparent background
             }}
           >
-            <PostForm onClose={() => setOpen(false)} token={jwt} />
+            <Box
+              sx={{
+                width: "95%",
+                maxWidth: "800px",
+                maxHeight: "95vh",
+                overflowY: "auto", // Enables scrolling if content is too large
+                bgcolor: "background.paper",
+                boxShadow: 24,
+                p: 4,
+                borderRadius: "10px",
+              }}
+            >
+              <PostForm onClose={() => setOpen(false)} token={jwt} />
+            </Box>
           </Box>
         </Modal>
       </section>

@@ -1,9 +1,17 @@
 import React from "react";
+import {
+  useTheme,
+  Avatar,
+  Box,
+  Typography,
+  Button,
+  Divider,
+} from "@mui/material";
 import { FiMessageSquare, FiEdit2, FiTrash } from "react-icons/fi";
 
 import { images, stables } from "../../constants";
 import CommentForm from "./CommentForm";
-import useUser from "../../hooks/useUser";  
+import useUser from "../../hooks/useUser";
 
 const Comment = ({
   comment,
@@ -16,7 +24,9 @@ const Comment = ({
   deleteComment,
   replies,
 }) => {
-  const { jwt } = useUser();  
+  const { jwt } = useUser();
+  const theme = useTheme();
+
   const isUserLoggined = Boolean(logginedUserId);
   const commentBelongsToUser = logginedUserId === comment.user._id;
   const isReplying =
@@ -31,88 +41,131 @@ const Comment = ({
   const replyOnUserId = comment.user._id;
 
   return (
-    <div
-      className="flex flex-nowrap items-start gap-x-3 bg-[#F2F4F5] p-3 rounded-lg"
+    <Box
+      sx={{
+        display: "flex",
+        alignItems: "start",
+        gap: 2,
+        bgcolor: theme.palette.background.bg,
+        p: 2,
+        borderRadius: "10px",
+        mb: 2,
+      }}
       id={`comment-${comment?._id}`}
     >
-      <img
+      {/* User Avatar */}
+      <Avatar
         src={
           comment?.user?.avatar
             ? stables.UPLOAD_FOLDER_BASE_URL + comment.user.avatar
             : images.userImage
         }
-        alt="user profile"
-        className="w-9 h-9 object-cover rounded-full"
+        alt={comment.user.name}
+        sx={{ width: 40, height: 40 }}
       />
-      <div className="flex-1 flex flex-col">
-        <h5 className="font-bold text-dark-hard text-xs lg:text-sm">
+
+      <Box sx={{ flex: 1 }}>
+        {/* User Name & Date */}
+        <Typography
+          variant="body1"
+          sx={{ fontWeight: "bold", color: theme.palette.primary.main }}
+        >
           {comment.user.name}
-        </h5>
-        <span className="text-xs text-dark-light">
-          {new Date(comment.createdAt).toLocaleDateString("en-US", {
+        </Typography>
+        <Typography variant="caption" color="text.secondary">
+          {new Date(comment.createdAt).toLocaleDateString("es-ES", {
             day: "numeric",
             month: "short",
             year: "numeric",
             hour: "2-digit",
           })}
-        </span>
+        </Typography>
+
+        {/* Comment Text */}
         {!isEditing && (
-          <p className="font-opensans mt-[10px] text-dark-light">
+          <Typography
+            variant="body2"
+            sx={{ mt: 1, color: theme.palette.text.primary }}
+          >
             {comment.desc}
-          </p>
+          </Typography>
         )}
+
+        {/* Edit Comment Form */}
         {isEditing && (
           <CommentForm
-            btnLabel="Update"
-            formSubmitHanlder={(value) => updateComment(value, comment._id, jwt)}
+            btnLabel="Actualizar"
+            formSubmitHanlder={(value) =>
+              updateComment(value, comment._id, jwt)
+            }
             formCancelHandler={() => setAffectedComment(null)}
             initialText={comment.desc}
           />
         )}
-        <div className="flex items-center gap-x-3 text-dark-light text-sm mt-3 mb-3">
+
+        {/* Actions: Reply, Edit, Delete */}
+        <Box sx={{ display: "flex", gap: 2, mt: 1 }}>
           {isUserLoggined && (
-            <button
-              className="flex items-center space-x-2"
+            <Button
+              size="small"
+              startIcon={<FiMessageSquare />}
+              sx={{ textTransform: "none", color: theme.palette.primary.main }}
               onClick={() =>
                 setAffectedComment({ type: "replying", _id: comment._id })
               }
             >
-              <FiMessageSquare className="w-4 h-auto" />
-              <span>Reply</span>
-            </button>
+              Responder
+            </Button>
           )}
           {commentBelongsToUser && (
             <>
-              <button
-                className="flex items-center space-x-2"
+              <Button
+                size="small"
+                startIcon={<FiEdit2 />}
+                sx={{
+                  textTransform: "none",
+                  color: theme.palette.secondary.main,
+                }}
                 onClick={() =>
                   setAffectedComment({ type: "editing", _id: comment._id })
                 }
               >
-                <FiEdit2 className="w-4 h-auto" />
-                <span>Edit</span>
-              </button>
-              <button
-                className="flex items-center space-x-2"
+                Editar
+              </Button>
+              <Button
+                size="small"
+                startIcon={<FiTrash />}
+                sx={{ textTransform: "none", color: theme.palette.error.main }}
                 onClick={() => deleteComment(comment._id, jwt)}
               >
-                <FiTrash className="w-4 h-auto" />
-                <span>Delete</span>
-              </button>
+                Eliminar
+              </Button>
             </>
           )}
-        </div>
+        </Box>
+
+        {/* Reply Form */}
         {isReplying && (
-          <CommentForm
-            btnLabel="Reply"
-            formSubmitHanlder={(value) =>
-              addComment(value, repliedCommentId, replyOnUserId, jwt)
-            }
-            formCancelHandler={() => setAffectedComment(null)}
-          />
+          <Box sx={{ mt: 2 }}>
+            <CommentForm
+              btnLabel="Responder"
+              formSubmitHanlder={(value) =>
+                addComment(value, repliedCommentId, replyOnUserId, jwt)
+              }
+              formCancelHandler={() => setAffectedComment(null)}
+            />
+          </Box>
         )}
+
+        {/* Replies */}
         {replies.length > 0 && (
-          <div>
+          <Box
+            sx={{
+              mt: 2,
+              pl: 3,
+              borderLeft: `2px solid ${theme.palette.divider}`,
+            }}
+          >
             {replies.map((reply) => (
               <Comment
                 key={reply._id}
@@ -127,10 +180,10 @@ const Comment = ({
                 parentId={comment._id}
               />
             ))}
-          </div>
+          </Box>
         )}
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 };
 

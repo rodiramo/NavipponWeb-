@@ -35,7 +35,7 @@ const Review = ({
       <div
         style={{
           width: "100%",
-          background: theme.palette.primary.white,
+          background: theme.palette.background.bg,
           padding: "1rem",
           borderRadius: "1rem",
           alignItems: "center",
@@ -104,7 +104,7 @@ const Review = ({
               <p
                 className="font-opensans"
                 style={{
-                  color: theme.palette.secondary.main,
+                  color: theme.palette.secondary.medium,
                   fontStyle: "italic",
                   marginTop: "5px",
                 }}
