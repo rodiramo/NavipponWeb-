@@ -26,7 +26,7 @@ import Reviews from "./pages/admin/screens/reviews/Reviews";
 import ManagePosts from "./pages/admin/screens/posts/ManagePosts";
 import ManageExperiences from "./pages/admin/screens/experiences/ManageExperiences";
 import AboutPage from "./pages/about/AboutPage";
-import ExperienceForm from "./pages/admin/screens/experiences/ExperienceForm.jsx";
+import ExperienceForm from "./pages/admin/screens/experiences/ExperienceForm";
 import ExperiencePage from "./pages/experience/ExperiencePage";
 import ExperienceDetailPage from "./pages/experienceDetail/ExperienceDetailPage";
 import UserLayout from "./pages/user/UserLayout";

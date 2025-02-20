@@ -3,14 +3,39 @@ import Experience from "../models/Experience.js";
 import Review from "../models/Review.js";
 import { fileRemover } from "../utils/fileRemover.js";
 import { v4 as uuidv4 } from "uuid";
+import cloudinary from "cloudinary";
 
 const createExperience = async (req, res, next) => {
   try {
-    const {
+    console.log("📥 Incoming Request Body:", req.body);
+    console.log("📸 Uploaded File:", req.file); // ✅ Log if file is received
+
+    if (!req.file) {
+      console.warn(
+        "⚠️ No file uploaded! Ensure FormData contains 'experiencePicture'."
+      );
+    }
+
+    // ✅ Required Field Validation
+    if (
+      !req.body.title ||
+      !req.body.caption ||
+      !req.body.body ||
+      !req.body.categories ||
+      !req.body.region
+    ) {
+      console.error("❌ Missing required fields:", req.body);
+      return res.status(400).json({
+        message:
+          "Missing required fields: title, caption, body, categories, region",
+      });
+    }
+
+    // ✅ Parse JSON fields
+    let {
       title,
       caption,
       body,
-      photo,
       categories,
       generalTags,
       hotelTags,
@@ -26,34 +51,56 @@ const createExperience = async (req, res, next) => {
       map,
       address,
     } = req.body;
-    const experience = new Experience({
-      title: title || "sample title",
-      caption: caption || "sample caption",
+
+    try {
+      body = JSON.parse(body || "{}");
+      categories = JSON.parse(categories || "[]");
+      generalTags = JSON.parse(generalTags || "{}");
+      hotelTags = JSON.parse(hotelTags || "{}");
+      attractionTags = JSON.parse(attractionTags || "[]");
+      restaurantTags = JSON.parse(restaurantTags || "{}");
+    } catch (error) {
+      console.log("❌ JSON Parsing Error:", error.message);
+      return res
+        .status(400)
+        .json({ message: "Invalid JSON format in request" });
+    }
+
+    // ✅ Handle Image Upload
+    let photo = "default-placeholder.jpg";
+    if (req.file) {
+      photo = req.file.filename; // ✅ Store only the Cloudinary filename
+    }
+
+    // ✅ Create Experience
+    const newExperience = new Experience({
+      title,
+      caption,
       slug: uuidv4(),
-      body: body || { type: "doc", content: [] },
-      photo: photo || "",
+      body,
+      photo,
       user: req.user._id,
       approved: false,
-      categories: categories || "Hoteles",
-      generalTags: generalTags || {},
-      hotelTags: hotelTags || {},
-      attractionTags: attractionTags || [],
-      restaurantTags: restaurantTags || {},
-      region: region || "Hokkaido",
-      prefecture: prefecture || "Hokkaido",
-      price: price !== undefined ? price : 0,
-      phone: phone || "",
-      email: email || "",
-      website: website || "",
-      schedule: schedule || "",
-      map: map || "",
-      address: address || "",
-      favoritesCount: 0,
+      categories,
+      generalTags,
+      hotelTags,
+      attractionTags,
+      restaurantTags,
+      region,
+      prefecture,
+      price: price || 0,
+      phone,
+      email,
+      website,
+      schedule,
+      map,
+      address,
     });
 
-    const createdExperience = await experience.save();
-    return res.json(createdExperience);
+    const createdExperience = await newExperience.save();
+    return res.status(201).json(createdExperience);
   } catch (error) {
+    console.error("❌ Error in createExperience:", error);
     next(error);
   }
 };
@@ -218,7 +265,7 @@ const getExperience = async (req, res, next) => {
 
 const getAllExperiences = async (req, res, next) => {
   try {
-    const { searchKeyword, category, region, tags } = req.query;
+    const { searchKeyword, category, region, tags, sortBy } = req.query;
     let where = {};
 
     if (searchKeyword) {
@@ -238,6 +285,7 @@ const getAllExperiences = async (req, res, next) => {
         { "restaurantTags.restaurantServices": regex },
       ];
     }
+
     if (category) {
       where.categories = category;
     }
@@ -269,6 +317,22 @@ const getAllExperiences = async (req, res, next) => {
     );
 
     let query = Experience.find(where);
+
+    // ✅ Sorting Logic
+    if (sortBy) {
+      if (sortBy === "favorites") {
+        query = query.sort({ favoritesCount: -1 }); // Most Favorited
+      } else if (sortBy === "budgetHigh") {
+        query = query.sort({ budget: -1 }); // Most Expensive
+      } else if (sortBy === "budgetLow") {
+        query = query.sort({ budget: 1 }); // Least Expensive
+      } else if (sortBy === "ratings") {
+        query = query.sort({ rating: -1 }); // Highest Rated
+      }
+    } else {
+      query = query.sort({ updatedAt: "desc" }); // Default sorting by most recent
+    }
+
     const page = parseInt(req.query.page) || 1;
     const pageSize = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * pageSize;
@@ -295,8 +359,7 @@ const getAllExperiences = async (req, res, next) => {
           path: "user",
           select: ["avatar", "name", "verified"],
         },
-      ])
-      .sort({ updatedAt: "desc" });
+      ]);
 
     return res.json(result);
   } catch (error) {

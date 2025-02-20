@@ -148,7 +148,7 @@ const ExperienceSchema = new Schema(
     title: { type: String, required: true },
     caption: { type: String, required: true },
     slug: { type: String, required: true, unique: true },
-    body: { type: Object, required: true },
+    body: { type: Object, required: false },
     photo: { type: String, required: false },
     user: { type: Schema.Types.ObjectId, ref: "User" },
     categories: {
@@ -193,6 +193,15 @@ const ExperienceSchema = new Schema(
       restaurantServices: [
         { type: String, enum: restaurantTags.restaurantServices },
       ],
+    },
+    location: {
+      type: {
+        type: String,
+        default: "Point",
+      },
+      coordinates: {
+        type: [Number],
+      },
     },
     phone: { type: String, required: false },
     email: { type: String, required: false },

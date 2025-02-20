@@ -6,6 +6,9 @@ import { v4 as uuidv4 } from "uuid";
 
 const createExperience = async (req, res, next) => {
   try {
+    console.log("📥 Incoming FormData:", req.body);
+    console.log("📸 Uploaded File:", req.file);
+
     const {
       title,
       caption,
@@ -26,19 +29,26 @@ const createExperience = async (req, res, next) => {
       map,
       address,
     } = req.body;
+
+    if (!title || !categories) {
+      return res
+        .status(400)
+        .json({ error: "Title and categories are required" });
+    }
+
     const experience = new Experience({
       title: title || "sample title",
       caption: caption || "sample caption",
       slug: uuidv4(),
       body: body || { type: "doc", content: [] },
-      photo: photo || "",
+      photo: req.file ? req.file.filename : photo || "", // ✅ Ensure image is saved
       user: req.user._id,
       approved: false,
       categories: categories || "Hoteles",
-      generalTags: generalTags || {},
-      hotelTags: hotelTags || {},
-      attractionTags: attractionTags || [],
-      restaurantTags: restaurantTags || {},
+      generalTags: generalTags ? JSON.parse(generalTags) : {},
+      hotelTags: hotelTags ? JSON.parse(hotelTags) : {},
+      attractionTags: attractionTags ? JSON.parse(attractionTags) : [],
+      restaurantTags: restaurantTags ? JSON.parse(restaurantTags) : {},
       region: region || "Hokkaido",
       prefecture: prefecture || "Hokkaido",
       price: price !== undefined ? price : 0,
@@ -54,6 +64,7 @@ const createExperience = async (req, res, next) => {
     const createdExperience = await experience.save();
     return res.json(createdExperience);
   } catch (error) {
+    console.error("❌ Backend Error:", error);
     next(error);
   }
 };

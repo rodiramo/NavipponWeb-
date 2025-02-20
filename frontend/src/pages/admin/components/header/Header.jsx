@@ -9,13 +9,13 @@ import NavItem from "./NavItem";
 import NavItemCollapse from "./NavItemCollapse";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
-import useUser from "../../../../hooks/useUser";  
+import useUser from "../../../../hooks/useUser";
 import { createPost } from "../../../../services/index/posts";
-import { createExperience } from "../../../../services/index/experiences";  
+import { createExperience } from "../../../../services/index/experiences";
 
 const Header = () => {
   const navigate = useNavigate();
-  const { user, jwt } = useUser();  
+  const { jwt } = useUser();
   const queryClient = useQueryClient();
   const [isMenuActive, setIsMenuActive] = useState(false);
   const [activeNavName, setActiveNavName] = useState("dashboard");
@@ -38,24 +38,34 @@ const Header = () => {
         console.log(error);
       },
     });
+  const {
+    mutate: mutateCreateExperience,
+    isLoading: isLoadingCreateExperience,
+  } = useMutation({
+    mutationFn: ({ newExperienceData, token }) => {
+      return createExperience({
+        experienceData: newExperienceData, // Make sure this matches the API function's expected parameters
+        token,
+      });
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries(["experiences"]);
+      toast.success("¡Experiencia creada con éxito!");
+    },
+    onError: (error) => {
+      toast.error(error.message);
+      console.log(error);
+    },
+  });
 
-  const { mutate: mutateCreateExperience, isLoading: isLoadingCreateExperience } =
-    useMutation({
-      mutationFn: ({ token }) => {
-        return createExperience({
-          token,
-        });
-      },
-      onSuccess: (data) => {
-        queryClient.invalidateQueries(["experiences"]);
-        toast.success("¡Experiencia creada, edítala ahora!");
-        navigate(`/admin/experiences/manage/edit/${data.slug}`);
-      },
-      onError: (error) => {
-        toast.error(error.message);
-        console.log(error);
-      },
-    });
+  const handleCreateNewExperience = () => {
+    if (!jwt) {
+      toast.error("Debes estar logueado para crear una nueva experiencia");
+      return;
+    }
+
+    navigate("/admin/experiences/manage/create");
+  };
 
   const toggleMenuHandler = () => {
     setIsMenuActive((prevState) => !prevState);
@@ -74,14 +84,6 @@ const Header = () => {
       mutateCreatePost({ token: jwt });
     } else {
       toast.error("Debes estar logueado para crear una nueva publicación");
-    }
-  };
-
-  const handleCreateNewExperience = () => {
-    if (jwt) {
-      mutateCreateExperience({ token: jwt });
-    } else {
-      toast.error("Debes estar logueado para crear una nueva experiencia");
     }
   };
 
@@ -152,15 +154,22 @@ const Header = () => {
                 setActiveNavName={setActiveNavName}
                 className="hover:text-[#FF4A5A]"
               >
-                <Link to="/admin/posts/manage" className="hover:text-[#FF4A5A]">Administrar todas las publicaciones</Link>
+                <Link to="/admin/posts/manage" className="hover:text-[#FF4A5A]">
+                  Administrar todas las publicaciones
+                </Link>
                 <button
                   disabled={isLoadingCreatePost}
                   className="text-start disabled:opacity-60 disabled:cursor-not-allowed hover:text-[#FF4A5A]"
                   onClick={handleCreateNewPost}
                 >
-                  Crear nuevo post
+                  Crear nueva publicacion
                 </button>
-                <Link to="/admin/categories/manage" className="hover:text-[#FF4A5A]">Categorias</Link>
+                <Link
+                  to="/admin/categories/manage"
+                  className="hover:text-[#FF4A5A]"
+                >
+                  Categorias
+                </Link>
               </NavItemCollapse>
 
               <NavItemCollapse
@@ -171,14 +180,19 @@ const Header = () => {
                 setActiveNavName={setActiveNavName}
                 className="hover:text-[#FF4A5A]"
               >
-                <Link to="/admin/experiences/manage" className="hover:text-[#FF4A5A]">Administrar todas las experiencias</Link>
+                <Link
+                  to="/admin/experiences/manage"
+                  className="hover:text-[#FF4A5A]"
+                >
+                  Administrar todas las experiencias
+                </Link>
                 <button
                   disabled={isLoadingCreateExperience}
                   className="text-start disabled:opacity-60 disabled:cursor-not-allowed hover:text-[#FF4A5A]"
                   onClick={handleCreateNewExperience}
                 >
                   Crear nueva experiencia
-                </button>                
+                </button>
               </NavItemCollapse>
 
               <NavItem
