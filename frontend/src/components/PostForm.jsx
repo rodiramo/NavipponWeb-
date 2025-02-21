@@ -7,6 +7,7 @@ import {
   createUserPost,
 } from "../services/index/userPosts";
 import { v4 as uuidv4 } from "uuid";
+import Editor from "../components/editor/Editor";
 import { useTheme } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import ErrorMessage from "../components/ErrorMessage";
@@ -232,7 +233,7 @@ const PostForm = ({ slug = null, open, onClose }) => {
           bgcolor: "white",
           borderRadius: "1rem",
           "& .MuiInputBase-root": {
-            borderRadius: "1rem",
+            borderRadius: "10px",
             border: `2px solid ${theme.palette.secondary.light}`,
           },
           "& .MuiFilledInput-root": {
@@ -258,7 +259,7 @@ const PostForm = ({ slug = null, open, onClose }) => {
           bgcolor: "white",
           borderRadius: "1rem",
           "& .MuiInputBase-root": {
-            borderRadius: "1.5rem",
+            borderRadius: "10px",
             border: `2px solid ${theme.palette.secondary.light}`,
           },
           "& .MuiFilledInput-root": {
@@ -271,31 +272,14 @@ const PostForm = ({ slug = null, open, onClose }) => {
       />
 
       {/* Description */}
-      <Typography variant="subtitle1">Descripción</Typography>
-      <TextField
-        placeholder="Escribe la descripción aquí..."
-        variant="filled"
-        value={body}
-        onChange={(e) => setBody(e.target.value)}
-        multiline
-        rows={4}
-        fullWidth
-        required
-        sx={{
-          bgcolor: "white",
-          borderRadius: "2rem",
-          "& .MuiInputBase-root": {
-            borderRadius: "2rem",
-            border: `2px solid ${theme.palette.secondary.light}`,
-          },
-          "& .MuiFilledInput-root": {
-            backgroundColor: "white",
-            "&:before, &:after": {
-              display: "none", // Removes the default underline
-            },
-          },
-        }}
+      {/* Description */}
+      <Typography variant="subtitle1">Contenido de la publicación</Typography>
+      <Editor
+        content={body}
+        editable={true}
+        onDataChange={(data) => setBody(data)}
       />
+
       {/* Categories as Toggle Chips */}
       <Typography variant="subtitle1">Categorías</Typography>
       <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>

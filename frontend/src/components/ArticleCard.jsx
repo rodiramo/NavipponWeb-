@@ -19,22 +19,22 @@ const ArticleCard = ({ post, className, currentUser, token }) => {
   const [isFavorite, setIsFavorite] = useState(false);
 
   useEffect(() => {
-    if (currentUser && token) {
+    if (currentUser && token && post?.user?._id) {
       getUserProfile({ token })
         .then((userData) => {
-          setIsFriend(userData.friends.includes(post.user._id));
+          setIsFriend(userData.friends.includes(post.user?._id));
           localStorage.setItem("friends", JSON.stringify(userData.friends));
         })
         .catch((error) => console.error("Error fetching friends:", error));
 
       getUserFavorites({ userId: currentUser._id, token })
         .then((favorites) => {
-          setIsFavorite(favorites.some((fav) => fav.postId === post._id));
+          setIsFavorite(favorites.some((fav) => fav.postId === post?._id));
           localStorage.setItem("favorites", JSON.stringify(favorites));
         })
         .catch((error) => console.error("Error fetching favorites:", error));
     }
-  }, [currentUser, token, post._id, post.user._id]);
+  }, [currentUser, token, post?._id, post?.user?._id]);
 
   const handleFriendToggle = async () => {
     try {

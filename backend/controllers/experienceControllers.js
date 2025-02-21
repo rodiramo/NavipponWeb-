@@ -8,7 +8,7 @@ import cloudinary from "cloudinary";
 const createExperience = async (req, res, next) => {
   try {
     console.log("📥 Incoming Request Body:", req.body);
-    console.log("📸 Uploaded File:", req.file); // ✅ Log if file is received
+    console.log("📸 Uploaded File:", req.file);
 
     if (!req.file) {
       console.warn(
@@ -16,7 +16,6 @@ const createExperience = async (req, res, next) => {
       );
     }
 
-    // ✅ Required Field Validation
     if (
       !req.body.title ||
       !req.body.caption ||
@@ -24,7 +23,6 @@ const createExperience = async (req, res, next) => {
       !req.body.categories ||
       !req.body.region
     ) {
-      console.error("❌ Missing required fields:", req.body);
       return res.status(400).json({
         message:
           "Missing required fields: title, caption, body, categories, region",
@@ -60,16 +58,29 @@ const createExperience = async (req, res, next) => {
       attractionTags = JSON.parse(attractionTags || "[]");
       restaurantTags = JSON.parse(restaurantTags || "{}");
     } catch (error) {
-      console.log("❌ JSON Parsing Error:", error.message);
       return res
         .status(400)
         .json({ message: "Invalid JSON format in request" });
     }
 
+    // ✅ Extract Coordinates from Google Maps URL
+    const extractCoordinates = (mapUrl) => {
+      const regex = /@(-?\d+\.\d+),(-?\d+\.\d+)/;
+      const match = mapUrl?.match(regex);
+      return match
+        ? {
+            type: "Point",
+            coordinates: [parseFloat(match[2]), parseFloat(match[1])],
+          }
+        : null;
+    };
+
+    const location = extractCoordinates(map);
+
     // ✅ Handle Image Upload
     let photo = "default-placeholder.jpg";
     if (req.file) {
-      photo = req.file.filename; // ✅ Store only the Cloudinary filename
+      photo = req.file.filename;
     }
 
     // ✅ Create Experience
@@ -95,6 +106,7 @@ const createExperience = async (req, res, next) => {
       schedule,
       map,
       address,
+      location, // ✅ Add extracted location
     });
 
     const createdExperience = await newExperience.save();
@@ -110,12 +122,21 @@ const updateExperience = async (req, res, next) => {
     const experience = await Experience.findOne({ slug: req.params.slug });
 
     if (!experience) {
-      const error = new Error("Experiencia no encontrada");
-      next(error);
-      return;
+      return res.status(404).json({ message: "Experiencia no encontrada" });
     }
 
-    const uploadSingle = upload.single("experiencePicture"); // Use a different variable name
+    const uploadSingle = upload.single("experiencePicture");
+
+    const extractCoordinates = (mapUrl) => {
+      const regex = /@(-?\d+\.\d+),(-?\d+\.\d+)/;
+      const match = mapUrl?.match(regex);
+      return match
+        ? {
+            type: "Point",
+            coordinates: [parseFloat(match[2]), parseFloat(match[1])],
+          }
+        : null;
+    };
 
     const handleUpdateExperienceData = async (data) => {
       const {
@@ -160,30 +181,27 @@ const updateExperience = async (req, res, next) => {
       experience.schedule = schedule || experience.schedule;
       experience.map = map || experience.map;
       experience.address = address || experience.address;
+
+      // ✅ Update location if new map URL is provided
+      if (map) {
+        experience.location = extractCoordinates(map);
+      }
+
       const updatedExperience = await experience.save();
       return res.json(updatedExperience);
     };
 
     uploadSingle(req, res, async function (err) {
       if (err) {
-        const error = new Error(
-          "Se produjo un error desconocido al cargar " + err.message
+        return next(
+          new Error("Se produjo un error desconocido al cargar " + err.message)
         );
-        next(error);
       } else {
         if (req.file) {
-          let filename;
-          filename = experience.photo;
-          if (filename) {
-            fileRemover(filename);
-          }
+          fileRemover(experience.photo);
           experience.photo = req.file.filename;
           handleUpdateExperienceData(req.body.document);
         } else {
-          let filename;
-          filename = experience.photo;
-          experience.photo = "";
-          fileRemover(filename);
           handleUpdateExperienceData(req.body.document);
         }
       }

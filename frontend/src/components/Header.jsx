@@ -12,7 +12,7 @@ import {
 import { useSelector, useDispatch } from "react-redux";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
-import { IconButton, Menu, MenuItem, Typography } from "@mui/material";
+import { IconButton, Menu, MenuItem } from "@mui/material";
 import { images, stables } from "../constants";
 import useUser from "../hooks/useUser";
 import { toggleMode } from "../themeSlice";
@@ -219,7 +219,17 @@ const Header = () => {
 
       {/* Mobile Navigation */}
       {isMobile && navIsVisible && (
-        <nav className="absolute top-21 left-0 w-full backdrop-blur-lg p-6">
+        <nav
+          className="absolute top-15 left-0 w-full  p-6"
+          style={{
+            backgroundColor: "rgb(10 23 51 / 81%)",
+            color: "white",
+            backdropFilter: "blur(10px) saturate(180%)",
+            WebkitBackdropFilter: "blur(10px) saturate(180%)",
+            borderRadius: "0 0 1rem 1rem",
+            boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+          }}
+        >
           <ul className="flex flex-col gap-4 text-white text-center">
             {navItemsInfo.map((item) => (
               <NavItem

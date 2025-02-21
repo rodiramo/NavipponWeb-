@@ -1,4 +1,6 @@
 import React from "react";
+import { Chip, Box, Typography } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import {
   FaWifi,
   FaUtensils,
@@ -8,6 +10,7 @@ import {
   FaChild,
 } from "react-icons/fa";
 
+// Define restaurant types with color theme
 const restaurantTypes = [
   "Restaurantes tradicionales",
   "Cadenas de comida rápida",
@@ -18,6 +21,7 @@ const restaurantTypes = [
   "Sushi",
 ];
 
+// Define cuisines
 const cuisines = [
   "Cocina japonesa tradicional",
   "Internacional",
@@ -35,6 +39,7 @@ const cuisines = [
   "Ocasiones especiales",
 ];
 
+// Define services with icons
 const restaurantServices = [
   { icon: <FaWifi />, label: "Wi-Fi gratis" },
   { icon: <FaUtensils />, label: "Menú en inglés" },
@@ -52,91 +57,151 @@ const RestaurantTags = ({
   selectedRestaurantTags,
   setSelectedRestaurantTags,
 }) => {
-  const handleTagChange = (tagType, tagLabel) => {
-    setSelectedRestaurantTags((prevTags) => {
-      const newTags = { ...prevTags };
-      if (!newTags[tagType]) {
-        newTags[tagType] = [];
-      }
-      if (newTags[tagType].includes(tagLabel)) {
-        newTags[tagType] = newTags[tagType].filter((tag) => tag !== tagLabel);
-      } else {
-        newTags[tagType].push(tagLabel);
-      }
-      return newTags;
-    });
+  const theme = useTheme();
+
+  const handleTagClick = (tagType, tagValue) => {
+    setSelectedRestaurantTags((prevTags) => ({
+      ...prevTags,
+      [tagType]: prevTags[tagType].includes(tagValue)
+        ? prevTags[tagType].filter((tag) => tag !== tagValue) // Deselect
+        : [...prevTags[tagType], tagValue], // Select
+    }));
   };
 
   return (
-    <div className="mb-5 mt-2">
+    <Box className="mb-5 mt-2">
       {/* Restaurant Types */}
-      <label className="d-label">
-        <span className="d-label-text">Tipos de Restaurantes</span>
-      </label>
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      <Typography
+        sx={{
+          fontWeight: "bold",
+          color: theme.palette.text.primary,
+          marginBottom: "8px",
+        }}
+      >
+        Tipos de Restaurantes
+      </Typography>
+      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
         {restaurantTypes.map((type) => (
-          <label
+          <Chip
             key={type}
-            className="flex items-center space-x-2 cursor-pointer"
-          >
-            <input
-              type="checkbox"
-              checked={selectedRestaurantTags.restaurantTypes.includes(type)}
-              onChange={() => handleTagChange("restaurantTypes", type)}
-              className="form-checkbox h-4 w-4 text-primary"
-            />
-            <span>{type}</span>
-          </label>
+            label={type}
+            onClick={() => handleTagClick("restaurantTypes", type)}
+            variant={
+              selectedRestaurantTags.restaurantTypes.includes(type)
+                ? "filled"
+                : "outlined"
+            }
+            sx={{
+              backgroundColor: selectedRestaurantTags.restaurantTypes.includes(
+                type
+              )
+                ? theme.palette.success.medium // ✅ Green for restaurant types
+                : theme.palette.success.lightest,
+              color: selectedRestaurantTags.restaurantTypes.includes(type)
+                ? "black"
+                : theme.palette.text.primary,
+              border: `1.5px solid ${theme.palette.success.light}`,
+              borderRadius: "16px",
+              padding: "8px",
+              cursor: "pointer",
+              "&:hover": {
+                backgroundColor: theme.palette.success.light,
+                color: "black",
+              },
+            }}
+          />
         ))}
-      </div>
+      </Box>
 
       {/* Cuisines */}
-      <label className="d-label mt-4">
-        <span className="d-label-text">Cocinas</span>
-      </label>
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      <Typography
+        sx={{
+          fontWeight: "bold",
+          color: theme.palette.text.primary,
+          marginTop: "16px",
+          marginBottom: "8px",
+        }}
+      >
+        Cocinas
+      </Typography>
+      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
         {cuisines.map((cuisine) => (
-          <label
+          <Chip
             key={cuisine}
-            className="flex items-center space-x-2 cursor-pointer"
-          >
-            <input
-              type="checkbox"
-              checked={selectedRestaurantTags.cuisines.includes(cuisine)}
-              onChange={() => handleTagChange("cuisines", cuisine)}
-              className="form-checkbox h-4 w-4 text-primary"
-            />
-            <span>{cuisine}</span>
-          </label>
+            label={cuisine}
+            onClick={() => handleTagClick("cuisines", cuisine)}
+            variant={
+              selectedRestaurantTags.cuisines.includes(cuisine)
+                ? "filled"
+                : "outlined"
+            }
+            sx={{
+              backgroundColor: selectedRestaurantTags.cuisines.includes(cuisine)
+                ? theme.palette.warning.light // ✅ Yellow for cuisines
+                : theme.palette.warning.lightest,
+              color: selectedRestaurantTags.cuisines.includes(cuisine)
+                ? "black"
+                : theme.palette.text.primary,
+              border: `1.5px solid ${theme.palette.warning.light}`,
+              borderRadius: "16px",
+              padding: "8px",
+              cursor: "pointer",
+              "&:hover": {
+                backgroundColor: theme.palette.warning.light,
+                color: "black",
+              },
+            }}
+          />
         ))}
-      </div>
+      </Box>
 
       {/* Restaurant Services */}
-      <label className="d-label mt-4">
-        <span className="d-label-text">Servicios</span>
-      </label>
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      <Typography
+        sx={{
+          fontWeight: "bold",
+          color: theme.palette.text.primary,
+          marginTop: "16px",
+          marginBottom: "8px",
+        }}
+      >
+        Servicios
+      </Typography>
+      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
         {restaurantServices.map(({ icon, label }) => (
-          <label
+          <Chip
             key={label}
-            className="flex items-center space-x-2 cursor-pointer"
-          >
-            <input
-              type="checkbox"
-              checked={selectedRestaurantTags.restaurantServices.includes(
-                label
-              )}
-              onChange={() => handleTagChange("restaurantServices", label)}
-              className="form-checkbox h-4 w-4 text-primary"
-            />
-            <span className="flex items-center">
-              {icon}
-              <span className="ml-2">{label}</span>
-            </span>
-          </label>
+            label={
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                {icon} {label}
+              </Box>
+            }
+            onClick={() => handleTagClick("restaurantServices", label)}
+            variant={
+              selectedRestaurantTags.restaurantServices.includes(label)
+                ? "filled"
+                : "outlined"
+            }
+            sx={{
+              backgroundColor:
+                selectedRestaurantTags.restaurantServices.includes(label)
+                  ? theme.palette.info.main // ✅ Blue for services
+                  : theme.palette.secondary.lightBlue,
+              color: selectedRestaurantTags.restaurantServices.includes(label)
+                ? "white"
+                : theme.palette.text.primary,
+              border: `1.5px solid ${theme.palette.info.light}`,
+              borderRadius: "16px",
+              padding: "8px",
+              cursor: "pointer",
+              "&:hover": {
+                backgroundColor: theme.palette.info.light,
+                color: "white",
+              },
+            }}
+          />
         ))}
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 };
 

@@ -22,7 +22,10 @@ import {
   MdFreeBreakfast,
   MdAirportShuttle,
 } from "react-icons/md";
+import { Chip, Box, Typography } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 
+// Data for hotel tags
 const accommodation = [
   { icon: <FaHotel />, label: "Hoteles de lujo" },
   { icon: <MdOutlineSpa />, label: "Ryokan (tradicional)" },
@@ -52,95 +55,154 @@ const typeTrip = [
 ];
 
 const HotelTags = ({ selectedHotelTags, setSelectedHotelTags }) => {
-  const handleTagChange = (tagType, tagLabel) => {
-    setSelectedHotelTags((prevTags) => {
-      const newTags = { ...prevTags };
-      if (!newTags[tagType]) {
-        newTags[tagType] = [];
-      }
-      if (newTags[tagType].includes(tagLabel)) {
-        newTags[tagType] = newTags[tagType].filter((tag) => tag !== tagLabel);
-      } else {
-        newTags[tagType].push(tagLabel);
-      }
-      return newTags;
-    });
+  const theme = useTheme();
+
+  const handleChipClick = (tagType, tagLabel) => {
+    setSelectedHotelTags((prevTags) => ({
+      ...prevTags,
+      [tagType]: prevTags[tagType].includes(tagLabel)
+        ? prevTags[tagType].filter((tag) => tag !== tagLabel)
+        : [...prevTags[tagType], tagLabel],
+    }));
   };
 
   return (
-    <div className="mb-5 mt-2">
+    <Box className="mb-5 mt-2">
       {/* Accommodation Type */}
-      <label className="d-label">
-        <span className="d-label-text">Tipos de Alojamiento</span>
-      </label>
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      <Typography
+        sx={{
+          fontWeight: "bold",
+          color: theme.palette.text.primary,
+          marginBottom: "8px",
+        }}
+      >
+        Tipos de Alojamiento
+      </Typography>
+      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
         {accommodation.map(({ icon, label }) => (
-          <label
+          <Chip
             key={label}
-            className="flex items-center space-x-2 cursor-pointer"
-          >
-            <input
-              type="checkbox"
-              checked={selectedHotelTags.accommodation.includes(label)}
-              onChange={() => handleTagChange("accommodation", label)}
-              className="form-checkbox h-4 w-4 text-primary"
-            />
-            <span className="flex items-center">
-              {icon}
-              <span className="ml-2">{label}</span>
-            </span>
-          </label>
+            label={
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                {icon} {label}
+              </Box>
+            }
+            onClick={() => handleChipClick("accommodation", label)}
+            variant={
+              selectedHotelTags.accommodation.includes(label)
+                ? "filled"
+                : "outlined"
+            }
+            sx={{
+              backgroundColor: selectedHotelTags.accommodation.includes(label)
+                ? theme.palette.success.medium // ✅ Green for accommodation
+                : theme.palette.success.lightest,
+              color: selectedHotelTags.accommodation.includes(label)
+                ? "black"
+                : theme.palette.text.primary,
+              border: `1.5px solid ${theme.palette.success.light}`,
+              borderRadius: "16px",
+              padding: "8px",
+              cursor: "pointer",
+              "&:hover": {
+                backgroundColor: theme.palette.success.light,
+                color: "black",
+              },
+            }}
+          />
         ))}
-      </div>
+      </Box>
 
       {/* Hotel Services */}
-      <label className="d-label mt-4">
-        <span className="d-label-text">Servicios del Hotel</span>
-      </label>
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      <Typography
+        sx={{
+          fontWeight: "bold",
+          color: theme.palette.text.primary,
+          marginTop: "16px",
+          marginBottom: "8px",
+        }}
+      >
+        Servicios del Hotel
+      </Typography>
+      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
         {hotelServices.map(({ icon, label }) => (
-          <label
+          <Chip
             key={label}
-            className="flex items-center space-x-2 cursor-pointer"
-          >
-            <input
-              type="checkbox"
-              checked={selectedHotelTags.hotelServices.includes(label)}
-              onChange={() => handleTagChange("hotelServices", label)}
-              className="form-checkbox h-4 w-4 text-primary"
-            />
-            <span className="flex items-center">
-              {icon}
-              <span className="ml-2">{label}</span>
-            </span>
-          </label>
+            label={
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                {icon} {label}
+              </Box>
+            }
+            onClick={() => handleChipClick("hotelServices", label)}
+            variant={
+              selectedHotelTags.hotelServices.includes(label)
+                ? "filled"
+                : "outlined"
+            }
+            sx={{
+              backgroundColor: selectedHotelTags.hotelServices.includes(label)
+                ? theme.palette.warning.light // ✅ Yellow for hotel services
+                : theme.palette.warning.lightest,
+              color: selectedHotelTags.hotelServices.includes(label)
+                ? "black"
+                : theme.palette.text.primary,
+              border: `1.5px solid ${theme.palette.warning.light}`,
+              borderRadius: "16px",
+              padding: "8px",
+              cursor: "pointer",
+              "&:hover": {
+                backgroundColor: theme.palette.warning.light,
+                color: "black",
+              },
+            }}
+          />
         ))}
-      </div>
+      </Box>
 
       {/* Type of Trip */}
-      <label className="d-label mt-4">
-        <span className="d-label-text">Tipo de Viaje</span>
-      </label>
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      <Typography
+        sx={{
+          fontWeight: "bold",
+          color: theme.palette.text.primary,
+          marginTop: "16px",
+          marginBottom: "8px",
+        }}
+      >
+        Tipo de Viaje
+      </Typography>
+      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
         {typeTrip.map(({ icon, label }) => (
-          <label
+          <Chip
             key={label}
-            className="flex items-center space-x-2 cursor-pointer"
-          >
-            <input
-              type="checkbox"
-              checked={selectedHotelTags.typeTrip.includes(label)}
-              onChange={() => handleTagChange("typeTrip", label)}
-              className="form-checkbox h-4 w-4 text-primary"
-            />
-            <span className="flex items-center">
-              {icon}
-              <span className="ml-2">{label}</span>
-            </span>
-          </label>
+            label={
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                {icon} {label}
+              </Box>
+            }
+            onClick={() => handleChipClick("typeTrip", label)}
+            variant={
+              selectedHotelTags.typeTrip.includes(label) ? "filled" : "outlined"
+            }
+            sx={{
+              backgroundColor: selectedHotelTags.typeTrip.includes(label)
+                ? theme.palette.info.main // ✅ Blue for type of trip
+                : theme.palette.secondary.lightBlue,
+              color: selectedHotelTags.typeTrip.includes(label)
+                ? "white"
+                : theme.palette.text.primary,
+              border: `1.5px solid ${theme.palette.info.light}`,
+              borderRadius: "16px",
+              padding: "8px",
+              cursor: "pointer",
+              "&:hover": {
+                backgroundColor: theme.palette.info.light,
+                color: "white",
+              },
+            }}
+          />
         ))}
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 };
 

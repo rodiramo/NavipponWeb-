@@ -32,11 +32,9 @@ const CarouselExperiences = ({
             badges.push("Mismo Presupuesto");
           if (exp.season?.some((s) => currentExperience.season?.includes(s)))
             badges.push("Misma Temporada");
-          if (
-            exp.location?.some((l) => currentExperience.location?.includes(l))
-          )
-            badges.push("Misma Ubicación");
-
+          if (exp.region === currentExperience.region) {
+            badges.push("Misma Región");
+          }
           return { ...exp, badges }; // 🔹 Store badges in experience object
         });
 

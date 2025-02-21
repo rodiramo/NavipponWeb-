@@ -33,10 +33,27 @@ const Aside = ({ info }) => {
     });
   };
 
-  // ✅ Get coordinates or use a default location (Tokyo)
-  const coordinates = info.location
-    ? [info.location.lat, info.location.lng]
-    : [35.6895, 139.6917]; // Tokyo fallback
+  if (
+    info.location &&
+    Array.isArray(info.location.coordinates) &&
+    info.location.coordinates.length === 2
+  ) {
+    console.log("📍 Location Coordinates:", info.location.coordinates);
+  } else {
+    console.log(
+      "⚠️ Warning: `info.location.coordinates` is missing or incorrect!",
+      info.location
+    );
+  }
+
+  const coordinates =
+    info.location &&
+    Array.isArray(info.location.coordinates) &&
+    info.location.coordinates.length === 2
+      ? [info.location.coordinates[1], info.location.coordinates[0]] // ✅ Convert to [lat, lng]
+      : [35.6895, 139.6917]; // Default to Tokyo
+
+  console.log("📍 Coordinates for Map:", coordinates);
 
   return (
     <Box display="flex" flexDirection={{ xs: "column", md: "row" }} gap={4}>
@@ -53,12 +70,15 @@ const Aside = ({ info }) => {
         <Typography variant="h6" sx={{ marginBottom: 2 }}>
           Descripción general
         </Typography>
-        <Typography
-          variant="body1"
-          sx={{ marginBottom: 2, color: "text.secondary" }}
-        >
-          {info.caption}.
-        </Typography>{" "}
+        {info.body?.content?.map((block, index) => (
+          <Typography
+            key={index}
+            variant="body1"
+            sx={{ marginBottom: 2, color: "text.secondary" }}
+          >
+            {block.content?.map((textObj) => textObj.text).join(" ")}
+          </Typography>
+        ))}
         <Typography
           variant="body1"
           className="font-bold "
@@ -159,6 +179,7 @@ const Aside = ({ info }) => {
       </Box>
 
       {/* Right Section - Map & Contact (Takes Less Space) */}
+
       <Box
         flex={{ xs: 1, md: 1 }}
         display="flex"
@@ -173,19 +194,28 @@ const Aside = ({ info }) => {
             overflow: "hidden",
           }}
         >
-          <MapContainer
-            center={coordinates}
-            zoom={13}
-            style={{ width: "100%", height: "100%", zIndex: " -99999" }}
-          >
-            <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-            <Marker position={coordinates} icon={markerIcon}>
-              <Popup>
-                <strong>{info.name || "Ubicación"}</strong>
-              </Popup>
-            </Marker>
-          </MapContainer>
-        </Box>{" "}
+          {/* ✅ Only Render Map If Coordinates Are Defined */}
+          {coordinates[0] !== undefined && coordinates[1] !== undefined ? (
+            <MapContainer
+              center={coordinates}
+              zoom={13}
+              style={{ width: "100%", height: "100%", zIndex: "-1" }}
+            >
+              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+              <Marker position={coordinates} icon={markerIcon}>
+                <Popup>
+                  <strong>{info.name || "Ubicación"}</strong>
+                </Popup>
+              </Marker>
+            </MapContainer>
+          ) : (
+            <Typography
+              sx={{ textAlign: "center", color: theme.palette.error.main }}
+            >
+              ⚠️ Ubicación no disponible
+            </Typography>
+          )}
+        </Box>
         <Box display="flex" alignItems="center" marginTop="10px" gap={1}>
           <Box display="flex" alignItems="center" gap={1}>
             {info.generalTags.location.map((tag, index) => (
@@ -232,12 +262,6 @@ const Aside = ({ info }) => {
             </a>
           </Typography>
         </Box>{" "}
-        <Box display="flex" alignItems="center" sx={{ marginBottom: 1 }}>
-          <Clock color={theme.palette.primary.main} size={20} />
-          <Typography variant="body1" sx={{ marginLeft: 1 }}>
-            {info.schedule}
-          </Typography>
-        </Box>
       </Box>
     </Box>
   );

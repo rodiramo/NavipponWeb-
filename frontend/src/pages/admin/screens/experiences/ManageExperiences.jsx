@@ -1,15 +1,18 @@
 import { images, stables } from "../../../../constants";
-import { deleteExperience, getAllExperiences } from "../../../../services/index/experiences";
+import {
+  deleteExperience,
+  getAllExperiences,
+} from "../../../../services/index/experiences";
 import { Link } from "react-router-dom";
 import { useDataTable } from "../../../../hooks/useDataTable";
 import DataTable from "../../components/DataTable";
 import { BsCheckLg } from "react-icons/bs";
 import { AiOutlineClose } from "react-icons/ai";
 import { useState, useEffect } from "react";
-import useUser from "../../../../hooks/useUser";  
+import useUser from "../../../../hooks/useUser";
 
 const ManageExperiences = () => {
-  const { user, jwt } = useUser();  
+  const { user, jwt } = useUser();
 
   const {
     currentPage,
@@ -34,7 +37,9 @@ const ManageExperiences = () => {
     },
   });
 
-  const [updatedExperiences, setUpdatedExperiences] = useState(experiencesData?.data || []);
+  const [updatedExperiences, setUpdatedExperiences] = useState(
+    experiencesData?.data || []
+  );
 
   useEffect(() => {
     setUpdatedExperiences(experiencesData?.data || []);
@@ -48,7 +53,13 @@ const ManageExperiences = () => {
       searchKeywordOnSubmitHandler={submitSearchKeywordHandler}
       searchKeywordOnChangeHandler={searchKeywordHandler}
       searchKeyword={searchKeyword}
-      tableHeaderTitleList={["Título", "Categoría", "Creado", "Etiquetas", "Aprobado", "Acciones"]}
+      tableHeaderTitleList={[
+        "Título",
+        "Categoría",
+        "Creado",
+        "Aprobado",
+        "Acciones",
+      ]}
       isLoading={isLoading}
       isFetching={isFetching}
       data={updatedExperiences}
@@ -74,7 +85,9 @@ const ManageExperiences = () => {
                 </a>
               </div>
               <div className="ml-3">
-                <p className="text-gray-900 whitespace-no-wrap">{experience.title}</p>
+                <p className="text-gray-900 whitespace-no-wrap">
+                  {experience.title}
+                </p>
               </div>
             </div>
           </td>
@@ -92,19 +105,9 @@ const ManageExperiences = () => {
               })}
             </p>
           </td>
+
           <td className="px-5 py-5 text-sm bg-white border-b border-gray-200">
-            <div className="flex gap-x-2">
-              {experience.tags && experience.tags.length > 0
-                ? experience.tags.map((tag, index) => (
-                  <p key={index}>
-                    {tag}
-                    {experience.tags.length - 1 !== index && ","}
-                  </p>
-                ))
-                : "Sin etiquetas"}
-            </div>
-          </td>
-          <td className="px-5 py-5 text-sm bg-white border-b border-gray-200"> {/* Columna de Aprobación */}
+            {" "}
             <span
               className={`${
                 experience.approved ? "bg-[#36B37E]" : "bg-[#FF4A5A]"

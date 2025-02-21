@@ -23,6 +23,8 @@ import { BsRobot } from "react-icons/bs";
 import { VscOctoface } from "react-icons/vsc";
 import { LuFerrisWheel } from "react-icons/lu";
 import { PiBirdBold, PiCross } from "react-icons/pi";
+import { Chip, Box, Typography } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 
 // Define attraction tags **OUTSIDE** the component
 const attractionTags = [
@@ -55,39 +57,57 @@ const AttractionTags = ({
   selectedAttractionTags,
   setSelectedAttractionTags,
 }) => {
-  const handleTagChange = (tagTitle) => {
-    setSelectedAttractionTags((prevTags) =>
-      prevTags.includes(tagTitle)
-        ? prevTags.filter((tag) => tag !== tagTitle)
-        : [...prevTags, tagTitle]
+  const theme = useTheme();
+
+  const handleTagClick = (tagTitle) => {
+    setSelectedAttractionTags(
+      (prevTags) =>
+        prevTags.includes(tagTitle)
+          ? prevTags.filter((tag) => tag !== tagTitle) // Deselect if already selected
+          : [...prevTags, tagTitle] // Select otherwise
     );
   };
 
   return (
-    <div className="mb-5 mt-2">
-      <label className="d-label">
-        <span className="d-label-text">Etiquetas de Atractivos</span>
-      </label>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {attractionTags.map((tag) => (
-          <label
-            key={tag.title}
-            className="flex items-center space-x-2 cursor-pointer"
-          >
-            <input
-              type="checkbox"
-              checked={selectedAttractionTags.includes(tag.title)}
-              onChange={() => handleTagChange(tag.title)}
-              className="form-checkbox h-4 w-4 text-primary"
-            />
-            <span className="flex items-center">
-              {tag.icon}
-              <span className="ml-2">{tag.title}</span>
-            </span>
-          </label>
+    <Box className="mb-5 mt-2">
+      <Typography
+        sx={{ fontWeight: "bold", color: theme.palette.text.primary }}
+      >
+        Etiquetas de Atractivos
+      </Typography>
+      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, marginTop: "8px" }}>
+        {attractionTags.map(({ title, icon }) => (
+          <Chip
+            key={title}
+            label={
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                {icon} {title}
+              </Box>
+            }
+            onClick={() => handleTagClick(title)}
+            variant={
+              selectedAttractionTags.includes(title) ? "filled" : "outlined"
+            }
+            sx={{
+              backgroundColor: selectedAttractionTags.includes(title)
+                ? theme.palette.secondary.main
+                : theme.palette.secondary.bg,
+              color: selectedAttractionTags.includes(title)
+                ? "white"
+                : theme.palette.text.primary,
+              border: `1.5px solid ${theme.palette.secondary.light}`,
+              borderRadius: "16px",
+              padding: "8px",
+              cursor: "pointer",
+              "&:hover": {
+                backgroundColor: theme.palette.secondary.light,
+                color: "black",
+              },
+            }}
+          />
         ))}
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 };
 

@@ -2,14 +2,28 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import React, { useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
+import PhoneInput from "react-phone-input-2";
+import "react-phone-input-2/lib/style.css";
 import {
   getSingleExperience,
   updateExperience,
   createExperience,
 } from "../../../../services/index/experiences";
+import Editor from "../../../../components/editor/Editor";
+import ExperienceTypeSelect from "./tags/ExperienceTypeSelect";
+import PriceInput from "./tags/PriceInput";
+import RegionPrefectureSelect from "./tags/RegionPrefectureSelect";
 import ExperienceDetailSkeleton from "../../../experienceDetail/components/ExperienceDetailSkeleton";
-
-import { Button, TextField, Box, Typography, Chip } from "@mui/material";
+import { ImageUp, Trash2 } from "lucide-react";
+import {
+  Button,
+  Field,
+  TextField,
+  Box,
+  Typography,
+  Chip,
+  useTheme,
+} from "@mui/material";
 
 import useUser from "../../../../hooks/useUser";
 import { stables } from "../../../../constants";
@@ -58,6 +72,7 @@ const regions = {
 };
 
 const ExperienceForm = () => {
+  const theme = useTheme();
   const { slug } = useParams();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -69,7 +84,12 @@ const ExperienceForm = () => {
   const [categories, setCategories] = useState("");
   const [title, setTitle] = useState("");
   const [tags, setTags] = useState([]);
-  const [experienceSlug, setExperienceSlug] = useState(slug);
+  const [location, setLocation] = useState({
+    type: "Point",
+    coordinates: [],
+  });
+
+  const [experienceSlug, setExperienceSlug] = useState("");
   const [caption, setCaption] = useState("");
   const [approved, setApproved] = useState(false);
   const [region, setRegion] = useState("");
@@ -81,6 +101,17 @@ const ExperienceForm = () => {
   const [schedule, setSchedule] = useState("");
   const [map, setMap] = useState("");
   const [address, setAddress] = useState("");
+  const extractCoordinates = (mapUrl) => {
+    const regex = /@(-?\d+\.\d+),(-?\d+\.\d+)/;
+    const match = mapUrl.match(regex);
+
+    if (match) {
+      return [parseFloat(match[2]), parseFloat(match[1])]; // GeoJSON format [longitude, latitude]
+    }
+
+    return null;
+  };
+
   const [selectedGeneralTags, setSelectedGeneralTags] = useState({
     season: [],
     budget: [],
@@ -98,6 +129,17 @@ const ExperienceForm = () => {
     hotelServices: [],
     typeTrip: [],
   });
+
+  const handleTitleChange = (e) => {
+    const titleValue = e.target.value;
+    let generatedSlug = titleValue.trim().replace(/\s+/g, "-").toLowerCase();
+
+    // Ensure uniqueness by appending a timestamp
+    let uniqueSlug = `${generatedSlug}-${Date.now()}`;
+
+    setTitle(titleValue);
+    setExperienceSlug(uniqueSlug);
+  };
 
   const [formData, setFormData] = useState(() => ({
     title: isEditing ? "" : "Nueva Experiencia",
@@ -184,10 +226,15 @@ const ExperienceForm = () => {
   };
 
   let isExperienceDataLoaded = !isLoading && !isError;
+
   const handleSubmit = async () => {
     if (!title || !caption || !categories || !region) {
       return toast.error("Todos los campos son obligatorios");
     }
+
+    // Ensure coordinates are extracted before submitting
+    const coordinates = extractCoordinates(map);
+    const locationData = coordinates ? { type: "Point", coordinates } : null; // If invalid, don't include location
 
     const formData = new FormData();
 
@@ -214,6 +261,10 @@ const ExperienceForm = () => {
     formData.append("map", map);
     formData.append("address", address);
 
+    if (locationData) {
+      formData.append("location", JSON.stringify(locationData)); // ✅ Include location
+    }
+
     console.log("📤 Final Data Sent to Backend:");
     for (let [key, value] of formData.entries()) {
       console.log(`✅ FormData Key: ${key}, Value:`, value);
@@ -236,277 +287,368 @@ const ExperienceForm = () => {
   console.log("Experience Data:", data);
   return (
     <div>
-      <h2>{isEditing ? "Editar" : "Crear"} Experiencia</h2>
+      <Box
+        sx={{
+          background: theme.palette.secondary.light,
+          padding: "30px",
+          borderRadius: "0rem 0rem 5rem  5rem",
+          overflowX: "hidden !important",
+          marginTop: "-25px",
+        }}
+      >
+        <Typography variant="h2" style={{ textAlign: "center" }}>
+          {isEditing ? "Editar" : "Crear"} Experiencia
+        </Typography>
+      </Box>
       <article className="flex-1">
-        <div className="flex items-center justify-center w-full mb-4">
-          <label className="flex items-center space-x-2">
-            <span className="text-2xl font-bold">Aprobado</span>
-            <input
-              type="checkbox"
-              id="approved"
-              checked={approved}
-              onChange={(e) => setApproved(e.target.checked)}
-              className="form-checkbox h-6 w-6 text-green-500"
-            />
-          </label>
-        </div>
-        <label htmlFor="experiencePicture" className="w-full cursor-pointer">
-          {photo ? (
-            <img
-              src={URL.createObjectURL(photo)}
-              alt={data?.title}
-              className="rounded-xl w-full"
-            />
-          ) : initialPhoto ? (
-            <img
-              src={stables.UPLOAD_FOLDER_BASE_URL + data?.photo}
-              alt={data?.title}
-              className="rounded-xl w-full"
-            />
-          ) : (
-            <div className="w-full min-h-[200px] bg-blue-50/50 flex justify-center items-center">
-              picture
-            </div>
-          )}
-        </label>
-        <input
-          type="file"
-          className="sr-only"
-          id="experiencePicture"
-          onChange={handleFileChange}
-        />
-        <button
-          type="button"
-          onClick={handleDeleteImage}
-          className="w-fit bg-red-500 text-sm text-white font-semibold rounded-lg px-2 py-1 mt-5"
+        <Box
+          display="flex"
+          alignItems="center"
+          gap="2rem"
+          marginTop={5}
+          marginBottom={5}
         >
-          Borrar imagen
-        </button>
-        <div className="mt-4 flex gap-2">
-          <Link
-            to={`/experience?category=${categories}`}
-            className="text-primary text-sm font-roboto inline-block md:text-base"
+          <label htmlFor="experiencePicture" className="w-50 cursor-pointer">
+            {photo ? (
+              <img
+                src={URL.createObjectURL(photo)}
+                alt={data?.title}
+                style={{ width: "300px" }}
+                className="rounded-xl"
+              />
+            ) : initialPhoto ? (
+              <img
+                src={stables.UPLOAD_FOLDER_BASE_URL + data?.photo}
+                alt={data?.title}
+                style={{ width: "300px" }}
+                className="rounded-xl"
+              />
+            ) : (
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  width: "100%",
+                  maxWidth: "100%",
+                  border: `2px solid ${theme.palette.primary.main}`,
+                  borderRadius: "10px",
+                  padding: "20px",
+                  textAlign: "center",
+                  backgroundColor: theme.palette.background.paper,
+                  cursor: "pointer",
+                  "&:hover": {
+                    backgroundColor: theme.palette.action.hover,
+                  },
+                }}
+              >
+                <ImageUp size={40} color={theme.palette.primary.main} />
+                <Typography>Subir Imagen</Typography>
+              </Box>
+            )}
+          </label>
+          <input
+            type="file"
+            className="sr-only"
+            id="experiencePicture"
+            onChange={handleFileChange}
+          />
+
+          {/* 🛑 Only show delete button if there's an image */}
+          {(photo || initialPhoto) && (
+            <button
+              type="button"
+              onClick={handleDeleteImage}
+              style={{
+                border: `1px solid ${theme.palette.error.main}`,
+                color: theme.palette.error.main,
+              }}
+              className="flex items-center gap-2 text-sm rounded-full px-4 py-2 shadow-md transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-red-300"
+            >
+              <Trash2 size={16} /> {/* Lucide React Trash Icon */}
+              Borrar imagen
+            </button>
+          )}
+        </Box>
+        <div className="d-form-control w-full" style={{ marginTop: "0.5rem" }}>
+          <Typography
+            variant="subtitle1"
+            sx={{
+              fontWeight: "bold",
+              color: theme.palette.text.primary,
+            }}
           >
-            {categories}
-          </Link>
-        </div>
-        <div className="d-form-control w-full">
-          <label className="d-label" htmlFor="title">
-            <span className="d-label-text">Título</span>
-          </label>
-          <input
-            id="title"
+            Título
+          </Typography>
+          <TextField
             value={title}
-            className="d-input d-input-bordered border-slate-300 !outline-slate-300 text-xl font-medium font-roboto text-dark-hard"
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="Título"
+            fullWidth
+            required
+            placeholder="Título..."
+            sx={{
+              bgcolor: "white",
+              borderRadius: "10px", // ✅ Ensures rounded corners
+              "& .MuiOutlinedInput-root": {
+                borderRadius: "10px",
+                border: `2px solid ${theme.palette.secondary.light}`, // ✅ Custom border
+                transition: "border-color 0.3s ease-in-out",
+                "&:hover": {
+                  borderColor: theme.palette.primary.main, // ✅ Hover effect
+                },
+                "&.Mui-focused": {
+                  borderColor: theme.palette.primary.main,
+                },
+              },
+              "& .MuiOutlinedInput-notchedOutline": {
+                border: "none", // ✅ Removes default extra border
+              },
+            }}
           />
         </div>
-        <div className="d-form-control w-full">
-          <label className="d-label" htmlFor="caption">
-            <span className="d-label-text">Extracto</span>
-          </label>
-          <input
-            id="caption"
+        <div className="d-form-control w-full" style={{ marginTop: "0.5rem" }}>
+          <Typography variant="subtitle1">Descripción breve</Typography>
+          <TextField
+            placeholder="Escribe la descripción aquí..."
+            variant="filled"
             value={caption}
-            className="d-input d-input-bordered border-slate-300 !outline-slate-300 text-xl font-medium font-roboto text-dark-hard"
             onChange={(e) => setCaption(e.target.value)}
-            placeholder="extracto"
-          />
-        </div>
-        <div className="d-form-control w-full">
-          <label className="d-label" htmlFor="slug">
-            <span className="d-label-text">
-              Título de navegación único (slug){" "}
-            </span>
-          </label>
-          <input
-            id="slug"
-            value={experienceSlug}
-            className="d-input d-input-bordered border-slate-300 !outline-slate-300 text-xl font-medium font-roboto text-dark-hard"
-            onChange={(e) =>
-              setExperienceSlug(
-                e.target.value.replace(/\s+/g, "-").toLowerCase()
-              )
-            }
-            placeholder="experience slug"
+            multiline
+            rows={4}
+            fullWidth
+            required
+            sx={{
+              bgcolor: "white",
+              borderRadius: "10px",
+              "& .MuiInputBase-root": {
+                backgroundColor: "white",
+                borderRadius: "10px",
+                border: `2px solid ${theme.palette.secondary.light}`,
+                transition: "none", // Remove hover transition
+                "&:hover": {
+                  backgroundColor: "white", // Prevents hover effect
+                  border: `2px solid ${theme.palette.secondary.light}`, // Keeps border same
+                },
+              },
+              "& .MuiFilledInput-root": {
+                backgroundColor: "white",
+                "&:before, &:after": {
+                  display: "none",
+                },
+                "&:hover": {
+                  backgroundColor: "white", // Prevents background change on hover
+                },
+              },
+            }}
           />
         </div>
         {/* Description */}
-        <Typography variant="subtitle1">Descripción</Typography>
-        <TextField
-          placeholder="Escribe la descripción aquí..."
-          variant="filled"
-          value={body}
-          onChange={(e) => setBody(e.target.value)}
-          multiline
-          rows={4}
-          fullWidth
-          required
+        <Typography variant="subtitle1">Contenido de la experiencia</Typography>
+        <Editor
+          content={body}
+          editable={true}
+          onDataChange={(data) => setBody(data)}
+        />{" "}
+        <PriceInput price={price} setPrice={setPrice} />
+        <Box
           sx={{
-            bgcolor: "white",
-            borderRadius: "2rem",
-            "& .MuiInputBase-root": {
-              borderRadius: "2rem",
-            },
-            "& .MuiFilledInput-root": {
-              backgroundColor: "white",
-              "&:before, &:after": {
-                display: "none", // Removes the default underline
-              },
-            },
+            borderRadius: "12px",
+            padding: "20px",
+            boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
+            backgroundColor: theme.palette.secondary.light,
+            marginTop: "1rem",
           }}
-        />
-        <div className="d-form-control w-full">
-          <label className="d-label" htmlFor="phone">
-            <span className="d-label-text">Teléfono</span>
-          </label>
-          <input
-            id="phone"
-            value={phone}
-            className="d-input d-input-bordered border-slate-300 !outline-slate-300 text-xl font-medium font-roboto text-dark-hard"
-            onChange={(e) => setPhone(e.target.value)}
-            placeholder="Teléfono"
-          />
-        </div>
-        <div className="d-form-control w-full">
-          <label className="d-label" htmlFor="email">
-            <span className="d-label-text">Correo Electrónico</span>
-          </label>
-          <input
-            id="email"
-            value={email}
-            className="d-input d-input-bordered border-slate-300 !outline-slate-300 text-xl font-medium font-roboto text-dark-hard"
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Correo Electrónico"
-          />
-        </div>
-        <div className="d-form-control w-full">
-          <label className="d-label" htmlFor="website">
-            <span className="d-label-text">Sitio Web</span>
-          </label>
-          <input
-            id="website"
-            value={website}
-            className="d-input d-input-bordered border-slate-300 !outline-slate-300 text-xl font-medium font-roboto text-dark-hard"
-            onChange={(e) => setWebsite(e.target.value)}
-            placeholder="Sitio Web"
-          />
-        </div>
-        <div className="d-form-control w-full">
-          <label className="d-label" htmlFor="schedule">
-            <span className="d-label-text">Horario</span>
-          </label>
-          <input
-            id="schedule"
-            value={schedule}
-            className="d-input d-input-bordered border-slate-300 !outline-slate-300 text-xl font-medium font-roboto text-dark-hard"
-            onChange={(e) => setSchedule(e.target.value)}
-            placeholder="Horario"
-          />
-        </div>
-        <div className="d-form-control w-full">
-          <label className="d-label" htmlFor="map">
-            <span className="d-label-text">Mapa</span>
-          </label>
-          <input
-            id="map"
-            value={map}
-            className="d-input d-input-bordered border-slate-300 !outline-slate-300 text-xl font-medium font-roboto text-dark-hard"
-            onChange={(e) => setMap(e.target.value)}
-            placeholder="Goolge Maps URL"
-          />
-        </div>
-        <div className="d-form-control w-full">
-          <label className="d-label" htmlFor="address">
-            <span className="d-label-text">Dirección</span>
-          </label>
-          <input
-            id="address"
-            value={address}
-            className="d-input d-input-bordered border-slate-300 !outline-slate-300 text-xl font-medium font-roboto text-dark-hard"
-            onChange={(e) => setAddress(e.target.value)}
-            placeholder="Dirección"
-          />
-        </div>
-
-        <div className="d-form-control w-full">
-          <label className="d-label" htmlFor="region">
-            <span className="d-label-text">Región</span>
-          </label>
-          <select
-            id="region"
-            value={region}
-            className="d-input d-input-bordered border-slate-300 !outline-slate-300 text-xl font-medium font-roboto text-dark-hard"
-            onChange={(e) => setRegion(e.target.value)}
+        >
+          <Typography
+            variant="h5"
+            sx={{
+              fontWeight: "bold",
+              marginBottom: "1rem",
+              color: theme.palette.text.primary,
+            }}
           >
-            <option value="">Selecciona una región</option>
-            {Object.keys(regions).map((region) => (
-              <option key={region} value={region}>
-                {region}
-              </option>
-            ))}
-          </select>
-        </div>
+            Información de Contacto
+          </Typography>
 
-        <div className="d-form-control w-full">
-          <label className="d-label" htmlFor="prefecture">
-            <span className="d-label-text">Prefectura</span>
-          </label>
-          <select
-            id="prefecture"
-            value={prefecture}
-            className="d-input d-input-bordered border-slate-300 !outline-slate-300 text-xl font-medium font-roboto text-dark-hard"
-            onChange={(e) => setPrefecture(e.target.value)}
-            disabled={!region}
-          >
-            <option value="">Selecciona una prefectura</option>
-            {region &&
-              regions[region].map((prefecture) => (
-                <option key={prefecture} value={prefecture}>
-                  {prefecture}
-                </option>
-              ))}
-          </select>
-        </div>
-
-        <div className="d-form-control w-full">
-          <label className="d-label" htmlFor="price">
-            <span className="d-label-text">Precio</span>
-          </label>
-          <input
-            id="price"
-            type="number"
-            value={price}
-            className="d-input d-input-bordered border-slate-300 !outline-slate-300 text-xl font-medium font-roboto text-dark-hard"
-            onChange={(e) => setPrice(parseFloat(e.target.value))}
-            placeholder="Precio"
-          />
-        </div>
-
-        <div className="mb-5 mt-2">
-          <label className="d-label">
-            <span className="d-label-text">Categorías</span>
-          </label>
-          {isExperienceDataLoaded && (
-            <select
-              value={categories}
-              onChange={(e) => setCategories(e.target.value)}
-              className="d-input d-input-bordered border-slate-300 !outline-slate-300 text-xl font-medium font-roboto text-dark-hard"
+          <Box>
+            {/* Teléfono */}
+            <div
+              className="d-form-control w-full"
+              style={{ marginBottom: "1rem" }}
             >
-              {categoriesEnum.map((category) => (
-                <option key={category} value={category}>
-                  {category}
-                </option>
-              ))}
-            </select>
-          )}
-        </div>
+              <Typography
+                variant="subtitle1"
+                sx={{ fontWeight: "bold", color: theme.palette.text.primary }}
+              >
+                Teléfono
+              </Typography>
+              <PhoneInput
+                country={"es"}
+                value={phone}
+                onChange={(phone) => setPhone(phone)}
+                inputStyle={{
+                  width: "100%",
+                  height: "56px",
+                  borderRadius: "10px",
+                  border: `1.5px solid ${theme.palette.secondary.light}`,
+                  fontSize: "16px",
+                  paddingLeft: "48px",
+                  backgroundColor: "white",
+                }}
+                placeholder="Teléfono"
+              />
+            </div>
 
+            {/* Correo Electrónico */}
+            <div
+              className="d-form-control w-full"
+              style={{ marginBottom: "1rem" }}
+            >
+              <Typography
+                variant="subtitle1"
+                sx={{ fontWeight: "bold", color: theme.palette.text.primary }}
+              >
+                Correo Electrónico
+              </Typography>
+              <TextField
+                id="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                fullWidth
+                placeholder="Correo Electrónico"
+                sx={{
+                  bgcolor: "white",
+
+                  borderRadius: "10px",
+                  "& .MuiInputBase-root": {
+                    borderRadius: "10px",
+                    border: `1.5px solid ${theme.palette.secondary.light}`,
+                  },
+                }}
+              />
+            </div>
+
+            {/* Dirección */}
+            <div
+              className="d-form-control w-full"
+              style={{ marginBottom: "1rem" }}
+            >
+              <Typography
+                variant="subtitle1"
+                sx={{ fontWeight: "bold", color: theme.palette.text.primary }}
+              >
+                Dirección
+              </Typography>
+              <TextField
+                id="address"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                fullWidth
+                placeholder="Dirección"
+                sx={{
+                  bgcolor: "white",
+                  borderRadius: "10px",
+                  "& .MuiInputBase-root": {
+                    borderRadius: "10px",
+                    border: `1.5px solid ${theme.palette.secondary.light}`,
+                  },
+                }}
+              />
+            </div>
+
+            {/* Sitio Web */}
+            <div
+              className="d-form-control w-full"
+              style={{ marginBottom: "1rem" }}
+            >
+              <Typography
+                variant="subtitle1"
+                sx={{ fontWeight: "bold", color: theme.palette.text.primary }}
+              >
+                Sitio Web
+              </Typography>
+              <TextField
+                value={website}
+                onChange={(e) => setWebsite(e.target.value)}
+                fullWidth
+                required
+                placeholder="Ingrese el sitio web"
+                onBlur={(e) => {
+                  let value = e.target.value.trim();
+                  if (
+                    value &&
+                    !value.startsWith("http://") &&
+                    !value.startsWith("https://")
+                  ) {
+                    value = `http://${value}`;
+                    setWebsite(value);
+                  }
+                }}
+                sx={{
+                  bgcolor: "white",
+                  borderRadius: "10px",
+                  "& .MuiInputBase-root": {
+                    borderRadius: "10px",
+                    border: `1.5px solid ${theme.palette.secondary.light}`,
+                  },
+                }}
+              />
+            </div>
+
+            {/* Google Maps URL */}
+            <div className="d-form-control w-full">
+              <Typography
+                variant="subtitle1"
+                sx={{ fontWeight: "bold", color: theme.palette.text.primary }}
+              >
+                Link de Google Maps
+              </Typography>
+              <TextField
+                value={map}
+                placeholder="Ingrese el URL de Google Maps"
+                onChange={(e) => setMap(e.target.value)}
+                onBlur={(e) => {
+                  const url = e.target.value;
+                  const coordinates = extractCoordinates(url);
+                  if (coordinates) {
+                    setLocation({
+                      type: "Point",
+                      coordinates: coordinates,
+                    });
+                    console.log("📍 Coordenadas extraídas:", coordinates);
+                  }
+                }}
+                fullWidth
+                required
+                sx={{
+                  bgcolor: "white",
+                  borderRadius: "10px",
+                  "& .MuiInputBase-root": {
+                    borderRadius: "10px",
+                    border: `1.5px solid ${theme.palette.secondary.light}`,
+                  },
+                }}
+              />
+            </div>
+          </Box>
+        </Box>
+        <div className="d-form-control w-full" style={{ marginTop: "1rem" }}>
+          <RegionPrefectureSelect
+            region={region}
+            setRegion={setRegion}
+            prefecture={prefecture}
+            setPrefecture={setPrefecture}
+          />
+        </div>
+        <div className="mb-5 mt-2" style={{ marginTop: "1rem" }}>
+          <ExperienceTypeSelect
+            categories={categories}
+            setCategories={setCategories}
+            isExperienceDataLoaded={isExperienceDataLoaded}
+          />
+        </div>
         <div className="mb-5 mt-2">
-          <label className="d-label">
-            <span className="d-label-text">Filtros Generales</span>
-          </label>
           {isExperienceDataLoaded && (
             <GeneralTags
               selectedGeneralTags={selectedGeneralTags}
@@ -520,14 +662,12 @@ const ExperienceForm = () => {
             setSelectedAttractionTags={setSelectedAttractionTags}
           />
         )}
-
         {categories === "Restaurantes" && (
           <RestaurantTags
             selectedRestaurantTags={selectedRestaurantTags}
             setSelectedRestaurantTags={setSelectedRestaurantTags}
           />
         )}
-
         {categories === "Hoteles" && (
           <HotelTags
             selectedHotelTags={selectedHotelTags}
@@ -535,9 +675,27 @@ const ExperienceForm = () => {
           />
         )}
       </article>
-      <button onClick={handleSubmit}>
-        {isEditing ? "Actualizar" : "Crear"}
-      </button>
+
+      <div className="flex justify-end mt-6">
+        <button
+          onClick={handleSubmit}
+          className="flex items-center justify-center gap-2 px-6 py-3 text-white text-lg font-semibold rounded-full shadow-md transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-light"
+          style={{
+            marginBottom: "4rem",
+            backgroundColor: theme.palette.primary.main,
+            border: `2px solid ${theme.palette.primary.dark}`,
+            boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
+          }}
+          onMouseEnter={(e) =>
+            (e.target.style.backgroundColor = theme.palette.primary.dark)
+          }
+          onMouseLeave={(e) =>
+            (e.target.style.backgroundColor = theme.palette.primary.main)
+          }
+        >
+          {isEditing ? "Actualizar Experiencia" : "Crear Experiencia"}
+        </button>
+      </div>
     </div>
   );
 };

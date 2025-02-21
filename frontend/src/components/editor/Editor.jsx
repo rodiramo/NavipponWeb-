@@ -2,26 +2,44 @@ import { EditorContent, useEditor } from "@tiptap/react";
 import "highlight.js/styles/atom-one-dark.css";
 import MenuBar from "./MenuBar";
 import { extensions } from "../../constants/tiptapExtensions";
+import { useTheme } from "@mui/material";
+import Placeholder from "@tiptap/extension-placeholder";
 
-const Editor = ({ onDataChange, content, editable }) => {
+const Editor = ({ onDataChange, content = null, editable = true }) => {
+  const theme = useTheme();
+
   const editor = useEditor({
     editable,
-    extensions: extensions,
+    extensions: [
+      Placeholder.configure({
+        placeholder: "Escribe aquí ...",
+      }),
+      ...extensions,
+    ],
     editorProps: {
       attributes: {
         class:
           "!prose !dark:prose-invert prose-sm sm:prose-base max-w-none mt-7 focus:outline-none prose-pre:bg-[#282c34] prose-pre:text-[#abb2bf]",
+        style: "color: rgba(0, 0, 0, 0.6);",
       },
     },
     onUpdate: ({ editor }) => {
       const json = editor.getJSON();
       onDataChange(json);
     },
-    content: content,
+    content: content, // ✅ Set to null if empty
   });
 
   return (
-    <div className="w-full relative">
+    <div
+      style={{
+        width: "100%",
+        border: `2px solid ${theme.palette.secondary.light}`,
+        borderRadius: "10px",
+        padding: "10px",
+        backgroundColor: theme.palette.background.paper,
+      }}
+    >
       {editable && <MenuBar editor={editor} />}
       <EditorContent editor={editor} />
     </div>
