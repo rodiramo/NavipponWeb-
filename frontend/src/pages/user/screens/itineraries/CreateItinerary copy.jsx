@@ -15,11 +15,6 @@ import {
   Select,
   MenuItem,
 } from "@mui/material";
-import { DateRange } from "react-date-range";
-import { addDays, differenceInDays } from "date-fns";
-import "react-date-range/dist/styles.css"; // Main styles
-import "react-date-range/dist/theme/default.css";
-
 const categoriesEnum = ["Hoteles", "Atractivos", "Restaurantes"];
 const regions = {
   Hokkaido: ["Hokkaido"],
@@ -58,8 +53,8 @@ const regions = {
 };
 
 const CreateItinerary = () => {
-  const [name, setName] = useState("");
   const theme = useTheme();
+  const [name, setName] = useState("");
   const [travelDays, setTravelDays] = useState(0);
   const [totalBudget, setTotalBudget] = useState(0);
   const [boards, setBoards] = useState([]);
@@ -166,22 +161,6 @@ const CreateItinerary = () => {
     setTotalBudget(total);
   };
 
-  const [dateRange, setDateRange] = useState([
-    {
-      startDate: new Date(),
-      endDate: addDays(new Date(), 3),
-      key: "selection",
-    },
-  ]);
-
-  const handleDateChange = (ranges) => {
-    setDateRange([ranges.selection]);
-    const daysCount =
-      differenceInDays(ranges.selection.endDate, ranges.selection.startDate) +
-      1;
-    setTravelDays(daysCount);
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     const itinerary = { name, travelDays, totalBudget, boards, notes };
@@ -196,14 +175,23 @@ const CreateItinerary = () => {
   };
 
   return (
-    <div className="create-itinerary container px-5 py-5 flex flex-col lg:flex-row lg:gap-x-5 lg:items-start">
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: { xs: "column", lg: "row" },
+        gap: 5,
+        maxWidth: "1100px",
+        mx: "auto",
+        p: 3,
+      }}
+    >
       {/* Main Form */}
       <Box flex={1}>
         <Typography
           variant="h4"
           sx={{
             fontWeight: "bold",
-            color: theme.palette.secondary.medium,
+            color: theme.palette.secondary.main,
             mb: 3,
           }}
         >
@@ -234,6 +222,22 @@ const CreateItinerary = () => {
             }}
           />
 
+          {/* Read-only fields */}
+          <TextField
+            label="Días de viaje"
+            value={travelDays}
+            fullWidth
+            disabled
+            sx={{ mb: 3 }}
+          />
+          <TextField
+            label="Presupuesto total"
+            value={totalBudget}
+            fullWidth
+            disabled
+            sx={{ mb: 3 }}
+          />
+
           {/* Notes */}
           <TextField
             label="Notas"
@@ -259,17 +263,6 @@ const CreateItinerary = () => {
             }}
           />
 
-          <Box mb={3}>
-            <Typography variant="subtitle1" fontWeight="bold">
-              Seleccionar Fechas de Viaje
-            </Typography>
-            <DateRange
-              ranges={dateRange}
-              onChange={handleDateChange}
-              moveRangeOnFirstSelection={false}
-              minDate={new Date()}
-            />
-          </Box>
           {/* Add Day Button */}
           <Button
             onClick={handleAddBoard}
@@ -401,140 +394,111 @@ const CreateItinerary = () => {
         </form>
       </Box>
 
-      <aside className="w-full lg:w-1/3 lg:ml-5 lg:sticky lg:top-5 lg:h-screen lg:overflow-y-auto">
-        {" "}
-        {/* Read-only fields as Chips */}
-        <Box display="flex" gap={2} mb={3}>
-          <Box
-            sx={{
-              px: 3,
-              py: 1,
-              bgcolor: theme.palette.primary.light,
-              color: theme.palette.primary.main,
-              fontWeight: "bold",
-              borderRadius: "30rem",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: "1rem",
-              minWidth: "150px",
-            }}
-          >
-            🗓️ Total Días de Viaje: {travelDays}
-          </Box>
+      {/* Sidebar - Favorites */}
+      <Box
+        sx={{
+          width: { xs: "100%", lg: "35%" },
+          position: { lg: "sticky" },
+          top: 20,
+        }}
+      >
+        <Typography variant="h5" sx={{ fontWeight: "bold", mb: 2 }}>
+          Favoritos
+        </Typography>
 
-          <Box
-            sx={{
-              px: 3,
-              py: 1,
-              bgcolor: theme.palette.primary.light,
-              color: theme.palette.primary.main,
-              fontWeight: "bold",
-              borderRadius: "30rem",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: "1rem",
-              minWidth: "180px",
-            }}
-          >
-            💰 Presupuesto: €{totalBudget}
-          </Box>
-        </Box>
-        <h3 className="text-xl font-bold mb-4">Favorites</h3>
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700">
-            Category:
-          </label>
-          <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-          >
-            <option value="All">All</option>
-            {categoriesEnum.map((category) => (
-              <option key={category} value={category}>
-                {category}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700">
-            Region:
-          </label>
-          <select
-            value={selectedRegion}
-            onChange={(e) => setSelectedRegion(e.target.value)}
-            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-          >
-            <option value="All">All</option>
-            {Object.keys(regions).map((region) => (
-              <option key={region} value={region}>
-                {region}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700">
-            Prefecture:
-          </label>
-          <select
-            value={selectedPrefecture}
-            onChange={(e) => setSelectedPrefecture(e.target.value)}
-            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-          >
-            <option value="All">All</option>
-            {selectedRegion !== "All" &&
-              regions[selectedRegion].map((prefecture) => (
-                <option key={prefecture} value={prefecture}>
-                  {prefecture}
-                </option>
-              ))}
-          </select>
-        </div>
-        <button
-          onClick={handleClearFilters}
-          className="mb-4 bg-gray-500 text-white px-4 py-2 rounded-md"
+        {/* Filters */}
+        <Select
+          fullWidth
+          value={selectedCategory}
+          onChange={(e) => setSelectedCategory(e.target.value)}
+          sx={{ mb: 2 }}
         >
-          Clear Filters
-        </button>
-        <ul>
-          {filteredFavorites.map((favorite) => (
-            <li
-              key={favorite._id}
-              draggable
-              onDragStart={(e) => handleDragStart(e, favorite)}
-              className="flex items-center mb-4 p-2 border border-gray-300 rounded-md"
-            >
-              {favorite.experienceId && (
-                <>
-                  <img
-                    src={
-                      favorite?.experienceId?.photo
-                        ? stables.UPLOAD_FOLDER_BASE_URL +
-                          favorite?.experienceId?.photo
-                        : images.sampleFavoriteImage
-                    }
-                    alt={favorite.experienceId.title}
-                    className="w-10 h-10 object-cover rounded-lg mr-2"
-                  />
-                  <div>
-                    <p className="text-sm font-medium">
-                      {favorite.experienceId.title}
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      {favorite.experienceId.prefecture}
-                    </p>
-                  </div>
-                </>
-              )}
-            </li>
+          <MenuItem value="All">Todas las Categorías</MenuItem>
+          {categoriesEnum.map((category) => (
+            <MenuItem key={category} value={category}>
+              {category}
+            </MenuItem>
           ))}
-        </ul>
-      </aside>
-    </div>
+        </Select>
+
+        <Select
+          fullWidth
+          value={selectedRegion}
+          onChange={(e) => setSelectedRegion(e.target.value)}
+          sx={{ mb: 2 }}
+        >
+          <MenuItem value="All">Todas las Regiones</MenuItem>
+          {Object.keys(regions).map((region) => (
+            <MenuItem key={region} value={region}>
+              {region}
+            </MenuItem>
+          ))}
+        </Select>
+
+        <Select
+          fullWidth
+          value={selectedPrefecture}
+          onChange={(e) => setSelectedPrefecture(e.target.value)}
+          sx={{ mb: 2 }}
+        >
+          <MenuItem value="All">Todas las Prefecturas</MenuItem>
+          {selectedRegion !== "All" &&
+            regions[selectedRegion].map((prefecture) => (
+              <MenuItem key={prefecture} value={prefecture}>
+                {prefecture}
+              </MenuItem>
+            ))}
+        </Select>
+
+        {/* Clear Filters Button */}
+        <Button
+          onClick={handleClearFilters}
+          fullWidth
+          sx={{
+            mb: 3,
+            bgcolor: theme.palette.grey[500],
+            color: "white",
+            "&:hover": { bgcolor: theme.palette.grey[700] },
+          }}
+        >
+          Limpiar Filtros
+        </Button>
+
+        {/* Favorites List */}
+        <Box>
+          {filteredFavorites.map((favorite) => (
+            <Box
+              key={favorite._id}
+              display="flex"
+              alignItems="center"
+              mb={3}
+              p={2}
+              border={`1px solid ${theme.palette.secondary.light}`}
+              borderRadius="10px"
+            >
+              <img
+                src={
+                  favorite?.experienceId?.photo
+                    ? stables.UPLOAD_FOLDER_BASE_URL +
+                      favorite?.experienceId?.photo
+                    : images.sampleFavoriteImage
+                }
+                alt={favorite.experienceId.title}
+                className="w-10 h-10 object-cover rounded-lg mr-2"
+              />
+              <Box>
+                <Typography variant="body2" fontWeight="medium">
+                  {favorite.experienceId.title}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {favorite.experienceId.prefecture}
+                </Typography>
+              </Box>
+            </Box>
+          ))}
+        </Box>
+      </Box>
+    </Box>
   );
 };
 

@@ -174,7 +174,7 @@ const Header = () => {
                     Admin Panel
                   </MenuItem>
                 )}
-                <MenuItem component={Link} to="/profile">
+                <MenuItem component={Link} to="/user/profile">
                   <UserRound
                     className="mr-3"
                     color={theme.palette.primary.main}
@@ -185,7 +185,7 @@ const Header = () => {
                   <Bolt className="mr-3" color={theme.palette.primary.main} />{" "}
                   Configuración de Usuario
                 </MenuItem>
-                <MenuItem component={Link} to="/trips">
+                <MenuItem component={Link} to="/user/itineraries/manage">
                   <Plane className="mr-3" color={theme.palette.primary.main} />{" "}
                   Mis Viajes
                 </MenuItem>

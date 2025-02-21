@@ -6,17 +6,7 @@ const PriceInput = ({ price, setPrice }) => {
   const theme = useTheme();
 
   return (
-    <Box
-      sx={{
-        border: `2px solid ${theme.palette.secondary.light}`,
-        borderRadius: "12px",
-        padding: "16px",
-        boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
-        backgroundColor: "white",
-        width: "100%",
-        marginTop: "1rem",
-      }}
-    >
+    <Box marginTop={3}>
       <Typography
         variant="subtitle1"
         sx={{

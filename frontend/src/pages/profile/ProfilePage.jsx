@@ -10,7 +10,7 @@ import ProfilePicture from "../../components/ProfilePicture";
 import { userActions } from "../../store/reducers/userReducers";
 import { toast } from "react-hot-toast";
 import useUser from "../../hooks/useUser";
-import { Button, Collapse } from "@mui/material"; // Used for animations
+import { Button, Collapse, Box, Typography } from "@mui/material";
 
 const ProfilePage = () => {
   const navigate = useNavigate();
@@ -31,6 +31,12 @@ const ProfilePage = () => {
     queryKey: ["profile"],
     enabled: !!jwt,
   });
+  const handleCreateItinerary = () => {
+    if (!jwt) {
+      return toast.error("Debes estar logueado para crear un itinerario");
+    }
+    navigate("/user/itineraries/manage/create");
+  };
 
   const { mutate, isLoading: updateProfileIsLoading } = useMutation({
     mutationFn: ({ name, email, password }) =>
@@ -88,12 +94,24 @@ const ProfilePage = () => {
 
           {/* Show user name and email if not editing */}
           {!isEditing && (
-            <div className="my-6">
-              <h2 className="text-xl font-bold">
-                {profileData?.name || "Usuario"}
-              </h2>
-              <p className="text-gray-600">{profileData?.email}</p>
-            </div>
+            <Box>
+              <div className="my-6">
+                <h2 className="text-xl font-bold">
+                  {profileData?.name || "Usuario"}
+                </h2>
+                <p className="text-gray-600">{profileData?.email}</p>
+              </div>
+              {/* ✅ Create Itinerary Button */}
+              <Button
+                variant="contained"
+                color="secondary"
+                className="mt-4 px-6 py-3 rounded-lg w-full"
+                onClick={handleCreateItinerary}
+                style={{ marginTop: "1rem" }}
+              >
+                Crear Nuevo Itinerario
+              </Button>
+            </Box>
           )}
 
           {/* Edit Button */}

@@ -10,36 +10,52 @@ import createTheme from "@mui/material/styles/createTheme";
 import { themeSettings } from "./theme.js";
 import ArticleDetailPage from "./pages/articleDetail/ArticleDetailPage";
 import HomePage from "./pages/home/HomePage";
-import UserManagePosts from "./pages/user/screens/posts/ManagePosts";
 import RegisterPage from "./pages/register/RegisterPage";
 import LoginPage from "./pages/login/LoginPage";
-import ProfilePage from "./pages/profile/ProfilePage";
+
+/** admin screens
+ */
 import AdminLayout from "./pages/admin/AdminLayout";
 import Admin from "./pages/admin/screens/Admin";
 import Categories from "./pages/admin/screens/categories/Categories";
 import EditCategories from "./pages/admin/screens/categories/EditCategories";
 import Users from "./pages/admin/screens/users/Users";
-import BlogPage from "./pages/blog/BlogPage";
-import EditPost from "./pages/admin/screens/posts/EditPost";
-import Comments from "./pages/admin/screens/comments/Comments";
-import Reviews from "./pages/admin/screens/reviews/Reviews";
 import ManagePosts from "./pages/admin/screens/posts/ManagePosts";
 import ManageExperiences from "./pages/admin/screens/experiences/ManageExperiences";
-import AboutPage from "./pages/about/AboutPage";
 import ExperienceForm from "./pages/admin/screens/experiences/ExperienceForm.jsx";
+
+/** blog */
+import BlogPage from "./pages/blog/BlogPage";
+import PostFormPage from "./pages/user/screens/posts/PostFormPage.jsx";
+
+import Comments from "./pages/admin/screens/comments/Comments";
+import Reviews from "./pages/admin/screens/reviews/Reviews";
+import AboutPage from "./pages/about/AboutPage";
+
+/** experience  */
 import ExperiencePage from "./pages/experience/ExperiencePage";
 import ExperienceDetailPage from "./pages/experienceDetail/ExperienceDetailPage";
+
+/** user */
+import ProfilePage from "./pages/user/screens/User";
 import UserLayout from "./pages/user/UserLayout";
+import UserManagePosts from "./pages/user/screens/posts/ManagePosts";
 import UserManageExperiences from "./pages/user/screens/experiences/ManageExperiences";
 import ManageFavorites from "./pages/user/screens/favorites/ManageFavorites";
-import NotFound from "./pages/NotFound.jsx";
-import UserEditPost from "./pages/user/screens/posts/EditPost";
+import UserEditPost from "./pages/user/screens/posts/PostFormPage.jsx";
 import UserEditExperience from "./pages/user/screens/experiences/EditExperience";
+
+/** itineraries */
 import ManageItineraries from "./pages/user/screens/itineraries/ManageItineraries";
 import EditItinerary from "./pages/user/screens/itineraries/EditItinerary";
 import CreateItinerary from "./pages/user/screens/itineraries/CreateItinerary";
 import ItineraryDetailPage from "./pages/user/screens/itineraries/ItineraryDetailPage";
+
+/** chatbot */
 import ChatWithBot from "./pages/user/screens/chat/ChatWithBot";
+
+/** not found */
+import NotFound from "./pages/NotFound.jsx";
 
 function App() {
   const mode = useSelector((state) => state.theme.mode);
@@ -62,11 +78,14 @@ function App() {
           <Route path="/experience/:slug" element={<ExperienceDetailPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/profile" element={<ProfilePage />} />
           <Route path="/blog/:slug" element={<ArticleDetailPage />} />
           <Route path="/blog" element={<BlogPage />} />
           <Route path="/about" element={<AboutPage />} />
-
+          <Route
+            path="experiences/manage/edit/:slug"
+            element={<ExperienceForm />}
+          />
+          <Route path="posts/manage/create" element={<PostFormPage />} />
           {/* Admin Routes */}
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<Admin />} />
@@ -74,7 +93,7 @@ function App() {
             <Route path="reviews" element={<Reviews />} />
             <Route path="posts/manage" element={<ManagePosts />} />
             <Route path="experiences/manage" element={<ManageExperiences />} />
-            <Route path="posts/manage/edit/:slug" element={<EditPost />} />
+            <Route path="posts/manage/create" element={<PostFormPage />} />
             <Route
               path="experiences/manage/edit/:slug"
               element={<ExperienceForm />}
@@ -96,7 +115,9 @@ function App() {
               path="experiences/manage"
               element={<UserManageExperiences />}
             />
+            <Route path="comments" element={<Comments />} />
             <Route path="posts/manage/edit/:slug" element={<UserEditPost />} />
+            <Route path="posts/manage/create" element={<PostFormPage />} />
             <Route
               path="experiences/manage/edit/:slug"
               element={<UserEditExperience />}
@@ -120,6 +141,7 @@ function App() {
           </Route>
           {/* User Routes */}
           <Route path="/user" element={<UserLayout />}>
+            <Route path="profile" element={<ProfilePage />} />
             <Route
               path="experiences/manage"
               element={<UserManageExperiences />}

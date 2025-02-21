@@ -484,7 +484,9 @@ const ExperienceForm = () => {
           />
         </div>
         {/* Description */}
-        <Typography variant="subtitle1">Contenido de la experiencia</Typography>
+        <Typography variant="subtitle1" marginTop={3} marginBottom={1}>
+          Contenido de la experiencia
+        </Typography>
         <Editor
           content={body}
           editable={true}

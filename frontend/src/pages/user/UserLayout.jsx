@@ -1,14 +1,18 @@
 import { Outlet, useNavigate } from "react-router-dom";
-import Header from "./components/header/Header";  
+import SideNav from "./components/header/SideNav";
 import { useQuery } from "@tanstack/react-query";
+import { Button, Collapse, Box, Typography, useTheme } from "@mui/material";
+import MainLayout from "../../components/MainLayout.jsx";
 import { getUserProfile } from "../../services/index/users";
-import useUser from "../../hooks/useUser"; 
+import useUser from "../../hooks/useUser";
 import { toast } from "react-hot-toast";
+
 import { useEffect } from "react";
 
 const UserLayout = () => {
   const navigate = useNavigate();
-  const { user, jwt } = useUser();  
+  const theme = useTheme();
+  const { user, jwt } = useUser();
 
   useEffect(() => {
     if (!jwt) {
@@ -17,16 +21,10 @@ const UserLayout = () => {
     }
   }, [jwt, navigate]);
 
-  const {
-    //data: profileData,
-    isLoading: profileIsLoading,
-    //error: profileError,
-  } = useQuery({
-    queryFn: () => {
-      return getUserProfile({ token: jwt });
-    },
+  const { isLoading: profileIsLoading } = useQuery({
+    queryFn: () => getUserProfile({ token: jwt }),
     queryKey: ["profile"],
-    enabled: !!jwt,  
+    enabled: !!jwt,
     onSuccess: (data) => {
       if (!data) {
         navigate("/login");
@@ -49,12 +47,19 @@ const UserLayout = () => {
   }
 
   return (
-    <div className="flex flex-col h-screen lg:flex-row">
-      <Header className="w-full lg:w-[300px] lg:h-full" />
-      <main className="bg-[#F9F9F9] flex-1 p-4 lg:p-6 overflow-auto">
-        <Outlet />
-      </main>
-    </div>
+    <MainLayout>
+      <Box
+        className="flex flex-col lg:flex-row h-full min-h-screen"
+        backgroundColor={theme.palette.background.bg}
+        paddingTop={15}
+      >
+        {/* Main Content */} {/* Sidebar - Always on the Right Side */}
+        <SideNav className="w-full lg:w-[300px] lg:fixed lg:left-0 lg:top-0 lg:h-full border-l border-gray-200 bg-white shadow-md" />
+        <main className="flex-1 p-4 lg:p-6 overflow-auto">
+          <Outlet />
+        </main>
+      </Box>
+    </MainLayout>
   );
 };
 

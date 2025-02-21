@@ -24,7 +24,7 @@ router.put(
   upload.single("profilePicture"),
   updateProfilePicture
 );
-router.get("/", authGuard, adminGuard, getAllUsers);
+router.get("/", authGuard, getAllUsers);
 router.delete("/:userId", authGuard, adminGuard, deleteUser);
 
 // ✅ Friend Request Routes
