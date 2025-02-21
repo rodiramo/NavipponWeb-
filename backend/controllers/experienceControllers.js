@@ -139,56 +139,52 @@ const updateExperience = async (req, res, next) => {
     };
 
     const handleUpdateExperienceData = async (data) => {
-      const {
-        title,
-        caption,
-        slug,
-        body,
-        generalTags,
-        hotelTags,
-        attractionTags,
-        restaurantTags,
-        categories,
-        approved,
-        region,
-        prefecture,
-        price,
-        phone,
-        email,
-        website,
-        schedule,
-        map,
-        address,
-      } = JSON.parse(data);
-
-      experience.title = title || experience.title;
-      experience.caption = caption || experience.caption;
-      experience.slug = slug || experience.slug;
-      experience.body = body || experience.body;
-      experience.generalTags = generalTags || experience.generalTags;
-      experience.hotelTags = hotelTags || experience.hotelTags;
-      experience.attractionTags = attractionTags || experience.attractionTags;
-      experience.restaurantTags = restaurantTags || experience.restaurantTags;
-      experience.categories = categories || experience.categories;
-      experience.approved =
-        approved !== undefined ? approved : experience.approved;
-      experience.region = region || experience.region;
-      experience.prefecture = prefecture || experience.prefecture;
-      experience.price = price !== undefined ? price : experience.price;
-      experience.phone = phone || experience.phone;
-      experience.email = email || experience.email;
-      experience.website = website || experience.website;
-      experience.schedule = schedule || experience.schedule;
-      experience.map = map || experience.map;
-      experience.address = address || experience.address;
-
-      // ✅ Update location if new map URL is provided
-      if (map) {
-        experience.location = extractCoordinates(map);
+      if (!data) {
+        console.error("❌ No data received in the request body");
+        return res
+          .status(400)
+          .json({ message: "Datos de actualización no proporcionados" });
       }
 
-      const updatedExperience = await experience.save();
-      return res.json(updatedExperience);
+      try {
+        const parsedData = JSON.parse(data);
+        console.log("📥 Parsed Data:", parsedData);
+
+        experience.title = parsedData.title || experience.title;
+        experience.caption = parsedData.caption || experience.caption;
+        experience.slug = parsedData.slug || experience.slug;
+        experience.body = parsedData.body || experience.body;
+        experience.generalTags =
+          parsedData.generalTags || experience.generalTags;
+        experience.hotelTags = parsedData.hotelTags || experience.hotelTags;
+        experience.attractionTags =
+          parsedData.attractionTags || experience.attractionTags;
+        experience.restaurantTags =
+          parsedData.restaurantTags || experience.restaurantTags;
+        experience.categories = parsedData.categories || experience.categories;
+        experience.approved =
+          parsedData.approved !== undefined
+            ? parsedData.approved
+            : experience.approved;
+        experience.region = parsedData.region || experience.region;
+        experience.prefecture = parsedData.prefecture || experience.prefecture;
+        experience.price =
+          parsedData.price !== undefined ? parsedData.price : experience.price;
+        experience.phone = parsedData.phone || experience.phone;
+        experience.email = parsedData.email || experience.email;
+        experience.website = parsedData.website || experience.website;
+        experience.schedule = parsedData.schedule || experience.schedule;
+        experience.map = parsedData.map || experience.map;
+        experience.address = parsedData.address || experience.address;
+
+        const updatedExperience = await experience.save();
+        return res.json(updatedExperience);
+      } catch (error) {
+        console.error("❌ JSON Parsing Error:", error.message);
+        return res
+          .status(400)
+          .json({ message: "Formato JSON inválido en la solicitud" });
+      }
     };
 
     uploadSingle(req, res, async function (err) {

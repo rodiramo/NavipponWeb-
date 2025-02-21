@@ -227,14 +227,13 @@ const ExperienceForm = () => {
 
   let isExperienceDataLoaded = !isLoading && !isError;
 
-  const handleSubmit = async () => {
+  const handleCreateExperience = async () => {
     if (!title || !caption || !categories || !region) {
       return toast.error("Todos los campos son obligatorios");
     }
 
-    // Ensure coordinates are extracted before submitting
     const coordinates = extractCoordinates(map);
-    const locationData = coordinates ? { type: "Point", coordinates } : null; // If invalid, don't include location
+    const locationData = coordinates ? { type: "Point", coordinates } : null;
 
     const formData = new FormData();
 
@@ -262,18 +261,59 @@ const ExperienceForm = () => {
     formData.append("address", address);
 
     if (locationData) {
-      formData.append("location", JSON.stringify(locationData)); // ✅ Include location
+      formData.append("location", JSON.stringify(locationData));
     }
 
-    console.log("📤 Final Data Sent to Backend:");
+    console.log("📤 Creating Experience Data:");
     for (let [key, value] of formData.entries()) {
       console.log(`✅ FormData Key: ${key}, Value:`, value);
     }
 
     mutation.mutate({
-      ...(slug
-        ? { updatedData: formData, slug, token: jwt }
-        : { experienceData: formData, token: jwt }),
+      experienceData: formData,
+      token: jwt,
+    });
+  };
+  const handleUpdateExperience = async () => {
+    if (!title || !caption || !categories || !region) {
+      return toast.error("Todos los campos son obligatorios");
+    }
+
+    const formData = new FormData();
+
+    if (photo) {
+      formData.append("experiencePicture", photo);
+    }
+
+    const experienceData = {
+      title,
+      caption,
+      slug: experienceSlug,
+      body,
+      categories,
+      generalTags: selectedGeneralTags,
+      hotelTags: selectedHotelTags,
+      attractionTags: selectedAttractionTags,
+      restaurantTags: selectedRestaurantTags,
+      region,
+      prefecture,
+      price,
+      phone,
+      email,
+      website,
+      schedule,
+      map,
+      address,
+    };
+
+    console.log("📤 Updating Experience Data:", experienceData);
+
+    formData.append("document", JSON.stringify(experienceData));
+
+    mutation.mutate({
+      updatedData: formData,
+      slug,
+      token: jwt,
     });
   };
 
@@ -678,7 +718,7 @@ const ExperienceForm = () => {
 
       <div className="flex justify-end mt-6">
         <button
-          onClick={handleSubmit}
+          onClick={isEditing ? handleUpdateExperience : handleCreateExperience}
           className="flex items-center justify-center gap-2 px-6 py-3 text-white text-lg font-semibold rounded-full shadow-md transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-light"
           style={{
             marginBottom: "4rem",
