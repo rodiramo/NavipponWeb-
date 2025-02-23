@@ -9,6 +9,7 @@ import {
   getAllUsers,
   deleteUser,
   toggleFriend, // ✅ New function
+  getUserCount,
 } from "../controllers/userControllers.js";
 import { adminGuard, authGuard } from "../middleware/authMiddleware.js";
 
@@ -29,5 +30,6 @@ router.delete("/:userId", authGuard, adminGuard, deleteUser);
 
 // ✅ Friend Request Routes
 router.post("/toggleFriend/:userId", authGuard, toggleFriend); // Add/remove friend
+router.get("/count", authGuard, adminGuard, getUserCount);
 
 export default router;

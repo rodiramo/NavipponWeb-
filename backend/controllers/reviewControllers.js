@@ -169,4 +169,15 @@ const getAllReviews = async (req, res, next) => {
   }
 };
 
-export { createReview, updateReview, deleteReview, getAllReviews };
+const getReviewCount = async (req, res) => {
+  try {
+    const count = await Review.countDocuments();
+    console.log("Count of reviews:", count); 
+    res.status(200).json({ count });
+  } catch (error) {
+    console.error("Error en getReviewCount:", error);
+    res.status(500).json({ error: 'Error al obtener el contador de reviews' });
+  }
+};
+
+export { createReview, updateReview, deleteReview, getAllReviews, getReviewCount };

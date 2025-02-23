@@ -99,3 +99,30 @@ export const getExperienceById = async (id, token) => {
         throw new Error(error.message);
     }
 };
+
+export const getExperienceCount = async (token) => {
+    try {
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      };
+      const { data } = await axios.get('/api/experiences/count', config);
+      console.log("Experience count data:", data);  
+      return data.count;
+    } catch (error) {
+      console.error("Error fetching experience count:", error);
+      throw new Error(error.message);
+    }
+  };
+
+  export const getTopExperiences = async () => {
+    try {
+      const { data } = await axios.get('/api/experiences/top');
+      console.log("Top experiences data:", data);  
+      return data;
+    } catch (error) {
+      console.error("Error fetching top experiences:", error);
+      throw new Error(error.message);
+    }
+  };

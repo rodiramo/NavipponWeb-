@@ -77,14 +77,14 @@ export const updateProfilePicture = async ({ token, formData }) => {
     };
 
     const { data } = await axios.put(
-      "http://localhost:5001/api/users/updateProfilePicture", // Ensure this is correct
+      "/api/users/updateProfilePicture", 
       formData,
       config
     );
 
     return data;
   } catch (error) {
-    console.error("Error updating profile picture:", error); // Debugging
+    console.error("Error updating profile picture:", error);  
     if (error.response && error.response.data.message)
       throw new Error(error.response.data.message);
     throw new Error(error.message);
@@ -172,5 +172,20 @@ export const toggleFriend = async ({ userId, token }) => {
     throw new Error(
       error.response?.data?.message || "Error al actualizar amigos"
     );
+  }
+};
+
+export const getUserCount = async (token) => {
+  try {
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    const { data } = await axios.get('/api/users/count', config);
+    return data.count;
+  } catch (error) {
+    console.error("Error fetching user count:", error);
+    throw new Error(error.message);
   }
 };

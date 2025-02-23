@@ -289,6 +289,16 @@ export const toggleFriend = async (req, res) => {
   }
 };
 
+const getUserCount = async (req, res) => {
+  try {
+    const count = await User.countDocuments();
+    res.status(200).json({ count });
+  } catch (error) {
+    console.error("Error en getUserCount:", error);
+    res.status(500).json({ error: 'Error al obtener el contador de usuarios' });
+  }
+};
+
 export {
   registerUser,
   loginUser,
@@ -297,4 +307,5 @@ export {
   updateProfilePicture,
   getAllUsers,
   deleteUser,
+  getUserCount,
 };

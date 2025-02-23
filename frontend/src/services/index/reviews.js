@@ -98,3 +98,19 @@ export const getAllReviews = async (
     throw new Error(error.message);
   }
 };
+
+export const getReviewCount = async (token) => {
+  try {
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    const { data } = await axios.get('/api/reviews/count', config);
+    console.log("Review count data:", data); 
+    return data.count;
+  } catch (error) {
+    console.error("Error fetching review count:", error);
+    throw new Error(error.message);
+  }
+};
