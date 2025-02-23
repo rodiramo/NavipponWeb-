@@ -22,10 +22,7 @@ const UserSchema = new Schema(
       required: false,
       default: "",
     },
-    friends: {
-      type: Array,
-      default: [],
-    },
+    friends: [{ type: Schema.Types.ObjectId, ref: "User" }],
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },

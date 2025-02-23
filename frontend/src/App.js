@@ -37,6 +37,7 @@ import ExperiencePage from "./pages/experience/ExperiencePage";
 import ExperienceDetailPage from "./pages/experienceDetail/ExperienceDetailPage";
 
 /** user */
+import FriendProfilePage from "./pages/profile/FriendProfilePage.jsx";
 import ProfilePage from "./pages/user/screens/User";
 import UserLayout from "./pages/user/UserLayout";
 import UserManagePosts from "./pages/user/screens/posts/ManagePosts";
@@ -85,6 +86,7 @@ function App() {
             path="experiences/manage/edit/:slug"
             element={<ExperienceForm />}
           />
+          <Route path="profile/:friendId" element={<FriendProfilePage />} />
           <Route path="posts/manage/create" element={<PostFormPage />} />
           {/* Admin Routes */}
           <Route path="/admin" element={<AdminLayout />}>
@@ -142,6 +144,7 @@ function App() {
           {/* User Routes */}
           <Route path="/user" element={<UserLayout />}>
             <Route path="profile" element={<ProfilePage />} />
+            <Route path="profile/:friendId" element={<FriendProfilePage />} />
             <Route
               path="experiences/manage"
               element={<UserManageExperiences />}

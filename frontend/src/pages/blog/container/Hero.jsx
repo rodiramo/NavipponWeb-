@@ -1,10 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
+import { AddCircleOutline } from "@mui/icons-material";
 import { useTheme } from "@mui/material/styles";
-import { Box, Typography } from "@mui/material";
-
-const Hero = () => {
+import { Box, Typography, Modal, Button } from "@mui/material";
+import PostForm from "../../../components/PostForm";
+const Hero = (user, jwt) => {
   const theme = useTheme();
-
+  const [open, setOpen] = useState(false);
   return (
     <Box
       sx={{
@@ -70,6 +71,56 @@ const Hero = () => {
         Publica tus experiencias, descubre historias de otros viajeros y conecta
         con una comunidad apasionada por Japón.
       </Typography>
+
+      {/* ✅ Floating "Create Post" Button */}
+      {user && (
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => setOpen(true)}
+          sx={{
+            borderRadius: "30px",
+            minWidth: "auto",
+            marginTop: "1rem",
+            textTransform: "none",
+            boxShadow: "0px 4px 10px rgba(0,0,0,0.2)",
+          }}
+        >
+          Subir una Publicación
+        </Button>
+      )}
+
+      {/* ✅ Create Post Modal */}
+      <Modal open={open} onClose={() => setOpen(false)}>
+        <Box
+          sx={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            bgcolor: "rgba(0, 0, 0, 0.5)", // Semi-transparent background
+          }}
+        >
+          <Box
+            sx={{
+              width: "95%",
+              maxWidth: "800px",
+              maxHeight: "95vh",
+              overflowY: "auto", // Enables scrolling if content is too large
+              bgcolor: "background.paper",
+              boxShadow: 24,
+              p: 4,
+              borderRadius: "10px",
+            }}
+          >
+            <PostForm onClose={() => setOpen(false)} token={jwt} />
+          </Box>
+        </Box>
+      </Modal>
     </Box>
   );
 };

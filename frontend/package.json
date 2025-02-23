@@ -42,6 +42,7 @@
     "react-currency-input-field": "^3.9.0",
     "react-date-range": "^1.4.0",
     "react-dom": "^18.2.0",
+    "react-dropzone": "^14.3.6",
     "react-easy-crop": "^4.7.4",
     "react-hook-form": "^7.43.7",
     "react-hot-toast": "^2.4.0",

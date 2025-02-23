@@ -526,7 +526,7 @@ const ExperienceForm = () => {
                 Teléfono
               </Typography>
               <PhoneInput
-                country={"es"}
+                country={"jp"}
                 value={phone}
                 onChange={(phone) => setPhone(phone)}
                 inputStyle={{

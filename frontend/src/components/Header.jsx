@@ -12,7 +12,7 @@ import {
 import { useSelector, useDispatch } from "react-redux";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
-import { IconButton, Menu, MenuItem } from "@mui/material";
+import { IconButton, Menu, MenuItem, Button } from "@mui/material";
 import { images, stables } from "../constants";
 import useUser from "../hooks/useUser";
 import { toggleMode } from "../themeSlice";
@@ -196,12 +196,22 @@ const Header = () => {
               </Menu>
             </div>
           ) : (
-            <button
+            <Button
               onClick={() => navigate("/login")}
-              className="px-5 py-2 rounded-full bg-primary text-white"
+              sx={{
+                backgroundColor: theme.palette.primary.light,
+                borderRadius: "30rem",
+                textTransform: "none",
+                padding: "0.5rem 1rem",
+                "&:hover": {
+                  backgroundColor: "rgba(45, 67, 120, 0.5)",
+                  color: theme.palette.primary.white,
+                  borderRadius: "30rem",
+                },
+              }}
             >
               Ingresar
-            </button>
+            </Button>
           )}
 
           {/* Burger Menu (Mobile Only) */}

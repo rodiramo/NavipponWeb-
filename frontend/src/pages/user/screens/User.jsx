@@ -1,21 +1,46 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getUserProfile, updateProfile } from "../../../services/index/users";
-import ProfilePicture from "../../../components/ProfilePicture";
-import { userActions } from "../../../store/reducers/userReducers";
-import { toast } from "react-hot-toast";
+import { useQueryClient } from "@tanstack/react-query";
+import { updateProfile } from "../../../services/index/users";
 import useUser from "../../../hooks/useUser";
-import { Button, Collapse, Box, Typography } from "@mui/material";
+import FriendsWidget from "../widgets/FriendWidget"; // ✅ Display Friends List
+import {
+  Box,
+  Typography,
+  Button,
+  Grid,
+  IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  useTheme,
+} from "@mui/material";
+import FmdGoodOutlinedIcon from "@mui/icons-material/FmdGoodOutlined";
+import { EditOutlined, Close } from "@mui/icons-material";
+import UserImage from "../../../components/UserImage";
+import FlexBetween from "../../../components/FlexBetween";
+import Dropzone from "react-dropzone";
+import { toast } from "react-hot-toast";
 
 const User = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const queryClient = useQueryClient();
   const { user, jwt } = useUser();
-  const [isEditing, setIsEditing] = useState(false); // Toggle form
+  const theme = useTheme();
+
+  const [isEditing, setIsEditing] = useState(false);
+  const [openLocation, setOpenLocation] = useState(false);
+  const [location, setLocation] = useState({ city: "", country: "" });
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+    avatar: user?.picturePath || "/default-avatar.png",
+  });
 
   useEffect(() => {
     if (!jwt) {
@@ -24,179 +49,209 @@ const User = () => {
     }
   }, [jwt, navigate]);
 
-  const { data: profileData, isLoading: profileIsLoading } = useQuery({
-    queryFn: () => getUserProfile({ token: jwt }),
-    queryKey: ["profile"],
-    enabled: !!jwt,
-  });
+  // ✅ Handle Profile Edit Modal
+  const handleEditProfile = () => {
+    setIsEditing(true);
+    setFormData({
+      name: user?.name || "",
+      email: user?.email || "",
+    });
+  };
 
-  const { mutate, isLoading: updateProfileIsLoading } = useMutation({
-    mutationFn: ({ name, email, password }) =>
-      updateProfile({
-        token: jwt,
-        userData: { name, email, password },
-        userId: user._id,
-      }),
-    onSuccess: (data) => {
-      dispatch(userActions.setUserInfo(data));
-      localStorage.setItem("account", JSON.stringify(data));
+  const handleSaveProfile = async () => {
+    try {
+      await updateProfile({ token: jwt, userData: formData, userId: user._id });
       queryClient.invalidateQueries(["profile"]);
       toast.success("Perfil actualizado");
-      setIsEditing(false); // Hide form after updating
-    },
-    onError: (error) => {
-      toast.error(error.message);
-      console.log(error);
-    },
-  });
+      setIsEditing(false);
+    } catch (error) {
+      toast.error("Error al actualizar perfil");
+      console.error(error);
+    }
+  };
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isValid },
-  } = useForm({
-    defaultValues: {
-      name: "",
-      email: "",
-      password: "",
-    },
-    values: useMemo(
-      () => ({
-        name: profileIsLoading ? "" : profileData?.name || "",
-        email: profileIsLoading ? "" : profileData?.email || "",
-      }),
-      [profileData?.email, profileData?.name, profileIsLoading]
-    ),
-    mode: "onChange",
-  });
+  // ✅ Handle Location Update
+  const fetchCountry = async (city) => {
+    try {
+      const apiKey = "520000b141fc413aae789c43254dd0bb";
+      const response = await fetch(
+        `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(
+          city
+        )}&key=${apiKey}`
+      );
+      const data = await response.json();
+      if (data.results.length > 0) {
+        setLocation({ city, country: data.results[0].components.country });
+      }
+    } catch (error) {
+      console.error("Error fetching country:", error);
+    }
+  };
 
-  const submitHandler = (data) => {
-    mutate(data);
+  const handleLocationSubmit = async () => {
+    if (!location.city) return;
+    setOpenLocation(false);
+    toast.success("Ubicación guardada");
   };
 
   return (
-    <section
-      id="body"
-      className="container mx-auto px-5 "
-      style={{ paddingTop: "10rem" }}
-    >
-      <div className="w-full max-w-sm mx-auto text-center">
-        <ProfilePicture avatar={profileData?.avatar} />
-
-        {/* Show user name and email if not editing */}
-        {!isEditing && (
-          <Box>
-            <div className="my-6">
-              <h2 className="text-xl font-bold">
-                {profileData?.name || "Usuario"}
-              </h2>
-              <p className="text-gray-600">{profileData?.email}</p>
-            </div>
-          </Box>
-        )}
-
-        {/* Edit Button */}
-        {!isEditing && (
-          <Button
-            variant="contained"
-            className="bg-primary text-white font-bold px-6 py-3 rounded-lg mt-4"
-            onClick={() => setIsEditing(true)}
+    <Box>
+      {/* Profile Section */}
+      <FlexBetween gap="0.5rem" pb="1.1rem" sx={{ flexDirection: "column" }}>
+        <FlexBetween gap="1rem">
+          <UserImage image={user?.avatar} size="150px" />
+          <IconButton
+            onClick={handleEditProfile}
+            sx={{
+              position: "absolute",
+              marginTop: "128px",
+              marginLeft: "113px",
+            }}
           >
-            Editar Perfil
+            <EditOutlined
+              sx={{
+                color: theme.palette.primary.white,
+                padding: "4px",
+                borderRadius: "30rem",
+                fontSize: "2rem",
+                background: theme.palette.primary.main,
+              }}
+            />
+          </IconButton>
+        </FlexBetween>
+
+        <Box textAlign="center">
+          <Typography variant="h6" sx={{ color: theme.palette.secondary.main }}>
+            @{user?.name}
+          </Typography>
+          <Typography variant="h4" fontWeight="500">
+            {user?.name}
+          </Typography>
+
+          {user.city && user.country ? (
+            <Typography>
+              <FmdGoodOutlinedIcon sx={{ color: theme.palette.primary.main }} />{" "}
+              {user.city}, {user.country}
+            </Typography>
+          ) : (
+            <Button
+              variant="text"
+              color="primary"
+              onClick={() => setOpenLocation(true)}
+            >
+              Agrega tu Ubicación
+            </Button>
+          )}
+        </Box>
+      </FlexBetween>
+
+      {/* Friends Widget Section */}
+      <FriendsWidget token={jwt} />
+
+      {/* Edit Profile Modal */}
+      <Dialog open={isEditing} onClose={() => setIsEditing(false)}>
+        <DialogTitle>
+          Edita tu Perfil
+          <IconButton
+            aria-label="close"
+            onClick={() => setIsEditing(false)}
+            sx={{
+              position: "absolute",
+              right: 8,
+              top: 8,
+              color: theme.palette.grey[500],
+            }}
+          >
+            <Close />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            name="name"
+            label="Nombre"
+            type="text"
+            fullWidth
+            variant="outlined"
+            value={formData.name}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+          />
+          <TextField
+            margin="dense"
+            name="email"
+            label="Email"
+            type="email"
+            fullWidth
+            variant="outlined"
+            value={formData.email}
+            onChange={(e) =>
+              setFormData({ ...formData, email: e.target.value })
+            }
+          />
+          <TextField
+            margin="dense"
+            name="password"
+            label="Nueva Contraseña"
+            type="password"
+            fullWidth
+            variant="outlined"
+            onChange={(e) =>
+              setFormData({ ...formData, password: e.target.value })
+            }
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setIsEditing(false)} color="secondary">
+            Cancelar
           </Button>
-        )}
+          <Button
+            onClick={handleSaveProfile}
+            style={{
+              background: theme.palette.primary.main,
+              color: theme.palette.primary.white,
+              padding: "0.7rem",
+              borderRadius: "30rem",
+              marginLeft: "0.7rem",
+            }}
+          >
+            Guardar
+          </Button>
+        </DialogActions>
+      </Dialog>
 
-        {/* Form with animation */}
-        <Collapse in={isEditing}>
-          <form onSubmit={handleSubmit(submitHandler)} className="mt-6">
-            <div className="flex flex-col mb-6 w-full">
-              <label htmlFor="name" className="text-gray-600 font-semibold">
-                Nombre
-              </label>
-              <input
-                type="text"
-                id="name"
-                {...register("name", {
-                  required: "El nombre es requerido",
-                  minLength: {
-                    value: 1,
-                    message: "Debe tener al menos 1 caracter",
-                  },
-                })}
-                className={`mt-3 rounded-lg px-5 py-4 font-semibold block outline-none border ${
-                  errors.name ? "border-red-500" : "border-gray-300"
-                }`}
-              />
-              {errors.name?.message && (
-                <p className="text-red-500 text-xs mt-1">
-                  {errors.name.message}
-                </p>
-              )}
-            </div>
-
-            <div className="flex flex-col mb-6 w-full">
-              <label htmlFor="email" className="text-gray-600 font-semibold">
-                Email
-              </label>
-              <input
-                type="email"
-                id="email"
-                {...register("email", {
-                  required: "El email es requerido",
-                  pattern: {
-                    value: /^\S+@\S+\.\S+$/,
-                    message: "Ingresa un email válido",
-                  },
-                })}
-                className={`mt-3 rounded-lg px-5 py-4 font-semibold block outline-none border ${
-                  errors.email ? "border-red-500" : "border-gray-300"
-                }`}
-              />
-              {errors.email?.message && (
-                <p className="text-red-500 text-xs mt-1">
-                  {errors.email.message}
-                </p>
-              )}
-            </div>
-
-            <div className="flex flex-col mb-6 w-full">
-              <label htmlFor="password" className="text-gray-600 font-semibold">
-                Nueva Contraseña (opcional)
-              </label>
-              <input
-                type="password"
-                id="password"
-                {...register("password")}
-                className="mt-3 rounded-lg px-5 py-4 font-semibold block outline-none border border-gray-300"
-                placeholder="Ingresar nueva contraseña"
-              />
-            </div>
-
-            {/* Submit & Cancel Buttons */}
-            <div className="flex justify-between">
-              <Button
-                type="submit"
-                variant="contained"
-                className="bg-primary text-white font-bold px-6 py-3 rounded-lg w-full mr-2"
-                disabled={
-                  !isValid || profileIsLoading || updateProfileIsLoading
-                }
-              >
-                Actualizar
-              </Button>
-
-              <Button
-                variant="outlined"
-                className="border border-primary text-primary font-bold px-6 py-3 rounded-lg w-full ml-2"
-                onClick={() => setIsEditing(false)}
-              >
-                Cancelar
-              </Button>
-            </div>
-          </form>
-        </Collapse>
-      </div>
-    </section>
+      {/* Edit Location Modal */}
+      <Dialog open={openLocation} onClose={() => setOpenLocation(false)}>
+        <DialogTitle>Agrega tu Ubicación</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            name="city"
+            label="Ciudad"
+            type="text"
+            fullWidth
+            variant="outlined"
+            value={location.city}
+            onChange={(e) => setLocation({ ...location, city: e.target.value })}
+            onBlur={(e) => fetchCountry(e.target.value)}
+          />
+          {location.country && (
+            <Typography mt={2}>
+              País detectado: <strong>{location.country}</strong>
+            </Typography>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenLocation(false)} color="secondary">
+            Cancelar
+          </Button>
+          <Button onClick={handleLocationSubmit} color="primary">
+            Guardar
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
   );
 };
 

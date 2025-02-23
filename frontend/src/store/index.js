@@ -1,6 +1,7 @@
 import { configureStore } from "@reduxjs/toolkit";
 import themeReducer from "../themeSlice";
 import { userReducer } from "./reducers/userReducers";
+import authReducer from "./reducers/authSlice";
 
 const userInfoFromStorage = localStorage.getItem("account")
   ? JSON.parse(localStorage.getItem("account"))
@@ -12,8 +13,9 @@ const initialState = {
 
 const store = configureStore({
   reducer: {
-    theme: themeReducer, // Add theme reducer
+    theme: themeReducer,
     user: userReducer,
+    auth: authReducer,
   },
   preloadedState: initialState,
 });

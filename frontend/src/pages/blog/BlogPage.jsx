@@ -32,7 +32,8 @@ let isFirstRun = true;
 const BlogPage = () => {
   const theme = useTheme();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [open, setOpen] = useState(false); // ✅ Modal State
+  // ✅ Modal State
+  const [open, setOpen] = useState(false);
   const { user, jwt } = useUser();
   const [sortBy, setSortBy] = useState("newest"); // ✅ Sorting State
 
@@ -78,7 +79,7 @@ const BlogPage = () => {
 
   return (
     <MainLayout>
-      <Hero />
+      <Hero user={user} token={jwt} />
       <section className="container mx-auto px-5 py-10 relative">
         <div className="flex flex-col md:flex-row gap-10">
           {/* Blog Posts Section */}
@@ -171,28 +172,6 @@ const BlogPage = () => {
             </div>
           )}
         </div>
-
-        {/* ✅ Floating "Create Post" Button */}
-        {user && (
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => setOpen(true)}
-            sx={{
-              position: "fixed",
-              bottom: "20px",
-              right: "20px",
-              borderRadius: "50%",
-              width: "60px",
-              height: "60px",
-              minWidth: "auto",
-              boxShadow: "0px 4px 10px rgba(0,0,0,0.2)",
-            }}
-          >
-            <AddCircleOutline sx={{ fontSize: 30, color: "white" }} />
-          </Button>
-        )}
-
         {/* ✅ Create Post Modal */}
         <Modal open={open} onClose={() => setOpen(false)}>
           <Box

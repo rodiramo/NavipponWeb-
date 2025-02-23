@@ -66,16 +66,20 @@ const loginUser = async (req, res, next) => {
 
 const userProfile = async (req, res, next) => {
   try {
-    let user = await User.findById(req.user._id);
+    let user = await User.findById(req.user._id).populate(
+      "friends",
+      "_id name avatar"
+    ); // ✅ Populate friends
 
     if (user) {
-      return res.status(201).json({
+      return res.status(200).json({
         _id: user._id,
         avatar: user.avatar,
         name: user.name,
         email: user.email,
         verified: user.verified,
         admin: user.admin,
+        friends: user.friends, // ✅ Now returning full friend objects
       });
     } else {
       let error = new Error("Usuario no encontrado");
@@ -243,49 +247,70 @@ const deleteUser = async (req, res, next) => {
   }
 };
 
-export const toggleFriend = async (req, res) => {
+export const getUserFriends = async (req, res) => {
   try {
-    const { userId } = req.params;
-    const currentUserId = req.user._id;
+    const { userId } = req.params; // Ensure userId is correctly received
+    const user = await User.findById(userId).populate(
+      "friends", // 🔥 Populate full friend objects
+      "_id name avatar" // Specify only needed fields
+    );
 
-    if (userId === currentUserId.toString()) {
-      return res
-        .status(400)
-        .json({ message: "No puedes agregarte a ti mismo." });
-    }
-
-    const user = await User.findById(currentUserId);
-    const friend = await User.findById(userId);
-
-    if (!user || !friend) {
+    if (!user) {
       return res.status(404).json({ message: "Usuario no encontrado" });
     }
 
-    // Check if they are already friends
-    const isFriend = user.friends.includes(userId);
+    res.status(200).json(user.friends); // ✅ Return populated friends
+  } catch (err) {
+    console.error("Error al obtener los amigos del usuario:", err);
+    res.status(500).json({ message: "Error del servidor" });
+  }
+};
 
-    if (isFriend) {
-      // ❌ Remove friend
-      user.friends = user.friends.filter((id) => id.toString() !== userId);
+export const toggleFriend = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const currentUser = await User.findById(req.user.id);
+    const friend = await User.findById(userId);
+
+    if (!friend) return res.status(404).json({ message: "User not found" });
+
+    if (currentUser.friends.includes(userId)) {
+      // Remove Friend
+      currentUser.friends = currentUser.friends.filter(
+        (id) => id.toString() !== userId
+      );
       friend.friends = friend.friends.filter(
-        (id) => id.toString() !== currentUserId.toString()
+        (id) => id.toString() !== currentUser.id
       );
     } else {
-      // ✅ Add friend
-      user.friends.push(userId);
-      friend.friends.push(currentUserId);
+      // Add Friend
+      currentUser.friends.push(userId);
+      friend.friends.push(currentUser.id);
     }
 
-    await user.save();
+    await currentUser.save();
     await friend.save();
 
-    res.json({
-      message: isFriend ? "Amigo eliminado" : "Amigo agregado",
-      isFriend: !isFriend,
-    });
+    res.json({ friends: currentUser.friends }); // ✅ Ensure this is returned
   } catch (error) {
-    console.error("Error en toggleFriend:", error);
-    res.status(500).json({ message: "Error en el servidor" });
+    console.error(error);
+    res.status(500).json({ message: "Error toggling friend" });
+  }
+};
+
+export const friendProfile = async (req, res) => {
+  try {
+    const { friendId } = req.params;
+    const friend = await User.findById(friendId).select("-password"); // Exclude password field
+
+    if (!friend) {
+      return res.status(404).json({ message: "Amigo no encontrado" });
+    }
+
+    res.status(200).json(friend);
+  } catch (error) {
+    console.error("Error al obtener perfil de amigo:", error);
+    res.status(500).json({ message: "Error del servidor" });
   }
 };
 
