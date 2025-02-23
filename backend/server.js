@@ -1,5 +1,4 @@
 import express from "express";
-const router = express.Router();
 import dotenv from "dotenv";
 import path from "path";
 import connectDB from "./config/db.js";
@@ -8,7 +7,7 @@ import {
   errorResponserHandler,
   invalidPathHandler,
 } from "./middleware/errorHandler.js";
-import upload from "./middleware/uploadPictureMiddleware.js"; // ✅ Import upload middleware
+import upload from "./middleware/uploadPictureMiddleware.js";  
 
 // Routes
 import userRoutes from "./routes/userRoutes.js";
@@ -21,6 +20,7 @@ import reviewRoutes from "./routes/reviewRoutes.js";
 import postCategoriesRoutes from "./routes/postCategoriesRoutes.js";
 import favoriteRoutes from "./routes/favoriteRoutes.js";
 import itineraryRoutes from "./routes/itineraryRoutes.js";
+import emailwebRoutes from "./routes/emailwebRoutes.js";  
 
 dotenv.config();
 connectDB();
@@ -43,9 +43,10 @@ app.use("/api/reviews", reviewRoutes);
 app.use("/api/post-categories", postCategoriesRoutes);
 app.use("/api/favorites", favoriteRoutes);
 app.use("/api/itineraries", itineraryRoutes);
+app.use("/api/emailweb", emailwebRoutes);  
 
 // 📌 Upload Image Route
-router.post("/upload", upload.single("image"), (req, res) => {
+app.post("/upload", upload.single("image"), (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: "No file uploaded" });
   }
@@ -53,7 +54,7 @@ router.post("/upload", upload.single("image"), (req, res) => {
 });
 
 // 📌 Remove Image Route
-router.delete("/remove", async (req, res) => {
+app.delete("/remove", async (req, res) => {
   const { imageUrl } = req.body; // Cloudinary Image URL
 
   if (!imageUrl) {

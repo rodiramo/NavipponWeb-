@@ -43,6 +43,9 @@ import CreateItinerary from "./pages/user/screens/itineraries/CreateItinerary";
 import ItineraryDetailPage from "./pages/user/screens/itineraries/ItineraryDetailPage";
 import ChatWithBot from "./pages/user/screens/chat/ChatWithBot";
 import NotFound from "./pages/NotFound.jsx";
+import ContactPage from "./pages/contact/ContactPage"; 
+import ManageEmails from "./pages/admin/screens/emailweb/ManageEmails"; // Nueva importación
+import EmailDetail from "./pages/admin/screens/emailweb/EmailDetail"; // Nueva importación
 
 function App() {
   const mode = useSelector((state) => state.theme.mode);
@@ -67,6 +70,7 @@ function App() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/contact" element={<ContactPage />} /> {/* Nueva ruta */}
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<Admin />} />
             <Route path="comments" element={<Comments />} />
@@ -84,6 +88,8 @@ function App() {
               element={<EditCategories />}
             />
             <Route path="users/manage" element={<Users />} />
+            <Route path="emailweb" element={<ManageEmails />} /> {/* Nueva ruta */}
+            <Route path="emailweb/:id" element={<EmailDetail />} /> {/* Nueva ruta */}
           </Route>
           <Route path="/user" element={<UserLayout />}>
             <Route path="posts/manage" element={<UserManagePosts />} />

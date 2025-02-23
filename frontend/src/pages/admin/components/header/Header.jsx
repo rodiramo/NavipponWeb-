@@ -3,7 +3,7 @@ import { useWindowSize } from "@uidotdev/usehooks";
 import { images } from "../../../../constants";
 import { useEffect, useState } from "react";
 import { AiFillDashboard, AiOutlineClose, AiOutlineMenu } from "react-icons/ai";
-import { FaComments, FaUser } from "react-icons/fa";
+import { FaComments, FaUser, FaEnvelope } from "react-icons/fa";
 import { MdDashboard } from "react-icons/md";
 import NavItem from "./NavItem";
 import NavItemCollapse from "./NavItemCollapse";
@@ -186,6 +186,16 @@ const Header = () => {
                 link="/admin/users/manage"
                 icon={<FaUser className="text-xl text-white" />}
                 name="users"
+                activeNavName={activeNavName}
+                setActiveNavName={setActiveNavName}
+                className="hover:text-[#FF4A5A]"
+              />
+
+              <NavItem
+                title="Correos Web"  
+                link="/admin/emailweb"
+                icon={<FaEnvelope className="text-xl text-white" />}  
+                name="emailweb"
                 activeNavName={activeNavName}
                 setActiveNavName={setActiveNavName}
                 className="hover:text-[#FF4A5A]"

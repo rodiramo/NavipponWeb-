@@ -22,7 +22,7 @@ const navItemsInfo = [
   { name: "Nosotros", href: "/about" },
   { name: "Explora", href: "/experience" },
   { name: "Blog", href: "/blog" },
-  { name: "Contacto", href: "/contacto" },
+  { name: "Contacto", href: "/contact" },
 ];
 
 const NavItem = ({ item, theme, location }) => (
