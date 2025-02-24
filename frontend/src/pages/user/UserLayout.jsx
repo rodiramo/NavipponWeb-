@@ -54,8 +54,8 @@ const UserLayout = () => {
         paddingTop={15}
       >
         {/* Main Content */} {/* Sidebar - Always on the Right Side */}
-        <SideNav className="w-full lg:w-[300px] lg:fixed lg:left-0 lg:top-0 lg:h-full border-l border-gray-200 bg-white shadow-md" />
-        <main className="flex-1 p-4 lg:p-6 overflow-auto">
+        <SideNav className="w-full lg:w-[300px]  lg:fixed lg:left-0 lg:top-0 lg:h-full border-l border-gray-200 bg-white shadow-md" />
+        <main className="flex-1 px-5 overflow-auto">
           <Outlet />
         </main>
       </Box>

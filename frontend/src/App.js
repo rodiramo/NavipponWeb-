@@ -39,6 +39,7 @@ import ExperienceDetailPage from "./pages/experienceDetail/ExperienceDetailPage"
 /** user */
 import FriendProfilePage from "./pages/profile/FriendProfilePage.jsx";
 import ProfilePage from "./pages/user/screens/User";
+import Dashboard from "./pages/user/screens/Dashboard.jsx";
 import UserLayout from "./pages/user/UserLayout";
 import UserManagePosts from "./pages/user/screens/posts/ManagePosts";
 import UserManageExperiences from "./pages/user/screens/experiences/ManageExperiences";
@@ -144,6 +145,7 @@ function App() {
           {/* User Routes */}
           <Route path="/user" element={<UserLayout />}>
             <Route path="profile" element={<ProfilePage />} />
+            <Route path="dashboard" element={<Dashboard />} />
             <Route path="profile/:friendId" element={<FriendProfilePage />} />
             <Route
               path="experiences/manage"

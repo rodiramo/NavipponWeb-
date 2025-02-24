@@ -78,6 +78,8 @@ const userProfile = async (req, res, next) => {
         name: user.name,
         email: user.email,
         verified: user.verified,
+        country: user.country,
+        city: user.city,
         admin: user.admin,
         friends: user.friends, // ✅ Now returning full friend objects
       });
@@ -93,44 +95,30 @@ const userProfile = async (req, res, next) => {
 
 const updateProfile = async (req, res, next) => {
   try {
-    const userIdToUpdate = req.params.userId;
-
-    let userId = req.user._id;
-
-    if (!req.user.admin && userId !== userIdToUpdate) {
-      let error = new Error("Recursos no autorizados");
-      error.statusCode = 403;
-      throw error;
-    }
-
-    let user = await User.findById(userIdToUpdate);
+    const user = await User.findById(req.params.userId);
 
     if (!user) {
-      throw new Error("Usuario no encontrado");
+      return res.status(404).json({ message: "Usuario no encontrado" });
     }
 
-    if (typeof req.body.admin !== "undefined" && req.user.admin) {
-      user.admin = req.body.admin;
-    }
+    // ✅ Only update fields that are sent in the request
+    if (req.body.city) user.city = req.body.city;
+    if (req.body.country) user.country = req.body.country;
+    if (req.body.name) user.name = req.body.name;
+    if (req.body.email) user.email = req.body.email;
 
-    user.name = req.body.name || user.name;
-    user.email = req.body.email || user.email;
-    if (req.body.password && req.body.password.length < 6) {
-      throw new Error("La contraseña debe tener al menos 6 caracteres");
-    } else if (req.body.password) {
-      user.password = req.body.password;
-    }
-
-    const updatedUserProfile = await user.save();
+    await user.save();
 
     res.json({
-      _id: updatedUserProfile._id,
-      avatar: updatedUserProfile.avatar,
-      name: updatedUserProfile.name,
-      email: updatedUserProfile.email,
-      verified: updatedUserProfile.verified,
-      admin: updatedUserProfile.admin,
-      token: await updatedUserProfile.generateJWT(),
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      city: user.city,
+      country: user.country,
+      avatar: user.avatar,
+      friends: user.friends,
+      verified: user.verified,
+      admin: user.admin,
     });
   } catch (error) {
     next(error);

@@ -115,7 +115,7 @@ const SideNav = () => {
       >
         <NavItem
           title="Dashboard"
-          link="/user"
+          link="/user/dashboard"
           icon={<LucideHome size={22} />}
           isMenuOpen={isMenuOpen}
         />

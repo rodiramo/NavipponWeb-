@@ -10,11 +10,20 @@ export const authSlice = createSlice({
   initialState,
   reducers: {
     setUserInfo: (state, action) => {
-      state.user = action.payload;
-      localStorage.setItem("user", JSON.stringify(action.payload));
+      console.log("🔄 Updating Redux with User Data:", action.payload);
+
+      // ✅ Ensure all fields update correctly
+      state.user = {
+        ...state.user,
+        ...action.payload, // ✅ Merge API response
+      };
+
+      console.log("🛠 Updated Redux User:", state.user);
+      localStorage.setItem("user", JSON.stringify(state.user));
     },
+
     setFriends: (state, action) => {
-      state.user.friends = Array.isArray(action.payload) ? action.payload : []; // ✅ Ensure friends is an array
+      state.user.friends = Array.isArray(action.payload) ? action.payload : [];
       localStorage.setItem("user", JSON.stringify(state.user));
     },
   },

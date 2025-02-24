@@ -4,7 +4,7 @@ import { useDispatch } from "react-redux";
 import { useQueryClient } from "@tanstack/react-query";
 import { updateProfile } from "../../../services/index/users";
 import useUser from "../../../hooks/useUser";
-import FriendsWidget from "../widgets/FriendWidget"; // ✅ Display Friends List
+import FriendsWidget from "../widgets/FriendWidget";
 import {
   Box,
   Typography,
@@ -16,31 +16,40 @@ import {
   DialogContent,
   DialogActions,
   TextField,
+  Select,
+  MenuItem,
   useTheme,
+  Card,
+  CardContent,
 } from "@mui/material";
 import FmdGoodOutlinedIcon from "@mui/icons-material/FmdGoodOutlined";
-import { EditOutlined, Close } from "@mui/icons-material";
-import UserImage from "../../../components/UserImage";
+import { EditOutlined, Close, CameraAlt } from "@mui/icons-material";
+import ProfilePicture from "../../../components/ProfilePicture";
 import FlexBetween from "../../../components/FlexBetween";
-import Dropzone from "react-dropzone";
 import { toast } from "react-hot-toast";
+import { setUserInfo } from "../../../store/reducers/authSlice";
 
 const User = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const queryClient = useQueryClient();
-  const { user, jwt } = useUser();
   const theme = useTheme();
-
+  const { user: reduxUser, jwt } = useUser();
+  const [user, setUser] = useState(reduxUser || {});
   const [isEditing, setIsEditing] = useState(false);
   const [openLocation, setOpenLocation] = useState(false);
-  const [location, setLocation] = useState({ city: "", country: "" });
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-    avatar: user?.picturePath || "/default-avatar.png",
-  });
+  const [travelStyle, setTravelStyle] = useState(user?.travelStyle || "");
+  const [budget, setBudget] = useState(user?.budget || "");
+  const [coverImage, setCoverImage] = useState(
+    user?.coverImage || "/assets/bg-home1.jpg"
+  );
+
+  useEffect(() => {
+    console.log("🔄 Redux User Updated:", reduxUser);
+    if (reduxUser) {
+      setUser(reduxUser);
+    }
+  }, [reduxUser]);
 
   useEffect(() => {
     if (!jwt) {
@@ -49,103 +58,164 @@ const User = () => {
     }
   }, [jwt, navigate]);
 
-  // ✅ Handle Profile Edit Modal
+  // Handle Profile Edit
   const handleEditProfile = () => {
     setIsEditing(true);
-    setFormData({
-      name: user?.name || "",
-      email: user?.email || "",
-    });
-  };
-
-  const handleSaveProfile = async () => {
-    try {
-      await updateProfile({ token: jwt, userData: formData, userId: user._id });
-      queryClient.invalidateQueries(["profile"]);
-      toast.success("Perfil actualizado");
-      setIsEditing(false);
-    } catch (error) {
-      toast.error("Error al actualizar perfil");
-      console.error(error);
-    }
-  };
-
-  // ✅ Handle Location Update
-  const fetchCountry = async (city) => {
-    try {
-      const apiKey = "520000b141fc413aae789c43254dd0bb";
-      const response = await fetch(
-        `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(
-          city
-        )}&key=${apiKey}`
-      );
-      const data = await response.json();
-      if (data.results.length > 0) {
-        setLocation({ city, country: data.results[0].components.country });
-      }
-    } catch (error) {
-      console.error("Error fetching country:", error);
-    }
-  };
-
-  const handleLocationSubmit = async () => {
-    if (!location.city) return;
-    setOpenLocation(false);
-    toast.success("Ubicación guardada");
   };
 
   return (
     <Box>
-      {/* Profile Section */}
-      <FlexBetween gap="0.5rem" pb="1.1rem" sx={{ flexDirection: "column" }}>
-        <FlexBetween gap="1rem">
-          <UserImage image={user?.avatar} size="150px" />
-          <IconButton
-            onClick={handleEditProfile}
-            sx={{
-              position: "absolute",
-              marginTop: "128px",
-              marginLeft: "113px",
-            }}
-          >
-            <EditOutlined
-              sx={{
-                color: theme.palette.primary.white,
-                padding: "4px",
-                borderRadius: "30rem",
-                fontSize: "2rem",
-                background: theme.palette.primary.main,
-              }}
-            />
-          </IconButton>
-        </FlexBetween>
+      <Box
+        sx={{
+          width: "100%",
+          height: "40vh",
+          borderRadius: "10px",
+          backgroundImage: `url(${coverImage})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          position: "relative",
+        }}
+      >
+        {/* Cover Edit Button */}
+        <IconButton
+          sx={{
+            position: "absolute",
+            top: 15,
+            right: 15,
+            background: "rgba(0,0,0,0.5)",
+            color: "white",
+            "&:hover": { background: "rgba(0,0,0,0.7)" },
+          }}
+        >
+          <CameraAlt fontSize="small" />
+        </IconButton>
+      </Box>
 
-        <Box textAlign="center">
-          <Typography variant="h6" sx={{ color: theme.palette.secondary.main }}>
-            @{user?.name}
-          </Typography>
+      {/* Profile Info Section - Overlapping Cover */}
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexDirection: "column",
+          position: "relative",
+          marginTop: "-75px",
+          paddingBottom: "1rem",
+        }}
+      >
+        <ProfilePicture avatar={user?.avatar} size="150px" />
+        <Typography variant="h6" color={theme.palette.secondary.main}>
+          @{user?.name}
+        </Typography>
+        <Box
+          display="flex"
+          alignItems="center"
+          gap={2}
+          sx={{ marginBottom: "10px" }}
+        >
           <Typography variant="h4" fontWeight="500">
             {user?.name}
           </Typography>
+          <IconButton
+            size="small"
+            onClick={handleEditProfile}
+            sx={{
+              background: theme.palette.primary.light,
+              color: theme.palette.primary.dark,
+              "&:hover": {
+                background: theme.palette.primary.dark,
+                color: theme.palette.primary.light,
+              },
+            }}
+          >
+            <EditOutlined fontSize="small" />
+          </IconButton>
+        </Box>
 
-          {user.city && user.country ? (
+        {user.city && user.country ? (
+          <Box display="flex" alignItems="center" gap={1}>
+            <FmdGoodOutlinedIcon sx={{ color: theme.palette.primary.main }} />
             <Typography>
-              <FmdGoodOutlinedIcon sx={{ color: theme.palette.primary.main }} />{" "}
               {user.city}, {user.country}
             </Typography>
-          ) : (
-            <Button
-              variant="text"
-              color="primary"
-              onClick={() => setOpenLocation(true)}
-            >
-              Agrega tu Ubicación
-            </Button>
-          )}
-        </Box>
-      </FlexBetween>
+          </Box>
+        ) : (
+          <Button
+            variant="text"
+            color="primary"
+            onClick={() => setOpenLocation(true)}
+          >
+            Agrega tu Ubicación
+          </Button>
+        )}
+      </Box>
 
-      {/* Friends Widget Section */}
+      {/* Preferences Section */}
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+          gap: 2,
+          p: 3,
+        }}
+      >
+        <Card
+          sx={{
+            backgroundColor: theme.palette.background.bg,
+            borderRadius: "12px",
+          }}
+        >
+          <CardContent>
+            <Typography variant="h6" fontWeight="bold">
+              🎒 Estilo de Viaje
+            </Typography>
+            <Select
+              fullWidth
+              value={travelStyle}
+              onChange={(e) => setTravelStyle(e.target.value)}
+              sx={{
+                backgroundColor: theme.palette.grey[800],
+                color: "white",
+                mt: 1,
+              }}
+            >
+              <MenuItem value="aventura">Aventura</MenuItem>
+              <MenuItem value="lujo">Lujo</MenuItem>
+              <MenuItem value="gastronomico">Gastronómico</MenuItem>
+              <MenuItem value="cultural">Cultural</MenuItem>
+            </Select>
+          </CardContent>
+        </Card>
+
+        <Card
+          sx={{
+            backgroundColor: theme.palette.background.bg,
+            borderRadius: "12px",
+          }}
+        >
+          <CardContent>
+            <Typography variant="h6" fontWeight="bold">
+              💰 Presupuesto de Viaje
+            </Typography>
+            <Select
+              fullWidth
+              value={budget}
+              onChange={(e) => setBudget(e.target.value)}
+              sx={{
+                backgroundColor: theme.palette.grey[700],
+                color: "white",
+                mt: 1,
+              }}
+            >
+              <MenuItem value="bajo">Bajo</MenuItem>
+              <MenuItem value="medio">Medio</MenuItem>
+              <MenuItem value="alto">Alto</MenuItem>
+            </Select>
+          </CardContent>
+        </Card>
+      </Box>
+
+      {/* Friends Widget */}
       <FriendsWidget token={jwt} />
 
       {/* Edit Profile Modal */}
@@ -167,27 +237,18 @@ const User = () => {
         </DialogTitle>
         <DialogContent>
           <TextField
-            autoFocus
             margin="dense"
             name="name"
             label="Nombre"
-            type="text"
             fullWidth
             variant="outlined"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
           />
           <TextField
             margin="dense"
             name="email"
             label="Email"
-            type="email"
             fullWidth
             variant="outlined"
-            value={formData.email}
-            onChange={(e) =>
-              setFormData({ ...formData, email: e.target.value })
-            }
           />
           <TextField
             margin="dense"
@@ -196,59 +257,13 @@ const User = () => {
             type="password"
             fullWidth
             variant="outlined"
-            onChange={(e) =>
-              setFormData({ ...formData, password: e.target.value })
-            }
           />
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setIsEditing(false)} color="secondary">
             Cancelar
           </Button>
-          <Button
-            onClick={handleSaveProfile}
-            style={{
-              background: theme.palette.primary.main,
-              color: theme.palette.primary.white,
-              padding: "0.7rem",
-              borderRadius: "30rem",
-              marginLeft: "0.7rem",
-            }}
-          >
-            Guardar
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Edit Location Modal */}
-      <Dialog open={openLocation} onClose={() => setOpenLocation(false)}>
-        <DialogTitle>Agrega tu Ubicación</DialogTitle>
-        <DialogContent>
-          <TextField
-            autoFocus
-            margin="dense"
-            name="city"
-            label="Ciudad"
-            type="text"
-            fullWidth
-            variant="outlined"
-            value={location.city}
-            onChange={(e) => setLocation({ ...location, city: e.target.value })}
-            onBlur={(e) => fetchCountry(e.target.value)}
-          />
-          {location.country && (
-            <Typography mt={2}>
-              País detectado: <strong>{location.country}</strong>
-            </Typography>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenLocation(false)} color="secondary">
-            Cancelar
-          </Button>
-          <Button onClick={handleLocationSubmit} color="primary">
-            Guardar
-          </Button>
+          <Button color="primary">Guardar</Button>
         </DialogActions>
       </Dialog>
     </Box>

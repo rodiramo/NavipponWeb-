@@ -181,9 +181,9 @@ const Header = () => {
                   />{" "}
                   Mi Perfil
                 </MenuItem>{" "}
-                <MenuItem component={Link} to="/user">
+                <MenuItem component={Link} to="/user/dashboard">
                   <Bolt className="mr-3" color={theme.palette.primary.main} />{" "}
-                  Configuración de Usuario
+                  Dashboard
                 </MenuItem>
                 <MenuItem component={Link} to="/user/itineraries/manage">
                   <Plane className="mr-3" color={theme.palette.primary.main} />{" "}

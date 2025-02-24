@@ -28,17 +28,12 @@ const ProfilePicture = ({ avatar }) => {
       });
     },
     onSuccess: (data) => {
-      dispatch(userActions.setUserInfo(data)); // ✅ Update Redux Store
+      dispatch(userActions.setUserInfo(data));
       setOpenCrop(false);
       localStorage.setItem("account", JSON.stringify(data));
-
-      // ✅ Invalidate Queries to refresh all components using profile data
       queryClient.invalidateQueries(["profile"]);
-      queryClient.invalidateQueries(["friends"]); // If profile picture appears in friends list
-
       toast.success("La foto de perfil ha sido actualizada");
     },
-
     onError: (error) => {
       toast.error(error.message);
       console.log(error);
@@ -46,13 +41,7 @@ const ProfilePicture = ({ avatar }) => {
   });
 
   const handleFileChange = (e) => {
-    const file = e.target.files?.[0];
-
-    if (!file) {
-      console.warn("File selection was canceled."); // ✅ Log for debugging (optional)
-      return; // ✅ Exit function if no file is selected
-    }
-
+    const file = e.target.files[0];
     setPhoto({ url: URL.createObjectURL(file), file });
     setOpenCrop(true);
   };
