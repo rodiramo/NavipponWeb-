@@ -29,7 +29,7 @@ const DataTable = ({
   }
 
   return (
-    <div>
+    <div style={{ width: "100%" }}>
       <h1 className="text-2xl font-semibold">{pageTitle}</h1>
 
       <div className="w-full px-4 mx-auto">

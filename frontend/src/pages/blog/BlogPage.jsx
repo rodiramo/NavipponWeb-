@@ -35,6 +35,9 @@ const BlogPage = () => {
   // ✅ Modal State
   const [open, setOpen] = useState(false);
   const { user, jwt } = useUser();
+  console.log("User:", user);
+  console.log("JWT Token:", jwt);
+
   const [sortBy, setSortBy] = useState("newest"); // ✅ Sorting State
 
   const searchParamsValue = Object.fromEntries([...searchParams]);
@@ -43,10 +46,10 @@ const BlogPage = () => {
   const searchKeyword = searchParamsValue?.search || "";
 
   const { data, isLoading, isError, isFetching, refetch } = useQuery({
-    queryFn: () => getAllPosts(searchKeyword, currentPage, 12, sortBy),
-    queryKey: ["posts", sortBy],
+    queryFn: () => getAllPosts(searchKeyword, currentPage, 12, sortBy, jwt), // ✅ Pass the token here
+    queryKey: ["posts", searchKeyword, currentPage, sortBy],
     onError: (error) => {
-      toast.error(error.message);
+      toast.error(error.response?.data?.message || "Error fetching posts");
       console.log(error);
     },
   });

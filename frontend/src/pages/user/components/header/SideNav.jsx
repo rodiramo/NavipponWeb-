@@ -32,8 +32,7 @@ const SideNav = () => {
     <Box
       sx={{
         width: isMenuOpen ? "250px" : "70px",
-        height: "90vh",
-
+        height: "100vh",
         backdropFilter: "blur(10px)",
         backgroundColor: theme.palette.primary.white,
         borderRadius: "20px",

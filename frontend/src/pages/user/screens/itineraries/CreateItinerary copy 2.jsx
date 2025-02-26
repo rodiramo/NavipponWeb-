@@ -89,7 +89,13 @@ const CreateItinerary = () => {
 
   // Multi-step state: steps: 0 = Detalles, 1 = Fechas y Boards, 2 = Amigos, 3 = Favorites, 4 = Revisión
   const [activeStep, setActiveStep] = useState(0);
-  const steps = ["Detalles", "Fechas y Boards", "Amigos", "Revisión"];
+  const steps = [
+    "Detalles",
+    "Fechas y Boards",
+    "Amigos",
+    "Favorites",
+    "Revisión",
+  ];
 
   const [dateRange, setDateRange] = useState([
     {
@@ -184,6 +190,45 @@ const CreateItinerary = () => {
     setSelectedRegion("All");
     setSelectedPrefecture("All");
     setFilteredFavorites(favorites);
+  };
+
+  const handleAddBoard = () => {
+    setBoards([...boards, { date: "", favorites: [], dailyBudget: 0 }]);
+    setTravelDays(boards.length + 1);
+  };
+
+  const handleRemoveBoard = (index) => {
+    const newBoards = boards.filter((_, i) => i !== index);
+    setBoards(newBoards);
+    setTravelDays(newBoards.length);
+    updateTotalBudget(newBoards);
+  };
+
+  const handleDragStart = (e, favorite) => {
+    e.dataTransfer.setData("favorite", JSON.stringify(favorite));
+  };
+
+  const handleDrop = (e, boardIndex) => {
+    const favorite = JSON.parse(e.dataTransfer.getData("favorite"));
+    const newBoards = [...boards];
+    newBoards[boardIndex].favorites.push(favorite);
+    newBoards[boardIndex].dailyBudget = newBoards[boardIndex].favorites.reduce(
+      (sum, fav) => sum + fav.experienceId.price,
+      0
+    );
+    setBoards(newBoards);
+    updateTotalBudget(newBoards);
+  };
+
+  const handleRemoveFavorite = (boardIndex, favoriteIndex) => {
+    const newBoards = [...boards];
+    newBoards[boardIndex].favorites.splice(favoriteIndex, 1);
+    newBoards[boardIndex].dailyBudget = newBoards[boardIndex].favorites.reduce(
+      (sum, fav) => sum + fav.experienceId.price,
+      0
+    );
+    setBoards(newBoards);
+    updateTotalBudget(newBoards);
   };
 
   const updateTotalBudget = (boards) => {
@@ -453,7 +498,266 @@ const CreateItinerary = () => {
         );
       case 3:
         return (
-          <div style={{ width: "100%" }}>
+          <div>
+            <Box display="flex" gap={4}>
+              {/* Left Column: Days Cards */}
+              <Box flex={2}>
+                <Typography variant="h6" sx={{ mb: 2 }}>
+                  Agrega actividades a tus días
+                </Typography>
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: 2,
+                  }}
+                >
+                  {boards.map((board, index) => (
+                    <Box
+                      key={index}
+                      sx={{
+                        p: 2,
+                        border: `2px dashed ${theme.palette.secondary.light}`,
+                        borderRadius: "10px",
+                        minWidth: "250px",
+                        flex: "1 1 250px",
+                        position: "relative",
+                      }}
+                      onDrop={(e) => handleDrop(e, index)}
+                      onDragOver={(e) => e.preventDefault()}
+                    >
+                      <Typography
+                        variant="h6"
+                        sx={{ fontWeight: "medium", mb: 1 }}
+                      >
+                        Día {index + 1}
+                      </Typography>
+                      <TextField
+                        label="Fecha"
+                        value={board.date}
+                        fullWidth
+                        disabled
+                        sx={{ mb: 2 }}
+                      />
+
+                      <TextField
+                        label="Presupuesto diario"
+                        value={board.dailyBudget}
+                        fullWidth
+                        disabled
+                        sx={{ mb: 2 }}
+                      />
+                      <Typography
+                        variant="subtitle1"
+                        sx={{ fontWeight: "bold", mb: 1 }}
+                      >
+                        Actividades
+                      </Typography>
+                      {board.favorites.length === 0 && (
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                          sx={{ mb: 2, display: "block" }}
+                        >
+                          Arrastra y suelta favoritos aquí
+                        </Typography>
+                      )}
+                      <Box>
+                        {board.favorites.map((favorite, favIndex) => (
+                          <Box
+                            key={`${index}-${favorite._id}`}
+                            display="flex"
+                            alignItems="center"
+                            mb={1}
+                            sx={{ borderBottom: "1px solid #eee", pb: 1 }}
+                          >
+                            <img
+                              src={
+                                favorite?.experienceId?.photo
+                                  ? stables.UPLOAD_FOLDER_BASE_URL +
+                                    favorite?.experienceId?.photo
+                                  : images.sampleFavoriteImage
+                              }
+                              alt={favorite.experienceId.title}
+                              className="w-10 h-10 object-cover rounded-lg mr-2"
+                            />
+                            <Box flexGrow={1}>
+                              <Typography variant="body2" fontWeight="medium">
+                                {favorite.experienceId.title}
+                              </Typography>
+                              <Typography
+                                variant="caption"
+                                color="text.secondary"
+                              >
+                                {favorite.experienceId.prefecture}
+                              </Typography>
+                            </Box>
+                            <Button
+                              onClick={() =>
+                                handleRemoveFavorite(index, favIndex)
+                              }
+                              sx={{ ml: 2, color: theme.palette.error.main }}
+                            >
+                              <FaTimes />
+                            </Button>
+                          </Box>
+                        ))}
+                      </Box>
+                      <Button
+                        onClick={() => handleRemoveBoard(index)}
+                        sx={{
+                          position: "absolute",
+                          top: 10,
+                          right: 10,
+                          color: theme.palette.error.main,
+                        }}
+                      >
+                        <FaTrash size={18} />
+                      </Button>
+                    </Box>
+                  ))}
+                </Box>
+              </Box>
+
+              {/* Right Column: Favorites Aside */}
+              <Box flex={1}>
+                <Box display="flex" gap={2} mb={3}>
+                  <Box
+                    sx={{
+                      px: 3,
+                      py: 1,
+                      bgcolor: theme.palette.primary.light,
+                      color: theme.palette.primary.main,
+                      fontWeight: "bold",
+                      borderRadius: "30rem",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: "1rem",
+                      minWidth: "150px",
+                    }}
+                  >
+                    🗓️ Total Días de Viaje: {travelDays}
+                  </Box>
+                  <Box
+                    sx={{
+                      px: 3,
+                      py: 1,
+                      bgcolor: theme.palette.primary.light,
+                      color: theme.palette.primary.main,
+                      fontWeight: "bold",
+                      borderRadius: "30rem",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: "1rem",
+                      minWidth: "180px",
+                    }}
+                  >
+                    💰 Presupuesto: €{totalBudget}
+                  </Box>
+                </Box>
+                <Typography variant="h6" className="text-xl font-bold mb-4">
+                  Favorites
+                </Typography>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Category:
+                  </label>
+                  <select
+                    value={selectedCategory}
+                    onChange={(e) => setSelectedCategory(e.target.value)}
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  >
+                    <option value="All">All</option>
+                    {categoriesEnum.map((category) => (
+                      <option key={category} value={category}>
+                        {category}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Region:
+                  </label>
+                  <select
+                    value={selectedRegion}
+                    onChange={(e) => setSelectedRegion(e.target.value)}
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  >
+                    <option value="All">All</option>
+                    {Object.keys(regions).map((region) => (
+                      <option key={region} value={region}>
+                        {region}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Prefecture:
+                  </label>
+                  <select
+                    value={selectedPrefecture}
+                    onChange={(e) => setSelectedPrefecture(e.target.value)}
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  >
+                    <option value="All">All</option>
+                    {selectedRegion !== "All" &&
+                      regions[selectedRegion].map((prefecture) => (
+                        <option key={prefecture} value={prefecture}>
+                          {prefecture}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+                <button
+                  onClick={handleClearFilters}
+                  className="mb-4 bg-gray-500 text-white px-4 py-2 rounded-md"
+                >
+                  Clear Filters
+                </button>
+                <ul>
+                  {filteredFavorites.map((favorite) => (
+                    <li
+                      key={favorite._id}
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, favorite)}
+                      className="flex items-center mb-4 p-2 border border-gray-300 rounded-md"
+                    >
+                      {favorite.experienceId && (
+                        <>
+                          <img
+                            src={
+                              favorite?.experienceId?.photo
+                                ? stables.UPLOAD_FOLDER_BASE_URL +
+                                  favorite?.experienceId?.photo
+                                : images.sampleFavoriteImage
+                            }
+                            alt={favorite.experienceId.title}
+                            className="w-10 h-10 object-cover rounded-lg mr-2"
+                          />
+                          <div>
+                            <p className="text-sm font-medium">
+                              {favorite.experienceId.title}
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              {favorite.experienceId.prefecture}
+                            </p>
+                          </div>
+                        </>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </Box>
+            </Box>
+          </div>
+        );
+      case 4:
+        return (
+          <div>
             <Typography variant="h6" sx={{ mb: 2 }}>
               Revisa tu Itinerario
             </Typography>
@@ -550,7 +854,7 @@ const CreateItinerary = () => {
         alignContent: "center",
       }}
     >
-      <Box width="100%">
+      <Box>
         <IconButton
           onClick={() => navigate(-1)}
           sx={{

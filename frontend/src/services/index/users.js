@@ -151,26 +151,25 @@ export const getUserFriends = async ({ userId, token }) => {
         Authorization: `Bearer ${token}`,
       },
     };
+    const { data } = await axios.get(`/api/users/${userId}/friends`, config);
 
-    const { data } = await axios.post(
-      `/api/users/${userId}/friends`,
-      {},
-      config
-    );
     return data;
   } catch (error) {
+    console.error("getUserFriends error:", error.response || error.message);
     throw new Error(error.response?.data?.message || error.message);
   }
 };
-
 export const toggleFriend = async ({ userId, token }) => {
   try {
     const config = { headers: { Authorization: `Bearer ${token}` } };
+
+    // ✅ Corrected: Include an empty object as the request body
     const { data } = await axios.post(
       `/api/users/toggleFriend/${userId}`,
       {},
       config
     );
+
     return data;
   } catch (error) {
     throw new Error(

@@ -112,9 +112,25 @@ const ManagePosts = () => {
         }}
       >
         Administrar Publicaciones
-      </Typography>
+      </Typography>{" "}
+      <Button
+        variant="contained"
+        onClick={() => navigate("/user/posts/manage/create")}
+        sx={{
+          backgroundColor: theme.palette.primary.main,
+          borderRadius: "30rem",
+          padding: "10px 20px",
+          display: "block",
+          margin: "0 auto",
+          textTransform: "none",
+          "&:hover": {
+            backgroundColor: theme.palette.primary.dark,
+          },
+        }}
+      >
+        Crear Nueva Publicación
+      </Button>
       <DataTable
-        dataListName="Administrar Publicaciones"
         searchInputPlaceHolder="Título del post..."
         searchKeywordOnSubmitHandler={submitSearchKeywordHandler}
         searchKeywordOnChangeHandler={searchKeywordHandler}

@@ -156,7 +156,6 @@ const ManageFavorites = () => {
         Administrar Favoritos
       </Typography>
       <DataTable
-        dataListName="Favoritos"
         searchInputPlaceHolder="Título Favorito..."
         searchKeywordOnSubmitHandler={submitSearchKeywordHandler}
         searchKeywordOnChangeHandler={searchKeywordHandler}
