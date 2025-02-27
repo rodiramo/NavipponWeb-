@@ -16,7 +16,12 @@ import {
   Paper,
   Button,
 } from "@mui/material";
-import { ChevronLeft, ChevronRight, Plus, Save, Edit } from "lucide-react";
+import { BedSingle } from "lucide-react";
+import { MdOutlineTempleBuddhist, MdOutlineRamenDining } from "react-icons/md";
+import { AiOutlineArrowLeft, AiOutlineArrowRight } from "react-icons/ai";
+
+import FiltersDrawer from "../../components/FiltersDrawer";
+import { Plus, Save, Edit } from "lucide-react";
 import { Trash2, CalendarDays, Wallet, XCircle } from "lucide-react";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
@@ -60,6 +65,15 @@ const regions = {
     "Saga",
   ],
 };
+const getCategoryIcon = (category, theme) => {
+  if (category === "Hoteles")
+    return <BedSingle color={theme.palette.primary.main} />;
+  if (category === "Atractivos")
+    return <MdOutlineTempleBuddhist color={theme.palette.primary.main} />;
+  if (category === "Restaurantes")
+    return <MdOutlineRamenDining color={theme.palette.primary.main} />;
+  return null;
+};
 
 const drawerWidth = 350;
 
@@ -95,6 +109,12 @@ const ItineraryDetailPage = () => {
     );
     return data;
   };
+  const groupedFavorites = drawerFavorites.reduce((groups, fav) => {
+    const cat = fav.experienceId?.categories || "Other";
+    if (!groups[cat]) groups[cat] = [];
+    groups[cat].push(fav);
+    return groups;
+  }, {});
 
   const getUserFavorites = async ({ userId, token }) => {
     const config = { headers: { Authorization: `Bearer ${token}` } };
@@ -225,6 +245,28 @@ const ItineraryDetailPage = () => {
   const toggleDrawer = () => {
     setIsDrawerOpen((prev) => !prev);
   };
+  const handleMouseDown = (e) => {
+    const slider = e.currentTarget;
+    let startX = e.pageX - slider.offsetLeft;
+    let scrollLeft = slider.scrollLeft;
+
+    const mouseMoveHandler = (e) => {
+      e.preventDefault();
+      const x = e.pageX - slider.offsetLeft;
+      const walk = (x - startX) * 2; // Adjust multiplier as needed
+      slider.scrollLeft = scrollLeft - walk;
+    };
+
+    const mouseUpHandler = () => {
+      document.removeEventListener("mousemove", mouseMoveHandler);
+      document.removeEventListener("mouseup", mouseUpHandler);
+      slider.style.cursor = "grab";
+    };
+
+    document.addEventListener("mousemove", mouseMoveHandler);
+    document.addEventListener("mouseup", mouseUpHandler);
+    slider.style.cursor = "grabbing";
+  };
 
   const onDragEnd = async (result) => {
     if (!result.destination) return;
@@ -316,7 +358,27 @@ const ItineraryDetailPage = () => {
     // Wrap the entire layout in a single DragDropContext
     <DragDropContext onDragEnd={onDragEnd}>
       <Box
-        sx={{ padding: "1rem", backgroundColor: "#f4f5f7", minHeight: "100vh" }}
+        sx={{
+          position: "relative",
+          minHeight: "100vh",
+          overflow: "hidden",
+          // Ensure content sits above the background
+          zIndex: 1,
+          // Pseudo-element for background image with blur and gradient overlay
+          "&:before": {
+            content: '""',
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundImage: `linear-gradient(rgba(2, 2, 20, 0.54), rgba(4, 4, 28, 0.53)), url('/assets/bg-home1.jpg')`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            filter: "blur(1px)", // adjust for a subtle blur
+            zIndex: -1, // places the pseudo-element behind content
+          },
+        }}
       >
         <Box
           sx={{
@@ -329,26 +391,13 @@ const ItineraryDetailPage = () => {
           <Box
             sx={{
               backgroundColor: theme.palette.secondary.dark,
-              padding: "2rem",
+              padding: "1rem",
               borderRadius: "0 0 30px 30px",
               color: "#fff",
               mb: 3,
             }}
           >
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                width: "100%",
-                justifyContent: "space-between",
-                backgroundColor: theme.palette.secondary.dark,
-                padding: "2rem",
-                color: "#fff",
-                borderRadius: "0 0 30px 30px",
-                marginBottom: "16px",
-              }}
-            >
+            <Box display="flex" justifyContent="center">
               {isEditingName ? (
                 <TextField
                   value={name}
@@ -372,7 +421,9 @@ const ItineraryDetailPage = () => {
                 {isEditingName ? <Save size={16} /> : <Edit size={16} />}
               </IconButton>
             </Box>
-            <Box sx={{ display: "flex", gap: 2, mt: 2 }}>
+            <Box
+              sx={{ display: "flex", gap: 2, mt: 2, justifyContent: "center" }}
+            >
               <Chip
                 label={`${travelDays} Días`}
                 icon={<CalendarDays size={16} />}
@@ -390,7 +441,14 @@ const ItineraryDetailPage = () => {
                 }}
               />
             </Box>
-            <Box sx={{ display: "flex", gap: 1, marginTop: "1rem" }}>
+            <Box
+              sx={{
+                display: "flex",
+                gap: 1,
+                marginTop: "1rem",
+                justifyContent: "center",
+              }}
+            >
               {travelers?.length > 0 ? (
                 travelers.map((friend, index) => (
                   <Tooltip
@@ -437,12 +495,25 @@ const ItineraryDetailPage = () => {
               <Box
                 ref={providedBoards.innerRef}
                 {...providedBoards.droppableProps}
+                onMouseDown={handleMouseDown}
                 sx={{
                   display: "flex",
                   gap: 2,
                   overflowX: "auto",
                   p: 1,
-                  minHeight: "300px",
+                  paddingBottom: "20px",
+                  height: "75vh",
+                  whiteSpace: "nowrap",
+                  "-webkit-user-select": "none",
+                  userSelect: "none",
+                  cursor: "grab",
+                  "&::-webkit-scrollbar": {
+                    height: "8px",
+                  },
+                  "&::-webkit-scrollbar-thumb": {
+                    backgroundColor: theme.palette.secondary.dark,
+                    borderRadius: "4px",
+                  },
                 }}
               >
                 {boards.map((board, boardIndex) => (
@@ -459,11 +530,16 @@ const ItineraryDetailPage = () => {
                         sx={{
                           minWidth: 300,
                           maxWidth: 300,
-                          backgroundColor: "#ebecf0",
+                          height: "fit-content",
                           borderRadius: "8px",
                           p: 1,
                           display: "flex",
                           flexDirection: "column",
+
+                          paddingLeft: "6px",
+                          paddingRight: "6px",
+                          flexShrink: 0,
+                          whiteSpace: "normal",
                         }}
                       >
                         <CardContent>
@@ -486,7 +562,7 @@ const ItineraryDetailPage = () => {
                             </IconButton>
                           </Box>
                           <Typography variant="subtitle2" color="textSecondary">
-                            {board.date || "No date set"}
+                            {board.date || "Sin Fechas Definidas"}
                           </Typography>
                           <Typography
                             variant="subtitle2"
@@ -576,102 +652,53 @@ const ItineraryDetailPage = () => {
             )}
           </Droppable>
         </Box>
-
-        {/* Favorites Drawer Droppable */}
         <Drawer
           variant="persistent"
           anchor="left"
           open={isDrawerOpen}
           sx={{
             width: drawerWidth,
-            flexShrink: 0,
+            flexShrink: 2,
             "& .MuiDrawer-paper": {
               width: drawerWidth,
               boxSizing: "border-box",
+              // When closed, slide it so that 5px remains visible
+              transform: isDrawerOpen
+                ? "none"
+                : `translateX(-${drawerWidth - 5}px)`,
+              transition: "transform 0.3s ease-in-out",
             },
           }}
         >
+          {/* Header that is always visible (sticky) */}
           <Box
             sx={{
+              position: "sticky",
+              top: 0,
+              zIndex: 1,
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
               p: 2,
-              backgroundColor: "#fff",
               boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
             }}
           >
             <Typography variant="h6" fontWeight="bold">
               Favorites
             </Typography>
-            <IconButton onClick={toggleDrawer}>
-              <ChevronLeft size={20} />
-            </IconButton>
           </Box>
-          {/* Filters */}
+          {/* Filters & Favorites list */}
           <Box sx={{ p: 2 }}>
-            <Typography variant="subtitle2" color="textSecondary">
-              Category:
-            </Typography>
-            <Select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              fullWidth
-              size="small"
-              sx={{ mb: 2 }}
-            >
-              <MenuItem value="All">All</MenuItem>
-              {categoriesEnum.map((category) => (
-                <MenuItem key={category} value={category}>
-                  {category}
-                </MenuItem>
-              ))}
-            </Select>
-            <Typography variant="subtitle2" color="textSecondary">
-              Region:
-            </Typography>
-            <Select
-              value={selectedRegion}
-              onChange={(e) => setSelectedRegion(e.target.value)}
-              fullWidth
-              size="small"
-              sx={{ mb: 2 }}
-            >
-              <MenuItem value="All">All</MenuItem>
-              {Object.keys(regions).map((region) => (
-                <MenuItem key={region} value={region}>
-                  {region}
-                </MenuItem>
-              ))}
-            </Select>
-            <Typography variant="subtitle2" color="textSecondary">
-              Prefecture:
-            </Typography>
-            <Select
-              value={selectedPrefecture}
-              onChange={(e) => setSelectedPrefecture(e.target.value)}
-              fullWidth
-              size="small"
-              sx={{ mb: 2 }}
-              disabled={selectedRegion === "All"}
-            >
-              <MenuItem value="All">All</MenuItem>
-              {selectedRegion !== "All" &&
-                regions[selectedRegion].map((prefecture) => (
-                  <MenuItem key={prefecture} value={prefecture}>
-                    {prefecture}
-                  </MenuItem>
-                ))}
-            </Select>
-            <IconButton
-              onClick={handleClearFilters}
-              sx={{ alignSelf: "flex-end", mb: 2, color: "gray" }}
-            >
-              <XCircle size={20} />
-            </IconButton>
+            <FiltersDrawer
+              selectedCategory={selectedCategory}
+              setSelectedCategory={setSelectedCategory}
+              selectedRegion={selectedRegion}
+              setSelectedRegion={setSelectedRegion}
+              selectedPrefecture={selectedPrefecture}
+              setSelectedPrefecture={setSelectedPrefecture}
+              handleClearFilters={handleClearFilters}
+            />
           </Box>
-
-          {/* Favorites Drawer List as a Droppable */}
           <Droppable droppableId="drawer" type="FAVORITE">
             {(providedDrawer) => (
               <Box
@@ -683,74 +710,101 @@ const ItineraryDetailPage = () => {
                   p: 2,
                 }}
               >
-                {drawerFavorites.map((fav, index) => (
-                  <Draggable key={fav._id} draggableId={fav._id} index={index}>
-                    {(providedFav) => (
-                      <Paper
-                        ref={providedFav.innerRef}
-                        {...providedFav.draggableProps}
-                        {...providedFav.dragHandleProps}
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 1,
-                          mb: 2,
-                          p: 1,
-                          borderRadius: "8px",
-                          boxShadow: 1,
-                          backgroundColor: "#fff",
-                          cursor: "grab",
-                          "&:hover": { boxShadow: 3 },
-                        }}
+                {Object.entries(groupedFavorites).map(([category, favs]) => (
+                  <Box key={category} sx={{ mb: 2 }}>
+                    {/* Category Header */}
+                    <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+                      {getCategoryIcon(category, theme)}
+                      <Typography
+                        variant="subtitle2"
+                        sx={{ ml: 1, color: theme.palette.primary.main }}
                       >
-                        <img
-                          src={
-                            fav.experienceId?.photo
-                              ? stables.UPLOAD_FOLDER_BASE_URL +
-                                fav.experienceId.photo
-                              : images.sampleFavoriteImage
-                          }
-                          alt={fav.experienceId?.title}
-                          style={{
-                            width: 40,
-                            height: 40,
-                            borderRadius: 8,
-                            objectFit: "cover",
-                          }}
-                        />
-                        <Box>
-                          <Typography variant="body2" fontWeight="bold">
-                            {fav.experienceId?.title}
-                          </Typography>
-                          <Typography variant="caption" color="textSecondary">
-                            {fav.experienceId?.prefecture}
-                          </Typography>
-                        </Box>
-                      </Paper>
-                    )}
-                  </Draggable>
+                        {category}
+                      </Typography>
+                    </Box>
+                    {favs.map((fav, index) => (
+                      <Draggable
+                        key={fav._id}
+                        draggableId={fav._id}
+                        index={index}
+                      >
+                        {(providedFav) => (
+                          <Paper
+                            ref={providedFav.innerRef}
+                            {...providedFav.draggableProps}
+                            {...providedFav.dragHandleProps}
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 1,
+                              mb: 1,
+                              p: 1,
+                              borderRadius: "8px",
+                              boxShadow: 1,
+                              cursor: "grab",
+                              "&:hover": { boxShadow: 3 },
+                            }}
+                          >
+                            <img
+                              src={
+                                fav.experienceId?.photo
+                                  ? stables.UPLOAD_FOLDER_BASE_URL +
+                                    fav.experienceId.photo
+                                  : images.sampleFavoriteImage
+                              }
+                              alt={fav.experienceId?.title}
+                              style={{
+                                width: 40,
+                                height: 40,
+                                borderRadius: 8,
+                                objectFit: "cover",
+                              }}
+                            />
+                            <Box>
+                              <Typography variant="body2" fontWeight="bold">
+                                {fav.experienceId?.title}
+                              </Typography>
+                              <Typography
+                                variant="caption"
+                                color="textSecondary"
+                              >
+                                {fav.experienceId?.prefecture}
+                              </Typography>
+                            </Box>
+                          </Paper>
+                        )}
+                      </Draggable>
+                    ))}
+                  </Box>
                 ))}
                 {providedDrawer.placeholder}
               </Box>
             )}
           </Droppable>
-        </Drawer>
-
-        {!isDrawerOpen && (
-          <IconButton
-            onClick={toggleDrawer}
-            sx={{
-              position: "fixed",
-              left: 0,
-              top: "50%",
-              transform: "translateY(-50%)",
-              backgroundColor: "#fff",
-              boxShadow: "0 2px 10px rgba(0,0,0,0.2)",
-            }}
-          >
-            <ChevronRight size={20} />
-          </IconButton>
-        )}
+        </Drawer>{" "}
+        {/* Toggle Button outside Drawer so it is always visible */}
+        <IconButton
+          onClick={toggleDrawer}
+          sx={{
+            position: "fixed",
+            left: isDrawerOpen ? drawerWidth - 40 : 5, // adjust these values as needed
+            marginTop: "2rem",
+            top: "0",
+            transform: "translateY(-50%)",
+            zIndex: 1300,
+            backgroundColor: theme.palette.primary.main,
+            color: "#fff",
+            "&:hover": {
+              backgroundColor: theme.palette.primary.light,
+            },
+          }}
+        >
+          {isDrawerOpen ? (
+            <AiOutlineArrowLeft size={20} />
+          ) : (
+            <AiOutlineArrowRight size={20} />
+          )}
+        </IconButton>
       </Box>
     </DragDropContext>
   );
