@@ -1,34 +1,30 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { getUserFavorites } from "../../../../services/index/favorites";
-import { getUserFriends } from "../../../../services/index/users"; // Import your friends service
-import { createItinerary } from "../../../../services/index/itinerary";
-import useUser from "../../../../hooks/useUser";
-import { toast } from "react-hot-toast";
-import BreadcrumbBack from "../../../../components/BreadcrumbBack";
-import { ArrowRight, ArrowLeft } from "lucide-react";
-import { stables, images } from "../../../../constants";
-import { FaTrash, FaTimes } from "react-icons/fa";
 import {
-  useTheme,
-  MenuItem,
-  Select,
   Box,
+  Card,
+  CardContent,
   Typography,
-  Button,
-  TextField,
-  Stepper,
-  Step,
-  StepLabel,
-  Autocomplete,
   IconButton,
+  Paper,
+  Button,
+  Select,
+  MenuItem,
+  Tooltip,
+  TextField,
   Chip,
+  Avatar,
+  Drawer,
+  useTheme,
 } from "@mui/material";
-import { DateRange } from "react-date-range";
-import { format, addDays, differenceInDays } from "date-fns";
-import "react-date-range/dist/styles.css"; // Main styles
-import "react-date-range/dist/theme/default.css";
-import { es } from "date-fns/locale";
+import { ChevronLeft, ChevronRight, Plus, Save, Edit } from "lucide-react";
+import { Trash2, CalendarDays, Wallet, XCircle } from "lucide-react";
+import axios from "axios";
+import { useNavigate, useParams } from "react-router-dom";
+import useUser from "../../../../hooks/useUser";
+import { stables, images } from "../../../../constants";
+
+// Import drag and drop components
+import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 
 const categoriesEnum = ["Hoteles", "Atractivos", "Restaurantes"];
 const regions = {
@@ -67,870 +63,701 @@ const regions = {
   ],
 };
 
-const CreateItinerary = () => {
-  const [name, setName] = useState("");
+const drawerWidth = 350;
+
+const ItineraryDetailPage = () => {
   const theme = useTheme();
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const { user, jwt } = useUser();
+
+  // Itinerary fields
+  const [name, setName] = useState("");
   const [travelDays, setTravelDays] = useState(0);
   const [totalBudget, setTotalBudget] = useState(0);
-  const [boards, setBoards] = useState([]);
-  const [noteInput, setNoteInput] = useState("");
-  const [notesArray, setNotesArray] = useState([]);
+  const [boards, setBoards] = useState([]); // Each board represents a day with favorites
+  const [notes, setNotes] = useState([]);
+  const [travelers, setTravelers] = useState([]);
   const [favorites, setFavorites] = useState([]);
+  // We'll maintain a separate state for the drawer favorites.
+  const [drawerFavorites, setDrawerFavorites] = useState([]);
   const [filteredFavorites, setFilteredFavorites] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedRegion, setSelectedRegion] = useState("All");
   const [selectedPrefecture, setSelectedPrefecture] = useState("All");
-  const { user, jwt } = useUser();
-  const navigate = useNavigate();
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(true);
 
-  // State for managing friends fetched from API and selected ones
-  const [availableFriends, setAvailableFriends] = useState([]);
-  const [selectedFriends, setSelectedFriends] = useState([]);
-
-  // Multi-step state: steps: 0 = Detalles, 1 = Fechas y Boards, 2 = Amigos, 3 = Favorites, 4 = Revisión
-  const [activeStep, setActiveStep] = useState(0);
-  const steps = [
-    "Detalles",
-    "Fechas y Boards",
-    "Amigos",
-    "Favorites",
-    "Revisión",
-  ];
-
-  const [dateRange, setDateRange] = useState([
-    {
-      startDate: new Date(),
-      endDate: addDays(new Date(), 3),
-      key: "selection",
-    },
-  ]);
-
-  const addNote = () => {
-    if (noteInput.trim()) {
-      setNotesArray([
-        ...notesArray,
-        { text: noteInput.trim(), completed: false, author: user.name },
-      ]);
-      setNoteInput("");
-    }
-  };
-
-  const deleteNote = (index) => {
-    setNotesArray(notesArray.filter((_, i) => i !== index));
-  };
-
-  const toggleNote = (index) => {
-    setNotesArray(
-      notesArray.map((note, i) =>
-        i === index ? { ...note, completed: !note.completed } : note
-      )
+  // Backend API calls
+  const getSingleItineraryForEdit = async (itineraryId, token) => {
+    const config = { headers: { Authorization: `Bearer ${token}` } };
+    const { data } = await axios.get(
+      `/api/itineraries/${itineraryId}/edit`,
+      config
     );
+    return data;
   };
+
+  const getUserFavorites = async ({ userId, token }) => {
+    const config = { headers: { Authorization: `Bearer ${token}` } };
+    const { data } = await axios.get(`/api/favorites/user/${userId}`, config);
+    return data;
+  };
+
+  const updateItinerary = async (itineraryId, itinerary, token) => {
+    const config = { headers: { Authorization: `Bearer ${token}` } };
+    const { data } = await axios.patch(
+      `/api/itineraries/${itineraryId}`,
+      itinerary,
+      config
+    );
+    return data;
+  };
+
+  // Fetch itinerary details
+  useEffect(() => {
+    const fetchItinerary = async () => {
+      try {
+        const data = await getSingleItineraryForEdit(id, jwt);
+        setName(data.name);
+        setTravelDays(data.travelDays);
+        setTotalBudget(data.totalBudget);
+        setBoards(data.boards);
+        setTravelers(data.travelers || []);
+        setNotes(data.notes || []);
+      } catch (error) {
+        console.error("Error fetching itinerary", error);
+      }
+    };
+    fetchItinerary();
+  }, [id, jwt]);
+
+  // Fetch favorites and initialize both favorites and drawerFavorites
   useEffect(() => {
     const fetchFavorites = async () => {
       try {
-        console.log("Fetching favorites for user:", user);
-        console.log("JWT token:", jwt);
-
         const data = await getUserFavorites({ userId: user._id, token: jwt });
-        const validFavorites = data.filter(
-          (favorite) => favorite.experienceId !== null
-        );
+        const validFavorites = data.filter((fav) => fav.experienceId !== null);
         setFavorites(validFavorites);
         setFilteredFavorites(validFavorites);
+        setDrawerFavorites(validFavorites);
       } catch (error) {
-        toast.error("Error fetching favorites");
-        console.error("Error fetching favorites:", error);
+        console.error("Error fetching favorites", error);
       }
     };
-
     fetchFavorites();
   }, [user, jwt]);
 
-  useEffect(() => {
-    const fetchFriends = async () => {
-      try {
-        const data = await getUserFriends({ userId: user._id, token: jwt });
-        setAvailableFriends(data);
-      } catch (error) {
-        toast.error("Error fetching friends");
-        console.error("Error fetching friends:", error);
-      }
-    };
-
-    fetchFriends();
-  }, [user, jwt]);
-
-  useEffect(() => {
-    filterFavorites();
-  }, [selectedCategory, selectedRegion, selectedPrefecture]);
-
+  // Filter favorites based on dropdowns (for the drawer)
   const filterFavorites = () => {
-    let filtered = favorites;
-    if (selectedCategory && selectedCategory !== "All") {
+    let filtered = [...favorites];
+    if (selectedCategory !== "All") {
       filtered = filtered.filter(
-        (favorite) => favorite.experienceId.categories === selectedCategory
+        (fav) => fav.experienceId.categories === selectedCategory
       );
     }
-    if (selectedRegion && selectedRegion !== "All") {
+    if (selectedRegion !== "All") {
       filtered = filtered.filter(
-        (favorite) => favorite.experienceId.region === selectedRegion
+        (fav) => fav.experienceId.region === selectedRegion
       );
     }
-    if (selectedPrefecture && selectedPrefecture !== "All") {
+    if (selectedPrefecture !== "All") {
       filtered = filtered.filter(
-        (favorite) => favorite.experienceId.prefecture === selectedPrefecture
+        (fav) => fav.experienceId.prefecture === selectedPrefecture
       );
     }
     setFilteredFavorites(filtered);
+    // Also update the drawer favorites accordingly.
+    setDrawerFavorites(filtered);
   };
+
+  useEffect(() => {
+    filterFavorites();
+  }, [selectedCategory, selectedRegion, selectedPrefecture, favorites]);
 
   const handleClearFilters = () => {
     setSelectedCategory("All");
     setSelectedRegion("All");
     setSelectedPrefecture("All");
     setFilteredFavorites(favorites);
+    setDrawerFavorites(favorites);
   };
 
   const handleAddBoard = () => {
-    setBoards([...boards, { date: "", favorites: [], dailyBudget: 0 }]);
-    setTravelDays(boards.length + 1);
+    const newBoard = { date: "", favorites: [], dailyBudget: 0 };
+    const updatedBoards = [...boards, newBoard];
+    setBoards(updatedBoards);
+    setTravelDays(updatedBoards.length);
+    updateTotalBudget(updatedBoards);
   };
 
   const handleRemoveBoard = (index) => {
-    const newBoards = boards.filter((_, i) => i !== index);
-    setBoards(newBoards);
-    setTravelDays(newBoards.length);
-    updateTotalBudget(newBoards);
+    const updatedBoards = boards.filter((_, i) => i !== index);
+    setBoards(updatedBoards);
+    setTravelDays(updatedBoards.length);
+    updateTotalBudget(updatedBoards);
   };
 
-  const handleDragStart = (e, favorite) => {
-    e.dataTransfer.setData("favorite", JSON.stringify(favorite));
-  };
-
-  const handleDrop = (e, boardIndex) => {
-    const favorite = JSON.parse(e.dataTransfer.getData("favorite"));
-    const newBoards = [...boards];
-    newBoards[boardIndex].favorites.push(favorite);
-    newBoards[boardIndex].dailyBudget = newBoards[boardIndex].favorites.reduce(
-      (sum, fav) => sum + fav.experienceId.price,
+  const updateTotalBudget = (boardsArray) => {
+    const total = boardsArray.reduce(
+      (sum, board) =>
+        sum +
+        board.favorites.reduce(
+          (s, fav) => s + (fav.experienceId?.price || 0),
+          0
+        ),
       0
     );
-    setBoards(newBoards);
-    updateTotalBudget(newBoards);
-  };
-
-  const handleRemoveFavorite = (boardIndex, favoriteIndex) => {
-    const newBoards = [...boards];
-    newBoards[boardIndex].favorites.splice(favoriteIndex, 1);
-    newBoards[boardIndex].dailyBudget = newBoards[boardIndex].favorites.reduce(
-      (sum, fav) => sum + fav.experienceId.price,
-      0
-    );
-    setBoards(newBoards);
-    updateTotalBudget(newBoards);
-  };
-
-  const updateTotalBudget = (boards) => {
-    const total = boards.reduce((sum, board) => sum + board.dailyBudget, 0);
     setTotalBudget(total);
   };
-  const handleDateChange = (ranges) => {
-    const newRange = ranges.selection;
-    setDateRange([newRange]);
-    const daysCount =
-      differenceInDays(newRange.endDate, newRange.startDate) + 1;
-    setTravelDays(daysCount);
 
-    // Create a new boards array with one board per day, setting the date automatically.
-    const newBoards = [];
-    for (let i = 0; i < daysCount; i++) {
-      // You can choose any format; here we use "yyyy-MM-dd"
-      const boardDate = format(addDays(newRange.startDate, i), "yyyy-MM-dd");
-      newBoards.push({ date: boardDate, favorites: [], dailyBudget: 0 });
-    }
-    setBoards(newBoards);
-  };
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    // Map selected friends to travelers (each friend is expected to have an _id)
-    const travelers = selectedFriends.map((friend) => ({
-      userId: friend._id,
-      role: friend.role || "viewer",
-    }));
-
-    const itinerary = {
-      name,
-      travelDays,
-      totalBudget,
-      boards,
-      notes: notesArray,
-      travelers,
-    };
+  const handleSaveName = async () => {
+    if (!name.trim()) return;
+    setIsEditingName(false);
     try {
-      const response = await createItinerary(itinerary, jwt);
-      toast.success("Itinerary created successfully");
-      navigate(`/user/itineraries/manage/view/${response._id}`);
+      await updateItinerary(id, { name }, jwt);
     } catch (error) {
-      toast.error("Error creating itinerary");
-      console.error("Error creating itinerary:", error);
+      console.error("Error updating itinerary name", error);
     }
   };
 
-  const renderStepContent = (step) => {
-    switch (step) {
-      case 0:
-        return (
-          <div
-            style={{
-              background: theme.palette.primary.white,
-              padding: "2rem",
-              borderRadius: "16px",
-              width: "100%",
-            }}
-            className={`relative rounded-xl overflow-hidden shadow-[rgba(7,_65,_210,_0.1)_0px_9px_30px] group `}
-          >
-            {" "}
-            <Typography variant="h6" textAlign="center" marginBottom="10px">
-              Detalles de Viaje
-            </Typography>
-            <Box sx={{ mb: 3, mt: 5 }}>
-              <Typography color={theme.palette.secondary.medium}>
-                Elige un nombre para identificar tu viaje.
-              </Typography>
-              <TextField
-                label="Nombre"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                fullWidth
-                sx={{
-                  marginTop: 2,
-                  bgcolor: "white",
-                  borderRadius: "10px",
-                  "& .MuiOutlinedInput-root": {
-                    borderRadius: "10px",
-                    borderColor: theme.palette.secondary.light,
-                    "&:hover fieldset": {
-                      borderColor: theme.palette.secondary.main,
-                    },
-                    "&.Mui-focused fieldset": {
-                      borderColor: theme.palette.secondary.dark,
-                    },
-                  },
-                }}
-              />
-            </Box>
-            <Box sx={{ mb: 3 }}>
-              {" "}
-              <Typography color={theme.palette.secondary.medium}>
-                Haz clic en una nota para marcarla como completada y usa el
-                icono de eliminación para quitarla.
-              </Typography>
-              <Box display="flex" alignItems="center" mb={2}>
-                <TextField
-                  label="Agregar nota"
-                  value={noteInput}
-                  onChange={(e) => setNoteInput(e.target.value)}
-                  variant="outlined"
-                  sx={{ mr: 2, width: "100%", marginTop: 2 }}
-                />
-                <Button
-                  onClick={addNote}
-                  sx={{
-                    textTransform: "none",
-                    borderRadius: "30rem",
-                  }}
-                >
-                  Agregar
-                </Button>
-              </Box>
-              <Box display="flex" flexWrap="wrap" gap={1}>
-                {notesArray.map((note, index) => (
-                  <Chip
-                    key={index}
-                    label={note.text}
-                    onClick={() => toggleNote(index)}
-                    onDelete={() => deleteNote(index)}
-                    sx={{
-                      textDecoration: note.completed ? "line-through" : "none",
-                      cursor: "pointer",
-                    }}
-                  />
-                ))}
-              </Box>
-            </Box>
-          </div>
-        );
-      case 1:
-        return (
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "center",
-              alignItems: "center",
-              width: "100%",
-              background: theme.palette.primary.white,
-              padding: "2rem",
-              borderRadius: "16px",
-            }}
-          >
-            <Box mb={3}>
-              <Typography variant="h6" textAlign="center" marginBottom="10px">
-                Seleccionar Fechas de Viaje
-              </Typography>
-              <DateRange
-                ranges={dateRange}
-                onChange={handleDateChange}
-                moveRangeOnFirstSelection={false}
-                minDate={new Date()}
-                locale={es}
-              />
-            </Box>
-          </div>
-        );
-      // In case 2:
-      case 2:
-        return (
-          <div
-            style={{
-              display: "flex",
-              width: "100%",
-              flexDirection: "column",
-              justifyContent: "center",
-              alignItems: "center",
-              background: theme.palette.primary.white,
-              padding: "2rem",
-              borderRadius: "16px",
-            }}
-          >
-            <Typography variant="h6" textAlign="center" marginBottom="10px">
-              Agregar Compañeros de Viaje
-            </Typography>
-            <Typography color={theme.palette.secondary.medium} marginBottom={5}>
-              Agrega e invita a tus amigos para que se unan al viaje. Invita a
-              tus seres queridos, compañeros y amigos a ser parte de esta
-              experiencia única.
-            </Typography>
+  const toggleDrawer = () => {
+    setIsDrawerOpen((prev) => !prev);
+  };
 
-            <Autocomplete
-              multiple
-              id="friends-autocomplete"
-              options={availableFriends}
-              getOptionLabel={(option) => option.name}
-              value={selectedFriends}
-              sx={{ width: "100%" }}
-              onChange={(event, newValue) => setSelectedFriends(newValue)}
-              renderTags={(value, getTagProps) =>
-                value.map((option, index) => (
-                  <Chip
-                    variant="outlined"
-                    label={option.name}
-                    {...getTagProps({ index })}
-                  />
-                ))
-              }
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  variant="outlined"
-                  label="Buscar amigos"
-                  placeholder="Seleccionar amigos"
-                />
-              )}
-            />
+  // Drag and Drop handlers using react-beautiful-dnd
+  const onDragEnd = async (result) => {
+    if (!result.destination) return;
+    const { source, destination, type } = result;
+    let newBoards = [...boards];
+    let newDrawerFavorites = [...drawerFavorites];
 
-            {/* Display role selection for each selected friend */}
-            {selectedFriends.length > 0 && (
-              <Box mt={2} width="100%">
-                {selectedFriends.map((friend) => (
-                  <Box
-                    key={friend._id}
-                    display="flex"
-                    alignItems="center"
-                    gap={2}
-                    mb={1}
-                    sx={{
-                      border: `1px solid ${theme.palette.grey[300]}`,
-                      borderRadius: "30rem",
-                      padding: "0.5rem",
-                    }}
-                  >
-                    <img
-                      src={
-                        friend.avatar
-                          ? stables.UPLOAD_FOLDER_BASE_URL + friend.avatar
-                          : "/assets/default-avatar.jpg"
-                      }
-                      alt={friend.name}
-                      style={{
-                        width: "40px",
-                        height: "40px",
-                        borderRadius: "50%",
-                        objectFit: "cover",
-                      }}
-                    />
-                    <Typography sx={{ flex: 1, mr: 2 }}>
-                      {friend.name}
-                    </Typography>
-                    <Select
-                      value={friend.role || "viewer"}
-                      onChange={(e) => {
-                        setSelectedFriends((prevFriends) =>
-                          prevFriends.map((f) =>
-                            f._id === friend._id
-                              ? { ...f, role: e.target.value }
-                              : f
-                          )
-                        );
-                      }}
-                      sx={{ borderRadius: 10 }}
-                      size="small"
-                    >
-                      <MenuItem value="viewer">Solo Lectura</MenuItem>
-                      <MenuItem value="editor">Editor</MenuItem>
-                    </Select>
-                  </Box>
-                ))}
-              </Box>
-            )}
-          </div>
-        );
-      case 3:
-        return (
-          <div>
-            <Box display="flex" gap={4}>
-              {/* Left Column: Days Cards */}
-              <Box flex={2}>
-                <Typography variant="h6" sx={{ mb: 2 }}>
-                  Agrega actividades a tus días
-                </Typography>
-                <Box
-                  sx={{
-                    display: "flex",
-                    flexWrap: "wrap",
-                    gap: 2,
-                  }}
-                >
-                  {boards.map((board, index) => (
-                    <Box
-                      key={index}
-                      sx={{
-                        p: 2,
-                        border: `2px dashed ${theme.palette.secondary.light}`,
-                        borderRadius: "10px",
-                        minWidth: "250px",
-                        flex: "1 1 250px",
-                        position: "relative",
-                      }}
-                      onDrop={(e) => handleDrop(e, index)}
-                      onDragOver={(e) => e.preventDefault()}
-                    >
-                      <Typography
-                        variant="h6"
-                        sx={{ fontWeight: "medium", mb: 1 }}
-                      >
-                        Día {index + 1}
-                      </Typography>
-                      <TextField
-                        label="Fecha"
-                        value={board.date}
-                        fullWidth
-                        disabled
-                        sx={{ mb: 2 }}
-                      />
-
-                      <TextField
-                        label="Presupuesto diario"
-                        value={board.dailyBudget}
-                        fullWidth
-                        disabled
-                        sx={{ mb: 2 }}
-                      />
-                      <Typography
-                        variant="subtitle1"
-                        sx={{ fontWeight: "bold", mb: 1 }}
-                      >
-                        Actividades
-                      </Typography>
-                      {board.favorites.length === 0 && (
-                        <Typography
-                          variant="caption"
-                          color="text.secondary"
-                          sx={{ mb: 2, display: "block" }}
-                        >
-                          Arrastra y suelta favoritos aquí
-                        </Typography>
-                      )}
-                      <Box>
-                        {board.favorites.map((favorite, favIndex) => (
-                          <Box
-                            key={`${index}-${favorite._id}`}
-                            display="flex"
-                            alignItems="center"
-                            mb={1}
-                            sx={{ borderBottom: "1px solid #eee", pb: 1 }}
-                          >
-                            <img
-                              src={
-                                favorite?.experienceId?.photo
-                                  ? stables.UPLOAD_FOLDER_BASE_URL +
-                                    favorite?.experienceId?.photo
-                                  : images.sampleFavoriteImage
-                              }
-                              alt={favorite.experienceId.title}
-                              className="w-10 h-10 object-cover rounded-lg mr-2"
-                            />
-                            <Box flexGrow={1}>
-                              <Typography variant="body2" fontWeight="medium">
-                                {favorite.experienceId.title}
-                              </Typography>
-                              <Typography
-                                variant="caption"
-                                color="text.secondary"
-                              >
-                                {favorite.experienceId.prefecture}
-                              </Typography>
-                            </Box>
-                            <Button
-                              onClick={() =>
-                                handleRemoveFavorite(index, favIndex)
-                              }
-                              sx={{ ml: 2, color: theme.palette.error.main }}
-                            >
-                              <FaTimes />
-                            </Button>
-                          </Box>
-                        ))}
-                      </Box>
-                      <Button
-                        onClick={() => handleRemoveBoard(index)}
-                        sx={{
-                          position: "absolute",
-                          top: 10,
-                          right: 10,
-                          color: theme.palette.error.main,
-                        }}
-                      >
-                        <FaTrash size={18} />
-                      </Button>
-                    </Box>
-                  ))}
-                </Box>
-              </Box>
-
-              {/* Right Column: Favorites Aside */}
-              <Box flex={1}>
-                <Box display="flex" gap={2} mb={3}>
-                  <Box
-                    sx={{
-                      px: 3,
-                      py: 1,
-                      bgcolor: theme.palette.primary.light,
-                      color: theme.palette.primary.main,
-                      fontWeight: "bold",
-                      borderRadius: "30rem",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontSize: "1rem",
-                      minWidth: "150px",
-                    }}
-                  >
-                    🗓️ Total Días de Viaje: {travelDays}
-                  </Box>
-                  <Box
-                    sx={{
-                      px: 3,
-                      py: 1,
-                      bgcolor: theme.palette.primary.light,
-                      color: theme.palette.primary.main,
-                      fontWeight: "bold",
-                      borderRadius: "30rem",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontSize: "1rem",
-                      minWidth: "180px",
-                    }}
-                  >
-                    💰 Presupuesto: €{totalBudget}
-                  </Box>
-                </Box>
-                <Typography variant="h6" className="text-xl font-bold mb-4">
-                  Favorites
-                </Typography>
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700">
-                    Category:
-                  </label>
-                  <select
-                    value={selectedCategory}
-                    onChange={(e) => setSelectedCategory(e.target.value)}
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  >
-                    <option value="All">All</option>
-                    {categoriesEnum.map((category) => (
-                      <option key={category} value={category}>
-                        {category}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700">
-                    Region:
-                  </label>
-                  <select
-                    value={selectedRegion}
-                    onChange={(e) => setSelectedRegion(e.target.value)}
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  >
-                    <option value="All">All</option>
-                    {Object.keys(regions).map((region) => (
-                      <option key={region} value={region}>
-                        {region}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700">
-                    Prefecture:
-                  </label>
-                  <select
-                    value={selectedPrefecture}
-                    onChange={(e) => setSelectedPrefecture(e.target.value)}
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  >
-                    <option value="All">All</option>
-                    {selectedRegion !== "All" &&
-                      regions[selectedRegion].map((prefecture) => (
-                        <option key={prefecture} value={prefecture}>
-                          {prefecture}
-                        </option>
-                      ))}
-                  </select>
-                </div>
-                <button
-                  onClick={handleClearFilters}
-                  className="mb-4 bg-gray-500 text-white px-4 py-2 rounded-md"
-                >
-                  Clear Filters
-                </button>
-                <ul>
-                  {filteredFavorites.map((favorite) => (
-                    <li
-                      key={favorite._id}
-                      draggable
-                      onDragStart={(e) => handleDragStart(e, favorite)}
-                      className="flex items-center mb-4 p-2 border border-gray-300 rounded-md"
-                    >
-                      {favorite.experienceId && (
-                        <>
-                          <img
-                            src={
-                              favorite?.experienceId?.photo
-                                ? stables.UPLOAD_FOLDER_BASE_URL +
-                                  favorite?.experienceId?.photo
-                                : images.sampleFavoriteImage
-                            }
-                            alt={favorite.experienceId.title}
-                            className="w-10 h-10 object-cover rounded-lg mr-2"
-                          />
-                          <div>
-                            <p className="text-sm font-medium">
-                              {favorite.experienceId.title}
-                            </p>
-                            <p className="text-sm text-gray-500">
-                              {favorite.experienceId.prefecture}
-                            </p>
-                          </div>
-                        </>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              </Box>
-            </Box>
-          </div>
-        );
-      case 4:
-        return (
-          <div>
-            <Typography variant="h6" sx={{ mb: 2 }}>
-              Revisa tu Itinerario
-            </Typography>
-            <Typography>
-              <strong>Nombre:</strong> {name}
-            </Typography>
-
-            <Typography variant="h6">
-              <strong>Notas:</strong>
-            </Typography>
-            {Array.isArray(notesArray) && notesArray.length > 0 ? (
-              notesArray.map((note, index) => (
-                <Typography
-                  key={index}
-                  sx={{
-                    textDecoration: note.completed ? "line-through" : "none",
-                  }}
-                >
-                  {note.text}
-                </Typography>
-              ))
-            ) : (
-              <Typography>No hay notas agregadas.</Typography>
-            )}
-
-            <Typography>
-              <strong>Fechas:</strong>{" "}
-              {dateRange[0].startDate.toLocaleDateString()} -{" "}
-              {dateRange[0].endDate.toLocaleDateString()}
-            </Typography>
-            <Typography>
-              <strong>Total Días:</strong> {travelDays}
-            </Typography>
-            <Typography>
-              <strong>Total Presupuesto:</strong> €{totalBudget}
-            </Typography>
-            <Box mt={2}>
-              <Typography variant="subtitle1" sx={{ mb: 2 }}>
-                Amigos Agregados:
-              </Typography>
-              {selectedFriends.length > 0 ? (
-                <ul>
-                  {selectedFriends.map((friend, index) => (
-                    <li key={index}>{friend.name}</li>
-                  ))}
-                </ul>
-              ) : (
-                <Typography>Ningún amigo agregado.</Typography>
-              )}
-            </Box>
-            <Box mt={2}>
-              {boards.map((board, index) => (
-                <Box key={index} mb={2}>
-                  <Typography variant="subtitle1">
-                    Día {index + 1}: {board.date}
-                  </Typography>
-                  <Typography>
-                    <strong>Presupuesto diario:</strong> €{board.dailyBudget}
-                  </Typography>
-                  <Typography variant="body2">Favoritos:</Typography>
-                  <ul>
-                    {board.favorites.map((favorite, favIndex) => (
-                      <li key={favIndex}>
-                        {favorite.experienceId.title} - €
-                        {favorite.experienceId.price}
-                      </li>
-                    ))}
-                  </ul>
-                </Box>
-              ))}
-            </Box>
-          </div>
-        );
-      default:
-        return <div>Unknown step</div>;
+    if (type === "BOARD") {
+      // Reorder boards
+      const [removed] = newBoards.splice(source.index, 1);
+      newBoards.splice(destination.index, 0, removed);
+    } else if (type === "FAVORITE") {
+      // Determine if dragging from drawer or from a board
+      if (
+        source.droppableId === "drawer" &&
+        destination.droppableId !== "drawer"
+      ) {
+        // Drag from drawer into a board
+        const destBoardIndex = parseInt(destination.droppableId);
+        const destBoard = { ...newBoards[destBoardIndex] };
+        // Remove from drawerFavorites
+        const [movedFavorite] = newDrawerFavorites.splice(source.index, 1);
+        // Insert into destination board favorites at destination index
+        const newFavs = Array.from(destBoard.favorites);
+        newFavs.splice(destination.index, 0, movedFavorite);
+        destBoard.favorites = newFavs;
+        newBoards[destBoardIndex] = destBoard;
+      } else if (
+        source.droppableId !== "drawer" &&
+        destination.droppableId === "drawer"
+      ) {
+        // Optional: dragging back from board to drawer
+        const sourceBoardIndex = parseInt(source.droppableId);
+        const sourceBoard = { ...newBoards[sourceBoardIndex] };
+        const [movedFavorite] = sourceBoard.favorites.splice(source.index, 1);
+        newDrawerFavorites.splice(destination.index, 0, movedFavorite);
+        newBoards[sourceBoardIndex] = sourceBoard;
+      } else if (
+        source.droppableId !== "drawer" &&
+        destination.droppableId !== "drawer"
+      ) {
+        // Moving between boards or within the same board
+        const sourceBoardIndex = parseInt(source.droppableId);
+        const destinationBoardIndex = parseInt(destination.droppableId);
+        const sourceBoard = { ...newBoards[sourceBoardIndex] };
+        const destinationBoard = { ...newBoards[destinationBoardIndex] };
+        const [movedFavorite] = sourceBoard.favorites.splice(source.index, 1);
+        destinationBoard.favorites.splice(destination.index, 0, movedFavorite);
+        newBoards[sourceBoardIndex] = sourceBoard;
+        newBoards[destinationBoardIndex] = destinationBoard;
+      }
     }
-  };
 
-  const handleNext = () => {
-    setActiveStep((prev) => prev + 1);
-  };
-
-  const handleBack = () => {
-    setActiveStep((prev) => prev - 1);
+    setBoards(newBoards);
+    setDrawerFavorites(newDrawerFavorites);
+    // Optionally update total budget and backend
+    updateTotalBudget(newBoards);
+    try {
+      await updateItinerary(id, { boards: newBoards }, jwt);
+    } catch (error) {
+      console.error("Error updating itinerary after drag", error);
+    }
   };
 
   return (
-    <div
-      className="create-itinerary container px-5 py-5 flex flex-col lg:flex-row "
-      style={{
-        alignItems: "center",
-        width: "100%",
-        justifyContent: "center",
-        alignContent: "center",
-      }}
+    <Box
+      sx={{ padding: "1rem", backgroundColor: "#f4f5f7", minHeight: "100vh" }}
     >
-      <Box>
-        <IconButton
-          onClick={() => navigate(-1)}
-          sx={{
-            padding: " 0.5rem 1rem",
-            borderRadius: "30rem",
-            color: theme.palette.primary.main,
-            border: `1px solid ${theme.palette.primary.main}`,
-            fontSize: "1rem",
-            "&:hover": {
-              backgroundColor: theme.palette.primary.light,
-              color: theme.palette.primary.main,
-            },
-          }}
-        >
-          <ArrowLeft size={16} />
-        </IconButton>
-        <Typography
-          variant="h4"
-          paddingTop={5}
-          sx={{
-            fontWeight: "bold",
-            textAlign: "center",
-            color: theme.palette.secondary.medium,
-            mb: 3,
-          }}
-        >
-          Crear Itinerario
-        </Typography>
-        {/* Stepper Indicator */}
-        <Stepper activeStep={activeStep} alternativeLabel sx={{ mb: 3 }}>
-          {steps.map((label) => (
-            <Step key={label}>
-              <StepLabel>{label}</StepLabel>
-            </Step>
-          ))}
-        </Stepper>
-        <form onSubmit={handleSubmit}>
-          {renderStepContent(activeStep)}
-          <Box mt={2} display="flex" width="100%" justifyContent="center">
-            {activeStep > 0 && (
-              <Button
-                onClick={handleBack}
-                variant="outlined"
-                sx={{ mr: 2, borderRadius: "30rem", textTransform: "none" }}
-              >
-                <ArrowLeft size={16} /> Volver
-              </Button>
-            )}
-            {activeStep < steps.length - 1 && (
-              <Button
-                onClick={handleNext}
-                variant="contained"
+      {/* Header Section */}
+      <Box
+        sx={{
+          backgroundColor: theme.palette.secondary.dark,
+          padding: "2rem",
+          borderRadius: "0 0 30px 30px",
+          color: "#fff",
+          mb: 3,
+        }}
+      >
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          {isEditingName ? (
+            <TextField
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              onBlur={handleSaveName}
+              autoFocus
+              variant="outlined"
+              size="small"
+              sx={{ backgroundColor: "#fff", borderRadius: 1 }}
+            />
+          ) : (
+            <Typography
+              variant="h5"
+              sx={{ fontWeight: "bold", cursor: "pointer" }}
+              onClick={() => setIsEditingName(true)}
+            >
+              {name}
+            </Typography>
+          )}
+          <IconButton onClick={handleSaveName} sx={{ color: "#fff" }}>
+            {isEditingName ? <Save size={16} /> : <Edit size={16} />}
+          </IconButton>
+        </Box>
+        <Box sx={{ display: "flex", gap: 2, mt: 2 }}>
+          <Chip
+            label={`${travelDays} Días`}
+            icon={<CalendarDays size={16} />}
+            sx={{
+              backgroundColor: "#fff",
+              color: theme.palette.secondary.dark,
+            }}
+          />
+          <Chip
+            label={`€${totalBudget}`}
+            icon={<Wallet size={16} />}
+            sx={{
+              backgroundColor: "#fff",
+              color: theme.palette.secondary.dark,
+            }}
+          />
+        </Box>
+      </Box>
+
+      {/* Drag and Drop Context */}
+      <DragDropContext onDragEnd={onDragEnd}>
+        <Box sx={{ display: "flex", gap: 2, overflowX: "auto", p: 1 }}>
+          {/* Favorites Drawer as a Droppable */}
+          <Droppable droppableId="drawer" type="FAVORITE">
+            {(providedDrawer) => (
+              <Box
+                ref={providedDrawer.innerRef}
+                {...providedDrawer.droppableProps}
                 sx={{
-                  borderRadius: "30rem",
-                  textTransform: "none",
-                  color: theme.palette.secondary.dark,
-                  background: theme.palette.secondary.lightBlue,
+                  minWidth: "250px",
+                  maxWidth: "250px",
+                  backgroundColor: "#fff",
+                  borderRadius: "8px",
+                  padding: "1rem",
+                  boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
+                  height: "fit-content",
                 }}
               >
-                Siguiente <ArrowRight size={16} />
-              </Button>
+                <Typography variant="h6" sx={{ mb: 1 }}>
+                  Favorites
+                </Typography>
+                {drawerFavorites.map((fav, index) => (
+                  <Draggable key={fav._id} draggableId={fav._id} index={index}>
+                    {(providedFav) => (
+                      <Paper
+                        ref={providedFav.innerRef}
+                        {...providedFav.draggableProps}
+                        {...providedFav.dragHandleProps}
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 1,
+                          mb: 1,
+                          p: 1,
+                          borderRadius: "8px",
+                          backgroundColor: "#ebecf0",
+                        }}
+                      >
+                        <img
+                          src={
+                            fav.experienceId?.photo
+                              ? stables.UPLOAD_FOLDER_BASE_URL +
+                                fav.experienceId.photo
+                              : images.sampleFavoriteImage
+                          }
+                          alt={fav.experienceId?.title}
+                          style={{
+                            width: 40,
+                            height: 40,
+                            borderRadius: 8,
+                            objectFit: "cover",
+                          }}
+                        />
+                        <Box>
+                          <Typography variant="body2" fontWeight="bold">
+                            {fav.experienceId?.title}
+                          </Typography>
+                          <Typography variant="caption" color="textSecondary">
+                            {fav.experienceId?.prefecture}
+                          </Typography>
+                        </Box>
+                      </Paper>
+                    )}
+                  </Draggable>
+                ))}
+                {providedDrawer.placeholder}
+              </Box>
             )}
-            {activeStep === steps.length - 1 && (
-              <Button
-                type="submit"
-                variant="contained"
-                sx={{ textTransform: "none", borderRadius: "30rem" }}
+          </Droppable>
+
+          {/* Boards Section */}
+          <Droppable droppableId="boards" type="BOARD" direction="horizontal">
+            {(providedBoards) => (
+              <Box
+                ref={providedBoards.innerRef}
+                {...providedBoards.droppableProps}
+                sx={{
+                  display: "flex",
+                  gap: 2,
+                  overflowX: "auto",
+                  p: 1,
+                  minHeight: "300px",
+                }}
               >
-                Crear
-              </Button>
+                {boards.map((board, boardIndex) => (
+                  <Draggable
+                    key={`board-${boardIndex}`}
+                    draggableId={`board-${boardIndex}`}
+                    index={boardIndex}
+                  >
+                    {(providedBoard) => (
+                      <Card
+                        ref={providedBoard.innerRef}
+                        {...providedBoard.draggableProps}
+                        {...providedBoard.dragHandleProps}
+                        sx={{
+                          minWidth: 300,
+                          maxWidth: 300,
+                          backgroundColor: "#ebecf0",
+                          borderRadius: "8px",
+                          p: 1,
+                          display: "flex",
+                          flexDirection: "column",
+                        }}
+                      >
+                        <CardContent>
+                          <Box
+                            sx={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                              mb: 1,
+                            }}
+                          >
+                            <Typography variant="h6">
+                              Day {boardIndex + 1}
+                            </Typography>
+                            <IconButton
+                              onClick={() => handleRemoveBoard(boardIndex)}
+                              size="small"
+                            >
+                              <Trash2 size={18} color="red" />
+                            </IconButton>
+                          </Box>
+                          <Typography variant="subtitle2" color="textSecondary">
+                            {board.date || "No date set"}
+                          </Typography>
+                          <Typography
+                            variant="subtitle2"
+                            color="textSecondary"
+                            mt={1}
+                          >
+                            Budget: €{board.dailyBudget}
+                          </Typography>
+                          <Droppable
+                            droppableId={`${boardIndex}`}
+                            type="FAVORITE"
+                          >
+                            {(providedFav) => (
+                              <Box
+                                ref={providedFav.innerRef}
+                                {...providedFav.droppableProps}
+                                sx={{ mt: 2, minHeight: "150px", flexGrow: 1 }}
+                              >
+                                {board.favorites.map((fav, favIndex) => (
+                                  <Draggable
+                                    key={`${boardIndex}-${favIndex}`}
+                                    draggableId={`${boardIndex}-${favIndex}`}
+                                    index={favIndex}
+                                  >
+                                    {(providedItem) => (
+                                      <Paper
+                                        ref={providedItem.innerRef}
+                                        {...providedItem.draggableProps}
+                                        {...providedItem.dragHandleProps}
+                                        sx={{
+                                          display: "flex",
+                                          alignItems: "center",
+                                          gap: 1,
+                                          p: 1,
+                                          mb: 1,
+                                          borderRadius: "8px",
+                                          backgroundColor: "#fff",
+                                        }}
+                                      >
+                                        <Typography variant="body2">
+                                          {fav.experienceId?.title}
+                                        </Typography>
+                                        <IconButton
+                                          onClick={() =>
+                                            handleRemoveFavorite(
+                                              boardIndex,
+                                              favIndex
+                                            )
+                                          }
+                                          sx={{ ml: "auto" }}
+                                        >
+                                          <Trash2 size={14} color="red" />
+                                        </IconButton>
+                                      </Paper>
+                                    )}
+                                  </Draggable>
+                                ))}
+                                {providedFav.placeholder}
+                              </Box>
+                            )}
+                          </Droppable>
+                        </CardContent>
+                      </Card>
+                    )}
+                  </Draggable>
+                ))}
+                {providedBoards.placeholder}
+                <Card
+                  sx={{
+                    minWidth: 300,
+                    maxWidth: 300,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    cursor: "pointer",
+                  }}
+                  onClick={handleAddBoard}
+                >
+                  <CardContent>
+                    <IconButton>
+                      <Plus size={24} />
+                    </IconButton>
+                  </CardContent>
+                </Card>
+              </Box>
             )}
-          </Box>
-        </form>
+          </Droppable>
+        </Box>
+      </DragDropContext>
+
+      {/* Submit Button */}
+      <Box sx={{ mt: 3, textAlign: "center" }}>
+        <Button
+          variant="contained"
+          color="success"
+          onClick={async () => {
+            try {
+              const response = await updateItinerary(id, { boards }, jwt);
+              navigate(`/user/itineraries/manage/view/${response._id}`);
+            } catch (error) {
+              console.error("Error updating itinerary", error);
+            }
+          }}
+        >
+          Update Itinerary
+        </Button>
       </Box>
-    </div>
+
+      {/* Favorites Drawer (Persistent) */}
+      <Drawer
+        variant="persistent"
+        anchor="left"
+        open={isDrawerOpen}
+        sx={{
+          width: drawerWidth,
+          flexShrink: 0,
+          "& .MuiDrawer-paper": {
+            width: drawerWidth,
+            boxSizing: "border-box",
+          },
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            p: 2,
+            backgroundColor: "#fff",
+            boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
+          }}
+        >
+          <Typography variant="h6" fontWeight="bold">
+            Favorites
+          </Typography>
+          <IconButton onClick={toggleDrawer}>
+            <ChevronLeft size={20} />
+          </IconButton>
+        </Box>
+        {/* Filters (unchanged) */}
+        <Box sx={{ p: 2 }}>
+          <Typography variant="subtitle2" color="textSecondary">
+            Category:
+          </Typography>
+          <Select
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            fullWidth
+            size="small"
+            sx={{ mb: 2 }}
+          >
+            <MenuItem value="All">All</MenuItem>
+            {categoriesEnum.map((category) => (
+              <MenuItem key={category} value={category}>
+                {category}
+              </MenuItem>
+            ))}
+          </Select>
+          <Typography variant="subtitle2" color="textSecondary">
+            Region:
+          </Typography>
+          <Select
+            value={selectedRegion}
+            onChange={(e) => setSelectedRegion(e.target.value)}
+            fullWidth
+            size="small"
+            sx={{ mb: 2 }}
+          >
+            <MenuItem value="All">All</MenuItem>
+            {Object.keys(regions).map((region) => (
+              <MenuItem key={region} value={region}>
+                {region}
+              </MenuItem>
+            ))}
+          </Select>
+          <Typography variant="subtitle2" color="textSecondary">
+            Prefecture:
+          </Typography>
+          <Select
+            value={selectedPrefecture}
+            onChange={(e) => setSelectedPrefecture(e.target.value)}
+            fullWidth
+            size="small"
+            sx={{ mb: 2 }}
+            disabled={selectedRegion === "All"}
+          >
+            <MenuItem value="All">All</MenuItem>
+            {selectedRegion !== "All" &&
+              regions[selectedRegion].map((prefecture) => (
+                <MenuItem key={prefecture} value={prefecture}>
+                  {prefecture}
+                </MenuItem>
+              ))}
+          </Select>
+          <IconButton
+            onClick={handleClearFilters}
+            sx={{ alignSelf: "flex-end", mb: 2, color: "gray" }}
+          >
+            <XCircle size={20} />
+          </IconButton>
+        </Box>
+
+        {/* Favorites Drawer List as a Droppable */}
+        <Droppable droppableId="drawer" type="FAVORITE">
+          {(providedDrawer) => (
+            <Box
+              ref={providedDrawer.innerRef}
+              {...providedDrawer.droppableProps}
+              sx={{
+                overflowY: "auto",
+                flex: 1,
+                p: 2,
+              }}
+            >
+              {drawerFavorites.map((fav, index) => (
+                <Draggable key={fav._id} draggableId={fav._id} index={index}>
+                  {(providedFav) => (
+                    <Paper
+                      ref={providedFav.innerRef}
+                      {...providedFav.draggableProps}
+                      {...providedFav.dragHandleProps}
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1,
+                        mb: 2,
+                        p: 1,
+                        borderRadius: "8px",
+                        boxShadow: 1,
+                        backgroundColor: "#fff",
+                        cursor: "grab",
+                        "&:hover": { boxShadow: 3 },
+                      }}
+                    >
+                      <img
+                        src={
+                          fav.experienceId?.photo
+                            ? stables.UPLOAD_FOLDER_BASE_URL +
+                              fav.experienceId.photo
+                            : images.sampleFavoriteImage
+                        }
+                        alt={fav.experienceId?.title}
+                        style={{
+                          width: 40,
+                          height: 40,
+                          borderRadius: 8,
+                          objectFit: "cover",
+                        }}
+                      />
+                      <Box>
+                        <Typography variant="body2" fontWeight="bold">
+                          {fav.experienceId?.title}
+                        </Typography>
+                        <Typography variant="caption" color="textSecondary">
+                          {fav.experienceId?.prefecture}
+                        </Typography>
+                      </Box>
+                    </Paper>
+                  )}
+                </Draggable>
+              ))}
+              {providedDrawer.placeholder}
+            </Box>
+          )}
+        </Droppable>
+      </Drawer>
+
+      {!isDrawerOpen && (
+        <IconButton
+          onClick={toggleDrawer}
+          sx={{
+            position: "fixed",
+            left: 0,
+            top: "50%",
+            transform: "translateY(-50%)",
+            backgroundColor: "#fff",
+            boxShadow: "0 2px 10px rgba(0,0,0,0.2)",
+          }}
+        >
+          <ChevronRight size={20} />
+        </IconButton>
+      )}
+    </Box>
   );
 };
 
-export default CreateItinerary;
+export default ItineraryDetailPage;

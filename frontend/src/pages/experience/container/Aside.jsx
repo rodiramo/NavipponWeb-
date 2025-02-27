@@ -683,31 +683,16 @@ const Aside = ({ onFilterChange, selectedFilter }) => {
       {/* Buttons */}
       <div className="flex justify-between mt-6">
         <button
-          onClick={applyFilters}
-          className="px-4 py-2 text-white font-semibold rounded-lg transition-all duration-300"
-          style={{
-            backgroundColor: theme.palette.primary.main,
-            border: `2px solid ${theme.palette.primary.main}`,
-          }}
-          onMouseEnter={(e) =>
-            (e.target.style.backgroundColor = theme.palette.primary.dark)
-          }
-          onMouseLeave={(e) =>
-            (e.target.style.backgroundColor = theme.palette.primary.main)
-          }
-        >
-          Aplicar Filtros
-        </button>
-        <button
           onClick={clearFilters}
           className="px-4 py-2 font-semibold rounded-lg transition-all duration-300"
           style={{
-            border: `2px solid ${theme.palette.primary.main}`,
-            color: theme.palette.primary.main,
+            borderRadius: "30rem",
+
+            padding: "0.5rem",
           }}
           onMouseEnter={(e) => {
-            e.target.style.backgroundColor = theme.palette.primary.main;
-            e.target.style.color = theme.palette.primary.white;
+            e.target.style.backgroundColor = theme.palette.primary.light;
+            e.target.style.color = theme.palette.secondary.dark;
           }}
           onMouseLeave={(e) => {
             e.target.style.backgroundColor = "transparent";
@@ -715,6 +700,23 @@ const Aside = ({ onFilterChange, selectedFilter }) => {
           }}
         >
           Borrar Filtros
+        </button>{" "}
+        <button
+          onClick={applyFilters}
+          className=" text-white transition-all duration-300"
+          style={{
+            backgroundColor: theme.palette.secondary.medium,
+            borderRadius: "30rem",
+            padding: "0.5rem",
+          }}
+          onMouseEnter={(e) =>
+            (e.target.style.backgroundColor = theme.palette.secondary.dark)
+          }
+          onMouseLeave={(e) =>
+            (e.target.style.backgroundColor = theme.palette.secondary.medium)
+          }
+        >
+          Aplicar Filtros
         </button>
       </div>
     </aside>

@@ -46,6 +46,11 @@ const RegionPrefectureSelect = ({
 }) => {
   const theme = useTheme();
 
+  // Region options from our predefined regions object
+  const regionOptions = Object.keys(regions);
+  // Ensure prefectureOptions is always an array—even if the region doesn't match a key.
+  const prefectureOptions = region && regions[region] ? regions[region] : [];
+
   return (
     <Box
       sx={{
@@ -68,7 +73,7 @@ const RegionPrefectureSelect = ({
       >
         Región y Prefectura
       </Typography>
-      {/* Región Selector */}{" "}
+      {/* Región Selector */}
       <Typography
         variant="subtitle1"
         sx={{
@@ -80,11 +85,11 @@ const RegionPrefectureSelect = ({
         Región
       </Typography>
       <Autocomplete
-        options={Object.keys(regions)}
-        value={region || null}
+        options={regionOptions}
+        value={region}
         onChange={(event, newValue) => {
           setRegion(newValue);
-          setPrefecture(""); // Reset prefecture when changing region
+          setPrefecture(""); // Reset prefecture when region changes
         }}
         renderInput={(params) => (
           <TextField
@@ -110,11 +115,16 @@ const RegionPrefectureSelect = ({
             borderRadius: "12px",
             boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
           },
-          "& .MuiAutocomplete-option": { borderRadius: "8px", padding: "10px" },
-          "& .MuiAutocomplete-option:hover": { backgroundColor: "#E9D5FF" },
+          "& .MuiAutocomplete-option": {
+            borderRadius: "8px",
+            padding: "10px",
+          },
+          "& .MuiAutocomplete-option:hover": {
+            backgroundColor: "#E9D5FF",
+          },
         }}
       />
-      {/* Prefectura Selector */}{" "}
+      {/* Prefectura Selector */}
       <Typography
         variant="subtitle1"
         sx={{
@@ -126,8 +136,8 @@ const RegionPrefectureSelect = ({
         Prefectura
       </Typography>
       <Autocomplete
-        options={region ? regions[region] : []}
-        value={prefecture || null}
+        options={prefectureOptions}
+        value={prefecture}
         onChange={(event, newValue) => setPrefecture(newValue)}
         disabled={!region}
         renderInput={(params) => (
@@ -154,8 +164,13 @@ const RegionPrefectureSelect = ({
             borderRadius: "12px",
             boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
           },
-          "& .MuiAutocomplete-option": { borderRadius: "8px", padding: "10px" },
-          "& .MuiAutocomplete-option:hover": { backgroundColor: "#E9D5FF" },
+          "& .MuiAutocomplete-option": {
+            borderRadius: "8px",
+            padding: "10px",
+          },
+          "& .MuiAutocomplete-option:hover": {
+            backgroundColor: "#E9D5FF",
+          },
         }}
       />
     </Box>

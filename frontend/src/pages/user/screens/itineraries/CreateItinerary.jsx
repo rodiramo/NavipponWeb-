@@ -5,6 +5,11 @@ import { getUserFriends } from "../../../../services/index/users"; // Import you
 import { createItinerary } from "../../../../services/index/itinerary";
 import useUser from "../../../../hooks/useUser";
 import { toast } from "react-hot-toast";
+import {
+  extractPlaceId,
+  getPlaceDetails,
+} from "../../../../services/index/map";
+
 import BreadcrumbBack from "../../../../components/BreadcrumbBack";
 import { ArrowRight, ArrowLeft } from "lucide-react";
 import { stables, images } from "../../../../constants";
@@ -89,7 +94,7 @@ const CreateItinerary = () => {
 
   // Multi-step state: steps: 0 = Detalles, 1 = Fechas y Boards, 2 = Amigos, 3 = Favorites, 4 = Revisión
   const [activeStep, setActiveStep] = useState(0);
-  const steps = ["Detalles", "Fechas y Boards", "Amigos", "Revisión"];
+  const steps = ["Detalles", "Fechas", "Viajeros", "Revisión"];
 
   const [dateRange, setDateRange] = useState([
     {

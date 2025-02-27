@@ -32,44 +32,8 @@ import HotelTags from "./tags/HotelTags";
 import RestaurantTags from "./tags/RestaurantTags";
 import AtractionTags from "./tags/AtractionTags";
 import GeneralTags from "./tags/GeneralTags";
-
-const categoriesEnum = ["Hoteles", "Atractivos", "Restaurantes"];
-
-const regions = {
-  Hokkaido: ["Hokkaido"],
-  Tohoku: ["Aomori", "Iwate", "Miyagi", "Akita", "Yamagata", "Fukushima"],
-  Kanto: [
-    "Tokio",
-    "Kanagawa",
-    "Chiba",
-    "Saitama",
-    "Ibaraki",
-    "Tochigi",
-    "Gunma",
-  ],
-  Chubu: [
-    "Aichi",
-    "Shizuoka",
-    "Gifu",
-    "Nagano",
-    "Niigata",
-    "Toyama",
-    "Ishikawa",
-    "Fukui",
-  ],
-  Kansai: ["Osaka", "Kyoto", "Hyogo", "Nara", "Wakayama", "Shiga", "Mie"],
-  Chugoku: ["Hiroshima", "Okayama", "Shimane", "Tottori", "Yamaguchi"],
-  Shikoku: ["Ehime", "Kagawa", "Kochi", "Tokushima"],
-  Kyushu: [
-    "Fukuoka",
-    "Nagasaki",
-    "Kumamoto",
-    "Oita",
-    "Miyazaki",
-    "Kagoshima",
-    "Saga",
-  ],
-};
+// Import the service function
+import { fetchPlaceDetails } from "../../../../services/index/map";
 
 const ExperienceForm = () => {
   const theme = useTheme();
@@ -88,7 +52,22 @@ const ExperienceForm = () => {
     type: "Point",
     coordinates: [],
   });
-
+  const googleToCustomMapping = {
+    Tokyo: { region: "Kanto", prefecture: "Tokyo" },
+    Yokohama: { region: "Kanto", prefecture: "Kanagawa" },
+    Osaka: { region: "Kansai", prefecture: "Osaka" },
+    Kyoto: { region: "Kansai", prefecture: "Kyoto" },
+    Kobe: { region: "Kansai", prefecture: "Hyogo" },
+    Nagoya: { region: "Chubu", prefecture: "Aichi" },
+    Sapporo: { region: "Hokkaido", prefecture: "Hokkaido" },
+    Sendai: { region: "Tohoku", prefecture: "Miyagi" },
+    Hiroshima: { region: "Chugoku", prefecture: "Hiroshima" },
+    Fukuoka: { region: "Kyushu", prefecture: "Fukuoka" },
+    Kumamoto: { region: "Kyushu", prefecture: "Kumamoto" },
+    Kitakyushu: { region: "Kyushu", prefecture: "Fukuoka" },
+    Chiba: { region: "Kanto", prefecture: "Chiba" },
+    // Add any additional mappings as needed...
+  };
   const [experienceSlug, setExperienceSlug] = useState("");
   const [caption, setCaption] = useState("");
   const [approved, setApproved] = useState(false);
@@ -101,14 +80,15 @@ const ExperienceForm = () => {
   const [schedule, setSchedule] = useState("");
   const [map, setMap] = useState("");
   const [address, setAddress] = useState("");
+
+  // Extract coordinates from the map URL
   const extractCoordinates = (mapUrl) => {
     const regex = /@(-?\d+\.\d+),(-?\d+\.\d+)/;
     const match = mapUrl.match(regex);
-
     if (match) {
-      return [parseFloat(match[2]), parseFloat(match[1])]; // GeoJSON format [longitude, latitude]
+      // GeoJSON expects [longitude, latitude]
+      return [parseFloat(match[2]), parseFloat(match[1])];
     }
-
     return null;
   };
 
@@ -227,6 +207,36 @@ const ExperienceForm = () => {
 
   let isExperienceDataLoaded = !isLoading && !isError;
 
+  const handleMapBlur = async (e) => {
+    const url = e.target.value;
+    const coordinates = extractCoordinates(url);
+    if (coordinates) {
+      setLocation({ type: "Point", coordinates });
+      console.log("📍 Coordinates extracted:", coordinates);
+      // Call the map service function to fetch place details
+      const placeDetails = await fetchPlaceDetails(coordinates);
+      if (placeDetails) {
+        setTitle(placeDetails.name);
+        setAddress(placeDetails.formatted_address);
+        setPhone(placeDetails.formatted_phone_number || "");
+        setWebsite(placeDetails.website || "");
+        setPrice(placeDetails.price !== null ? placeDetails.price : 0);
+
+        // Remap region if necessary
+        const mapping = googleToCustomMapping[placeDetails.region];
+        if (mapping) {
+          setRegion(mapping.region);
+          setPrefecture(mapping.prefecture);
+        } else {
+          // Fallback: use the values from the API if no mapping exists
+          setRegion(placeDetails.region);
+          setPrefecture(placeDetails.prefecture);
+        }
+        // Optionally, if you want to handle the city:
+        // setCity(placeDetails.city);
+      }
+    }
+  };
   const handleCreateExperience = async () => {
     if (!title || !caption || !categories || !region) {
       return toast.error("Todos los campos son obligatorios");
@@ -387,14 +397,13 @@ const ExperienceForm = () => {
                 <Typography>Subir Imagen</Typography>
               </Box>
             )}
-          </label>
+          </label>{" "}
           <input
             type="file"
             className="sr-only"
             id="experiencePicture"
             onChange={handleFileChange}
           />
-
           {/* 🛑 Only show delete button if there's an image */}
           {(photo || initialPhoto) && (
             <button
@@ -410,7 +419,32 @@ const ExperienceForm = () => {
               Borrar imagen
             </button>
           )}
-        </Box>
+        </Box>{" "}
+        {/* Google Maps URL */}
+        <div className="d-form-control w-full">
+          <Typography
+            variant="subtitle1"
+            sx={{ fontWeight: "bold", color: theme.palette.text.primary }}
+          >
+            Link de Google Maps
+          </Typography>
+          <TextField
+            value={map}
+            placeholder="Ingrese el URL de Google Maps"
+            onChange={(e) => setMap(e.target.value)}
+            onBlur={handleMapBlur}
+            fullWidth
+            required
+            sx={{
+              bgcolor: "white",
+              borderRadius: "10px",
+              "& .MuiInputBase-root": {
+                borderRadius: "10px",
+                border: `1.5px solid ${theme.palette.secondary.light}`,
+              },
+            }}
+          />
+        </div>{" "}
         <div className="d-form-control w-full" style={{ marginTop: "0.5rem" }}>
           <Typography
             variant="subtitle1"
@@ -627,42 +661,6 @@ const ExperienceForm = () => {
                     setWebsite(value);
                   }
                 }}
-                sx={{
-                  bgcolor: "white",
-                  borderRadius: "10px",
-                  "& .MuiInputBase-root": {
-                    borderRadius: "10px",
-                    border: `1.5px solid ${theme.palette.secondary.light}`,
-                  },
-                }}
-              />
-            </div>
-
-            {/* Google Maps URL */}
-            <div className="d-form-control w-full">
-              <Typography
-                variant="subtitle1"
-                sx={{ fontWeight: "bold", color: theme.palette.text.primary }}
-              >
-                Link de Google Maps
-              </Typography>
-              <TextField
-                value={map}
-                placeholder="Ingrese el URL de Google Maps"
-                onChange={(e) => setMap(e.target.value)}
-                onBlur={(e) => {
-                  const url = e.target.value;
-                  const coordinates = extractCoordinates(url);
-                  if (coordinates) {
-                    setLocation({
-                      type: "Point",
-                      coordinates: coordinates,
-                    });
-                    console.log("📍 Coordenadas extraídas:", coordinates);
-                  }
-                }}
-                fullWidth
-                required
                 sx={{
                   bgcolor: "white",
                   borderRadius: "10px",

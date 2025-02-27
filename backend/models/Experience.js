@@ -5,6 +5,7 @@ const regions = {
   Hokkaido: ["Hokkaido"],
   Tohoku: ["Aomori", "Iwate", "Miyagi", "Akita", "Yamagata", "Fukushima"],
   Kanto: [
+    "Tokyo",
     "Tokio",
     "Kanagawa",
     "Chiba",

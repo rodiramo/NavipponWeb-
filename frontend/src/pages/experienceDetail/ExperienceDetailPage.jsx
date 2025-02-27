@@ -61,14 +61,35 @@ const ExperienceDetailPage = () => {
     queryFn: () => getSingleExperience({ slug }),
     queryKey: ["experience", slug],
     onSuccess: async (data) => {
-      setBody(parseJsonToHtml(data?.body));
-      setIsMapReady(true); // ✅ Enable map after data loads
+      // Debugging: Check what the API returns
+      console.log("Raw API Response:", data);
+
+      // Ensure `body` is correctly formatted before parsing
+      if (data?.body) {
+        try {
+          // If `body` is a string, parse it into an object
+          const parsedBody =
+            typeof data.body === "string" ? JSON.parse(data.body) : data.body;
+
+          console.log("Parsed Body for HTML:", parsedBody); // Debugging output
+          setBody(parseJsonToHtml(parsedBody));
+        } catch (error) {
+          console.error("Error parsing JSON body:", error);
+          setBody(null); // Prevent crashes by setting a fallback
+        }
+      } else {
+        console.warn("No body content available.");
+        setBody(null);
+      }
+
+      setIsMapReady(true); // Enable map after data loads
 
       if (user && jwt) {
         const favorites = await getUserFavorites({
           userId: user._id,
           token: jwt,
         });
+
         const isFav = favorites.some(
           (fav) => fav.experienceId && fav.experienceId._id === data._id
         );

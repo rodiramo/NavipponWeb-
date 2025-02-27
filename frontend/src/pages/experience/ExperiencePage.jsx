@@ -11,6 +11,8 @@ import Pagination from "../../components/Pagination";
 import { Typography, Button, useTheme, Box } from "@mui/material";
 import { useSearchParams } from "react-router-dom";
 import Search from "../../components/Search";
+import MapAside from "../../components/MapAside";
+
 import useUser from "../../hooks/useUser";
 import Aside from "./container/Aside";
 import { ArrowDownNarrowWide } from "lucide-react";
@@ -155,36 +157,36 @@ const ExperiencePage = ({ filters: initialFilters }) => {
   return (
     <MainLayout>
       <Hero />
-      <section className="flex flex-col container mx-auto">
+
+      <section className="container mx-auto flex flex-col">
         {/* ✅ Search Bar */}
-        <div className="flex justify-center mb-10">
+        <div className="flex justify-center mb-6">
           <Search className="w-full max-w-xl" onSearchKeyword={handleSearch} />
         </div>
 
-        <div className="flex flex-row gap-5">
-          {/* Sidebar Filters */}
-          <div className="w-full md:w-1/4">
+        {/* ✅ Responsive Grid Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+          {/* ✅ Filters (Take 1/5 width on large screens) */}
+          <aside className="lg:col-span-1 w-full">
             <Aside
               onFilterChange={handleFilterChange}
               selectedFilter={selectedFilter}
             />
-          </div>
+          </aside>
 
-          {/* Experiences List */}
-          <div
-            className="w-full md:w-3/4"
-            style={{
-              display: "flex",
-              alignItems: "flex-start",
-              flexDirection: "column",
-              justifyContent: "flex-start",
-            }}
-          >
-            {" "}
-            <div>
-              {/* ✅ Filter Buttons */}
+          {/* ✅ Experience List (Take 3/5 width on large screens) */}
+          <main className="lg:col-span-3 flex flex-col">
+            {/* 🔹 Filter Tabs */}
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignContent: "center",
+                alignItems: "center",
+              }}
+            >
+              {" "}
               <Box sx={{ display: "flex", justifyContent: "center", mb: 4 }}>
-                {/* ✅ Search Results Tab */}
                 {searchKeyword && (
                   <Button
                     variant={
@@ -201,19 +203,20 @@ const ExperiencePage = ({ filters: initialFilters }) => {
                           ? primary.contrastText
                           : primary.main,
                       border: `1px solid ${primary.main}`,
-                      borderRadius: "30px 30px 30px 30px",
+                      borderRadius: "30px",
                       marginRight: "10px",
                     }}
                   >
                     Resultados
                   </Button>
-                )}{" "}
+                )}
+
                 <Button
-                  variant="contained"
+                  variant={selectedFilter === "todo" ? "contained" : "outlined"}
                   onClick={() => handleFilterSelection("todo")}
                   sx={{
                     backgroundColor:
-                      selectedFilter === "todo" ? primary.main : primary.light, // ✅ Main if active, Light if not
+                      selectedFilter === "todo" ? primary.main : primary.light,
                     color:
                       selectedFilter === "todo"
                         ? primary.contrastText
@@ -221,24 +224,22 @@ const ExperiencePage = ({ filters: initialFilters }) => {
                     border: `1px solid ${primary.main}`,
                     borderRadius: "30px 0px 0px 30px",
                     textTransform: "none",
-                    "&:hover": {
-                      backgroundColor: primary.main, // ✅ Maintain primary color on hover
-                      opacity: 0.9, // Slight opacity change for effect
-                    },
                   }}
-                  className="py-2 px-4"
                 >
                   Todo el contenido
                 </Button>
+
                 <Button
-                  variant="contained"
+                  variant={
+                    selectedFilter === "Atractivos" ? "contained" : "outlined"
+                  }
                   onClick={() => handleFilterSelection("Atractivos")}
                   sx={{
                     border: `1px solid ${primary.main}`,
                     backgroundColor:
                       selectedFilter === "Atractivos"
                         ? primary.main
-                        : primary.light, // ✅ Main if active, Light if not
+                        : primary.light,
                     color:
                       selectedFilter === "Atractivos"
                         ? primary.contrastText
@@ -246,51 +247,55 @@ const ExperiencePage = ({ filters: initialFilters }) => {
                     borderRadius: 0,
                     textTransform: "none",
                   }}
-                  className="py-2 px-4 hover:bg-opacity-90"
                 >
                   Atractivos
                 </Button>
+
                 <Button
-                  variant="contained"
+                  variant={
+                    selectedFilter === "Hoteles" ? "contained" : "outlined"
+                  }
                   onClick={() => handleFilterSelection("Hoteles")}
                   sx={{
+                    border: `1px solid ${primary.main}`,
                     backgroundColor:
                       selectedFilter === "Hoteles"
                         ? primary.main
-                        : primary.light, // ✅ Main if active, Light if not
+                        : primary.light,
                     color:
                       selectedFilter === "Hoteles"
                         ? primary.contrastText
                         : primary.main,
-                    textTransform: "none",
-                    border: `1px solid ${primary.main}`,
                     borderRadius: 0,
+                    textTransform: "none",
                   }}
-                  className="py-2 px-4 hover:bg-opacity-90"
                 >
                   Hoteles
                 </Button>
+
                 <Button
-                  variant="contained"
+                  variant={
+                    selectedFilter === "Restaurantes" ? "contained" : "outlined"
+                  }
                   onClick={() => handleFilterSelection("Restaurantes")}
                   sx={{
                     border: `1px solid ${primary.main}`,
-                    borderRadius: "0px 30px 30px 0px",
                     backgroundColor:
                       selectedFilter === "Restaurantes"
                         ? primary.main
-                        : primary.light, // ✅ Main if active, Light if not
+                        : primary.light,
                     color:
                       selectedFilter === "Restaurantes"
                         ? primary.contrastText
                         : primary.main,
+                    borderRadius: "0px 30px 30px 0px",
                     textTransform: "none",
                   }}
-                  className="py-2 px-4 hover:bg-opacity-90"
                 >
                   Restaurantes
                 </Button>
               </Box>
+              {/* 🔹 Sorting Options */}
               <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
                 <IconButton
                   onClick={handleSortClick}
@@ -316,44 +321,32 @@ const ExperiencePage = ({ filters: initialFilters }) => {
                   ))}
                 </Menu>
               </Box>
-            </div>
-            <div className="flex flex-col gap-y-5 pb-10">
+            </Box>
+            {/* 🔹 Experience Cards */}
+            <div className="flex flex-col pb-10 gap-5">
               {isLoading || isFetching ? (
-                [...Array(3)].map((item, index) => (
+                [...Array(3)].map((_, index) => (
                   <ExperienceCardSkeleton key={index} className="w-full" />
                 ))
               ) : isError ? (
                 <ErrorMessage message="No se pudieron obtener los datos de las experiencias." />
               ) : data?.data.length === 0 ? (
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    minHeight: "50vh",
-                  }}
-                >
+                <div className="flex flex-col items-center min-h-[50vh]">
                   <img
                     src="/assets/no-results.png"
                     alt="No results"
-                    style={{ maxWidth: "300px", marginBottom: "1rem" }}
+                    className="w-72 mb-4"
                   />
                   <Typography
                     variant="h5"
                     color={theme.palette.primary.main}
-                    style={{ fontWeight: "bold" }}
-                    gutterBottom
+                    className="font-bold"
                   >
                     No se encontraron resultados.
                   </Typography>
                   <Typography
                     variant="body1"
-                    style={{
-                      color: theme.palette.secondary.main,
-                      marginBottom: "1rem",
-                      textAlign: "center",
-                    }}
+                    className="text-center text-secondary mb-4"
                   >
                     Intenta buscar nuevamente con otros parámetros.
                   </Typography>
@@ -371,7 +364,8 @@ const ExperiencePage = ({ filters: initialFilters }) => {
                 ))
               )}
             </div>
-            {/* Pagination */}
+
+            {/* 🔹 Pagination */}
             {!isLoading && (
               <Pagination
                 onPageChange={(page) => handlePageChange(page)}
@@ -379,8 +373,18 @@ const ExperiencePage = ({ filters: initialFilters }) => {
                 totalPageCount={isNaN(totalPageCount) ? 0 : totalPageCount}
               />
             )}
-          </div>
+          </main>
+
+          {/* ✅ Map (Take 1/5 width on large screens, full width below on mobile) */}
+          <aside className="lg:col-span-1 w-full lg:block hidden">
+            <MapAside experiences={data?.data || []} />
+          </aside>
         </div>
+
+        {/* 📌 Map goes full-width on mobile */}
+        <aside className="lg:hidden block w-full mt-6">
+          <MapAside experiences={data?.data || []} />
+        </aside>
       </section>
     </MainLayout>
   );
