@@ -6,8 +6,10 @@ import {
   Select,
   MenuItem,
   FormControl,
+  Box,
   InputLabel,
 } from "@mui/material";
+import { ArrowDownWideNarrow } from "lucide-react";
 import PropTypes from "prop-types";
 import Review from "./Review";
 import ReviewForm from "./ReviewForm";
@@ -188,52 +190,70 @@ const ReviewsContainer = ({
           loading={isLoadingNewReview}
         />
       )}
-      <div
-        style={{
-          display: "flex",
-          alignContent: "flex-end",
-          justifyContent: "space-between",
-          margin: "2rem 0rem",
-        }}
-      >
-        <div>
-          <Typography
-            variant="p"
-            gutterBottom
-            style={{
-              color: theme.palette.secondary.main,
-            }}
-          >
-            Promedio de Calificación
-          </Typography>
-          <div
-            style={{
-              color: theme.palette.primary.main,
-            }}
-          >
-            <Typography variant="h2">{averageRating.toFixed(1)} / 5</Typography>{" "}
-            <StarIcon rating={averageRating} size={30} /> {/* Display stars */}
-          </div>
-        </div>
-        <FormControl>
-          <InputLabel>Ordenar por</InputLabel>
-          <Select
-            value={sortOption}
-            onChange={(e) => setSortOption(e.target.value)}
-            label="Ordenar por"
-            style={{
-              minWidth: 160,
-              borderRadius: "30rem",
-              backgroundColor: theme.palette.primary.white,
-            }}
-          >
-            <MenuItem value="fecha-reciente">Fecha Reciente</MenuItem>
-            <MenuItem value="fecha-antigua">Fecha más Antigua</MenuItem>
-            <MenuItem value="best-rating">Mejores Calificaciones</MenuItem>
-            <MenuItem value="worst-rating">Peores Calificaciones</MenuItem>
-          </Select>
-        </FormControl>
-      </div>{" "}
+      {sortedReviews.length > 0 && (
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "flex-end",
+            justifyContent: "space-between",
+            mb: 3,
+          }}
+        >
+          <Box>
+            <Typography
+              variant="body1"
+              gutterBottom
+              sx={{ color: theme.palette.secondary.medium }}
+            >
+              Promedio de Calificación
+            </Typography>
+            <Box
+              sx={{
+                color: theme.palette.primary.main,
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              <Typography variant="h2">
+                {averageRating.toFixed(1)} / 5
+              </Typography>
+              <StarIcon rating={averageRating} size={30} />
+            </Box>
+          </Box>
+          <FormControl sx={{ minWidth: 160 }}>
+            <InputLabel>
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  width: "100%",
+                }}
+              >
+                Ordenar
+                <ArrowDownWideNarrow />
+              </Box>
+            </InputLabel>
+            <Select
+              value={sortOption}
+              onChange={(e) => setSortOption(e.target.value)}
+              label="Ordenar"
+              sx={{
+                borderRadius: "30rem",
+                backgroundColor: theme.palette.primary.white,
+              }}
+            >
+              <MenuItem value="">
+                <em>Selecciona una opción</em>
+              </MenuItem>
+              <MenuItem value="fecha-reciente">Fecha Reciente</MenuItem>
+              <MenuItem value="fecha-antigua">Fecha más Antigua</MenuItem>
+              <MenuItem value="best-rating">Mejores Calificaciones</MenuItem>
+              <MenuItem value="worst-rating">Peores Calificaciones</MenuItem>
+            </Select>
+          </FormControl>
+        </Box>
+      )}
       {/* Reviews List */}
       <div
         className="space-y-4 mt-8"
@@ -242,6 +262,8 @@ const ReviewsContainer = ({
           flexDirection: "column",
           alignContent: "center",
           alignItems: "center",
+          marginBottom: "60px",
+          marginTop: "20px",
         }}
       >
         {sortedReviews.length > 0 ? (
@@ -260,16 +282,43 @@ const ReviewsContainer = ({
             />
           ))
         ) : (
-          <Typography
-            variant="h6"
-            style={{
-              textAlign: "center",
-              marginTop: "20px",
-              color: theme.palette.secondary.main,
-            }}
+          <Box
+            display="flex"
+            flexDirection="column"
+            justifyContent="center"
+            alignContent="center"
+            alignItems="center"
           >
-            No hay reseñas aún. ¡Sé el primero en escribir una!
-          </Typography>
+            {" "}
+            <img
+              src="/assets/nothing-here.png"
+              alt="nothing-here"
+              style={{ width: "35%", marginRight: "1rem" }}
+            ></img>
+            <Typography
+              variant="h6"
+              style={{
+                textAlign: "center",
+                marginBottom: "20px",
+                marginTop: "20px",
+                color: theme.palette.secondary.medium,
+              }}
+            >
+              No hay reseñas aún. ¡Sé el primero en escribir una!
+            </Typography>{" "}
+            <button
+              className="py-2 px-4"
+              style={{
+                background: theme.palette.primary.main,
+                color: theme.palette.primary.white,
+                borderRadius: "30rem",
+                marginBottom: "50px",
+              }}
+              onClick={() => setShowReviewForm(!showReviewForm)}
+            >
+              {showReviewForm ? "Cancelar" : "Escribir Reseña"}
+            </button>
+          </Box>
         )}
       </div>
     </div>

@@ -11,6 +11,8 @@ import BreadcrumbBack from "../../components/BreadcrumbBack.jsx";
 import ReviewsContainer from "../../components/reviews/ReviewsContainer";
 import MainLayout from "../../components/MainLayout";
 import { images, stables } from "../../constants";
+import ShareOutlinedIcon from "@mui/icons-material/ShareOutlined";
+
 import { useQuery } from "@tanstack/react-query";
 import {
   getAllExperiences,
@@ -117,6 +119,26 @@ const ExperienceDetailPage = () => {
         );
     }
   }, [user, jwt, data]);
+
+  const handleShareClick = () => {
+    const shareData = {
+      title: "Mira esta experiencia",
+      text: "Creo que te puede gustar esta experiencia. ¡Échale un vistazo!",
+      url: window.location.href,
+    };
+
+    if (navigator.share) {
+      navigator
+        .share(shareData)
+        .then(() => console.log("¡Compartido con éxito!"))
+        .catch((error) => console.error("Error al compartir:", error));
+    } else {
+      navigator.clipboard
+        .writeText(window.location.href)
+        .then(() => alert("URL copiada al portapapeles"))
+        .catch((error) => console.error("Error al copiar la URL:", error));
+    }
+  };
 
   const handleFavoriteClick = async () => {
     if (!user || !jwt) {
@@ -225,6 +247,23 @@ const ExperienceDetailPage = () => {
                     ) : (
                       <FavoriteBorderOutlinedIcon className="text-white text-2xl ml-2" />
                     )}
+                  </Typography>
+                </button>{" "}
+                <button
+                  onClick={handleShareClick}
+                  style={{
+                    background: theme.palette.primary.main,
+                    color: "white",
+                    padding: "0.6rem 1rem",
+                  }}
+                  className="rounded-full focus:outline-none"
+                >
+                  <Typography
+                    variant="h6"
+                    className="text-white text-2xl flex items-center"
+                  >
+                    Compartir
+                    <ShareOutlinedIcon className="text-white text-2xl ml-2" />
                   </Typography>
                 </button>
               </div>
