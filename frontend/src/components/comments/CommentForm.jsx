@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTheme, Box, Button, TextareaAutosize } from "@mui/material";
 
 const CommentForm = ({
   btnLabel,
@@ -8,6 +9,7 @@ const CommentForm = ({
   loading = false,
 }) => {
   const [value, setValue] = useState(initialText);
+  const theme = useTheme();
 
   const submitHandler = (e) => {
     e.preventDefault();
@@ -17,33 +19,70 @@ const CommentForm = ({
 
   return (
     <form onSubmit={submitHandler}>
-      <div className="flex flex-col items-end border border-primary rounded-lg p-4">
-        <textarea
-          className="w-full focus:outline-none bg-transparent"
-          rows="5"
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "end",
+          border: `2px solid ${theme.palette.primary.main}`,
+          borderRadius: theme.shape.borderRadius,
+          p: 2,
+        }}
+      >
+        <TextareaAutosize
+          minRows={5}
           placeholder="Deja tu comentario aquí..."
           value={value}
           onChange={(e) => setValue(e.target.value)}
+          style={{
+            width: "100%",
+            border: "none",
+            outline: "none",
+            backgroundColor: "transparent",
+            fontSize: "1rem",
+            padding: "8px",
+          }}
         />
-        <div className="flex flex-col-reverse gap-y-2 items-center gap-x-2 pt-2 min-[420px]:flex-row">
+        <Box
+          sx={{
+            display: "flex",
+            gap: 2,
+            flexDirection: { xs: "column-reverse", sm: "row" },
+            pt: 2,
+          }}
+        >
           {formCancelHandler && (
-            <button
+            <Button
               onClick={formCancelHandler}
-              className="px-6 py-2.5 rounded-lg border border-[#FA5564] text-[#FA5564]"
+              variant="outlined"
+              sx={{
+                borderColor: theme.palette.error.main,
+                color: theme.palette.error.main,
+                borderRadius: "30rem",
+                px: 3,
+                py: 1.2,
+              }}
             >
-              Cancel
-            </button>
+              Cancelar
+            </Button>
           )}
-          <button
+          <Button
             disabled={loading}
             type="submit"
-            className="px-6 py-2.5 rounded-lg bg-primary
-         text-white font-semibold disabled:opacity-70 disabled:cursor-not-allowed"
+            variant="contained"
+            sx={{
+              bgcolor: theme.palette.primary.main,
+              color: theme.palette.common.white,
+              borderRadius: "30rem",
+              px: 3,
+              py: 1.2,
+              "&:disabled": { opacity: 0.7, cursor: "not-allowed" },
+            }}
           >
             {btnLabel}
-          </button>
-        </div>
-      </div>
+          </Button>
+        </Box>
+      </Box>
     </form>
   );
 };

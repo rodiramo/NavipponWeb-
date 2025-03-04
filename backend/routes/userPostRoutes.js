@@ -11,7 +11,16 @@ import { authGuard } from "../middleware/authMiddleware.js";
 import upload from "../middleware/uploadPictureMiddleware.js";
 
 // ✅ Ensure multer processes the image **before** reaching the controller
-router.post("/", authGuard, upload.single("postPicture"), createPost);
+router.post(
+  "/",
+  authGuard,
+  (req, res, next) => {
+    console.log("📥 Incoming Request Received! ✅");
+    next();
+  },
+  upload.single("postPicture"),
+  createPost
+);
 
 router.route("/user").get(authGuard, getUserPosts);
 router

@@ -1,10 +1,7 @@
-import React, { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
-import {
-  getAllUsers,
-  toggleFriend,
-  getUserProfile,
-} from "../../../services/index/users";
+import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { getAllUsers, toggleFriend } from "../../../services/index/users";
+import { setFriends } from "../../../store/reducers/authSlice"; // ✅ Redux action
 import { Avatar, IconButton, Typography, Box, TextField } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { toast } from "react-hot-toast";
@@ -12,60 +9,41 @@ import { stables } from "../../../constants";
 import { PersonAddOutlined, PersonRemoveOutlined } from "@mui/icons-material";
 
 const UserList = ({ currentUser, token }) => {
+  const dispatch = useDispatch();
   const theme = useTheme();
-  const [friends, setFriends] = useState({});
+
+  const friends = useSelector((state) =>
+    Array.isArray(state.auth.user?.friends) ? state.auth.user.friends : []
+  );
+
+  const [users, setUsers] = useState([]); // Stores all users
   const [searchTerm, setSearchTerm] = useState("");
   const primaryDark = theme.palette.primary.dark;
   const primaryLight = theme.palette.primary.light;
-  // 🔹 Fetch users
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ["users"],
-    queryFn: () =>
-      token ? getAllUsers(token) : Promise.reject("No token available"),
-    enabled: !!token,
-    onError: (error) => {
-      toast.error(error.message || "No se pudieron obtener los usuarios");
-      console.error("Error fetching users:", error);
-    },
-  });
 
-  // 🔹 Fetch current user's friends from DB
   useEffect(() => {
-    if (currentUser && token) {
-      getUserProfile({ token })
-        .then((userData) => {
-          const friendStatus = {};
-          userData.friends.forEach((friendId) => {
-            friendStatus[friendId] = true;
-          });
-          setFriends(friendStatus);
-          localStorage.setItem("friends", JSON.stringify(friendStatus)); // ✅ Store in local storage
+    if (token) {
+      getAllUsers(token)
+        .then((response) => {
+          setUsers(response.data);
         })
-        .catch((error) => console.error("Error fetching friends:", error));
+        .catch((error) => {
+          console.error("Error fetching users:", error);
+        });
     }
-  }, [currentUser, token]);
+  }, [token]);
 
-  // 🔹 Get friends from Local Storage (Fallback)
-  useEffect(() => {
-    const storedFriends = localStorage.getItem("friends");
-    if (storedFriends) {
-      setFriends(JSON.parse(storedFriends));
-    }
-  }, []);
-
-  // 🔹 Toggle Friend Status
   const handleFriendToggle = async (userId) => {
     try {
-      await toggleFriend({ userId, token });
+      const updatedUser = await toggleFriend({ userId, token });
 
-      setFriends((prev) => {
-        const updatedFriends = { ...prev, [userId]: !prev[userId] };
-        localStorage.setItem("friends", JSON.stringify(updatedFriends)); // ✅ Update Local Storage
-        return updatedFriends;
-      });
+      // ✅ Update Redux store with the actual backend response
+      dispatch(setFriends(updatedUser.friends));
 
       toast.success(
-        friends[userId] ? "Eliminado de amigos" : "Agregado a amigos"
+        updatedUser.friends.includes(userId)
+          ? "Agregado a amigos"
+          : "Eliminado de amigos"
       );
     } catch (error) {
       toast.error("Error al actualizar amigos");
@@ -73,12 +51,8 @@ const UserList = ({ currentUser, token }) => {
     }
   };
 
-  if (isLoading) return <Typography>Cargando usuarios...</Typography>;
-  if (isError)
-    return <Typography>No se pudieron obtener los usuarios.</Typography>;
-
   // 🔹 Filter users based on search term
-  const filteredUsers = data?.data?.filter(
+  const filteredUsers = users.filter(
     (user) =>
       user._id !== currentUser?._id &&
       user.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -89,10 +63,10 @@ const UserList = ({ currentUser, token }) => {
       sx={{
         width: "100%",
         maxWidth: "300px",
-        backgroundColor: theme.palette.background.alt,
         borderRadius: "10px",
         padding: "1rem",
       }}
+      className={`relative rounded-xl overflow-hidden shadow-[rgba(7,_65,_210,_0.1)_0px_9px_30px] group `}
     >
       <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2 }}>
         Lista de Usuarios
@@ -115,7 +89,7 @@ const UserList = ({ currentUser, token }) => {
         }}
       />
 
-      {/* 🔹 Display Filtered Users */}
+      {/* 🔹 Display Users */}
       {filteredUsers.length === 0 ? (
         <Typography sx={{ textAlign: "center", color: "gray", mt: 2 }}>
           No se encontraron usuarios.
@@ -127,8 +101,9 @@ const UserList = ({ currentUser, token }) => {
             sx={{
               display: "flex",
               alignItems: "center",
-              gap: "10px",
               marginBottom: "10px",
+              gap: "5px",
+              padding: "5px",
             }}
           >
             <Avatar
@@ -138,19 +113,37 @@ const UserList = ({ currentUser, token }) => {
                   : "/default-avatar.png"
               }
               alt={user.name}
+              sx={{ width: "40px", height: "40px" }}
             />
-            <Typography sx={{ flexGrow: 1 }}>{user.name}</Typography>
+            <Typography sx={{ flexGrow: 1, fontWeight: "500" }}>
+              {user.name}
+            </Typography>
 
             {/* Friend Request Button */}
             <IconButton
               size="small"
               onClick={() => handleFriendToggle(user._id)}
-              sx={{ backgroundColor: primaryLight, p: "0.6rem" }}
+              sx={{
+                backgroundColor: primaryLight,
+                p: "0.6rem",
+                transition: "all 0.3s ease",
+                "&:hover": {
+                  color: theme.palette.primary.white,
+                },
+              }}
             >
-              {friends[user._id] ? (
-                <PersonRemoveOutlined size={20} sx={{ color: primaryDark }} />
+              {friends.includes(user._id) ? (
+                <PersonRemoveOutlined
+                  sx={{
+                    color: primaryDark,
+                  }}
+                />
               ) : (
-                <PersonAddOutlined size={20} sx={{ color: primaryDark }} />
+                <PersonAddOutlined
+                  sx={{
+                    color: primaryDark,
+                  }}
+                />
               )}
             </IconButton>
           </Box>

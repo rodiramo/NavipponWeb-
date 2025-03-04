@@ -1,40 +1,38 @@
 import { Outlet, useNavigate } from "react-router-dom";
-import Header from "./components/header/Header";  
+import Header from "./components/header/Header";
 import { useQuery } from "@tanstack/react-query";
 import { getUserProfile } from "../../services/index/users";
-import useUser from "../../hooks/useUser";  
+import useUser from "../../hooks/useUser";
 import { toast } from "react-hot-toast";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 const AdminLayout = () => {
   const navigate = useNavigate();
-  const { user, jwt } = useUser();  
+  const { jwt } = useUser();
+  const [isMenuOpen, setIsMenuOpen] = useState(true); // ✅ Add state for menu
 
   useEffect(() => {
     if (!jwt) {
       navigate("/login");
-      toast.error("Debes estar logueado para acceder al panel de administración");
+      toast.error(
+        "Debes estar logueado para acceder al panel de administración"
+      );
     }
   }, [jwt, navigate]);
 
-  const {
-    //data: profileData,
-    isLoading: profileIsLoading,
-    //error: profileError,
-  } = useQuery({
-    queryFn: () => {
-      return getUserProfile({ token: jwt });
-    },
+  const { isLoading: profileIsLoading } = useQuery({
+    queryFn: () => getUserProfile({ token: jwt }),
     queryKey: ["profile"],
-    enabled: !!jwt,  
+    enabled: !!jwt,
     onSuccess: (data) => {
       if (!data?.admin) {
         navigate("/");
-        toast.error("No tienes permiso para acceder al panel de administración");
+        toast.error(
+          "No tienes permiso para acceder al panel de administración"
+        );
       }
     },
-    onError: (err) => {
-      console.log(err);
+    onError: () => {
       navigate("/");
       toast.error("No tienes permiso para acceder al panel de administración");
     },
@@ -50,8 +48,15 @@ const AdminLayout = () => {
 
   return (
     <div className="flex flex-col h-screen lg:flex-row">
-      <Header />
-      <main className="bg-[#F9F9F9] flex-1 p-4 lg:p-6">
+      {/* ✅ Pass setIsMenuOpen to allow Header to toggle it */}
+      <Header isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} />
+      <main
+        style={{
+          marginLeft: isMenuOpen ? "15rem" : "5rem",
+          transition: "margin-left 0.3s ease-in-out",
+        }}
+        className="flex-1 lg:p-6"
+      >
         <Outlet />
       </main>
     </div>

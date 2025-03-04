@@ -1,87 +1,43 @@
-import React, { useState, useEffect } from "react";
-import { BsCheckLg } from "react-icons/bs";
+import React, { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { setFriends } from "../store/reducers/authSlice.js";
 import { AiOutlineClose, AiFillHeart, AiOutlineHeart } from "react-icons/ai";
 import { PersonAddOutlined, PersonRemoveOutlined } from "@mui/icons-material";
 import { images, stables } from "../constants";
 import { Link } from "react-router-dom";
-import { toggleFriend, getUserProfile } from "../services/index/users";
 import {
   addFavorite,
   removeFavorite,
   getUserFavorites,
 } from "../services/index/favorites";
+import { toggleFriend } from "../services/index/users";
 import { toast } from "react-hot-toast";
 import { useTheme, IconButton, Typography, Chip } from "@mui/material";
 
 const ArticleCard = ({ post, className, currentUser, token }) => {
   const theme = useTheme();
-  const [isFriend, setIsFriend] = useState(false);
-  const [isFavorite, setIsFavorite] = useState(false);
+  const dispatch = useDispatch();
+  const friends = useSelector((state) => state.auth.user?.friends ?? []);
 
-  useEffect(() => {
-    if (currentUser && token) {
-      getUserProfile({ token })
-        .then((userData) => {
-          setIsFriend(userData.friends.includes(post.user._id));
-          localStorage.setItem("friends", JSON.stringify(userData.friends));
-        })
-        .catch((error) => console.error("Error fetching friends:", error));
+  // 🔹 Check if the current user is a friend
+  const isFriend = friends?.includes(post.user._id) ?? false;
+  // 🔹 Check if the post belongs to the current user
+  const isOwnProfile = currentUser?._id === post.user._id;
 
-      getUserFavorites({ userId: currentUser._id, token })
-        .then((favorites) => {
-          setIsFavorite(favorites.some((fav) => fav.postId === post._id));
-          localStorage.setItem("favorites", JSON.stringify(favorites));
-        })
-        .catch((error) => console.error("Error fetching favorites:", error));
-    }
-  }, [currentUser, token, post._id, post.user._id]);
-
-  const handleFriendToggle = async () => {
+  const handleFriendToggle = async (userId) => {
     try {
-      await toggleFriend({ userId: post.user._id, token });
+      const updatedUser = await toggleFriend({ userId, token });
 
-      setIsFriend((prev) => {
-        const newFriendStatus = !prev;
-        let storedFriends = JSON.parse(localStorage.getItem("friends")) || [];
+      // ✅ Update Redux store with the actual backend response
+      dispatch(setFriends(updatedUser.friends));
 
-        if (!Array.isArray(storedFriends)) storedFriends = [];
-
-        if (newFriendStatus) {
-          storedFriends.push(post.user._id);
-        } else {
-          storedFriends = storedFriends.filter((id) => id !== post.user._id);
-        }
-
-        localStorage.setItem("friends", JSON.stringify(storedFriends));
-
-        toast.success(
-          newFriendStatus ? "Agregado a amigos" : "Eliminado de amigos"
-        );
-
-        return newFriendStatus;
-      });
+      toast.success(
+        updatedUser.friends.includes(userId)
+          ? "Agregado a amigos"
+          : "Eliminado de amigos"
+      );
     } catch (error) {
       toast.error("Error al actualizar amigos");
-      console.error(error);
-    }
-  };
-
-  const handleFavoriteToggle = async () => {
-    try {
-      if (isFavorite) {
-        await removeFavorite({
-          userId: currentUser._id,
-          postId: post._id,
-          token,
-        });
-        toast.success("Eliminado de favoritos");
-      } else {
-        await addFavorite({ userId: currentUser._id, postId: post._id, token });
-        toast.success("Agregado a favoritos");
-      }
-      setIsFavorite((prev) => !prev);
-    } catch (error) {
-      toast.error("Error al actualizar favoritos");
       console.error(error);
     }
   };
@@ -111,25 +67,18 @@ const ArticleCard = ({ post, className, currentUser, token }) => {
 
       {/* ✅ Favorite Button - Top Right */}
       <IconButton
-        onClick={handleFavoriteToggle}
         className="top-2 right-2 p-2 rounded-full focus:outline-none"
         sx={{
           position: "absolute !important",
           top: "10px",
           right: "10px",
           zIndex: 9,
-          backgroundColor: isFavorite
-            ? theme.palette.secondary.main
-            : theme.palette.primary.main,
+          backgroundColor: theme.palette.primary.main,
           color: "white",
-          "&:hover": {
-            backgroundColor: isFavorite
-              ? theme.palette.secondary.dark
-              : theme.palette.primary.dark,
-          },
+          "&:hover": { backgroundColor: theme.palette.primary.dark },
         }}
       >
-        {isFavorite ? <AiFillHeart /> : <AiOutlineHeart />}
+        {<AiOutlineHeart />}
       </IconButton>
 
       <Link to={`/blog/${post.slug}`} className="relative block">
@@ -141,7 +90,7 @@ const ArticleCard = ({ post, className, currentUser, token }) => {
                 : images.samplePostImage
             }
             alt="title"
-            className="w-full object-cover object-center h-auto md:h-52 lg:h-48 xl:h-60 transition-transform duration-300 group-hover:scale-105"
+            className="w-full object-cover object-center h-auto md:h-52 lg:h-48 xl:h-60"
           />
 
           {/* ✅ Hover Effect - "Leer más" */}
@@ -209,21 +158,19 @@ const ArticleCard = ({ post, className, currentUser, token }) => {
             </div>
           </div>
 
-          {/* ✅ Add Friend Button - Rounded Icon */}
-          <IconButton
-            onClick={handleFriendToggle}
-            sx={{
-              backgroundColor: theme.palette.primary.light,
-              color: theme.palette.primary.main,
-              borderRadius: "50%",
-              "&:hover": {
-                backgroundColor: theme.palette.primary.dark,
-                color: theme.palette.primary.contrastText,
-              },
-            }}
-          >
-            {isFriend ? <PersonRemoveOutlined /> : <PersonAddOutlined />}
-          </IconButton>
+          {/* ✅ Add Friend Button - Hide if it's the current user's own profile */}
+          {!isOwnProfile && (
+            <IconButton
+              onClick={() => handleFriendToggle(post.user._id)}
+              sx={{
+                backgroundColor: theme.palette.primary.light,
+                color: theme.palette.primary.main,
+                borderRadius: "50%",
+              }}
+            >
+              {isFriend ? <PersonRemoveOutlined /> : <PersonAddOutlined />}
+            </IconButton>
+          )}
         </div>
       </div>
     </div>

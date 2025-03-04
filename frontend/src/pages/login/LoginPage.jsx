@@ -26,6 +26,7 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const { login, isLoginLoading, hasLoginError, isLogged } = useUser();
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
 
   useEffect(() => {
     if (isLogged) {
@@ -47,7 +48,7 @@ const LoginPage = () => {
 
   const submitHandler = (data) => {
     const { email, password } = data;
-    login({ email, password });
+    login({ email, password, rememberMe });
   };
 
   return (
@@ -57,7 +58,6 @@ const LoginPage = () => {
       backgroundColor={theme.palette.primary.white}
       flexDirection={isNonMobileScreens ? "row" : "column"}
     >
-      <HomeButton />
       {isNonMobileScreens ? (
         <Box
           flexBasis="40%"
@@ -120,6 +120,7 @@ const LoginPage = () => {
         height={isNonMobileScreens ? "auto" : "min-content"}
         mt={isNonMobileScreens ? 0 : "2rem"}
       >
+        <HomeButton />
         <Box width="100%" maxWidth="60%">
           <Typography variant="h4" mb={2} textAlign="center">
             Iniciar sesión
@@ -186,6 +187,8 @@ const LoginPage = () => {
               <FormControlLabel
                 control={
                   <Checkbox
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
                     sx={{
                       color: theme.palette.primary.main,
                       "&.Mui-checked": { color: theme.palette.primary.main },
@@ -194,6 +197,7 @@ const LoginPage = () => {
                 }
                 label="Mantenerse conectado"
               />
+
               <Link
                 to="/forget-password"
                 style={{ color: theme.palette.primary.main }}

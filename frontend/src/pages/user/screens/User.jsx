@@ -1,5 +1,273 @@
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { useQueryClient } from "@tanstack/react-query";
+import { updateProfile } from "../../../services/index/users";
+import useUser from "../../../hooks/useUser";
+import FriendsWidget from "../widgets/FriendWidget";
+import {
+  Box,
+  Typography,
+  Button,
+  Grid,
+  IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  Select,
+  MenuItem,
+  useTheme,
+  Card,
+  CardContent,
+} from "@mui/material";
+import FmdGoodOutlinedIcon from "@mui/icons-material/FmdGoodOutlined";
+import { EditOutlined, Close, CameraAlt } from "@mui/icons-material";
+import ProfilePicture from "../../../components/ProfilePicture";
+import FlexBetween from "../../../components/FlexBetween";
+import { toast } from "react-hot-toast";
+import { setUserInfo } from "../../../store/reducers/authSlice";
+
 const User = () => {
-    return <div>User dashboard</div>;
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const queryClient = useQueryClient();
+  const theme = useTheme();
+  const { user: reduxUser, jwt } = useUser();
+  const [user, setUser] = useState(reduxUser || {});
+  const [isEditing, setIsEditing] = useState(false);
+  const [openLocation, setOpenLocation] = useState(false);
+  const [travelStyle, setTravelStyle] = useState(user?.travelStyle || "");
+  const [budget, setBudget] = useState(user?.budget || "");
+  const [coverImage, setCoverImage] = useState(
+    user?.coverImage || "/assets/bg-home1.jpg"
+  );
+
+  useEffect(() => {
+    console.log("🔄 Redux User Updated:", reduxUser);
+    if (reduxUser) {
+      setUser(reduxUser);
+    }
+  }, [reduxUser]);
+
+  useEffect(() => {
+    if (!jwt) {
+      navigate("/login");
+      toast.error("Debes estar logueado para acceder al perfil");
+    }
+  }, [jwt, navigate]);
+
+  // Handle Profile Edit
+  const handleEditProfile = () => {
+    setIsEditing(true);
   };
-  
-  export default User;
+
+  return (
+    <Box>
+      <Box
+        sx={{
+          width: "100%",
+          height: "40vh",
+          borderRadius: "10px",
+          backgroundImage: `url(${coverImage})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          position: "relative",
+        }}
+      >
+        {/* Cover Edit Button */}
+        <IconButton
+          sx={{
+            position: "absolute",
+            top: 15,
+            right: 15,
+            background: "rgba(0,0,0,0.5)",
+            color: "white",
+            "&:hover": { background: "rgba(0,0,0,0.7)" },
+          }}
+        >
+          <CameraAlt fontSize="small" />
+        </IconButton>
+      </Box>
+
+      {/* Profile Info Section - Overlapping Cover */}
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexDirection: "column",
+          position: "relative",
+          marginTop: "-75px",
+          paddingBottom: "1rem",
+        }}
+      >
+        <ProfilePicture avatar={user?.avatar} size="150px" />
+        <Typography variant="h6" color={theme.palette.secondary.main}>
+          @{user?.name}
+        </Typography>
+        <Box
+          display="flex"
+          alignItems="center"
+          gap={2}
+          sx={{ marginBottom: "10px" }}
+        >
+          <Typography variant="h4" fontWeight="500">
+            {user?.name}
+          </Typography>
+          <IconButton
+            size="small"
+            onClick={handleEditProfile}
+            sx={{
+              background: theme.palette.primary.light,
+              color: theme.palette.primary.dark,
+              "&:hover": {
+                background: theme.palette.primary.dark,
+                color: theme.palette.primary.light,
+              },
+            }}
+          >
+            <EditOutlined fontSize="small" />
+          </IconButton>
+        </Box>
+
+        {user.city && user.country ? (
+          <Box display="flex" alignItems="center" gap={1}>
+            <FmdGoodOutlinedIcon sx={{ color: theme.palette.primary.main }} />
+            <Typography>
+              {user.city}, {user.country}
+            </Typography>
+          </Box>
+        ) : (
+          <Button
+            variant="text"
+            color="primary"
+            onClick={() => setOpenLocation(true)}
+          >
+            Agrega tu Ubicación
+          </Button>
+        )}
+      </Box>
+
+      {/* Preferences Section */}
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+          gap: 2,
+          p: 3,
+        }}
+      >
+        <Card
+          sx={{
+            backgroundColor: theme.palette.background.bg,
+            borderRadius: "12px",
+          }}
+        >
+          <CardContent>
+            <Typography variant="h6" fontWeight="bold">
+              🎒 Estilo de Viaje
+            </Typography>
+            <Select
+              fullWidth
+              value={travelStyle}
+              onChange={(e) => setTravelStyle(e.target.value)}
+              sx={{
+                backgroundColor: theme.palette.grey[800],
+                color: "white",
+                mt: 1,
+              }}
+            >
+              <MenuItem value="aventura">Aventura</MenuItem>
+              <MenuItem value="lujo">Lujo</MenuItem>
+              <MenuItem value="gastronomico">Gastronómico</MenuItem>
+              <MenuItem value="cultural">Cultural</MenuItem>
+            </Select>
+          </CardContent>
+        </Card>
+
+        <Card
+          sx={{
+            backgroundColor: theme.palette.background.bg,
+            borderRadius: "12px",
+          }}
+        >
+          <CardContent>
+            <Typography variant="h6" fontWeight="bold">
+              💰 Presupuesto de Viaje
+            </Typography>
+            <Select
+              fullWidth
+              value={budget}
+              onChange={(e) => setBudget(e.target.value)}
+              sx={{
+                backgroundColor: theme.palette.grey[700],
+                color: "white",
+                mt: 1,
+              }}
+            >
+              <MenuItem value="bajo">Bajo</MenuItem>
+              <MenuItem value="medio">Medio</MenuItem>
+              <MenuItem value="alto">Alto</MenuItem>
+            </Select>
+          </CardContent>
+        </Card>
+      </Box>
+
+      {/* Friends Widget */}
+      <FriendsWidget token={jwt} />
+
+      {/* Edit Profile Modal */}
+      <Dialog open={isEditing} onClose={() => setIsEditing(false)}>
+        <DialogTitle>
+          Edita tu Perfil
+          <IconButton
+            aria-label="close"
+            onClick={() => setIsEditing(false)}
+            sx={{
+              position: "absolute",
+              right: 8,
+              top: 8,
+              color: theme.palette.grey[500],
+            }}
+          >
+            <Close />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent>
+          <TextField
+            margin="dense"
+            name="name"
+            label="Nombre"
+            fullWidth
+            variant="outlined"
+          />
+          <TextField
+            margin="dense"
+            name="email"
+            label="Email"
+            fullWidth
+            variant="outlined"
+          />
+          <TextField
+            margin="dense"
+            name="password"
+            label="Nueva Contraseña"
+            type="password"
+            fullWidth
+            variant="outlined"
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setIsEditing(false)} color="secondary">
+            Cancelar
+          </Button>
+          <Button color="primary">Guardar</Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
+  );
+};
+
+export default User;

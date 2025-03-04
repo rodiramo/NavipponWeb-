@@ -11,6 +11,8 @@ import BreadcrumbBack from "../../components/BreadcrumbBack.jsx";
 import ReviewsContainer from "../../components/reviews/ReviewsContainer";
 import MainLayout from "../../components/MainLayout";
 import { images, stables } from "../../constants";
+import ShareOutlinedIcon from "@mui/icons-material/ShareOutlined";
+
 import { useQuery } from "@tanstack/react-query";
 import {
   getAllExperiences,
@@ -61,14 +63,35 @@ const ExperienceDetailPage = () => {
     queryFn: () => getSingleExperience({ slug }),
     queryKey: ["experience", slug],
     onSuccess: async (data) => {
-      setBody(parseJsonToHtml(data?.body));
-      setIsMapReady(true); // ✅ Enable map after data loads
+      // Debugging: Check what the API returns
+      console.log("Raw API Response:", data);
+
+      // Ensure `body` is correctly formatted before parsing
+      if (data?.body) {
+        try {
+          // If `body` is a string, parse it into an object
+          const parsedBody =
+            typeof data.body === "string" ? JSON.parse(data.body) : data.body;
+
+          console.log("Parsed Body for HTML:", parsedBody); // Debugging output
+          setBody(parseJsonToHtml(parsedBody));
+        } catch (error) {
+          console.error("Error parsing JSON body:", error);
+          setBody(null); // Prevent crashes by setting a fallback
+        }
+      } else {
+        console.warn("No body content available.");
+        setBody(null);
+      }
+
+      setIsMapReady(true); // Enable map after data loads
 
       if (user && jwt) {
         const favorites = await getUserFavorites({
           userId: user._id,
           token: jwt,
         });
+
         const isFav = favorites.some(
           (fav) => fav.experienceId && fav.experienceId._id === data._id
         );
@@ -96,6 +119,26 @@ const ExperienceDetailPage = () => {
         );
     }
   }, [user, jwt, data]);
+
+  const handleShareClick = () => {
+    const shareData = {
+      title: "Mira esta experiencia",
+      text: "Creo que te puede gustar esta experiencia. ¡Échale un vistazo!",
+      url: window.location.href,
+    };
+
+    if (navigator.share) {
+      navigator
+        .share(shareData)
+        .then(() => console.log("¡Compartido con éxito!"))
+        .catch((error) => console.error("Error al compartir:", error));
+    } else {
+      navigator.clipboard
+        .writeText(window.location.href)
+        .then(() => alert("URL copiada al portapapeles"))
+        .catch((error) => console.error("Error al copiar la URL:", error));
+    }
+  };
 
   const handleFavoriteClick = async () => {
     if (!user || !jwt) {
@@ -204,6 +247,23 @@ const ExperienceDetailPage = () => {
                     ) : (
                       <FavoriteBorderOutlinedIcon className="text-white text-2xl ml-2" />
                     )}
+                  </Typography>
+                </button>{" "}
+                <button
+                  onClick={handleShareClick}
+                  style={{
+                    background: theme.palette.primary.main,
+                    color: "white",
+                    padding: "0.6rem 1rem",
+                  }}
+                  className="rounded-full focus:outline-none"
+                >
+                  <Typography
+                    variant="h6"
+                    className="text-white text-2xl flex items-center"
+                  >
+                    Compartir
+                    <ShareOutlinedIcon className="text-white text-2xl ml-2" />
                   </Typography>
                 </button>
               </div>

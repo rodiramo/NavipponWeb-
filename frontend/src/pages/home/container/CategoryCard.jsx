@@ -46,8 +46,8 @@ const CategoryCard = () => {
       </h2>
 
       <div
-        className="flex flex-col md:flex-row justify-around w-full gap-1"
-        style={{ paddingLeft: "4.25rem", paddingRight: "4.25rem" }}
+        className="flex flex-col md:flex-row justify-around  w-full "
+        style={{ alignContent: "center", alignItems: "center", gap: "2rem" }}
       >
         {categories.map((category, index) => (
           <div
@@ -57,8 +57,9 @@ const CategoryCard = () => {
             style={{
               backgroundSize: "cover",
               backgroundPosition: "center",
-              height: "300px",
+              height: "350px",
               width: "100%",
+              gap: 15,
               maxWidth: "450px",
               boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.2)",
               borderColor: theme.palette.primary.main,

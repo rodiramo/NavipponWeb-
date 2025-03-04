@@ -104,11 +104,15 @@ const HorizontalExperienceCard = ({
 
   return (
     <Box
-      className={`horizontal-experience-card flex flex-col md:flex-row rounded-lg overflow-hidden ${className}`}
+      className={`horizontal-experience-card flex flex-col md:flex-row  overflow-hidden ${className}`}
       sx={{
-        border: `1.75px solid ${palette.secondary.light}`,
+        border: `1.75px solid ${palette.secondary.lightBlue}`,
         backgroundColor: palette.background.default,
-        boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+        borderRadius: "20px",
+        padding: "0.5rem",
+        gap: "1rem",
+        cursor: "pointer",
+        transition: "box-shadow 0.3s ease-in-out",
       }}
     >
       {/* 📷 Image Section */}
@@ -122,8 +126,9 @@ const HorizontalExperienceCard = ({
           alt={experience.title}
           className=" activity-image"
           style={{
-            width: "309px",
-            borderRadius: "8px",
+            width: "350px",
+            height: "200px",
+            borderRadius: "16px",
           }}
         />
 
@@ -134,7 +139,7 @@ const HorizontalExperienceCard = ({
             position: "absolute",
             top: "10px",
             left: "10px",
-            backgroundColor: palette.secondary.medium,
+            backgroundColor: palette.secondary.dark,
             color: "white",
             fontSize: "0.75rem",
             height: "24px",

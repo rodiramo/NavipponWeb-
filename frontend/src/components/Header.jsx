@@ -12,7 +12,7 @@ import {
 import { useSelector, useDispatch } from "react-redux";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
-import { IconButton, Menu, MenuItem, Typography } from "@mui/material";
+import { IconButton, Menu, MenuItem, Button } from "@mui/material";
 import { images, stables } from "../constants";
 import useUser from "../hooks/useUser";
 import { toggleMode } from "../themeSlice";
@@ -174,18 +174,18 @@ const Header = () => {
                     Admin Panel
                   </MenuItem>
                 )}
-                <MenuItem component={Link} to="/profile">
+                <MenuItem component={Link} to="/user/profile">
                   <UserRound
                     className="mr-3"
                     color={theme.palette.primary.main}
                   />{" "}
                   Mi Perfil
                 </MenuItem>{" "}
-                <MenuItem component={Link} to="/user">
+                <MenuItem component={Link} to="/user/dashboard">
                   <Bolt className="mr-3" color={theme.palette.primary.main} />{" "}
-                  Configuración de Usuario
+                  Dashboard
                 </MenuItem>
-                <MenuItem component={Link} to="/trips">
+                <MenuItem component={Link} to="/user/itineraries/manage">
                   <Plane className="mr-3" color={theme.palette.primary.main} />{" "}
                   Mis Viajes
                 </MenuItem>
@@ -196,12 +196,22 @@ const Header = () => {
               </Menu>
             </div>
           ) : (
-            <button
+            <Button
               onClick={() => navigate("/login")}
-              className="px-5 py-2 rounded-full bg-primary text-white"
+              sx={{
+                backgroundColor: theme.palette.primary.light,
+                borderRadius: "30rem",
+                textTransform: "none",
+                padding: "0.5rem 1rem",
+                "&:hover": {
+                  backgroundColor: "rgba(45, 67, 120, 0.5)",
+                  color: theme.palette.primary.white,
+                  borderRadius: "30rem",
+                },
+              }}
             >
               Ingresar
-            </button>
+            </Button>
           )}
 
           {/* Burger Menu (Mobile Only) */}
@@ -219,7 +229,17 @@ const Header = () => {
 
       {/* Mobile Navigation */}
       {isMobile && navIsVisible && (
-        <nav className="absolute top-21 left-0 w-full backdrop-blur-lg p-6">
+        <nav
+          className="absolute top-15 left-0 w-full  p-6"
+          style={{
+            backgroundColor: "rgb(10 23 51 / 81%)",
+            color: "white",
+            backdropFilter: "blur(10px) saturate(180%)",
+            WebkitBackdropFilter: "blur(10px) saturate(180%)",
+            borderRadius: "0 0 1rem 1rem",
+            boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+          }}
+        >
           <ul className="flex flex-col gap-4 text-white text-center">
             {navItemsInfo.map((item) => (
               <NavItem

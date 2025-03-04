@@ -1,5 +1,4 @@
 import axios from "axios";
-
 export const signup = async ({ name, email, password }) => {
   try {
     const { data } = await axios.post("/api/users/register", {
@@ -15,16 +14,22 @@ export const signup = async ({ name, email, password }) => {
   }
 };
 
-export const login = async ({ email, password }) => {
+export const login = async ({ email, password, rememberMe }) => {
   try {
-    const { data } = await axios.post("/api/users/login", {
-      email,
-      password,
-    });
+    const { data } = await axios.post("/api/users/login", { email, password });
+    const token = data.token;
+
+    if (rememberMe) {
+      localStorage.setItem("authToken", token);
+    } else {
+      sessionStorage.setItem("authToken", token);
+    }
+
     return data;
   } catch (error) {
-    if (error.response && error.response.data.message)
+    if (error.response && error.response.data.message) {
       throw new Error(error.response.data.message);
+    }
     throw new Error(error.message);
   }
 };
@@ -77,7 +82,7 @@ export const updateProfilePicture = async ({ token, formData }) => {
     };
 
     const { data } = await axios.put(
-      "/api/users/updateProfilePicture", 
+      "http://localhost:5001/api/users/updateProfilePicture", // Ensure this is correct
       formData,
       config
     );
@@ -138,39 +143,61 @@ export const deleteUser = async ({ slug, token }) => {
     throw new Error(error.message);
   }
 };
-export const followUser = async ({ userId, token }) => {
+
+export const getUserFriends = async ({ userId, token }) => {
   try {
     const config = {
       headers: {
         Authorization: `Bearer ${token}`,
       },
     };
+    const { data } = await axios.get(`/api/users/${userId}/friends`, config);
 
-    const { data } = await axios.post(
-      `/api/users/follow/${userId}`,
-      {},
-      config
-    );
     return data;
   } catch (error) {
-    if (error.response && error.response.data.message)
-      throw new Error(error.response.data.message);
-    throw new Error(error.message);
+    console.error("getUserFriends error:", error.response || error.message);
+    throw new Error(error.response?.data?.message || error.message);
   }
 };
-
 export const toggleFriend = async ({ userId, token }) => {
   try {
     const config = { headers: { Authorization: `Bearer ${token}` } };
+
+    // ✅ Corrected: Include an empty object as the request body
     const { data } = await axios.post(
       `/api/users/toggleFriend/${userId}`,
       {},
       config
     );
+
     return data;
   } catch (error) {
     throw new Error(
       error.response?.data?.message || "Error al actualizar amigos"
+    );
+  }
+};
+
+export const getFriendProfile = async ({ friendId, token }) => {
+  try {
+    console.log(`🔍 Fetching friend profile for: ${friendId}`); // ✅ Debug
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    };
+
+    const { data } = await axios.get(`/api/users/profile/${friendId}`, config);
+    console.log("✅ Friend Profile Data:", data); // ✅ Log successful response
+
+    return data;
+  } catch (error) {
+    console.error(
+      "❌ API Error fetching friend profile:",
+      error.response?.data || error.message
+    );
+    throw new Error(
+      error.response?.data?.message || "Error fetching friend profile."
     );
   }
 };

@@ -53,6 +53,37 @@ app.post("/upload", upload.single("image"), (req, res) => {
   res.json({ imageUrl: req.file.path }); // Return Cloudinary URL
 });
 
+const GOOGLE_API_KEY = process.env.REACT_APP_GOOGLE_API_KEY;
+
+// Endpoint to perform a nearby search using latitude and longitude
+
+app.get("/api/places", async (req, res) => {
+  const { lat, lng } = req.query;
+  try {
+    const response = await fetch(
+      `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=50&key=${GOOGLE_API_KEY}&language=es`
+    );
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    console.error("Error fetching places:", error.message);
+    res.status(500).json({ error: "Error fetching places" });
+  }
+});
+
+app.get("/api/place-details", async (req, res) => {
+  const { placeId } = req.query;
+  try {
+    const response = await fetch(
+      `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=name,formatted_address,formatted_phone_number,website,price_level,address_components&key=${GOOGLE_API_KEY}&language=es`
+    );
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    console.error("Error fetching place details:", error.message);
+    res.status(500).json({ error: "Error fetching place details" });
+  }
+});
 // 📌 Remove Image Route
 app.delete("/remove", async (req, res) => {
   const { imageUrl } = req.body; // Cloudinary Image URL
