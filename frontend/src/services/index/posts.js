@@ -78,3 +78,19 @@ export const createPost = async ({ postData, token }) => {
     throw new Error(error.message);
   }
 };
+
+export const getPostCount = async (token) => {
+  try {
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    const { data } = await axios.get('/api/posts/count', config);
+    console.log("Post count data:", data);  
+    return data.count;
+  } catch (error) {
+    console.error("Error fetching post count:", error);
+    throw new Error(error.message);
+  }
+};

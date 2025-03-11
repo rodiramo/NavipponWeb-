@@ -63,7 +63,7 @@ const Header = ({ isMenuOpen, setIsMenuOpen }) => {
   } = useMutation({
     mutationFn: ({ newExperienceData, token }) => {
       return createExperience({
-        experienceData: newExperienceData, // Make sure this matches the API function's expected parameters
+        experienceData: newExperienceData,  
         token,
       });
     },

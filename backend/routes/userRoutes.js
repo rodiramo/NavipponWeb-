@@ -8,9 +8,7 @@ import {
   updateProfilePicture,
   getAllUsers,
   deleteUser,
-  toggleFriend,
-  friendProfile,
-  getUserFriends,
+  toggleFriend, // ✅ New function
 } from "../controllers/userControllers.js";
 import { adminGuard, authGuard } from "../middleware/authMiddleware.js";
 
@@ -30,8 +28,6 @@ router.get("/", authGuard, getAllUsers);
 router.delete("/:userId", authGuard, adminGuard, deleteUser);
 
 // ✅ Friend Request Routes
-router.post("/toggleFriend/:userId", authGuard, toggleFriend);
-router.get("/:userId/friends", authGuard, getUserFriends);
-router.get("/profile/:friendId", authGuard, friendProfile);
+router.post("/toggleFriend/:userId", authGuard, toggleFriend); // Add/remove friend
 
 export default router;

@@ -12,9 +12,11 @@ import ArticleDetailPage from "./pages/articleDetail/ArticleDetailPage";
 import HomePage from "./pages/home/HomePage";
 import RegisterPage from "./pages/register/RegisterPage";
 import LoginPage from "./pages/login/LoginPage";
+import ContactPage from "./pages/contact/ContactPage"; 
+import ManageEmails from "./pages/admin/screens/emailweb/ManageEmails";  
+import EmailDetail from "./pages/admin/screens/emailweb/EmailDetail";  
 
-/** admin screens
- */
+/** admin screens */
 import AdminLayout from "./pages/admin/AdminLayout";
 import Admin from "./pages/admin/screens/Admin";
 import Categories from "./pages/admin/screens/categories/Categories";
@@ -32,7 +34,7 @@ import Comments from "./pages/admin/screens/comments/Comments";
 import Reviews from "./pages/admin/screens/reviews/Reviews";
 import AboutPage from "./pages/about/AboutPage";
 
-/** experience  */
+/** experience */
 import ExperiencePage from "./pages/experience/ExperiencePage";
 import ExperienceDetailPage from "./pages/experienceDetail/ExperienceDetailPage";
 
@@ -83,6 +85,7 @@ function App() {
           <Route path="/blog/:slug" element={<ArticleDetailPage />} />
           <Route path="/blog" element={<BlogPage />} />
           <Route path="/about" element={<AboutPage />} />
+          <Route path="/contact" element={<ContactPage />} /> 
           <Route
             path="experiences/manage/edit/:slug"
             element={<ExperienceForm />}
@@ -111,6 +114,8 @@ function App() {
               element={<EditCategories />}
             />
             <Route path="users/manage" element={<Users />} />
+            <Route path="emailweb" element={<ManageEmails />} />  
+            <Route path="emailweb/:id" element={<EmailDetail />} />  
           </Route>
           <Route path="/user" element={<UserLayout />}>
             <Route path="posts/manage" element={<UserManagePosts />} />

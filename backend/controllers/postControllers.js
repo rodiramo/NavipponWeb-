@@ -246,4 +246,15 @@ const getAllPosts = async (req, res, next) => {
   }
 };
 
-export { createPost, updatePost, deletePost, getPost, getAllPosts };
+const getPostCount = async (req, res) => {
+  try {
+    const count = await Post.countDocuments();
+    console.log("Count of posts:", count);  
+    res.status(200).json({ count });
+  } catch (error) {
+    console.error("Error en getPostCount:", error);
+    res.status(500).json({ error: 'Error al obtener el contador de posts' });
+  }
+};
+
+export { createPost, updatePost, deletePost, getPost, getAllPosts, getPostCount };

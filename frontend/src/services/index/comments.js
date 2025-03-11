@@ -97,3 +97,19 @@ export const getAllComments = async (
     throw new Error(error.message);
   }
 };
+
+export const getCommentCount = async (token) => {
+  try {
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    const { data } = await axios.get('/api/comments/count', config);
+    console.log("Comment count data:", data);  
+    return data.count;
+  } catch (error) {
+    console.error("Error fetching comment count:", error);
+    throw new Error(error.message);
+  }
+};

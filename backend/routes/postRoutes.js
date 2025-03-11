@@ -6,6 +6,7 @@ import {
   getAllPosts,
   getPost,
   updatePost,
+  getPostCount,
 } from "../controllers/postControllers.js";
 import { authGuard, adminGuard } from "../middleware/authMiddleware.js";
 import upload from "../middleware/uploadPictureMiddleware.js";
@@ -14,6 +15,7 @@ import upload from "../middleware/uploadPictureMiddleware.js";
 router.post("/", authGuard, upload.single("postPicture"), createPost);
 
 router.route("/").get(getAllPosts);
+router.get("/count", authGuard, adminGuard, getPostCount);
 router
   .route("/:slug")
   .put(authGuard, adminGuard, updatePost)

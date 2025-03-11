@@ -125,8 +125,8 @@ const updateExperience = async (req, res, next) => {
       return res.status(404).json({ message: "Experiencia no encontrada" });
     }
 
-    const uploadSingle = upload.single("experiencePicture");
-
+    const uploadSingle = upload.single("experiencePicture");  
+  
     const extractCoordinates = (mapUrl) => {
       const regex = /@(-?\d+\.\d+),(-?\d+\.\d+)/;
       const match = mapUrl?.match(regex);
@@ -393,6 +393,31 @@ const getExperienceById = async (req, res) => {
   }
 };
 
+const getExperienceCount = async (req, res) => {
+  try {
+    const count = await Experience.countDocuments();
+    console.log("Count of experiences:", count);  
+    res.status(200).json({ count });
+  } catch (error) {
+    console.error("Error en getExperienceCount:", error);
+    res.status(500).json({ error: 'Error al obtener el contador de experiencias' });
+  }
+};
+
+const getTopExperiences = async (req, res) => {
+  try {
+    const topExperiences = await Experience.find()
+      .sort({ favoritesCount: -1 })
+      .limit(3)
+      .select('title favoritesCount');  
+    console.log("Top experiences:", topExperiences);  
+    res.status(200).json(topExperiences);
+  } catch (error) {
+    console.error("Error en getTopExperiences:", error);
+    res.status(500).json({ error: 'Error al obtener las experiencias más populares' });
+  }
+};
+
 export {
   createExperience,
   updateExperience,
@@ -400,4 +425,6 @@ export {
   getExperience,
   getAllExperiences,
   getExperienceById,
+  getExperienceCount,
+  getTopExperiences,  
 };
