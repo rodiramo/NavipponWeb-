@@ -19,9 +19,9 @@ import { toggleMode } from "../themeSlice";
 
 const navItemsInfo = [
   { name: "Inicio", href: "/" },
-  { name: "Nosotros", href: "/about" },
   { name: "Explora", href: "/experience" },
   { name: "Blog", href: "/blog" },
+  { name: "Nosotros", href: "/about" },
   { name: "Contacto", href: "/contacto" },
 ];
 
