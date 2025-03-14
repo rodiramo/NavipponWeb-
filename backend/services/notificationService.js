@@ -103,7 +103,29 @@ export const createTripInviteNotification = async (
     data: { tripId },
   });
 };
-
+export const createItineraryLeaveNotification = async ({
+  leavingUserId,
+  leavingUserName,
+  itineraryId,
+  itineraryName,
+  recipient,
+}) => {
+  const now = new Date();
+  return await createNotification({
+    recipient,
+    sender: leavingUserId,
+    type: "itinerary_leave",
+    message: `${leavingUserName} ha abandonado el itinerario "${itineraryName}" el ${now.toLocaleDateString()}.`,
+    data: {
+      leavingUserId,
+      leavingUserName,
+      itineraryId,
+      itineraryName,
+      date: now,
+      leavingUserProfile: `/profile/${leavingUserId}`,
+    },
+  });
+};
 // Admin Verification Notification
 export const createAdminVerificationNotification = async (
   adminId,

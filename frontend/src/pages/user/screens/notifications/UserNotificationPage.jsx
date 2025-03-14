@@ -67,37 +67,40 @@ const UserNotificationsPage = () => {
               }}
             >
               <Box>
-                {/* Render message and check for URLs in n.data */}
                 <Typography variant="body1" sx={{ fontWeight: "bold" }}>
-                  {n.type === "friend_added" && n.data?.senderProfileUrl ? (
+                  {n.type === "friend_added" && n.data?.senderId ? (
                     <MuiLink
                       component={RouterLink}
-                      to={n.data.senderProfileUrl}
+                      to={`/profile/${n.data.senderId}`}
                       underline="hover"
                       color="inherit"
                     >
                       {n.message}
                     </MuiLink>
-                  ) : n.type === "itinerary_invite" && n.data?.itineraryUrl ? (
+                  ) : n.type === "itinerary_invite" && n.data?.itineraryId ? (
                     <>
                       Has sido añadido al viaje{" "}
                       <MuiLink
                         component={RouterLink}
-                        to={n.data.itineraryUrl}
+                        to={`/itinerary/${n.data.itineraryId}`}
                         underline="hover"
                         color="inherit"
                       >
                         {n.data.itineraryName}
                       </MuiLink>{" "}
                       por{" "}
-                      <MuiLink
-                        component={RouterLink}
-                        to={n.data.creatorProfileUrl}
-                        underline="hover"
-                        color="inherit"
-                      >
-                        {n.message.split(" por ")[1].split(" el")[0]}
-                      </MuiLink>
+                      {n.data?.creatorId ? (
+                        <MuiLink
+                          component={RouterLink}
+                          to={`/profile/${n.data.creatorId}`}
+                          underline="hover"
+                          color="inherit"
+                        >
+                          {n.data.creatorName || "alguien"}
+                        </MuiLink>
+                      ) : (
+                        n.message.split(" por ")[1]?.split(" el")[0]
+                      )}
                       .
                     </>
                   ) : (
@@ -111,13 +114,13 @@ const UserNotificationsPage = () => {
               <IconButton
                 onClick={() => mutation.mutate(n._id)}
                 sx={{
-                  backgroundColor: theme.palette.error.lightest,
+                  backgroundColor: theme.palette.error.light,
                   color: theme.palette.error.main,
                   p: 1,
                   borderRadius: "50%",
                   "&:hover": {
                     backgroundColor: theme.palette.error.dark,
-                    color: theme.palette.error.lightest,
+                    color: theme.palette.error.light,
                   },
                 }}
               >

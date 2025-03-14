@@ -4,6 +4,7 @@ import Experience from "../models/Experience.js";
 import {
   createItineraryUpdateNotification,
   createItineraryInviteNotification,
+  createItineraryLeaveNotification,
 } from "../services/notificationService.js";
 
 const createItinerary = async (req, res, next) => {
@@ -215,6 +216,56 @@ const getUserItineraries = async (req, res, next) => {
       .populate("travelers.userId");
     return res.status(200).json(itineraries);
   } catch (error) {
+    next(error);
+  }
+};
+// In your itinerary controller
+export const getInvitedItineraries = async (req, res, next) => {
+  try {
+    // Assuming the logged-in user's ID is available on req.user._id
+    const userId = req.user._id;
+    // Find itineraries where the travelers array contains this user.
+    const itineraries = await Itinerary.find({ "travelers.userId": userId })
+      .populate("user")
+      .populate("travelers.userId");
+    return res.status(200).json(itineraries);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const leaveItinerary = async (req, res, next) => {
+  try {
+    // Get the itinerary by its ID and populate the owner field.
+    const itinerary = await Itinerary.findById(req.params.id).populate("user");
+    if (!itinerary) {
+      return res.status(404).json({ message: "Itinerario no encontrado" });
+    }
+    // Get the logged-in user's ID and name from req.user.
+    const userId = req.user._id;
+    const userName = req.user.name;
+
+    // Remove the current user from the travelers array.
+    itinerary.travelers = itinerary.travelers.filter(
+      (traveler) => traveler.userId.toString() !== userId.toString()
+    );
+
+    // Save the updated itinerary.
+    await itinerary.save();
+
+    // Create a notification for the itinerary's owner using the service.
+    // This will notify the owner that userName left their itinerary.
+    await createItineraryLeaveNotification({
+      leavingUserId: userId,
+      leavingUserName: userName,
+      itineraryId: itinerary._id,
+      itineraryName: itinerary.name,
+      recipient: itinerary.user._id, // The owner of the itinerary.
+    });
+
+    res.status(200).json({ message: "Has salido del itinerario" });
+  } catch (error) {
+    console.error("Error leaving itinerary:", error);
     next(error);
   }
 };

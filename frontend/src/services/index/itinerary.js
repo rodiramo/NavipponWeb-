@@ -87,3 +87,27 @@ export const createItinerary = async (itineraryData, token) => {
     throw new Error(error.message);
   }
 };
+export const getInvitedItineraries = async (token) => {
+  const config = { headers: { Authorization: `Bearer ${token}` } };
+  const { data } = await axios.get(`/api/itineraries/invited`, config);
+  return data;
+};
+export const leaveItinerary = async (itineraryId, token) => {
+  try {
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    const { data } = await axios.patch(
+      `/api/itineraries/leave/${itineraryId}`,
+      {}, // no additional data is needed
+      config
+    );
+    return data;
+  } catch (error) {
+    if (error.response && error.response.data.message)
+      throw new Error(error.response.data.message);
+    throw new Error(error.message);
+  }
+};
