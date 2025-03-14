@@ -111,3 +111,31 @@ export const leaveItinerary = async (itineraryId, token) => {
     throw new Error(error.message);
   }
 };
+// Get the itinerary data for editing (if different from getSingleItinerary)
+export const getSingleItineraryForEdit = async (itineraryId, token) => {
+  try {
+    const config = { headers: { Authorization: `Bearer ${token}` } };
+    const { data } = await axios.get(
+      `/api/itineraries/${itineraryId}/edit`,
+      config
+    );
+    return data;
+  } catch (error) {
+    if (error.response && error.response.data.message)
+      throw new Error(error.response.data.message);
+    throw new Error(error.message);
+  }
+};
+
+// Get user favorites (if you have a separate endpoint for that)
+export const getUserFavorites = async ({ userId, token }) => {
+  try {
+    const config = { headers: { Authorization: `Bearer ${token}` } };
+    const { data } = await axios.get(`/api/favorites/user/${userId}`, config);
+    return data;
+  } catch (error) {
+    if (error.response && error.response.data.message)
+      throw new Error(error.response.data.message);
+    throw new Error(error.message);
+  }
+};

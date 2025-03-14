@@ -84,6 +84,7 @@ const ManageItineraries = () => {
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
+        width: "100%",
         textAlign: "center",
         padding: "2rem",
         minHeight: "80vh",
@@ -98,9 +99,6 @@ const ManageItineraries = () => {
 
       {/* Section for itineraries created by user */}
       <Box sx={{ width: "100%", maxWidth: "700px", mb: 4 }}>
-        <Typography variant="h5" sx={{ mb: 2, textAlign: "left" }}>
-          Mis Itinerarios
-        </Typography>
         {createdItineraries.length === 0 ? (
           <Box display="flex" flexDirection="column" alignItems="center" mt={5}>
             <img
