@@ -28,3 +28,18 @@ export const markNotificationAsRead = async (req, res, next) => {
     next(error);
   }
 };
+export const deleteNotification = async (req, res, next) => {
+  try {
+    const { notificationId } = req.params;
+    const deletedNotification = await Notification.findByIdAndDelete(
+      notificationId
+    );
+    if (!deletedNotification) {
+      return res.status(404).json({ message: "Notificación no encontrada" });
+    }
+    res.status(200).json({ message: "Notificación eliminada con éxito" });
+  } catch (error) {
+    console.error("Error deleting notification:", error);
+    next(error);
+  }
+};

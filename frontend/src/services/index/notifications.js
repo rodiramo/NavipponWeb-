@@ -36,3 +36,24 @@ export const markNotificationAsRead = async ({ token, notificationId }) => {
     );
   }
 };
+export const deleteNotification = async ({ token, notificationId }) => {
+  try {
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    };
+
+    const { data } = await axios.delete(
+      `/api/notifications/${notificationId}`,
+      config
+    );
+    return data;
+  } catch (error) {
+    throw new Error(
+      error.response?.data?.message ||
+        error.message ||
+        "Error deleting notification"
+    );
+  }
+};

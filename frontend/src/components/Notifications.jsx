@@ -30,6 +30,11 @@ const Notifications = () => {
     }
   };
 
+  const handleNotificationClick = (notificationId) => {
+    handleMarkAsRead(notificationId);
+    setAnchorEl(null);
+  };
+
   return (
     <>
       <IconButton onClick={(e) => setAnchorEl(e.currentTarget)}>
@@ -51,7 +56,10 @@ const Notifications = () => {
       >
         {notifications && notifications.length > 0 ? (
           notifications.map((notification) => (
-            <MenuItem key={notification._id} onClick={() => setAnchorEl(null)}>
+            <MenuItem
+              key={notification._id}
+              onClick={() => handleNotificationClick(notification._id)}
+            >
               <div>
                 <p>{notification.message}</p>
                 <small>

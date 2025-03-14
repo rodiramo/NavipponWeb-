@@ -37,10 +37,13 @@ export const createFriendAddedNotification = async (
     sender: senderId,
     type: "friend_added",
     message: `${senderName} te ha agregado como amigo.`,
-    // Optionally add additional data if needed:
-    data: { senderName },
+    data: {
+      senderProfileUrl: `/profile/${senderId}`,
+    },
   });
 };
+
+// Itinerary Invite Notification
 // Itinerary Invite Notification
 export const createItineraryInviteNotification = async (
   creatorId,
@@ -58,7 +61,15 @@ export const createItineraryInviteNotification = async (
     message: `Has sido añadido al viaje "${itineraryName}" por ${creatorName} el ${now.toLocaleDateString()} como ${
       role || "participante"
     }.`,
-    data: { itineraryId, itineraryName, role, date: now },
+    data: {
+      itineraryId,
+      itineraryName,
+      role,
+      date: now,
+      // Adding URLs for links
+      creatorProfileUrl: `/profile/${creatorId}`,
+      itineraryUrl: `/itinerary/${itineraryId}`,
+    },
   });
 };
 

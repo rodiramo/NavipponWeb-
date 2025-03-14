@@ -41,6 +41,7 @@ import ExperienceDetailPage from "./pages/experienceDetail/ExperienceDetailPage"
 /** user */
 import UserProfilePage from "./pages/profile/UserProfilePage.jsx";
 import ProfilePage from "./pages/user/screens/User";
+import UserNotificationsPage from "./pages/user/screens/notifications/UserNotificationPage.jsx";
 import Dashboard from "./pages/user/screens/Dashboard.jsx";
 import UserLayout from "./pages/user/UserLayout";
 import UserManagePosts from "./pages/user/screens/posts/ManagePosts";
@@ -149,6 +150,8 @@ function App() {
           </Route>{" "}
           {/* User Routes */}
           <Route path="/user" element={<UserLayout />}>
+            <Route path="notifications" element={<UserNotificationsPage />} />
+
             <Route path="profile" element={<ProfilePage />} />
             <Route path="dashboard" element={<Dashboard />} />
             <Route

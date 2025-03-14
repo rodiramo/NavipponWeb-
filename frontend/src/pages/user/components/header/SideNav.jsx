@@ -6,6 +6,7 @@ import {
   LucideClipboardList,
   LucideCalendarDays,
   LucideStar,
+  Bell,
   LucideLogOut,
   LucideArrowLeft,
   MessagesSquare,
@@ -122,6 +123,12 @@ const SideNav = () => {
           title="Mi Perfil"
           link="/user/profile"
           icon={<LucideUser size={22} />}
+          isMenuOpen={isMenuOpen}
+        />{" "}
+        <NavItem
+          title="Notificaciones"
+          link="/user/notifications"
+          icon={<Bell size={22} />}
           isMenuOpen={isMenuOpen}
         />
         <NavItem
