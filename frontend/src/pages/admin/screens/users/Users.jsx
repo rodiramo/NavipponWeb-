@@ -7,48 +7,26 @@ import {
   getAllUsers,
   updateProfile,
 } from "../../../../services/index/users";
+import { Link } from "react-router-dom";
+
 import DataTable from "../../components/DataTable";
 import { images, stables } from "../../../../constants";
-import useUser from "../../../../hooks/useUser";  
+import useUser from "../../../../hooks/useUser";
+import { BsCheckLg } from "react-icons/bs";
+import { AiOutlineClose } from "react-icons/ai";
+import { RiDeleteBin6Line } from "react-icons/ri";
+import { useQueryClient } from "@tanstack/react-query";
 
 const Users = () => {
-  const { user, jwt } = useUser();  
+  const { jwt } = useUser();
+  const queryClient = useQueryClient();
 
-  const {
-    currentPage,
-    searchKeyword,
-    data: usersData,
-    isLoading,
-    isFetching,
-    isLoadingDeleteData,
-    queryClient,
-    searchKeywordHandler,
-    submitSearchKeywordHandler,
-    deleteDataHandler,
-    setCurrentPage,
-  } = useDataTable({
-    dataQueryFn: () =>
-      getAllUsers(jwt, searchKeyword, currentPage),
-    dataQueryKey: "users",
-    deleteDataMessage: "Usuario eliminado",
-    mutateDeleteFn: ({ slug, token }) => {
-      return deleteUser({
-        slug,
-        token,
-      });
-    },
-  });
-
+  // Mutation for updating admin status
   const { mutate: mutateUpdateUser, isLoading: isLoadingUpdateUser } =
     useMutation({
-      mutationFn: ({ isAdmin, userId }) => {
-        return updateProfile({
-          token: jwt,
-          userData: { admin: isAdmin },
-          userId,
-        });
-      },
-      onSuccess: (data) => {
+      mutationFn: ({ isAdmin, userId }) =>
+        updateProfile({ token: jwt, userData: { admin: isAdmin }, userId }),
+      onSuccess: () => {
         queryClient.invalidateQueries(["users"]);
         toast.success("Usuario actualizado");
       },
@@ -58,17 +36,66 @@ const Users = () => {
       },
     });
 
-  const handleAdminCheck = (event, userId) => {
-    const initialCheckValue = !event.target.checked;
+  // Mutation for updating verified status
+  const { mutate: mutateUpdateVerified, isLoading: isLoadingUpdateVerified } =
+    useMutation({
+      mutationFn: ({ isVerified, userId }) =>
+        updateProfile({
+          token: jwt,
+          userData: { verified: isVerified },
+          userId,
+        }),
+      onSuccess: () => {
+        queryClient.invalidateQueries(["users"]);
+        toast.success("Estado de verificación actualizado");
+      },
+      onError: (error) => {
+        toast.error(error.message);
+        console.log(error);
+      },
+    });
 
+  // Admin toggle is still a dropdown; you can keep or change it.
+  const handleAdminToggle = (userItem) => {
+    const newStatus = !userItem.admin;
     if (
-      window.confirm("¿Quieres cambiar el estado de administrador de este usuario?")
+      window.confirm(
+        "¿Quieres cambiar el estado de administrador de este usuario?"
+      )
     ) {
-      mutateUpdateUser({ isAdmin: event.target.checked, userId });
-    } else {
-      event.target.checked = initialCheckValue;
+      mutateUpdateUser({ isAdmin: newStatus, userId: userItem._id });
     }
   };
+
+  // Verified toggle function
+  const handleVerifiedToggle = (userItem) => {
+    const newStatus = !userItem.verified;
+    if (
+      window.confirm(
+        "¿Quieres cambiar el estado de verificación de este usuario?"
+      )
+    ) {
+      mutateUpdateVerified({ isVerified: newStatus, userId: userItem._id });
+    }
+  };
+
+  const {
+    currentPage,
+    searchKeyword,
+    data: usersData,
+    isLoading,
+    isFetching,
+    isLoadingDeleteData,
+    searchKeywordHandler,
+    submitSearchKeywordHandler,
+    deleteDataHandler,
+    setCurrentPage,
+  } = useDataTable({
+    dataQueryFn: () => getAllUsers(jwt, searchKeyword, currentPage),
+    dataQueryKey: "users",
+    deleteDataMessage: "Usuario eliminado",
+    mutateDeleteFn: ({ slug, token }) => deleteUser({ slug, token }),
+  });
 
   return (
     <DataTable
@@ -82,9 +109,9 @@ const Users = () => {
         "Nombre",
         "Email",
         "Creado",
-        "Esta verificado",
+        "Verificado",
         "Es Admin",
-        "",
+        "Acciones",
       ]}
       isLoading={isLoading}
       isFetching={isFetching}
@@ -93,67 +120,95 @@ const Users = () => {
       currentPage={currentPage}
       headers={usersData?.headers}
     >
-      {usersData?.data.map((user) => (
-        <tr key={user._id}>
-          <td className="px-5 py-5 text-sm bg-white border-b border-gray-200">
+      {usersData?.data.map((userItem) => (
+        <tr
+          key={userItem._id}
+          className="bg-white hover:shadow-md transition-shadow rounded-lg"
+        >
+          {/* Name & Avatar */}
+          <td className="px-6 py-4 whitespace-nowrap border-b border-gray-200">
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <a href="/" className="relative block">
+                <a href="/" className="block">
                   <img
                     src={
-                      user?.avatar
-                        ? stables.UPLOAD_FOLDER_BASE_URL + user?.avatar
+                      userItem?.avatar
+                        ? stables.UPLOAD_FOLDER_BASE_URL + userItem?.avatar
                         : images.userImage
                     }
-                    alt={user.name}
-                    className="mx-auto object-cover rounded-lg w-10 aspect-square"
+                    alt={userItem.name}
+                    className="w-10 h-10 rounded-full object-cover"
                   />
                 </a>
               </div>
-              <div className="ml-3">
-                <p className="text-gray-900 whitespace-no-wrap">{user.name}</p>
+              <div className="ml-4">
+                <Link
+                  to={`/profile/${userItem._id}`}
+                  className="whitespace-nowrap"
+                >
+                  {userItem.name}
+                </Link>
               </div>
             </div>
           </td>
-          <td className="px-5 py-5 text-sm bg-white border-b border-gray-200">
-            <p className="text-gray-900 whitespace-no-wrap">{user.email}</p>
+          {/* Email */}
+          <td className="px-6 py-4 whitespace-nowrap border-b border-gray-200">
+            <p className="text-gray-900 whitespace-nowrap">{userItem.email}</p>
           </td>
-          <td className="px-5 py-5 text-sm bg-white border-b border-gray-200">
-            <p className="text-gray-900 whitespace-no-wrap">
-              {new Date(user.createdAt).toLocaleDateString("en-US", {
+          {/* Created Date */}
+          <td className="px-6 py-4 whitespace-nowrap border-b border-gray-200">
+            <p className="text-gray-900 whitespace-nowrap">
+              {new Date(userItem.createdAt).toLocaleDateString("en-US", {
                 day: "numeric",
                 month: "short",
                 year: "numeric",
               })}
             </p>
           </td>
-          <td className="px-5 py-5 text-sm bg-white border-b border-gray-200">
-            <p className="text-gray-900 whitespace-no-wrap">
-              {user.verified ? "✅" : "❌"}
-            </p>
+          {/* Verified Toggle */}
+          <td className="px-6 py-4 whitespace-nowrap border-b border-gray-200">
+            <button
+              onClick={() => handleVerifiedToggle(userItem)}
+              className="focus:outline-none"
+              disabled={isLoadingUpdateVerified}
+            >
+              <span
+                className={`w-12 h-12 flex items-center justify-center rounded-full ${
+                  userItem.verified ? "bg-green-200" : "bg-red-200"
+                }`}
+              >
+                {userItem.verified ? (
+                  <BsCheckLg className="text-green-700 text-xl" />
+                ) : (
+                  <AiOutlineClose className="text-red-700 text-xl" />
+                )}
+              </span>
+            </button>
           </td>
-          <td className="px-5 py-5 text-sm bg-white border-b border-gray-200">
-            <input
-              type="checkbox"
-              className="d-checkbox disabled:bg-orange-400 disabled:opacity-100 checked:bg-[url('../public/images/check.png')] bg-cover checked:disabled:bg-none"
-              defaultChecked={user.admin}
-              onChange={(event) => handleAdminCheck(event, user._id)}
+          {/* Admin Dropdown */}
+          <td className="px-6 py-4 whitespace-nowrap border-b border-gray-200">
+            <select
+              value={userItem.admin ? "admin" : "user"}
+              onChange={(e) => handleAdminToggle(userItem)}
               disabled={isLoadingUpdateUser}
-            />
+              className="rounded-md border-gray-300 focus:border-blue-500 focus:ring-blue-500 text-sm"
+            >
+              <option value="user">Usuario Regular</option>
+              <option value="admin">Administrador</option>
+            </select>
           </td>
-          <td className="px-5 py-5 text-sm bg-white border-b border-gray-200 space-x-5">
+          {/* Actions (Delete) */}
+          <td className="px-6 py-4 whitespace-nowrap border-b border-gray-200">
             <button
               disabled={isLoadingDeleteData}
               type="button"
-              className="text-red-600 hover:text-red-900 disabled:opacity-70 disabled:cursor-not-allowed"
-              onClick={() => {
-                deleteDataHandler({
-                  slug: user?._id,
-                  token: jwt,
-                });
-              }}
+              onClick={() =>
+                deleteDataHandler({ slug: userItem._id, token: jwt })
+              }
+              className="flex items-center space-x-2 text-red-600 hover:text-red-900 transition-colors focus:outline-none"
             >
-              Delete
+              <RiDeleteBin6Line className="text-xl" />
+              <span className="text-sm">Delete</span>
             </button>
           </td>
         </tr>

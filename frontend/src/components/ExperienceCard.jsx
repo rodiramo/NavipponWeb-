@@ -164,6 +164,8 @@ const ExperienceCard = ({
           className="absolute top-2 right-2 p-2 rounded-full focus:outline-none"
           style={{ backgroundColor: theme.palette.primary.main }}
         >
+          {" "}
+          {favoritesCount}
           {isFavorite ? (
             <AiFillHeart className="text-white text-2xl" />
           ) : (
@@ -207,6 +209,7 @@ const ExperienceCard = ({
           display="flex"
           alignItems="center"
           justifyContent="center"
+          mt={2}
           gap={1}
           mb={2}
         >
@@ -216,13 +219,8 @@ const ExperienceCard = ({
           </Typography>
         </Box>
 
-        {/* 🔹 Favorites Count */}
-        <Typography variant="body2" color="text.secondary">
-          {favoritesCount} Favoritos
-        </Typography>
-
         {/* 🔹 Caption */}
-        <Typography variant="body2" sx={{ mt: 1, color: "#666" }}>
+        <Typography variant="body2" sx={{ mt: 1 }}>
           {experience.caption}
         </Typography>
 
@@ -233,6 +231,7 @@ const ExperienceCard = ({
             backgroundColor: theme.palette.primary.main,
             color: theme.palette.primary.white,
             borderRadius: "20px",
+            textTransform: "none",
             marginTop: "15px",
           }}
           component={Link}

@@ -11,10 +11,12 @@ import DataTable from "../../components/DataTable";
 import { images, stables } from "../../../../constants";
 import { Link } from "react-router-dom";
 import useUser from "../../../../hooks/useUser";
-import { FaCheckCircle, FaTimesCircle } from "react-icons/fa";  
+import { BsCheckLg } from "react-icons/bs";
+import { AiOutlineClose } from "react-icons/ai";
+import { RiDeleteBin6Line } from "react-icons/ri";
 
 const Reviews = () => {
-  const { user, jwt } = useUser();
+  const { jwt } = useUser();
 
   const {
     currentPage,
@@ -33,17 +35,11 @@ const Reviews = () => {
     dataQueryKey: "reviews",
     deleteDataMessage: "Reseña eliminada",
     mutateDeleteFn: ({ slug, token }) => {
-      return deleteReview({
-        reviewId: slug,
-        token,
-      });
+      return deleteReview({ reviewId: slug, token });
     },
   });
 
-  const {
-    mutate: mutateUpdateReviewCheck,
-    // isLoading: isLoadingUpdateReviewCheck,
-  } = useMutation({
+  const { mutate: mutateUpdateReviewCheck } = useMutation({
     mutationFn: ({ token, check, reviewId }) => {
       return updateReview({ token, check, reviewId });
     },
@@ -68,9 +64,9 @@ const Reviews = () => {
       tableHeaderTitleList={[
         "Autor",
         "Reseña",
-        "En respuesta a",
         "Creado",
-        "Aprobado", // Cambiar el nombre de la columna
+        "Aprobado",
+        "Acciones",
       ]}
       isFetching={isFetching}
       isLoading={isLoading}
@@ -80,11 +76,15 @@ const Reviews = () => {
       headers={reviewsData?.headers}
     >
       {reviewsData?.data.map((review) => (
-        <tr key={review._id}>
-          <td className="px-5 py-5 text-sm bg-white border-b border-gray-200">
+        <tr
+          key={review._id}
+          className="bg-white hover:shadow-md transition-shadow rounded-lg"
+        >
+          {/* Author */}
+          <td className="px-6 py-4 whitespace-nowrap border-b border-gray-200">
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <a href="/" className="relative block">
+                <a href="/" className="block">
                   <img
                     src={
                       review?.user?.avatar
@@ -92,33 +92,20 @@ const Reviews = () => {
                         : images.userImage
                     }
                     alt={review?.user?.name}
-                    className="mx-auto object-cover rounded-lg w-10 aspect-square"
+                    className="w-10 h-10 rounded-full object-cover"
                   />
                 </a>
               </div>
-              <div className="ml-3">
-                <p className="text-gray-900 whitespace-no-wrap">
+              <div className="ml-4">
+                <p className="text-gray-900 whitespace-nowrap">
                   {review?.user?.name}
                 </p>
               </div>
             </div>
           </td>
-          <td className="px-5 py-5 text-sm bg-white border-b border-gray-200">
-            {review?.replyOnUser !== null && (
-              <p className="text-gray-900 whitespace-no-wrap">
-                En respuesta a{" "}
-                <Link
-                  to={`/experience/${review?.experience?.slug}/#review-${review?._id}`}
-                  className="text-blue-500"
-                >
-                  {review?.replyOnUser?.name}
-                </Link>
-              </p>
-            )}
-            <p className="text-gray-900 whitespace-no-wrap">{review?.desc}</p>
-          </td>
-          <td className="px-5 py-5 text-sm bg-white border-b border-gray-200">
-            <p className="text-gray-900 whitespace-no-wrap">
+          {/* Review (Experience Title) */}
+          <td className="px-6 py-4 whitespace-nowrap border-b border-gray-200">
+            <p className="text-gray-900 whitespace-nowrap">
               <Link
                 to={`/experience/${review?.experience?.slug}`}
                 className="text-blue-500"
@@ -127,8 +114,9 @@ const Reviews = () => {
               </Link>
             </p>
           </td>
-          <td className="px-5 py-5 text-sm bg-white border-b border-gray-200">
-            <p className="text-gray-900 whitespace-no-wrap">
+          {/* Created Date */}
+          <td className="px-6 py-4 whitespace-nowrap border-b border-gray-200">
+            <p className="text-gray-900 whitespace-nowrap">
               {new Date(review.createdAt).toLocaleDateString("es-ES", {
                 day: "2-digit",
                 month: "2-digit",
@@ -138,37 +126,45 @@ const Reviews = () => {
               })}
             </p>
           </td>
-          <td className="px-5 py-5 text-sm bg-white border-b border-gray-200 space-x-5">
+          {/* Approval Toggle */}
+          <td className="px-6 py-4 whitespace-nowrap border-b border-gray-200">
             <button
               disabled={isLoadingDeleteData}
               type="button"
-              className="disabled:opacity-70 disabled:cursor-not-allowed"
-              onClick={() => {
+              onClick={() =>
                 mutateUpdateReviewCheck({
                   token: jwt,
                   check: review?.check ? false : true,
                   reviewId: review._id,
-                });
-              }}
+                })
+              }
+              className="focus:outline-none"
             >
-              {review?.check ? (
-                <FaCheckCircle className="text-green-600" />
-              ) : (
-                <FaTimesCircle className="text-red-600" />
-              )}
+              <span
+                className={`w-12 h-12 flex items-center justify-center rounded-full ${
+                  review?.check ? "bg-green-200" : "bg-red-200"
+                }`}
+              >
+                {review?.check ? (
+                  <BsCheckLg className="text-green-700 text-xl" />
+                ) : (
+                  <AiOutlineClose className="text-red-700 text-xl" />
+                )}
+              </span>
             </button>
+          </td>
+          {/* Actions (Delete) */}
+          <td className="px-6 py-4 whitespace-nowrap border-b border-gray-200">
             <button
               disabled={isLoadingDeleteData}
               type="button"
-              className="text-red-600 hover:text-red-900 disabled:opacity-70 disabled:cursor-not-allowed"
-              onClick={() => {
-                deleteDataHandler({
-                  slug: review?._id,
-                  token: jwt,
-                });
-              }}
+              onClick={() =>
+                deleteDataHandler({ slug: review?._id, token: jwt })
+              }
+              className="flex items-center space-x-2 text-red-600 hover:text-red-900 transition-colors focus:outline-none"
             >
-              Borrar
+              <RiDeleteBin6Line className="text-xl" />
+              <span className="text-sm">Borrar</span>
             </button>
           </td>
         </tr>

@@ -1,6 +1,7 @@
 import upload from "../middleware/uploadPictureMiddleware.js";
 import Comment from "../models/Comment.js";
 import cloudinary from "../config/cloudinaryConfig.js";
+import { createFriendAddedNotification } from "../services/notificationService.js";
 
 import Post from "../models/Post.js";
 import User from "../models/User.js";
@@ -81,7 +82,7 @@ const userProfile = async (req, res, next) => {
         country: user.country,
         city: user.city,
         admin: user.admin,
-        friends: user.friends, // ✅ Now returning full friend objects
+        friends: user.friends,
       });
     } else {
       let error = new Error("Usuario no encontrado");
@@ -96,16 +97,19 @@ const userProfile = async (req, res, next) => {
 const updateProfile = async (req, res, next) => {
   try {
     const user = await User.findById(req.params.userId);
-
     if (!user) {
       return res.status(404).json({ message: "Usuario no encontrado" });
     }
 
-    // ✅ Only update fields that are sent in the request
+    // Update only the fields sent in the request
     if (req.body.city) user.city = req.body.city;
     if (req.body.country) user.country = req.body.country;
     if (req.body.name) user.name = req.body.name;
     if (req.body.email) user.email = req.body.email;
+    // New: update admin and verified fields if provided
+    if (typeof req.body.admin !== "undefined") user.admin = req.body.admin;
+    if (typeof req.body.verified !== "undefined")
+      user.verified = req.body.verified;
 
     await user.save();
 
@@ -254,13 +258,15 @@ export const getUserFriends = async (req, res) => {
   }
 };
 
-export const toggleFriend = async (req, res) => {
+export const toggleFriend = async (req, res, next) => {
   try {
-    const { userId } = req.params;
+    const { userId } = req.params; // The ID of the user to add/remove as friend
     const currentUser = await User.findById(req.user.id);
     const friend = await User.findById(userId);
 
     if (!friend) return res.status(404).json({ message: "User not found" });
+
+    let friendAdded = false;
 
     if (currentUser.friends.includes(userId)) {
       // Remove Friend
@@ -274,30 +280,41 @@ export const toggleFriend = async (req, res) => {
       // Add Friend
       currentUser.friends.push(userId);
       friend.friends.push(currentUser.id);
+      friendAdded = true;
     }
 
     await currentUser.save();
     await friend.save();
 
-    res.json({ friends: currentUser.friends }); // ✅ Ensure this is returned
+    // If a friend was added, create a notification for the recipient
+    if (friendAdded) {
+      // Use currentUser.name as the sender's name
+      await createFriendAddedNotification(
+        currentUser._id,
+        currentUser.name,
+        userId
+      );
+    }
+
+    res.json({ friends: currentUser.friends });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Error toggling friend" });
   }
 };
 
-export const friendProfile = async (req, res) => {
+export const userProfileById = async (req, res) => {
   try {
-    const { friendId } = req.params;
-    const friend = await User.findById(friendId).select("-password"); // Exclude password field
+    const { userId } = req.params; // Now using userId
+    const user = await User.findById(userId).select("-password"); // Exclude password field
 
-    if (!friend) {
-      return res.status(404).json({ message: "Amigo no encontrado" });
+    if (!user) {
+      return res.status(404).json({ message: "Usuario no encontrado" });
     }
 
-    res.status(200).json(friend);
+    res.status(200).json(user);
   } catch (error) {
-    console.error("Error al obtener perfil de amigo:", error);
+    console.error("Error al obtener perfil de usuario:", error);
     res.status(500).json({ message: "Error del servidor" });
   }
 };
@@ -308,7 +325,7 @@ const getUserCount = async (req, res) => {
     res.status(200).json({ count });
   } catch (error) {
     console.error("Error en getUserCount:", error);
-    res.status(500).json({ error: 'Error al obtener el contador de usuarios' });
+    res.status(500).json({ error: "Error al obtener el contador de usuarios" });
   }
 };
 

@@ -104,9 +104,9 @@ const HorizontalExperienceCard = ({
 
   return (
     <Box
-      className={`horizontal-experience-card flex flex-col md:flex-row  overflow-hidden ${className}`}
+      className={`horizontal-experience-card flex flex-col md:flex-row  overflow-hidden rounded-xl  shadow-[rgba(7,_65,_210,_0.1)_0px_9px_30px] ${className}`}
       sx={{
-        border: `1.75px solid ${palette.secondary.lightBlue}`,
+        border: `1.75px solid ${palette.secondary.bg}`,
         backgroundColor: palette.background.default,
         borderRadius: "20px",
         padding: "0.5rem",
@@ -216,7 +216,7 @@ const HorizontalExperienceCard = ({
             onClick={handleFavoriteClick}
             sx={{
               backgroundColor: isFavorite
-                ? palette.secondary.main
+                ? palette.secondary.medium
                 : palette.primary.main,
               color: palette.primary.white,
               textTransform: "none",

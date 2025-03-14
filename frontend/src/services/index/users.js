@@ -89,7 +89,7 @@ export const updateProfilePicture = async ({ token, formData }) => {
 
     return data;
   } catch (error) {
-    console.error("Error updating profile picture:", error);  
+    console.error("Error updating profile picture:", error);
     if (error.response && error.response.data.message)
       throw new Error(error.response.data.message);
     throw new Error(error.message);
@@ -209,10 +209,33 @@ export const getUserCount = async (token) => {
         Authorization: `Bearer ${token}`,
       },
     };
-    const { data } = await axios.get('/api/users/count', config);
+    const { data } = await axios.get("/api/users/count", config);
     return data.count;
   } catch (error) {
     console.error("Error fetching user count:", error);
     throw new Error(error.message);
+  }
+};
+export const getUserProfileById = async ({ userId, token }) => {
+  try {
+    console.log(`🔍 Fetching user profile for: ${userId}`); // Debug
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    };
+
+    const { data } = await axios.get(`/api/users/profile/${userId}`, config);
+    console.log("✅ User Profile Data:", data); // Log successful response
+
+    return data;
+  } catch (error) {
+    console.error(
+      "❌ API Error fetching user profile:",
+      error.response?.data || error.message
+    );
+    throw new Error(
+      error.response?.data?.message || "Error fetching user profile."
+    );
   }
 };

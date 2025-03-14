@@ -7,12 +7,13 @@ import {
   errorResponserHandler,
   invalidPathHandler,
 } from "./middleware/errorHandler.js";
-import upload from "./middleware/uploadPictureMiddleware.js";  
+import upload from "./middleware/uploadPictureMiddleware.js";
 
 // Routes
 import userRoutes from "./routes/userRoutes.js";
 import postRoutes from "./routes/postRoutes.js";
 import experienceRoutes from "./routes/experienceRoutes.js";
+import notificationRoutes from "./routes/notificationRoutes.js";
 import userExperienceRoutes from "./routes/userExperienceRoutes.js";
 import userPostRoutes from "./routes/userPostRoutes.js";
 import commentRoutes from "./routes/commentRoutes.js";
@@ -20,7 +21,7 @@ import reviewRoutes from "./routes/reviewRoutes.js";
 import postCategoriesRoutes from "./routes/postCategoriesRoutes.js";
 import favoriteRoutes from "./routes/favoriteRoutes.js";
 import itineraryRoutes from "./routes/itineraryRoutes.js";
-import emailwebRoutes from "./routes/emailwebRoutes.js";  
+import emailwebRoutes from "./routes/emailwebRoutes.js";
 
 dotenv.config();
 connectDB();
@@ -38,12 +39,13 @@ app.use("/api/posts", postRoutes);
 app.use("/api/experiences", experienceRoutes);
 app.use("/api/user-experiences", userExperienceRoutes);
 app.use("/api/user-posts", userPostRoutes);
+app.use("/api/notifications", notificationRoutes);
 app.use("/api/comments", commentRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/post-categories", postCategoriesRoutes);
 app.use("/api/favorites", favoriteRoutes);
 app.use("/api/itineraries", itineraryRoutes);
-app.use("/api/emailweb", emailwebRoutes);  
+app.use("/api/emailweb", emailwebRoutes);
 
 // 📌 Upload Image Route
 app.post("/upload", upload.single("image"), (req, res) => {

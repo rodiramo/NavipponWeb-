@@ -10,12 +10,6 @@ const createExperience = async (req, res, next) => {
     console.log("📥 Incoming Request Body:", req.body);
     console.log("📸 Uploaded File:", req.file);
 
-    if (!req.file) {
-      console.warn(
-        "⚠️ No file uploaded! Ensure FormData contains 'experiencePicture'."
-      );
-    }
-
     if (
       !req.body.title ||
       !req.body.caption ||
@@ -25,11 +19,10 @@ const createExperience = async (req, res, next) => {
     ) {
       return res.status(400).json({
         message:
-          "Missing required fields: title, caption, body, categories, region",
+          "Faltan campos obligatorios: título, subtítulo, cuerpo, categorías, región",
       });
     }
 
-    // ✅ Parse JSON fields
     let {
       title,
       caption,
@@ -46,8 +39,9 @@ const createExperience = async (req, res, next) => {
       email,
       website,
       schedule,
-      map,
+      map, // no longer used, can be ignored if not needed
       address,
+      location, // This should be a JSON string now
     } = req.body;
 
     try {
@@ -63,27 +57,22 @@ const createExperience = async (req, res, next) => {
         .json({ message: "Invalid JSON format in request" });
     }
 
-    // ✅ Extract Coordinates from Google Maps URL
-    const extractCoordinates = (mapUrl) => {
-      const regex = /@(-?\d+\.\d+),(-?\d+\.\d+)/;
-      const match = mapUrl?.match(regex);
-      return match
-        ? {
-            type: "Point",
-            coordinates: [parseFloat(match[2]), parseFloat(match[1])],
-          }
-        : null;
-    };
+    // Parse location from the incoming request, if provided
+    let locationField = null;
+    if (location) {
+      try {
+        locationField = JSON.parse(location);
+      } catch (error) {
+        console.error("Error parsing location:", error);
+      }
+    }
 
-    const location = extractCoordinates(map);
-
-    // ✅ Handle Image Upload
+    // Handle Image Upload
     let photo = "default-placeholder.jpg";
     if (req.file) {
       photo = req.file.filename;
     }
 
-    // ✅ Create Experience
     const newExperience = new Experience({
       title,
       caption,
@@ -104,9 +93,9 @@ const createExperience = async (req, res, next) => {
       email,
       website,
       schedule,
-      map,
+      map, // if still provided, or you can remove it
       address,
-      location, // ✅ Add extracted location
+      location: locationField, // location from Autocomplete
     });
 
     const createdExperience = await newExperience.save();
@@ -125,8 +114,8 @@ const updateExperience = async (req, res, next) => {
       return res.status(404).json({ message: "Experiencia no encontrada" });
     }
 
-    const uploadSingle = upload.single("experiencePicture");  
-  
+    const uploadSingle = upload.single("experiencePicture");
+
     const extractCoordinates = (mapUrl) => {
       const regex = /@(-?\d+\.\d+),(-?\d+\.\d+)/;
       const match = mapUrl?.match(regex);
@@ -396,11 +385,13 @@ const getExperienceById = async (req, res) => {
 const getExperienceCount = async (req, res) => {
   try {
     const count = await Experience.countDocuments();
-    console.log("Count of experiences:", count);  
+    console.log("Count of experiences:", count);
     res.status(200).json({ count });
   } catch (error) {
     console.error("Error en getExperienceCount:", error);
-    res.status(500).json({ error: 'Error al obtener el contador de experiencias' });
+    res
+      .status(500)
+      .json({ error: "Error al obtener el contador de experiencias" });
   }
 };
 
@@ -409,12 +400,14 @@ const getTopExperiences = async (req, res) => {
     const topExperiences = await Experience.find()
       .sort({ favoritesCount: -1 })
       .limit(3)
-      .select('title favoritesCount');  
-    console.log("Top experiences:", topExperiences);  
+      .select("title favoritesCount");
+    console.log("Top experiences:", topExperiences);
     res.status(200).json(topExperiences);
   } catch (error) {
     console.error("Error en getTopExperiences:", error);
-    res.status(500).json({ error: 'Error al obtener las experiencias más populares' });
+    res
+      .status(500)
+      .json({ error: "Error al obtener las experiencias más populares" });
   }
 };
 
@@ -426,5 +419,5 @@ export {
   getAllExperiences,
   getExperienceById,
   getExperienceCount,
-  getTopExperiences,  
+  getTopExperiences,
 };

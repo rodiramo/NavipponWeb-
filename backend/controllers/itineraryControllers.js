@@ -1,6 +1,10 @@
 import Itinerary from "../models/Itinerary.js";
 import Favorite from "../models/Favorite.js";
 import Experience from "../models/Experience.js";
+import {
+  createItineraryUpdateNotification,
+  createItineraryInviteNotification,
+} from "../services/notificationService.js";
 
 const createItinerary = async (req, res, next) => {
   try {
@@ -10,8 +14,8 @@ const createItinerary = async (req, res, next) => {
       totalBudget,
       boards,
       notes,
-      isPrivate, // new field
-      travelers, // new field: array of { userId, role }
+      isPrivate,
+      travelers, // array of objects: { userId, role }
     } = req.body;
 
     const itinerary = new Itinerary({
@@ -26,6 +30,27 @@ const createItinerary = async (req, res, next) => {
     });
 
     const createdItinerary = await itinerary.save();
+
+    // Notify each traveler added (if they are not the creator)
+    if (travelers && travelers.length > 0) {
+      // Assuming req.user has the creator's name
+      const creatorId = req.user._id;
+      const creatorName = req.user.name;
+      for (let traveler of travelers) {
+        // Only notify if the traveler is not the creator
+        if (traveler.userId.toString() !== creatorId.toString()) {
+          await createItineraryInviteNotification(
+            creatorId,
+            creatorName,
+            createdItinerary._id,
+            createdItinerary.name,
+            traveler.userId,
+            traveler.role
+          );
+        }
+      }
+    }
+
     return res.status(201).json(createdItinerary);
   } catch (error) {
     next(error);
@@ -118,8 +143,8 @@ const updateItinerary = async (req, res, next) => {
       totalBudget,
       boards,
       notes,
-      isPrivate, // new field
-      travelers, // new field
+      isPrivate,
+      travelers,
     } = req.body;
     const itinerary = await Itinerary.findById(req.params.id);
 
@@ -127,6 +152,7 @@ const updateItinerary = async (req, res, next) => {
       return res.status(404).json({ message: "Itinerario no encontrado" });
     }
 
+    // Update itinerary fields
     itinerary.name = name || itinerary.name;
     itinerary.travelDays = travelDays || itinerary.travelDays;
     itinerary.totalBudget = totalBudget || itinerary.totalBudget;
@@ -138,26 +164,30 @@ const updateItinerary = async (req, res, next) => {
 
     const updatedItinerary = await itinerary.save();
 
-    const boardsWithFavorites = await Promise.all(
-      updatedItinerary.boards.map(async (board) => {
-        const favoritesWithDetails = await Promise.all(
-          board.favorites.map(async (favoriteId) => {
-            const favorite = await Favorite.findById(favoriteId).populate(
-              "experienceId"
-            );
-            return favorite || null;
-          })
-        );
-        return {
-          ...board.toObject(),
-          favorites: favoritesWithDetails.filter(Boolean),
-        };
-      })
-    );
+    // Notify all travelers (except the updater) about the update.
+    // Assume req.user contains the updater's info.
+    const updaterId = req.user._id;
+    const updaterName = req.user.name;
 
-    return res
-      .status(200)
-      .json({ ...updatedItinerary.toObject(), boards: boardsWithFavorites });
+    // Loop through the current travelers array (if any)
+    if (updatedItinerary.travelers && updatedItinerary.travelers.length > 0) {
+      for (let traveler of updatedItinerary.travelers) {
+        // traveler.userId can be an ObjectId, so convert to string
+        if (traveler.userId.toString() !== updaterId.toString()) {
+          await createItineraryUpdateNotification(
+            updaterId,
+            updaterName,
+            updatedItinerary._id,
+            updatedItinerary.name,
+            traveler.userId
+          );
+        }
+      }
+    }
+
+    // Optionally, re-populate boards and favorites as in your original code before sending response.
+
+    return res.status(200).json(updatedItinerary);
   } catch (error) {
     console.error("Error en updateItinerary:", error);
     next(error);

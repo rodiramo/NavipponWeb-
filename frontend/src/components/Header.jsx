@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { AiOutlineMenu, AiOutlineClose } from "react-icons/ai";
+import Notifications from "../components/Notifications"; // Import the dropdown
 import {
   Bolt,
   Shield,
@@ -22,7 +23,6 @@ const navItemsInfo = [
   { name: "Explora", href: "/experience" },
   { name: "Blog", href: "/blog" },
   { name: "Nosotros", href: "/about" },
-  { name: "Contacto", href: "/contacto" },
   { name: "Contacto", href: "/contact" },
 ];
 
@@ -128,6 +128,8 @@ const Header = () => {
               <Moon size={24} color="white" />
             )}
           </IconButton>
+          {/* Conditionally render Notifications if user is signed in */}
+          {!!user && <Notifications />}
 
           {/* User Profile */}
           {user ? (

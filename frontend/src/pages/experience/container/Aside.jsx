@@ -10,7 +10,7 @@ import * as LuIcons from "react-icons/lu";
 import * as PiIcons from "react-icons/pi";
 import { Disclosure } from "@headlessui/react";
 import { FaChevronUp, FaChevronDown } from "react-icons/fa";
-import { useTheme } from "@mui/material/styles";
+import { useTheme, Button } from "@mui/material";
 
 const regions = [
   "Hokkaido",
@@ -682,12 +682,12 @@ const Aside = ({ onFilterChange, selectedFilter }) => {
 
       {/* Buttons */}
       <div className="flex justify-between mt-6">
-        <button
+        <Button
           onClick={clearFilters}
           className="px-4 py-2 font-semibold rounded-lg transition-all duration-300"
           style={{
             borderRadius: "30rem",
-
+            textTransform: "none",
             padding: "0.5rem",
           }}
           onMouseEnter={(e) => {
@@ -700,12 +700,14 @@ const Aside = ({ onFilterChange, selectedFilter }) => {
           }}
         >
           Borrar Filtros
-        </button>{" "}
-        <button
+        </Button>{" "}
+        <Button
           onClick={applyFilters}
           className=" text-white transition-all duration-300"
           style={{
             backgroundColor: theme.palette.secondary.medium,
+            color: theme.palette.primary.white,
+            textTransform: "none",
             borderRadius: "30rem",
             padding: "0.5rem",
           }}
@@ -717,7 +719,7 @@ const Aside = ({ onFilterChange, selectedFilter }) => {
           }
         >
           Aplicar Filtros
-        </button>
+        </Button>
       </div>
     </aside>
   );

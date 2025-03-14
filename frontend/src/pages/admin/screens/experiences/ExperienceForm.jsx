@@ -9,6 +9,8 @@ import {
   updateExperience,
   createExperience,
 } from "../../../../services/index/experiences";
+import { LoadScript, Autocomplete } from "@react-google-maps/api";
+
 import Editor from "../../../../components/editor/Editor";
 import ExperienceTypeSelect from "./tags/ExperienceTypeSelect";
 import PriceInput from "./tags/PriceInput";
@@ -33,13 +35,19 @@ import RestaurantTags from "./tags/RestaurantTags";
 import AtractionTags from "./tags/AtractionTags";
 import GeneralTags from "./tags/GeneralTags";
 // Import the service function
-import { fetchPlaceDetails } from "../../../../services/index/map";
+import {
+  extractPlaceId,
+  getGooglePlaceDetails,
+  fetchPlaceDetails,
+} from "../../../../services/index/map";
 
 const ExperienceForm = () => {
   const theme = useTheme();
   const { slug } = useParams();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const [autocomplete, setAutocomplete] = useState(null);
+  const [placeId, setPlaceId] = useState("");
   const { jwt } = useUser();
   const isEditing = Boolean(slug);
   const [initialPhoto, setInitialPhoto] = useState(null);
@@ -66,8 +74,24 @@ const ExperienceForm = () => {
     Kumamoto: { region: "Kyushu", prefecture: "Kumamoto" },
     Kitakyushu: { region: "Kyushu", prefecture: "Fukuoka" },
     Chiba: { region: "Kanto", prefecture: "Chiba" },
+    Saitama: { region: "Kanto", prefecture: "Saitama" },
+    Ibaraki: { region: "Kanto", prefecture: "Ibaraki" },
+    Tochigi: { region: "Kanto", prefecture: "Tochigi" },
+    Gunma: { region: "Kanto", prefecture: "Gunma" },
+    Niigata: { region: "Chubu", prefecture: "Niigata" },
+    Shizuoka: { region: "Chubu", prefecture: "Shizuoka" },
+    Gifu: { region: "Chubu", prefecture: "Gifu" },
+    Mie: { region: "Chubu", prefecture: "Mie" },
+    Nara: { region: "Kansai", prefecture: "Nara" },
+    Wakayama: { region: "Kansai", prefecture: "Wakayama" },
+    Okayama: { region: "Chugoku", prefecture: "Okayama" },
+    Yamaguchi: { region: "Chugoku", prefecture: "Yamaguchi" },
+    Oita: { region: "Kyushu", prefecture: "Oita" },
+    Miyazaki: { region: "Kyushu", prefecture: "Miyazaki" },
+    Kagoshima: { region: "Kyushu", prefecture: "Kagoshima" },
     // Add any additional mappings as needed...
   };
+
   const [experienceSlug, setExperienceSlug] = useState("");
   const [caption, setCaption] = useState("");
   const [approved, setApproved] = useState(false);
@@ -209,12 +233,12 @@ const ExperienceForm = () => {
 
   const handleMapBlur = async (e) => {
     const url = e.target.value;
-    const coordinates = extractCoordinates(url);
-    if (coordinates) {
-      setLocation({ type: "Point", coordinates });
-      console.log("📍 Coordinates extracted:", coordinates);
-      // Call the map service function to fetch place details
-      const placeDetails = await fetchPlaceDetails(coordinates);
+    setMap(url);
+
+    // Attempt to extract a Place ID from the URL
+    const placeId = extractPlaceId(url);
+    if (placeId) {
+      const placeDetails = await getGooglePlaceDetails(placeId);
       if (placeDetails) {
         setTitle(placeDetails.name);
         setAddress(placeDetails.formatted_address);
@@ -222,28 +246,27 @@ const ExperienceForm = () => {
         setWebsite(placeDetails.website || "");
         setPrice(placeDetails.price !== null ? placeDetails.price : 0);
 
-        // Remap region if necessary
         const mapping = googleToCustomMapping[placeDetails.region];
         if (mapping) {
           setRegion(mapping.region);
           setPrefecture(mapping.prefecture);
         } else {
-          // Fallback: use the values from the API if no mapping exists
           setRegion(placeDetails.region);
           setPrefecture(placeDetails.prefecture);
         }
-        // Optionally, if you want to handle the city:
-        // setCity(placeDetails.city);
+      } else {
+        console.error("No place details found for the provided Place ID.");
       }
+    } else {
+      // Inform the user that a valid Place ID could not be extracted
+      console.error("The URL does not contain a valid Place ID.");
     }
   };
+
   const handleCreateExperience = async () => {
     if (!title || !caption || !categories || !region) {
       return toast.error("Todos los campos son obligatorios");
     }
-
-    const coordinates = extractCoordinates(map);
-    const locationData = coordinates ? { type: "Point", coordinates } : null;
 
     const formData = new FormData();
 
@@ -267,14 +290,15 @@ const ExperienceForm = () => {
     formData.append("email", email);
     formData.append("website", website);
     formData.append("schedule", schedule);
-    formData.append("map", map);
+    // If you're not using a separate map field, you can omit it
     formData.append("address", address);
 
-    if (locationData) {
-      formData.append("location", JSON.stringify(locationData));
+    // Append the location directly from state (if available)
+    if (location && location.coordinates && location.coordinates.length === 2) {
+      formData.append("location", JSON.stringify(location));
     }
 
-    console.log("📤 Creating Experience Data:");
+    // (Optional) Log FormData entries for debugging
     for (let [key, value] of formData.entries()) {
       console.log(`✅ FormData Key: ${key}, Value:`, value);
     }
@@ -284,6 +308,7 @@ const ExperienceForm = () => {
       token: jwt,
     });
   };
+
   const handleUpdateExperience = async () => {
     if (!title || !caption || !categories || !region) {
       return toast.error("Todos los campos son obligatorios");
@@ -326,21 +351,79 @@ const ExperienceForm = () => {
       token: jwt,
     });
   };
+  const handleOnLoad = (autocompleteInstance) => {
+    setAutocomplete(autocompleteInstance);
+  };
+
+  const handlePlaceChanged = () => {
+    if (autocomplete) {
+      const place = autocomplete.getPlace();
+      console.log("Selected place:", place);
+
+      if (place.place_id) {
+        setPlaceId(place.place_id);
+      }
+      if (place.formatted_address) {
+        setAddress(place.formatted_address);
+      }
+      if (place.name) {
+        setTitle(place.name);
+      }
+      if (place.formatted_phone_number) {
+        setPhone(place.formatted_phone_number);
+      }
+      if (place.website) {
+        setWebsite(place.website);
+      }
+      if (typeof place.price_level !== "undefined") {
+        setPrice(place.price_level);
+      }
+      // Extract prefecture from address components
+      let extractedPrefecture = "";
+      if (place.address_components) {
+        place.address_components.forEach((component) => {
+          if (component.types.includes("administrative_area_level_1")) {
+            extractedPrefecture = component.long_name;
+          }
+        });
+      }
+      setPrefecture(extractedPrefecture);
+      if (extractedPrefecture && googleToCustomMapping[extractedPrefecture]) {
+        setRegion(googleToCustomMapping[extractedPrefecture].region);
+      } else {
+        setRegion("");
+      }
+
+      // Extract latitude and longitude and update location state
+      if (place.geometry && place.geometry.location) {
+        const lat = place.geometry.location.lat();
+        const lng = place.geometry.location.lng();
+        console.log("Latitude:", lat, "Longitude:", lng);
+        setLocation({
+          type: "Point",
+          coordinates: [lng, lat], // GeoJSON expects [longitude, latitude]
+        });
+      }
+    } else {
+      console.error("Autocomplete is not loaded yet!");
+    }
+  };
 
   if (isLoading) return <ExperienceDetailSkeleton />;
   if (isError) return <ErrorMessage message="Error cargando los datos." />;
 
-  console.log("Slug:", slug);
-  console.log("Is Editing:", isEditing);
-  console.log("Is Loading:", isLoading);
-  console.log("Is Error:", isError);
-  console.log("Experience Data:", data);
   return (
-    <div>
+    <LoadScript
+      googleMapsApiKey={process.env.REACT_APP_GOOGLE_API_KEY}
+      libraries={["places"]}
+      width="100%"
+      language="es"
+    >
       <Box
         sx={{
           background: theme.palette.secondary.light,
           padding: "30px",
+          width: "100%",
           borderRadius: "0rem 0rem 5rem  5rem",
           overflowX: "hidden !important",
           marginTop: "-25px",
@@ -350,12 +433,13 @@ const ExperienceForm = () => {
           {isEditing ? "Editar" : "Crear"} Experiencia
         </Typography>
       </Box>
-      <article className="flex-1">
+      <article>
         <Box
           display="flex"
           alignItems="center"
           gap="2rem"
           marginTop={5}
+          width="100%"
           marginBottom={5}
         >
           <label htmlFor="experiencePicture" className="w-50 cursor-pointer">
@@ -381,8 +465,7 @@ const ExperienceForm = () => {
                   alignItems: "center",
                   justifyContent: "center",
                   width: "100%",
-                  maxWidth: "100%",
-                  border: `2px solid ${theme.palette.primary.main}`,
+                  border: `2px dashed ${theme.palette.primary.main}`,
                   borderRadius: "10px",
                   padding: "20px",
                   textAlign: "center",
@@ -420,31 +503,44 @@ const ExperienceForm = () => {
             </button>
           )}
         </Box>{" "}
-        {/* Google Maps URL */}
-        <div className="d-form-control w-full">
-          <Typography
-            variant="subtitle1"
-            sx={{ fontWeight: "bold", color: theme.palette.text.primary }}
-          >
-            Link de Google Maps
-          </Typography>
-          <TextField
-            value={map}
-            placeholder="Ingrese el URL de Google Maps"
-            onChange={(e) => setMap(e.target.value)}
-            onBlur={handleMapBlur}
-            fullWidth
-            required
-            sx={{
-              bgcolor: "white",
-              borderRadius: "10px",
-              "& .MuiInputBase-root": {
-                borderRadius: "10px",
-                border: `1.5px solid ${theme.palette.secondary.light}`,
-              },
+        {/* Autocomplete Input */}
+        <div>
+          <Typography variant="subtitle1">Lugar</Typography>
+          <Autocomplete
+            onLoad={handleOnLoad}
+            onPlaceChanged={handlePlaceChanged}
+            options={{
+              fields: [
+                "place_id",
+                "formatted_address",
+                "name",
+                "formatted_phone_number",
+                "website",
+                "price_level",
+                "address_components",
+                "geometry",
+              ],
             }}
-          />
-        </div>{" "}
+          >
+            <input
+              id="autocomplete-input"
+              type="text"
+              placeholder="Ingresa el lugar..."
+              style={{
+                bgcolor: "white",
+                width: "100%",
+                padding: "1rem",
+                borderRadius: "10px",
+                border: `2px solid ${theme.palette.secondary.light}`,
+                transition: "none",
+                "&:hover": {
+                  backgroundColor: "white",
+                  border: `2px solid ${theme.palette.secondary.light}`,
+                },
+              }}
+            />
+          </Autocomplete>
+        </div>
         <div className="d-form-control w-full" style={{ marginTop: "0.5rem" }}>
           <Typography
             variant="subtitle1"
@@ -453,7 +549,7 @@ const ExperienceForm = () => {
               color: theme.palette.text.primary,
             }}
           >
-            Título
+            Título*
           </Typography>
           <TextField
             value={title}
@@ -482,7 +578,7 @@ const ExperienceForm = () => {
           />
         </div>
         <div className="d-form-control w-full" style={{ marginTop: "0.5rem" }}>
-          <Typography variant="subtitle1">Descripción breve</Typography>
+          <Typography variant="subtitle1">Descripción breve*</Typography>
           <TextField
             placeholder="Escribe la descripción aquí..."
             variant="filled"
@@ -519,7 +615,7 @@ const ExperienceForm = () => {
         </div>
         {/* Description */}
         <Typography variant="subtitle1" marginTop={3} marginBottom={1}>
-          Contenido de la experiencia
+          Contenido de la experiencia*
         </Typography>
         <Editor
           content={body}
@@ -736,7 +832,7 @@ const ExperienceForm = () => {
           {isEditing ? "Actualizar Experiencia" : "Crear Experiencia"}
         </button>
       </div>
-    </div>
+    </LoadScript>
   );
 };
 

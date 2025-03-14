@@ -5,6 +5,7 @@ const ReviewSchema = new Schema(
     user: { type: Schema.Types.ObjectId, ref: "User", required: true },
     title: { type: String, required: false },
     desc: { type: String, required: false },
+    check: { type: Boolean, default: true },
     rating: {
       type: Number,
       required: false,

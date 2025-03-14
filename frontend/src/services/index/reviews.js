@@ -29,6 +29,7 @@ export const createNewReview = async ({ token, desc, rating, title, slug }) => {
 export const updateReview = async ({
   token,
   rating,
+  check,
   title,
   desc,
   reviewId,
@@ -46,7 +47,7 @@ export const updateReview = async ({
 
     const { data } = await axios.put(
       `/api/reviews/${reviewId}`,
-      { rating, title, desc },
+      { rating, title, desc, check },
       config
     );
 
@@ -106,8 +107,8 @@ export const getReviewCount = async (token) => {
         Authorization: `Bearer ${token}`,
       },
     };
-    const { data } = await axios.get('/api/reviews/count', config);
-    console.log("Review count data:", data); 
+    const { data } = await axios.get("/api/reviews/count", config);
+    console.log("Review count data:", data);
     return data.count;
   } catch (error) {
     console.error("Error fetching review count:", error);

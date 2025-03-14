@@ -4,10 +4,12 @@ import {
   registerUser,
   loginUser,
   userProfile,
+  getUserFriends,
   updateProfile,
   updateProfilePicture,
   getAllUsers,
   deleteUser,
+  userProfileById,
   toggleFriend, // ✅ New function
 } from "../controllers/userControllers.js";
 import { adminGuard, authGuard } from "../middleware/authMiddleware.js";
@@ -26,7 +28,9 @@ router.put(
 );
 router.get("/", authGuard, getAllUsers);
 router.delete("/:userId", authGuard, adminGuard, deleteUser);
+router.get("/:userId/friends", authGuard, getUserFriends);
 
+router.get("/profile/:userId", authGuard, userProfileById);
 // ✅ Friend Request Routes
 router.post("/toggleFriend/:userId", authGuard, toggleFriend); // Add/remove friend
 

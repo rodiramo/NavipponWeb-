@@ -21,7 +21,7 @@ const ExperienceTypeSelect = ({
           marginBottom: "8px",
         }}
       >
-        Tipo de Experiencia
+        Tipo de Experiencia*
       </Typography>
 
       {isExperienceDataLoaded && (

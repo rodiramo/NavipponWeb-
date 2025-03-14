@@ -12,9 +12,9 @@ import ArticleDetailPage from "./pages/articleDetail/ArticleDetailPage";
 import HomePage from "./pages/home/HomePage";
 import RegisterPage from "./pages/register/RegisterPage";
 import LoginPage from "./pages/login/LoginPage";
-import ContactPage from "./pages/contact/ContactPage"; 
-import ManageEmails from "./pages/admin/screens/emailweb/ManageEmails";  
-import EmailDetail from "./pages/admin/screens/emailweb/EmailDetail";  
+import ContactPage from "./pages/contact/ContactPage";
+import ManageEmails from "./pages/admin/screens/emailweb/ManageEmails";
+import EmailDetail from "./pages/admin/screens/emailweb/EmailDetail";
 
 /** admin screens */
 import AdminLayout from "./pages/admin/AdminLayout";
@@ -39,7 +39,7 @@ import ExperiencePage from "./pages/experience/ExperiencePage";
 import ExperienceDetailPage from "./pages/experienceDetail/ExperienceDetailPage";
 
 /** user */
-import FriendProfilePage from "./pages/profile/FriendProfilePage.jsx";
+import UserProfilePage from "./pages/profile/UserProfilePage.jsx";
 import ProfilePage from "./pages/user/screens/User";
 import Dashboard from "./pages/user/screens/Dashboard.jsx";
 import UserLayout from "./pages/user/UserLayout";
@@ -85,12 +85,12 @@ function App() {
           <Route path="/blog/:slug" element={<ArticleDetailPage />} />
           <Route path="/blog" element={<BlogPage />} />
           <Route path="/about" element={<AboutPage />} />
-          <Route path="/contact" element={<ContactPage />} /> 
+          <Route path="/contact" element={<ContactPage />} />
           <Route
             path="experiences/manage/edit/:slug"
             element={<ExperienceForm />}
           />
-          <Route path="profile/:friendId" element={<FriendProfilePage />} />
+          <Route path="/profile/:userId" element={<UserProfilePage />} />
           <Route path="posts/manage/create" element={<PostFormPage />} />
           {/* Admin Routes */}
           <Route path="/admin" element={<AdminLayout />}>
@@ -114,8 +114,8 @@ function App() {
               element={<EditCategories />}
             />
             <Route path="users/manage" element={<Users />} />
-            <Route path="emailweb" element={<ManageEmails />} />  
-            <Route path="emailweb/:id" element={<EmailDetail />} />  
+            <Route path="emailweb" element={<ManageEmails />} />
+            <Route path="emailweb/:id" element={<EmailDetail />} />
           </Route>
           <Route path="/user" element={<UserLayout />}>
             <Route path="posts/manage" element={<UserManagePosts />} />
@@ -146,12 +146,11 @@ function App() {
               element={<ItineraryDetailPage />}
             />
             <Route path="chat/bot" element={<ChatWithBot />} />
-          </Route>
+          </Route>{" "}
           {/* User Routes */}
           <Route path="/user" element={<UserLayout />}>
             <Route path="profile" element={<ProfilePage />} />
             <Route path="dashboard" element={<Dashboard />} />
-            <Route path="profile/:friendId" element={<FriendProfilePage />} />
             <Route
               path="experiences/manage"
               element={<UserManageExperiences />}

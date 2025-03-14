@@ -140,7 +140,6 @@ const CarouselExperiences = ({
             <Box
               sx={{
                 padding: "0.5rem 2rem 2rem 2rem",
-                backgroundColor: "white",
                 textAlign: "center",
               }}
             >
@@ -196,6 +195,8 @@ const CarouselExperiences = ({
                 sx={{
                   backgroundColor: theme.palette.secondary.medium,
                   borderRadius: "10rem",
+                  color: theme.palette.primary.white,
+                  textTransform: "none",
                   marginTop: "1rem",
                 }}
                 component={Link}

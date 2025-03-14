@@ -15,6 +15,7 @@ const MapAside = ({ experiences = [] }) => {
 
   // Fetch and update experiences using your existing logic
   useEffect(() => {
+    let mounted = true;
     const fetchPlaces = async () => {
       const updatedPlaces = await Promise.all(
         experiences.map(async (exp) => {
@@ -28,9 +29,14 @@ const MapAside = ({ experiences = [] }) => {
           };
         })
       );
-      setPlaces(updatedPlaces);
+      if (mounted) {
+        setPlaces(updatedPlaces);
+      }
     };
     fetchPlaces();
+    return () => {
+      mounted = false;
+    };
   }, [experiences]);
 
   // Filter out valid experiences with proper coordinates
@@ -111,6 +117,8 @@ const MapAside = ({ experiences = [] }) => {
       // Note: Make sure MarkerClusterer is available on window if not import it directly.
       // Here, we import it dynamically:
       import("@googlemaps/markerclusterer").then(({ MarkerClusterer }) => {
+        // Before creating the clusterer, double-check that the google object is still available.
+        if (!window.google) return;
         new MarkerClusterer({
           map,
           markers,

@@ -82,7 +82,7 @@ const RegionPrefectureSelect = ({
           marginBottom: "8px",
         }}
       >
-        Región
+        Región*
       </Typography>
       <Autocomplete
         options={regionOptions}

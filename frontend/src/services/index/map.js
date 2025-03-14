@@ -71,10 +71,8 @@ export const fetchPlaceDetails = async (coords) => {
 
 export const getGooglePlaceDetails = async (placeId) => {
   if (!placeId) return null;
-  const url = `https://maps.googleapis.com/maps/api/place/details/json?placeid=${placeId}&key=${GOOGLE_API_KEY}&language=es`;
-
   try {
-    const { data } = await axios.get(url);
+    const { data } = await axios.get(`/api/place-details?placeId=${placeId}`);
     if (data.status !== "OK") return null;
 
     const place = data.result;

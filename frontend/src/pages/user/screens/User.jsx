@@ -64,7 +64,7 @@ const User = () => {
   };
 
   return (
-    <Box>
+    <Box width="100%">
       <Box
         sx={{
           width: "100%",

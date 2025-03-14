@@ -89,17 +89,9 @@ const Experiences = ({ user, token, onFavoriteToggle }) => {
         to="/experience"
         className="mx-auto flex items-center gap-x-2 font-bold border-2 px-6 py-3 rounded-full transition-all duration-300"
         style={{
-          borderColor: theme.palette.primary.main, // Primary border color
-          color: theme.palette.primary.main, // Primary text color
+          borderColor: theme.palette.primary.main,
+          color: theme.palette.primary.main,
           backgroundColor: "transparent",
-        }}
-        onMouseEnter={(e) => {
-          e.target.style.backgroundColor = theme.palette.primary.main;
-          e.target.style.color = theme.palette.primary.contrastText;
-        }}
-        onMouseLeave={(e) => {
-          e.target.style.backgroundColor = "transparent";
-          e.target.style.color = theme.palette.primary.main;
         }}
       >
         <span>Leer más experiencias</span>
