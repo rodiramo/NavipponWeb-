@@ -23,6 +23,8 @@ import {
   BedSingle,
   Plus,
   MessagesSquare,
+  Map,
+  Coins,
   Save,
   Edit,
   Trash2,
@@ -162,11 +164,15 @@ const ItineraryDetailPage = () => {
   };
   const getCategoryIcon = (category, theme) => {
     if (category === "Hoteles")
-      return <BedSingle color={theme.palette.primary.main} />;
+      return <BedSingle color={theme.palette.primary.main} size={24} />;
     if (category === "Atractivos")
-      return <MdOutlineTempleBuddhist color={theme.palette.primary.main} />;
+      return (
+        <MdOutlineTempleBuddhist color={theme.palette.primary.main} size={24} />
+      );
     if (category === "Restaurantes")
-      return <MdOutlineRamenDining color={theme.palette.primary.main} />;
+      return (
+        <MdOutlineRamenDining color={theme.palette.primary.main} size={24} />
+      );
     return null;
   };
   const toggleDrawer = () => {
@@ -179,8 +185,17 @@ const ItineraryDetailPage = () => {
     setTravelDays(updatedBoards.length);
     updateTotalBudget(updatedBoards);
   };
+
+  const shouldPreventScroll = (e) => {
+    // Returns true if the event target is inside an element with the class "no-scroll"
+    return Boolean(e.target.closest(".no-scroll"));
+  };
+
   const handleMouseDown = (e) => {
-    if (!isEditable) return; // disable drag if not editable
+    if (shouldPreventScroll(e)) {
+      // If the target is a draggable item (marked with "no-scroll"), don't trigger scrolling.
+      return;
+    }
     const slider = e.currentTarget;
     let startX = e.pageX - slider.offsetLeft;
     let scrollLeft = slider.scrollLeft;
@@ -332,12 +347,9 @@ const ItineraryDetailPage = () => {
     <Box>
       <Header />
       {/* Back Button */}
-      <Box sx={{ mt: "6rem", ml: 2 }}>
-        <Button variant="outlined" onClick={() => navigate(-1)}>
-          Volver
-        </Button>
-      </Box>
+
       <Box sx={{ mt: "6rem" }}>
+        {" "}
         <DragDropContext onDragEnd={onDragEnd}>
           <Box
             sx={{
@@ -364,7 +376,6 @@ const ItineraryDetailPage = () => {
               sx={{
                 transition: "margin 0.3s ease-in-out",
                 width: "100%",
-                marginLeft: isDrawerOpen ? `${drawerWidth}px` : "0",
               }}
             >
               {/* Header Section */}
@@ -377,116 +388,166 @@ const ItineraryDetailPage = () => {
                   mb: 3,
                 }}
               >
-                <Box display="flex" justifyContent="center">
-                  {isEditingName ? (
-                    <TextField
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      onBlur={handleSaveName}
-                      autoFocus
-                      variant="outlined"
-                      size="small"
-                      sx={{ backgroundColor: "#fff", borderRadius: 1 }}
-                    />
-                  ) : (
-                    <Typography
-                      variant="h5"
-                      sx={{ fontWeight: "bold", cursor: "pointer" }}
-                      onClick={() => setIsEditingName(true)}
-                    >
-                      {name}
-                    </Typography>
-                  )}
-                  <IconButton onClick={handleSaveName} sx={{ color: "#fff" }}>
-                    {isEditingName ? <Save size={16} /> : <Edit size={16} />}
-                  </IconButton>
+                {" "}
+                <Box>
+                  <Button
+                    variant="outlined"
+                    onClick={() => navigate(-1)}
+                    sx={{ borderRadius: "30rem", textTransform: "none" }}
+                  >
+                    Volver
+                  </Button>
                 </Box>
-                {/* Show creator info and, if invited, current user's role */}
-                <Box sx={{ mt: 1, textAlign: "center" }}>
-                  {creator && (
-                    <>
-                      <Typography variant="subtitle2" color="white">
-                        Creado por: {creator.name}
-                      </Typography>
-                      {isInvited && (
-                        <Typography variant="subtitle2" color="white">
-                          Tu rol: {myRole}
+                <Box
+                  display="flex"
+                  justifyContent="space-between"
+                  alignItems="center"
+                  gap={1}
+                >
+                  <Box
+                    display="flex"
+                    flexDirection="column"
+                    mt={2}
+                    justifyContent="center"
+                  >
+                    <Box display="flex">
+                      {" "}
+                      {isEditingName ? (
+                        <TextField
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          onBlur={handleSaveName}
+                          autoFocus
+                          variant="outlined"
+                          size="small"
+                          sx={{ backgroundColor: "#fff", borderRadius: 1 }}
+                        />
+                      ) : (
+                        <Typography
+                          variant="h2"
+                          sx={{ fontWeight: "bold", cursor: "pointer" }}
+                          onClick={() => setIsEditingName(true)}
+                        >
+                          {name}
                         </Typography>
                       )}
-                    </>
-                  )}
-                </Box>
-                <Box
-                  sx={{
-                    display: "flex",
-                    gap: 2,
-                    mt: 2,
-                    justifyContent: "center",
-                  }}
-                >
-                  <Chip
-                    label={`${travelDays} Días`}
-                    icon={<CalendarDays size={16} />}
-                    sx={{
-                      backgroundColor: "#fff",
-                      color: theme.palette.secondary.dark,
-                    }}
-                  />
-                  <Chip
-                    label={`€${totalBudget}`}
-                    icon={<Wallet size={16} />}
-                    sx={{
-                      backgroundColor: "#fff",
-                      color: theme.palette.secondary.dark,
-                    }}
-                  />
-                </Box>
-                <Box
-                  sx={{
-                    display: "flex",
-                    gap: 1,
-                    marginTop: "1rem",
-                    justifyContent: "center",
-                  }}
-                >
-                  {travelers?.length > 0 ? (
-                    travelers.map((friend, index) => (
-                      <Tooltip
-                        key={index}
-                        title={`${friend.role}: ${friend.userId.name}`}
-                        arrow
+                      <IconButton
+                        onClick={handleSaveName}
+                        sx={{ color: "#fff" }}
                       >
-                        <Chip
-                          avatar={
-                            <Avatar
-                              src={
-                                friend.userId.avatar
-                                  ? `${stables.UPLOAD_FOLDER_BASE_URL}/${friend.userId.avatar}`
-                                  : "/assets/default-avatar.jpg"
-                              }
-                              alt={friend.userId.name}
-                            />
-                          }
-                          label={friend.userId.name}
-                          variant="outlined"
-                          sx={{
-                            borderRadius: "50px",
-                            backgroundColor: "#ffffff22",
-                            color: "#fff",
-                            "&:hover": {
-                              backgroundColor: "#ffffff44",
-                              cursor: "pointer",
-                            },
-                          }}
-                        />
-                      </Tooltip>
-                    ))
-                  ) : (
-                    <Typography variant="body2" color="gray">
-                      Sin compañeros de viaje.
-                    </Typography>
-                  )}
-                </Box>
+                        {isEditingName ? (
+                          <Save size={16} />
+                        ) : (
+                          <Edit size={16} />
+                        )}
+                      </IconButton>
+                    </Box>{" "}
+                    {creator && (
+                      <>
+                        <Typography color="white" sx={{ fontSize: "0.85rem" }}>
+                          Creado por: {creator.name}
+                        </Typography>
+                        {isInvited && (
+                          <Typography
+                            variant="subtitle2"
+                            size={16}
+                            color="white"
+                          >
+                            Tu rol: {myRole}
+                          </Typography>
+                        )}
+                      </>
+                    )}{" "}
+                  </Box>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      gap: 2,
+                      mt: 2,
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Chip
+                      label={`${travelDays} Días`}
+                      icon={<CalendarDays size={16} />}
+                      sx={{
+                        backgroundColor: "#fff",
+                        color: theme.palette.secondary.dark,
+                      }}
+                    />
+                    <Chip
+                      label={`€${totalBudget}`}
+                      icon={<Wallet size={16} />}
+                      sx={{
+                        backgroundColor: "#fff",
+                        color: theme.palette.secondary.dark,
+                      }}
+                    />
+                  </Box>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      gap: 1,
+                      marginTop: "1rem",
+                      justifyContent: "center",
+                    }}
+                  >
+                    {travelers?.length > 0 ? (
+                      travelers.map((friend, index) => (
+                        <Tooltip
+                          key={index}
+                          title={`${friend.role}: ${friend.userId.name}`}
+                          arrow
+                        >
+                          <Chip
+                            avatar={
+                              <Avatar
+                                src={
+                                  friend.userId.avatar
+                                    ? `${stables.UPLOAD_FOLDER_BASE_URL}/${friend.userId.avatar}`
+                                    : "/assets/default-avatar.jpg"
+                                }
+                                alt={friend.userId.name}
+                              />
+                            }
+                            label={friend.userId.name}
+                            variant="outlined"
+                            sx={{
+                              borderRadius: "50px",
+                              backgroundColor: "#ffffff22",
+                              color: "#fff",
+                              "&:hover": {
+                                backgroundColor: "#ffffff44",
+                                cursor: "pointer",
+                              },
+                            }}
+                          />
+                        </Tooltip>
+                      ))
+                    ) : (
+                      <Typography variant="body2" color="gray">
+                        Sin compañeros de viaje.
+                      </Typography>
+                    )}
+                  </Box>
+                  <Box sx={{ mt: 3, textAlign: "center" }}>
+                    <IconButton
+                      onClick={() => setNotesModalOpen(true)}
+                      sx={{
+                        backgroundColor: theme.palette.primary.main,
+                        color: "#fff",
+                        borderRadius: "50%",
+                        p: 1,
+                        "&:hover": {
+                          backgroundColor: theme.palette.primary.dark,
+                        },
+                      }}
+                    >
+                      {/* Message icon from lucide-react */}
+                      <MessagesSquare size={24} />
+                    </IconButton>
+                  </Box>
+                </Box>{" "}
               </Box>
 
               {/* Boards Section */}
@@ -507,7 +568,7 @@ const ItineraryDetailPage = () => {
                         overflowX: "auto",
                         p: 1,
                         paddingBottom: "20px",
-                        height: "75vh",
+                        height: "min-content",
                         whiteSpace: "nowrap",
                         "-webkit-user-select": "none",
                         userSelect: "none",
@@ -528,36 +589,65 @@ const ItineraryDetailPage = () => {
                           index={boardIndex}
                         >
                           {(providedBoard) => (
-                            <Card
+                            <Box
                               ref={providedBoard.innerRef}
                               {...providedBoard.draggableProps}
                               {...providedBoard.dragHandleProps}
                               sx={{
-                                minWidth: 300,
-                                maxWidth: 300,
-                                height: "fit-content",
-                                borderRadius: "8px",
-                                p: 1,
+                                position: "relative",
+                                mb: 3,
+                                borderRadius: 5,
+                                boxShadow: 2,
+                                backgroundColor: theme.palette.primary.white,
+                                height: "min-content",
+                                maxHeight: "75vh",
+                                minWidth: "300px !important",
                                 display: "flex",
                                 flexDirection: "column",
-                                paddingLeft: "6px",
-                                paddingRight: "6px",
-                                flexShrink: 0,
-                                whiteSpace: "normal",
+                                overflow: "hidden",
                               }}
                             >
-                              <CardContent>
+                              {/* Sticky Header */}
+                              <Box
+                                sx={{
+                                  position: "sticky",
+                                  top: 0,
+                                  backgroundColor: theme.palette.primary.white,
+                                  zIndex: 1,
+                                  p: 2,
+                                  borderBottom: `1px solid ${theme.palette.secondary.light}`,
+                                }}
+                              >
                                 <Box
-                                  sx={{
-                                    display: "flex",
-                                    justifyContent: "space-between",
-                                    alignItems: "center",
-                                    mb: 1,
-                                  }}
+                                  display="flex"
+                                  justifyContent="space-between"
+                                  alignItems="center"
                                 >
-                                  <Typography variant="h6">
-                                    Day {boardIndex + 1}
-                                  </Typography>
+                                  <Box
+                                    display="flex"
+                                    alignItems="center"
+                                    gap={1}
+                                  >
+                                    <Typography
+                                      variant="h6"
+                                      sx={{ fontWeight: "bold" }}
+                                    >
+                                      Día {boardIndex + 1}
+                                    </Typography>
+                                    {board.date && (
+                                      <Typography
+                                        component="span"
+                                        sx={{
+                                          color: theme.palette.primary.main,
+                                        }}
+                                      >
+                                        -{" "}
+                                        {new Date(
+                                          board.date
+                                        ).toLocaleDateString()}
+                                      </Typography>
+                                    )}
+                                  </Box>
                                   <IconButton
                                     onClick={() =>
                                       handleRemoveBoard(boardIndex)
@@ -566,78 +656,300 @@ const ItineraryDetailPage = () => {
                                   >
                                     <Trash2 size={18} color="red" />
                                   </IconButton>
-                                </Box>
-                                <Typography
-                                  variant="subtitle2"
-                                  color="textSecondary"
-                                >
-                                  {board.date || "Sin Fechas Definidas"}
-                                </Typography>
-                                <Typography
-                                  variant="subtitle2"
-                                  color="textSecondary"
+                                </Box>{" "}
+                                <Box
+                                  display="flex"
+                                  alignItems="center"
                                   mt={1}
+                                  gap={1}
                                 >
-                                  Budget: €{board.dailyBudget}
-                                </Typography>
-                                <Droppable
-                                  droppableId={`${boardIndex}`}
-                                  type="FAVORITE"
+                                  {" "}
+                                  <Coins
+                                    size={18}
+                                    mr={2}
+                                    color={theme.palette.secondary.medium}
+                                  />{" "}
+                                  <Typography> {board.dailyBudget}€</Typography>
+                                </Box>{" "}
+                              </Box>
+
+                              {/* Scrollable Activities Container */}
+                              <Box
+                                sx={{
+                                  flex: 1,
+                                  overflowY: "auto",
+                                  px: 2,
+                                  py: 1,
+                                  // Add top and bottom padding to ensure the sticky elements don't overlap content
+                                  pt: 0,
+                                  pb: 50, // adjust bottom padding to leave space for the sticky note button
+                                }}
+                              >
+                                <Box
+                                  sx={{ display: "flex", flexDirection: "row" }}
                                 >
-                                  {(providedFav) => (
+                                  {/* Left Timeline Column */}
+                                  <Box
+                                    sx={{
+                                      position: "relative",
+                                      width: "25px", // space for the vertical line and icons
+                                      display: "flex",
+                                      flexDirection: "column",
+                                      alignItems: "center",
+                                      pt: 2,
+                                    }}
+                                  >
+                                    {/* Vertical line that spans full height */}
                                     <Box
-                                      ref={providedFav.innerRef}
-                                      {...providedFav.droppableProps}
                                       sx={{
-                                        mt: 2,
-                                        minHeight: "150px",
-                                        flexGrow: 1,
+                                        position: "absolute",
+                                        left: "50%",
+                                        top: 0,
+                                        bottom: 0,
+                                        width: "2px",
+                                        backgroundColor:
+                                          theme.palette.secondary.main,
+                                        transform: "translateX(-50%)",
+                                        zIndex: 0,
                                       }}
-                                    >
-                                      {board.favorites.map((fav, favIndex) => (
-                                        <Draggable
-                                          key={`${boardIndex}-${favIndex}`}
-                                          draggableId={`${boardIndex}-${favIndex}`}
-                                          index={favIndex}
-                                        >
-                                          {(providedItem) => (
-                                            <Paper
-                                              ref={providedItem.innerRef}
-                                              {...providedItem.draggableProps}
-                                              {...providedItem.dragHandleProps}
-                                              sx={{
-                                                display: "flex",
-                                                alignItems: "center",
-                                                gap: 1,
-                                                mb: 1,
-                                                p: 1,
-                                                borderRadius: "8px",
-                                              }}
-                                            >
-                                              <Typography variant="body2">
-                                                {fav.experienceId?.title}
-                                              </Typography>
-                                              <IconButton
-                                                onClick={() =>
-                                                  handleRemoveFavorite(
-                                                    boardIndex,
-                                                    favIndex
-                                                  )
-                                                }
-                                                sx={{ ml: "auto" }}
+                                    />
+                                    {/* Optionally render icons here if desired */}
+                                  </Box>
+
+                                  {/* Right Side: Favorites List */}
+                                  <Droppable
+                                    droppableId={`${boardIndex}`}
+                                    type="FAVORITE"
+                                  >
+                                    {(providedFav) => (
+                                      <Box
+                                        ref={providedFav.innerRef}
+                                        {...providedFav.droppableProps}
+                                        sx={{ flex: 1, ml: 2 }}
+                                      >
+                                        {board.favorites.map(
+                                          (fav, favIndex) => {
+                                            const category =
+                                              fav.experienceId?.categories ||
+                                              "Other";
+                                            return (
+                                              <Draggable
+                                                key={`${boardIndex}-${favIndex}`}
+                                                draggableId={`${boardIndex}-${favIndex}`}
+                                                index={favIndex}
                                               >
-                                                <Trash2 size={14} color="red" />
-                                              </IconButton>
-                                            </Paper>
-                                          )}
-                                        </Draggable>
-                                      ))}
-                                      {providedFav.placeholder}
-                                    </Box>
-                                  )}
-                                </Droppable>
-                              </CardContent>
-                            </Card>
+                                                {(providedItem) => (
+                                                  <Paper
+                                                    ref={providedItem.innerRef}
+                                                    {...providedItem.draggableProps}
+                                                    {...providedItem.dragHandleProps}
+                                                    className="no-scroll" // Add this class
+                                                    sx={{
+                                                      position: "relative",
+                                                      mb: 3,
+                                                      borderRadius: 2,
+                                                      boxShadow: 1,
+                                                      overflow: "visible",
+                                                      backgroundColor:
+                                                        theme.palette.primary
+                                                          .white,
+                                                    }}
+                                                  >
+                                                    <Box
+                                                      sx={{
+                                                        display: "flex",
+                                                        flexDirection: "row",
+                                                      }}
+                                                    >
+                                                      {/* Left: Icon Column */}
+                                                      <Box
+                                                        sx={{
+                                                          position: "absolute",
+                                                          top: "8px",
+                                                          marginLeft: "-55px",
+                                                          zIndex: 2,
+                                                          display: "flex",
+                                                          flexDirection:
+                                                            "column",
+                                                          alignItems: "center",
+                                                          justifyContent:
+                                                            "flex-start",
+                                                          p: 1,
+                                                        }}
+                                                      >
+                                                        <Box
+                                                          sx={{
+                                                            backgroundColor:
+                                                              theme.palette
+                                                                .primary.white,
+                                                            border: `1.5px solid ${theme.palette.primary.main}`,
+                                                            borderRadius: "50%",
+                                                            p: 0.5,
+                                                            zIndex: 1,
+                                                          }}
+                                                        >
+                                                          {getCategoryIcon(
+                                                            category,
+                                                            theme
+                                                          )}
+                                                        </Box>
+                                                      </Box>
+
+                                                      {/* Right: Activity Details and Cover */}
+                                                      <Box
+                                                        sx={{ flex: 1, p: 1 }}
+                                                      >
+                                                        {/* Cover Image */}
+                                                        <Box
+                                                          sx={{
+                                                            width: "100%",
+                                                            height: 100,
+                                                            overflow: "hidden",
+                                                            borderRadius: 1,
+                                                          }}
+                                                        >
+                                                          <img
+                                                            src={
+                                                              fav.experienceId
+                                                                ?.photo
+                                                                ? stables.UPLOAD_FOLDER_BASE_URL +
+                                                                  fav
+                                                                    .experienceId
+                                                                    .photo
+                                                                : images.sampleFavoriteImage
+                                                            }
+                                                            alt={
+                                                              fav.experienceId
+                                                                ?.title
+                                                            }
+                                                            style={{
+                                                              width: "100%",
+                                                              height: "100%",
+                                                              objectFit:
+                                                                "cover",
+                                                            }}
+                                                          />
+                                                        </Box>
+                                                        {/* Details */}
+                                                        <Box sx={{ p: 2 }}>
+                                                          <Typography
+                                                            variant="subtitle1"
+                                                            sx={{
+                                                              fontWeight:
+                                                                "bold",
+                                                            }}
+                                                          >
+                                                            {fav.experienceId
+                                                              ?.title ||
+                                                              "Actividad sin título"}
+                                                          </Typography>
+                                                          <Typography
+                                                            variant="caption"
+                                                            color="text.secondary"
+                                                          >
+                                                            {fav.experienceId
+                                                              ?.prefecture ||
+                                                              "Ubicación desconocida"}
+                                                          </Typography>
+                                                          <Typography
+                                                            variant="body2"
+                                                            sx={{
+                                                              color:
+                                                                theme.palette
+                                                                  .primary.main,
+                                                              cursor: "pointer",
+                                                              mt: 0.5,
+                                                            }}
+                                                          >
+                                                            Agregar detalles
+                                                          </Typography>
+                                                        </Box>
+                                                      </Box>
+                                                    </Box>
+
+                                                    {/* Remove Favorite Button */}
+                                                    <IconButton
+                                                      onClick={() =>
+                                                        handleRemoveFavorite(
+                                                          boardIndex,
+                                                          favIndex
+                                                        )
+                                                      }
+                                                      sx={{
+                                                        position: "absolute",
+                                                        top: 8,
+                                                        right: 8,
+                                                        backgroundColor:
+                                                          "rgba(255,255,255,0.8)",
+                                                      }}
+                                                    >
+                                                      <Trash2
+                                                        size={16}
+                                                        color="red"
+                                                      />
+                                                    </IconButton>
+                                                  </Paper>
+                                                )}
+                                              </Draggable>
+                                            );
+                                          }
+                                        )}
+                                        {providedFav.placeholder}
+                                      </Box>
+                                    )}
+                                  </Droppable>
+                                </Box>
+                              </Box>
+
+                              {/* Sticky Note Button at Bottom */}
+                              <Box
+                                sx={{
+                                  position: "sticky",
+                                  bottom: 0,
+                                  backgroundColor: theme.palette.primary.white,
+                                  p: 2,
+                                  textAlign: "center",
+                                  boxShadow: `0px 2px 6px ${theme.palette.secondary.main}`,
+                                  borderRadius: "4rem 4rem 2rem 2rem",
+                                }}
+                              >
+                                <button
+                                  variant="contained"
+                                  size="small"
+                                  style={{
+                                    color: theme.palette.primary.main,
+                                    borderRadius: "20px",
+                                    textTransform: "none",
+                                    p: 2,
+                                    display: "flex",
+                                  }}
+                                  onClick={() => {
+                                    // Call your note dialog handler for this board
+                                  }}
+                                >
+                                  {" "}
+                                  <Plus size={20} />
+                                  Añadir Experiencia
+                                </button>{" "}
+                                <button
+                                  variant="contained"
+                                  size="small"
+                                  style={{
+                                    color: theme.palette.secondary.medium,
+                                    borderRadius: "20px",
+                                    textTransform: "none",
+                                    p: 2,
+                                    display: "flex",
+                                  }}
+                                  onClick={() => {
+                                    // Call your note dialog handler for this board
+                                  }}
+                                >
+                                  {" "}
+                                  <Map size={20} /> Ver Mapa
+                                </button>
+                              </Box>
+                            </Box>
                           )}
                         </Draggable>
                       ))}
@@ -703,196 +1015,188 @@ const ItineraryDetailPage = () => {
                   ))}
                 </Box>
               )}
-
-              {/* Notes Section */}
-              <Box sx={{ mt: 3, textAlign: "center" }}>
-                <Typography variant="h6" sx={{ mb: 1 }}>
-                  Notas Generales
-                </Typography>
-                <IconButton
-                  onClick={() => setNotesModalOpen(true)}
-                  sx={{
-                    backgroundColor: theme.palette.primary.main,
-                    color: "#fff",
-                    borderRadius: "50%",
-                    p: 1,
-                    "&:hover": {
-                      backgroundColor: theme.palette.primary.dark,
+            </Box>
+            {isEditable && (
+              <>
+                {/* Right‑Anchored Drawer for Favorites */}
+                <Drawer
+                  variant="persistent"
+                  anchor="right"
+                  open={isDrawerOpen}
+                  PaperProps={{
+                    sx: {
+                      width: drawerWidth,
+                      // When open, show normally; when closed, translate right so that only 5px are visible.
+                      transform: isDrawerOpen
+                        ? "translateX(0)"
+                        : `translateX(${drawerWidth - 5}px)`,
+                      transition: "transform 0.3s ease-in-out",
+                      top: "6rem", // Offset from top (adjust as needed)
+                      backgroundColor: theme.palette.background.paper,
+                      borderLeft: `2px solid ${theme.palette.secondary.light}`,
+                      boxShadow: "none",
                     },
                   }}
                 >
-                  {/* Message icon from lucide-react */}
-                  <MessagesSquare size={24} />
-                </IconButton>
-              </Box>
-            </Box>
-
-            {/* Drawer for Favorites */}
-            <Drawer
-              variant="persistent"
-              anchor="left"
-              open={isDrawerOpen}
-              PaperProps={{
-                sx: {
-                  width: drawerWidth,
-                  left: isDrawerOpen ? 0 : `-${drawerWidth - 5}px`,
-                  top: "6rem",
-                  transition: "left 0.3s ease-in-out",
-                  backgroundColor: theme.palette.background.paper,
-                  borderRight: `2px solid ${theme.palette.secondary.light}`,
-                  boxShadow: "none",
-                },
-              }}
-            >
-              <Box
-                sx={{
-                  position: "sticky",
-                  zIndex: 1,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  p: 2,
-                  boxShadow: "none",
-                  borderBottom: `1px solid ${theme.palette.secondary.light}`,
-                }}
-              >
-                <Typography variant="h6" fontWeight="bold">
-                  Favorites
-                </Typography>
-                <Box>
-                  <FiltersDrawer
-                    selectedCategory={selectedCategory}
-                    setSelectedCategory={setSelectedCategory}
-                    selectedRegion={selectedRegion}
-                    setSelectedRegion={setSelectedRegion}
-                    selectedPrefecture={selectedPrefecture}
-                    setSelectedPrefecture={setSelectedPrefecture}
-                    handleClearFilters={handleClearFilters}
-                  />
-                </Box>
-              </Box>
-              <Droppable droppableId="drawer" type="FAVORITE">
-                {(providedDrawer) => (
+                  {/* Header inside the Drawer */}
                   <Box
-                    ref={providedDrawer.innerRef}
-                    {...providedDrawer.droppableProps}
                     sx={{
-                      overflowY: "auto",
-                      flex: 1,
+                      position: "sticky",
+                      zIndex: 1,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
                       p: 2,
+                      borderBottom: `1px solid ${theme.palette.secondary.light}`,
                     }}
                   >
-                    {Object.entries(groupedFavorites).map(
-                      ([category, favs]) => (
-                        <Box key={category} sx={{ mb: 2 }}>
-                          <Box
-                            sx={{
-                              display: "flex",
-                              alignItems: "center",
-                              mb: 1,
-                            }}
-                          >
-                            {getCategoryIcon(category, theme)}
-                            <Typography
-                              variant="subtitle2"
-                              sx={{ ml: 1, color: theme.palette.primary.main }}
-                            >
-                              {category}
-                            </Typography>
-                          </Box>
-                          {favs.map((fav, index) => (
-                            <Draggable
-                              key={fav._id}
-                              draggableId={fav._id}
-                              index={index}
-                            >
-                              {(providedFav) => (
-                                <Paper
-                                  ref={providedFav.innerRef}
-                                  {...providedFav.draggableProps}
-                                  {...providedFav.dragHandleProps}
+                    <Typography variant="h6" fontWeight="bold">
+                      Favorites
+                    </Typography>
+                    <FiltersDrawer
+                      selectedCategory={selectedCategory}
+                      setSelectedCategory={setSelectedCategory}
+                      selectedRegion={selectedRegion}
+                      setSelectedRegion={setSelectedRegion}
+                      selectedPrefecture={selectedPrefecture}
+                      setSelectedPrefecture={setSelectedPrefecture}
+                      handleClearFilters={handleClearFilters}
+                    />
+                  </Box>
+
+                  {/* Favorites List */}
+                  <Droppable droppableId="drawer" type="FAVORITE">
+                    {(providedDrawer) => (
+                      <Box
+                        ref={providedDrawer.innerRef}
+                        {...providedDrawer.droppableProps}
+                        sx={{
+                          overflowY: "auto",
+                          flex: 1,
+                          p: 2,
+                        }}
+                      >
+                        {Object.entries(groupedFavorites).map(
+                          ([category, favs]) => (
+                            <Box key={category} sx={{ mb: 2 }}>
+                              {/* Category Header */}
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  mb: 1,
+                                }}
+                              >
+                                {getCategoryIcon(category, theme)}
+                                <Typography
+                                  variant="subtitle2"
                                   sx={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: 1,
-                                    mb: 1,
-                                    p: 1,
-                                    borderRadius: "8px",
-                                    boxShadow: 1,
-                                    cursor: "grab",
-                                    "&:hover": { boxShadow: 3 },
+                                    ml: 1,
+                                    color: theme.palette.primary.main,
                                   }}
                                 >
-                                  <img
-                                    src={
-                                      fav.experienceId?.photo
-                                        ? stables.UPLOAD_FOLDER_BASE_URL +
-                                          fav.experienceId.photo
-                                        : images.sampleFavoriteImage
-                                    }
-                                    alt={fav.experienceId?.title}
-                                    style={{
-                                      width: 40,
-                                      height: 40,
-                                      borderRadius: 8,
-                                      objectFit: "cover",
-                                    }}
-                                  />
-                                  <Box>
-                                    <Typography
-                                      variant="body2"
-                                      fontWeight="bold"
+                                  {category}
+                                </Typography>
+                              </Box>
+                              {/* List of Favorites */}
+                              {favs.map((fav, index) => (
+                                <Draggable
+                                  key={fav._id}
+                                  draggableId={fav._id}
+                                  index={index}
+                                >
+                                  {(providedFav) => (
+                                    <Paper
+                                      ref={providedFav.innerRef}
+                                      {...providedFav.draggableProps}
+                                      {...providedFav.dragHandleProps}
+                                      sx={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: 1,
+                                        mb: 1,
+                                        overflow: "visible",
+                                        p: 1,
+                                        borderRadius: "8px",
+                                        boxShadow: 1,
+                                        cursor: "grab",
+                                        "&:hover": { boxShadow: 3 },
+                                      }}
                                     >
-                                      {fav.experienceId?.title}
-                                    </Typography>
-                                    <Typography
-                                      variant="caption"
-                                      color="textSecondary"
-                                    >
-                                      {fav.experienceId?.prefecture}
-                                    </Typography>
-                                  </Box>
-                                </Paper>
-                              )}
-                            </Draggable>
-                          ))}
-                        </Box>
-                      )
+                                      <img
+                                        src={
+                                          fav.experienceId?.photo
+                                            ? stables.UPLOAD_FOLDER_BASE_URL +
+                                              fav.experienceId.photo
+                                            : images.sampleFavoriteImage
+                                        }
+                                        alt={fav.experienceId?.title}
+                                        style={{
+                                          width: 40,
+                                          height: 40,
+                                          borderRadius: 8,
+                                          objectFit: "cover",
+                                        }}
+                                      />
+                                      <Box>
+                                        <Typography
+                                          variant="body2"
+                                          fontWeight="bold"
+                                        >
+                                          {fav.experienceId?.title}
+                                        </Typography>
+                                        <Typography
+                                          variant="caption"
+                                          color="textSecondary"
+                                        >
+                                          {fav.experienceId?.prefecture}
+                                        </Typography>
+                                      </Box>
+                                    </Paper>
+                                  )}
+                                </Draggable>
+                              ))}
+                            </Box>
+                          )
+                        )}
+                        {providedDrawer.placeholder}
+                      </Box>
                     )}
-                    {providedDrawer.placeholder}
-                  </Box>
-                )}
-              </Droppable>
-            </Drawer>
-            {/* Drawer Toggle Button with background shape */}
-            <div
-              style={{
-                background: theme.palette.primary.white,
-                width: "2rem",
-                left: isDrawerOpen ? drawerWidth - 40 : 0,
-                bottom: "1.75rem",
-                borderRadius: "0 2rem 2rem 0",
-                height: "3rem",
-                position: "fixed",
-              }}
-            ></div>
-            <IconButton
-              onClick={toggleDrawer}
-              sx={{
-                position: "fixed",
-                left: isDrawerOpen ? drawerWidth - 40 : 5,
-                bottom: "2rem",
-                zIndex: 1300,
-                backgroundColor: theme.palette.primary.main,
-                color: "#fff",
-                "&:hover": {
-                  backgroundColor: theme.palette.primary.light,
-                },
-                borderRight: "2px solid rgba(0,0,0,0.1)",
-              }}
-            >
-              {isDrawerOpen ? <XCircle size={24} /> : <Plus size={24} />}
-            </IconButton>
+                  </Droppable>
+                </Drawer>
+
+                {/* Drawer Toggle Button with a background shape */}
+                <div
+                  style={{
+                    background: theme.palette.primary.white,
+                    width: "2rem",
+                    // Position the background shape on the right so a small edge is always visible
+                    right: isDrawerOpen ? drawerWidth - 40 : 0,
+                    bottom: "1.75rem",
+                    borderRadius: "2rem 0 0 2rem",
+                    height: "3rem",
+                    position: "fixed",
+                  }}
+                ></div>
+                <IconButton
+                  onClick={toggleDrawer}
+                  sx={{
+                    position: "fixed",
+                    right: isDrawerOpen ? drawerWidth - 40 : 5,
+                    bottom: "2rem",
+                    zIndex: 1300,
+                    backgroundColor: theme.palette.primary.main,
+                    color: "#fff",
+                    "&:hover": {
+                      backgroundColor: theme.palette.primary.light,
+                    },
+                    borderLeft: "2px solid rgba(0,0,0,0.1)",
+                  }}
+                >
+                  {isDrawerOpen ? <XCircle size={24} /> : <Plus size={24} />}
+                </IconButton>
+              </>
+            )}
           </Box>
         </DragDropContext>
       </Box>

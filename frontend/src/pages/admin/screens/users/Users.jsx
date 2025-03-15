@@ -208,7 +208,7 @@ const Users = () => {
               className="flex items-center space-x-2 text-red-600 hover:text-red-900 transition-colors focus:outline-none"
             >
               <RiDeleteBin6Line className="text-xl" />
-              <span className="text-sm">Delete</span>
+              <span className="text-sm">Eliminar</span>
             </button>
           </td>
         </tr>

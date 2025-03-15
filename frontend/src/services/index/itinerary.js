@@ -92,6 +92,7 @@ export const getInvitedItineraries = async (token) => {
   const { data } = await axios.get(`/api/itineraries/invited`, config);
   return data;
 };
+
 export const leaveItinerary = async (itineraryId, token) => {
   try {
     const config = {
@@ -132,6 +133,83 @@ export const getUserFavorites = async ({ userId, token }) => {
   try {
     const config = { headers: { Authorization: `Bearer ${token}` } };
     const { data } = await axios.get(`/api/favorites/user/${userId}`, config);
+    return data;
+  } catch (error) {
+    if (error.response && error.response.data.message)
+      throw new Error(error.response.data.message);
+    throw new Error(error.message);
+  }
+};
+
+// Add a traveler to the itinerary
+export const addTravelerToItinerary = async (
+  itineraryId,
+  travelerData,
+  token
+) => {
+  try {
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    // travelerData should be an object, e.g., { userId: "xxx", role: "editor" }
+    const { data } = await axios.patch(
+      `/api/itineraries/addTraveler/${itineraryId}`,
+      travelerData,
+      config
+    );
+    return data;
+  } catch (error) {
+    if (error.response && error.response.data.message)
+      throw new Error(error.response.data.message);
+    throw new Error(error.message);
+  }
+};
+
+// Update a traveler's role in the itinerary
+export const updateTravelerRole = async (
+  itineraryId,
+  travelerId,
+  newRole,
+  token
+) => {
+  try {
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    const { data } = await axios.patch(
+      `/api/itineraries/updateTravelerRole/${itineraryId}`,
+      { travelerId, role: newRole },
+      config
+    );
+    return data;
+  } catch (error) {
+    if (error.response && error.response.data.message)
+      throw new Error(error.response.data.message);
+    throw new Error(error.message);
+  }
+};
+
+// Remove a traveler from the itinerary
+export const removeTravelerFromItinerary = async (
+  itineraryId,
+  travelerId,
+  token
+) => {
+  try {
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    const { data } = await axios.patch(
+      `/api/itineraries/removeTraveler/${itineraryId}`,
+      { travelerId },
+      config
+    );
     return data;
   } catch (error) {
     if (error.response && error.response.data.message)
