@@ -2,170 +2,270 @@ import React, { useState } from "react";
 import {
   Box,
   Typography,
-  Chip,
   Avatar,
-  Tooltip,
   IconButton,
   Dialog,
   DialogTitle,
+  useTheme,
   DialogContent,
   DialogActions,
   Button,
-  TextField,
-  Menu,
+  Select,
   MenuItem,
+  FormControl,
+  InputLabel,
+  Popover,
+  Link as MuiLink,
 } from "@mui/material";
 import { Plus } from "lucide-react";
-import MoreVertIcon from "@mui/icons-material/MoreVert";
 import { stables } from "../../../../../constants"; // adjust path as needed
 
-const TravelersSection = ({
+const Travelers = ({
   travelers,
-  onAddFriend,
+  friendsList,
+  onAddTraveler,
   onUpdateTraveler,
   onRemoveTraveler,
 }) => {
+  const theme = useTheme();
+  // State for adding a new traveler
   const [openAddModal, setOpenAddModal] = useState(false);
-  const [newFriendEmail, setNewFriendEmail] = useState("");
-  const [newFriendRole, setNewFriendRole] = useState("viewer"); // default role
+  const [selectedFriendId, setSelectedFriendId] = useState("");
+  const [selectedFriendRole, setSelectedFriendRole] = useState("viewer");
 
-  const [menuAnchor, setMenuAnchor] = useState(null);
-  const [selectedTraveler, setSelectedTraveler] = useState(null);
+  // State for the "profile card" popover
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [popoverTraveler, setPopoverTraveler] = useState(null);
 
+  // Handlers for Add Traveler Modal
   const handleOpenAddModal = () => setOpenAddModal(true);
   const handleCloseAddModal = () => {
-    setNewFriendEmail("");
-    setNewFriendRole("viewer");
+    setSelectedFriendId("");
+    setSelectedFriendRole("viewer");
     setOpenAddModal(false);
   };
 
-  const handleAddFriendSubmit = () => {
-    if (newFriendEmail.trim()) {
-      onAddFriend(newFriendEmail, newFriendRole);
+  const handleAddTravelerSubmit = () => {
+    if (selectedFriendId) {
+      onAddTraveler(selectedFriendId, selectedFriendRole);
       handleCloseAddModal();
     }
   };
 
-  const handleTravelerMenuOpen = (event, traveler) => {
-    setMenuAnchor(event.currentTarget);
-    setSelectedTraveler(traveler);
+  // "Profile card" popover open
+  const handleAvatarClick = (event, traveler) => {
+    setAnchorEl(event.currentTarget);
+    setPopoverTraveler(traveler);
   };
 
-  const handleTravelerMenuClose = () => {
-    setMenuAnchor(null);
-    setSelectedTraveler(null);
+  // "Profile card" popover close
+  const handlePopoverClose = () => {
+    setAnchorEl(null);
+    setPopoverTraveler(null);
   };
 
-  const handleUpdateRole = (newRole) => {
-    if (selectedTraveler) {
+  // For the role dropdown inside the popover
+  const handleChangeRole = (newRole) => {
+    if (popoverTraveler) {
       onUpdateTraveler(
-        selectedTraveler.userId._id || selectedTraveler.userId,
+        popoverTraveler.userId._id || popoverTraveler.userId,
         newRole
       );
-      handleTravelerMenuClose();
     }
   };
 
-  const handleKickTraveler = () => {
-    if (selectedTraveler) {
-      onRemoveTraveler(selectedTraveler.userId._id || selectedTraveler.userId);
-      handleTravelerMenuClose();
+  // For removing traveler inside the popover
+  const handleRemove = () => {
+    if (popoverTraveler) {
+      onRemoveTraveler(popoverTraveler.userId._id || popoverTraveler.userId);
     }
   };
+
+  // Filter out users already in `travelers` from `friendsList`.
+  const availableFriendsForAdd = friendsList.filter(
+    (friend) =>
+      !travelers?.some(
+        (traveler) =>
+          (traveler.userId._id || traveler.userId).toString() ===
+          friend._id.toString()
+      )
+  );
+
+  // Determine if the popover is open
+  const openPopover = Boolean(anchorEl);
 
   return (
     <>
-      <Box sx={{ display: "flex", gap: 1, mt: 1, justifyContent: "center" }}>
+      {/* Travelers list */}
+      <Box sx={{ display: "flex", mt: 1, alignItems: "center" }}>
+        {/* Render each traveler as an Avatar icon (like Trello). */}
         {travelers?.length > 0 ? (
-          travelers.map((friend, index) => (
-            <Box key={index} sx={{ display: "flex", alignItems: "center" }}>
-              <Tooltip title={`${friend.role}: ${friend.userId.name}`} arrow>
-                <Chip
-                  avatar={
-                    <Avatar
-                      src={
-                        friend.userId.avatar
-                          ? `${stables.UPLOAD_FOLDER_BASE_URL}/${friend.userId.avatar}`
-                          : "/assets/default-avatar.jpg"
-                      }
-                      alt={friend.userId.name}
-                    />
-                  }
-                  label={friend.userId.name}
-                  variant="outlined"
-                  sx={{
-                    borderRadius: "50px",
-                    backgroundColor: "#ffffff22",
-                    color: "#fff",
-                    "&:hover": {
-                      backgroundColor: "#ffffff44",
-                      cursor: "pointer",
-                    },
-                  }}
-                />
-              </Tooltip>
+          travelers.map((traveler, index) => {
+            const { userId, role } = traveler;
+            const avatarUrl = userId.avatar
+              ? `${stables.UPLOAD_FOLDER_BASE_URL}/${userId.avatar}`
+              : "";
+            const firstLetter = userId.name
+              ? userId.name.charAt(0).toUpperCase()
+              : "";
+
+            return (
               <IconButton
+                key={index}
                 size="small"
-                onClick={(e) => handleTravelerMenuOpen(e, friend)}
+                onClick={(e) => handleAvatarClick(e, traveler)}
               >
-                <MoreVertIcon sx={{ color: "#fff" }} />
+                <Avatar src={avatarUrl}>{!avatarUrl && firstLetter}</Avatar>
               </IconButton>
-            </Box>
-          ))
+            );
+          })
         ) : (
-          <Typography variant="body2" color="gray">
+          <Typography variant="body2" color="gray" sx={{ ml: 2 }}>
             Sin compañeros de viaje.
           </Typography>
         )}
-        <IconButton size="small" onClick={handleOpenAddModal}>
-          <Plus size={20} color="white" />
-        </IconButton>
+        {/* Button to open modal to add new traveler */}
+        <Box
+          sx={{
+            padding: 1,
+            borderRadius: 30,
+            backgroundColor: theme.palette.primary.light,
+          }}
+        >
+          {" "}
+          <IconButton size="small" onClick={handleOpenAddModal}>
+            <Plus size={24} color={theme.palette.primary.main} />
+          </IconButton>
+        </Box>{" "}
       </Box>
 
-      {/* Traveler Menu */}
-      <Menu
-        anchorEl={menuAnchor}
-        open={Boolean(menuAnchor)}
-        onClose={handleTravelerMenuClose}
+      {/* Popover for showing the traveler's "profile card" */}
+      <Popover
+        open={openPopover}
+        anchorEl={anchorEl}
+        onClose={handlePopoverClose}
+        anchorOrigin={{
+          vertical: "bottom",
+          horizontal: "left",
+        }}
+        transformOrigin={{
+          vertical: "top",
+          horizontal: "left",
+        }}
+        sx={{ mt: 1 }}
       >
-        <MenuItem onClick={() => handleUpdateRole("editor")}>
-          Cambiar a Editor
-        </MenuItem>
-        <MenuItem onClick={() => handleUpdateRole("viewer")}>
-          Cambiar a Invitado
-        </MenuItem>
-        <MenuItem onClick={handleKickTraveler}>Eliminar del viaje</MenuItem>
-      </Menu>
+        {popoverTraveler && (
+          <Box sx={{ p: 2, minWidth: 200, maxWidth: 280 }}>
+            {/* Top row: avatar & name */}
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                mb: 1,
+              }}
+            >
+              <Avatar
+                src={
+                  popoverTraveler.userId.avatar
+                    ? `${stables.UPLOAD_FOLDER_BASE_URL}/${popoverTraveler.userId.avatar}`
+                    : undefined
+                }
+              >
+                {!popoverTraveler.userId.avatar
+                  ? popoverTraveler.userId.name?.charAt(0).toUpperCase()
+                  : ""}
+              </Avatar>
+              <Box sx={{ ml: 1 }}>
+                <Typography sx={{ fontWeight: "bold" }}>
+                  {popoverTraveler.userId.name}
+                </Typography>
+                {/* Example handle or user ID */}
+                <Typography variant="caption" color="text.secondary">
+                  @{popoverTraveler.userId._id?.slice(-6) || "user"}
+                </Typography>
+              </Box>
+            </Box>
 
-      {/* Add Friend Modal */}
+            {/* Link to user profile */}
+            <Typography variant="body2" sx={{ mb: 1 }}>
+              <MuiLink
+                href={`/profile/${popoverTraveler.userId._id}`}
+                underline="hover"
+                target="_blank"
+                rel="noopener"
+              >
+                Ver Perfil
+              </MuiLink>
+            </Typography>
+
+            {/* Edit role dropdown */}
+            <FormControl fullWidth size="small" sx={{ mb: 1 }}>
+              <InputLabel id="role-label">Rol</InputLabel>
+              <Select
+                labelId="role-label"
+                value={popoverTraveler.role}
+                label="Rol"
+                onChange={(e) => handleChangeRole(e.target.value)}
+              >
+                <MenuItem value="viewer">Invitado</MenuItem>
+                <MenuItem value="editor">Editor</MenuItem>
+              </Select>
+            </FormControl>
+
+            {/* Kick traveler out button */}
+            <Button
+              variant="outlined"
+              color="error"
+              fullWidth
+              onClick={handleRemove}
+            >
+              Eliminar del viaje
+            </Button>
+          </Box>
+        )}
+      </Popover>
+
+      {/* Add Traveler Modal */}
       <Dialog open={openAddModal} onClose={handleCloseAddModal}>
         <DialogTitle>Añadir Compañero de Viaje</DialogTitle>
         <DialogContent>
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Email"
-            fullWidth
-            variant="standard"
-            value={newFriendEmail}
-            onChange={(e) => setNewFriendEmail(e.target.value)}
-          />
-          <TextField
-            margin="dense"
-            label="Rol (editor/viewer)"
-            fullWidth
-            variant="standard"
-            value={newFriendRole}
-            onChange={(e) => setNewFriendRole(e.target.value)}
-          />
+          <FormControl fullWidth sx={{ mt: 2 }}>
+            <InputLabel id="friend-select-label">
+              Selecciona un amigo
+            </InputLabel>
+            <Select
+              labelId="friend-select-label"
+              value={selectedFriendId}
+              label="Selecciona un amigo"
+              onChange={(e) => setSelectedFriendId(e.target.value)}
+            >
+              {availableFriendsForAdd?.map((friend) => (
+                <MenuItem key={friend._id} value={friend._id}>
+                  {friend.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <FormControl fullWidth sx={{ mt: 2 }}>
+            <InputLabel id="role-select-label">Selecciona un rol</InputLabel>
+            <Select
+              labelId="role-select-label"
+              value={selectedFriendRole}
+              label="Selecciona un rol"
+              onChange={(e) => setSelectedFriendRole(e.target.value)}
+            >
+              <MenuItem value="viewer">Invitado</MenuItem>
+              <MenuItem value="editor">Editor</MenuItem>
+            </Select>
+          </FormControl>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseAddModal}>Cancelar</Button>
-          <Button onClick={handleAddFriendSubmit}>Añadir</Button>
+          <Button onClick={handleAddTravelerSubmit}>Añadir</Button>
         </DialogActions>
       </Dialog>
     </>
   );
 };
 
-export default TravelersSection;
+export default Travelers;

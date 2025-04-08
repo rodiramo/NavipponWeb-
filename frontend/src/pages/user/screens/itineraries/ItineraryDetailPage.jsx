@@ -19,6 +19,7 @@ import {
   DialogActions,
   Divider,
 } from "@mui/material";
+import { toast } from "react-hot-toast";
 import {
   BedSingle,
   Plus,
@@ -45,8 +46,12 @@ import {
   getSingleItineraryForEdit,
   getUserFavorites,
   updateItinerary,
+  addTravelerToItinerary,
+  updateTravelerRole,
+  removeTravelerFromItinerary,
 } from "../../../../services/index/itinerary";
 import Travelers from "./components/Travelers";
+import { getUserFriends } from "../../../../services/index/users"; // Import your friends service
 
 const drawerWidth = 350;
 
@@ -57,8 +62,9 @@ const ItineraryDetailPage = () => {
   const { user, jwt } = useUser();
 
   // Itinerary fields
+  const [friendsList, setFriendsList] = useState([]);
   const [filteredFavorites, setFilteredFavorites] = useState([]);
-
+  const [availableFriends, setAvailableFriends] = useState([]);
   const [name, setName] = useState("");
   const [travelDays, setTravelDays] = useState(0);
   const [totalBudget, setTotalBudget] = useState(0);
@@ -78,10 +84,9 @@ const ItineraryDetailPage = () => {
   // Notes modal state
   const [notesModalOpen, setNotesModalOpen] = useState(false);
   const [noteInput, setNoteInput] = useState("");
+  const [newNote, setNewNote] = useState("");
 
-  // Determine if the user can edit (drag & drop) the itinerary
   const [isEditable, setIsEditable] = useState(false);
-  // Determine the current user's role in the itinerary (if invited)
   const [myRole, setMyRole] = useState("Invitado");
 
   // Function to fetch the itinerary data
@@ -146,6 +151,21 @@ const ItineraryDetailPage = () => {
     }
   }, [user, jwt]);
 
+  useEffect(() => {
+    const fetchFriends = async () => {
+      try {
+        const data = await getUserFriends({ userId: user._id, token: jwt });
+        setFriendsList(data);
+      } catch (error) {
+        console.error("Error fetching friends:", error);
+      }
+    };
+
+    if (user && jwt) {
+      fetchFriends();
+    }
+  }, [user, jwt]);
+
   const updateTotalBudget = (boardsArray) => {
     const total = boardsArray.reduce(
       (sum, board) => sum + board.dailyBudget,
@@ -194,7 +214,6 @@ const ItineraryDetailPage = () => {
 
   const handleMouseDown = (e) => {
     if (shouldPreventScroll(e)) {
-      // If the target is a draggable item (marked with "no-scroll"), don't trigger scrolling.
       return;
     }
     const slider = e.currentTarget;
@@ -236,6 +255,7 @@ const ItineraryDetailPage = () => {
       const [removed] = newBoards.splice(source.index, 1);
       newBoards.splice(destination.index, 0, removed);
     } else if (type === "FAVORITE") {
+      // Moving from the drawer to a board
       if (
         source.droppableId === "drawer" &&
         destination.droppableId !== "drawer"
@@ -243,11 +263,46 @@ const ItineraryDetailPage = () => {
         const destBoardIndex = parseInt(destination.droppableId);
         const destBoard = { ...newBoards[destBoardIndex] };
         const [movedFavorite] = newDrawerFavorites.splice(source.index, 1);
+
+        // Duplicate Check: Does this board already contain this experience?
+        const isDuplicate = destBoard.favorites.some(
+          (fav) => fav.experienceId._id === movedFavorite.experienceId._id
+        );
+        if (isDuplicate) {
+          const confirmDuplicate = window.confirm(
+            "This experience is already added on this day. Do you want to add it again?"
+          );
+          if (!confirmDuplicate) {
+            // Revert removal from drawer
+            newDrawerFavorites.splice(source.index, 0, movedFavorite);
+            return;
+          }
+        }
+
+        // City/Region/Prefecture Check: Ensure the experience's location matches those already on the board
+        if (destBoard.favorites.length > 0) {
+          const boardPrefecture =
+            destBoard.favorites[0].experienceId.prefecture;
+          if (movedFavorite.experienceId.prefecture !== boardPrefecture) {
+            const confirmMismatch = window.confirm(
+              "The experience's prefecture doesn't match the others on this day. Do you want to add it anyway?"
+            );
+            if (!confirmMismatch) {
+              // Revert removal from drawer
+              newDrawerFavorites.splice(source.index, 0, movedFavorite);
+              return;
+            }
+          }
+        }
+
+        // If validations pass, insert the favorite into the destination board
         const newFavs = Array.from(destBoard.favorites);
         newFavs.splice(destination.index, 0, movedFavorite);
         destBoard.favorites = newFavs;
         newBoards[destBoardIndex] = destBoard;
-      } else if (
+      }
+      // Moving from a board to the drawer (no validations needed here)
+      else if (
         source.droppableId !== "drawer" &&
         destination.droppableId === "drawer"
       ) {
@@ -256,7 +311,9 @@ const ItineraryDetailPage = () => {
         const [movedFavorite] = sourceBoard.favorites.splice(source.index, 1);
         newDrawerFavorites.splice(destination.index, 0, movedFavorite);
         newBoards[sourceBoardIndex] = sourceBoard;
-      } else if (
+      }
+      // Moving from one board to another board
+      else if (
         source.droppableId !== "drawer" &&
         destination.droppableId !== "drawer"
       ) {
@@ -265,11 +322,48 @@ const ItineraryDetailPage = () => {
         const sourceBoard = { ...newBoards[sourceBoardIndex] };
         const destinationBoard = { ...newBoards[destinationBoardIndex] };
         const [movedFavorite] = sourceBoard.favorites.splice(source.index, 1);
+
+        // Duplicate Check for destination board
+        const isDuplicate = destinationBoard.favorites.some(
+          (fav) => fav.experienceId._id === movedFavorite.experienceId._id
+        );
+        if (isDuplicate) {
+          const confirmDuplicate = window.confirm(
+            "This experience is already added on this day. Do you want to add it again?"
+          );
+          if (!confirmDuplicate) {
+            // Revert the removal from the source board
+            sourceBoard.favorites.splice(source.index, 0, movedFavorite);
+            newBoards[sourceBoardIndex] = sourceBoard;
+            return;
+          }
+        }
+
+        // City/Region/Prefecture Check for destination board
+        if (destinationBoard.favorites.length > 0) {
+          const boardPrefecture =
+            destinationBoard.favorites[0].experienceId.prefecture;
+          if (movedFavorite.experienceId.prefecture !== boardPrefecture) {
+            const confirmMismatch = window.confirm(
+              "The experience's prefecture doesn't match the others on this day. Do you want to add it anyway?"
+            );
+            if (!confirmMismatch) {
+              // Revert the removal from the source board
+              sourceBoard.favorites.splice(source.index, 0, movedFavorite);
+              newBoards[sourceBoardIndex] = sourceBoard;
+              return;
+            }
+          }
+        }
+
+        // If validations pass, add the favorite to the destination board
         destinationBoard.favorites.splice(destination.index, 0, movedFavorite);
         newBoards[sourceBoardIndex] = sourceBoard;
         newBoards[destinationBoardIndex] = destinationBoard;
       }
     }
+
+    // Update board dates and daily budgets if there are any boards
     if (newBoards.length > 0) {
       const firstBoardDate = newBoards[0].date;
       const parsedStartDate = new Date(firstBoardDate);
@@ -290,6 +384,7 @@ const ItineraryDetailPage = () => {
         console.error("Invalid first board date:", firstBoardDate);
       }
     }
+
     updateTotalBudget(newBoards);
     setBoards(newBoards);
     setDrawerFavorites(newDrawerFavorites);
@@ -318,25 +413,37 @@ const ItineraryDetailPage = () => {
     setBoards(newBoards);
     updateTotalBudget(newBoards);
   };
-  const handleAddFriend = async (friendEmail, role) => {
-    // Call your API/service function to add a traveler using friendEmail and role.
-    console.log("Adding friend:", friendEmail, role);
-    // Then refetch the itinerary data.
-    fetchItinerary();
-  };
 
+  const handleAddTraveler = async (friendId, role) => {
+    try {
+      await addTravelerToItinerary(id, { userId: friendId, role }, jwt);
+      toast.success("Compañero añadido");
+      fetchItinerary();
+    } catch (error) {
+      toast.error("Error al añadir compañero");
+      console.error(error);
+    }
+  };
   const handleUpdateTraveler = async (travelerId, newRole) => {
-    console.log("Updating traveler:", travelerId, newRole);
-    fetchItinerary();
+    try {
+      await updateTravelerRole(id, travelerId, newRole, jwt);
+      toast.success("Rol actualizado");
+      fetchItinerary();
+    } catch (error) {
+      toast.error("Error al actualizar rol");
+      console.error(error);
+    }
   };
-
   const handleRemoveTraveler = async (travelerId) => {
-    // Call your API/service function to remove the traveler.
-    console.log("Removing traveler:", travelerId);
-    fetchItinerary();
+    try {
+      await removeTravelerFromItinerary(id, travelerId, jwt);
+      toast.success("Compañero eliminado");
+      fetchItinerary();
+    } catch (error) {
+      toast.error("Error al eliminar compañero");
+      console.error(error);
+    }
   };
-  // Notes modal logic
-  const [newNote, setNewNote] = useState("");
 
   const handleAddNote = async () => {
     if (!newNote.trim()) return;
@@ -509,15 +616,10 @@ const ItineraryDetailPage = () => {
                       justifyContent: "center",
                     }}
                   >
-                    <Typography
-                      variant="h6"
-                      sx={{ mb: 2, textAlign: "center" }}
-                    >
-                      Compañeros de viaje
-                    </Typography>
                     <Travelers
                       travelers={travelers}
-                      onAddFriend={handleAddFriend}
+                      friendsList={friendsList}
+                      onAddTraveler={handleAddTraveler}
                       onUpdateTraveler={handleUpdateTraveler}
                       onRemoveTraveler={handleRemoveTraveler}
                     />
@@ -735,7 +837,7 @@ const ItineraryDetailPage = () => {
                                                     ref={providedItem.innerRef}
                                                     {...providedItem.draggableProps}
                                                     {...providedItem.dragHandleProps}
-                                                    className="no-scroll" // Add this class
+                                                    className="no-scroll"
                                                     sx={{
                                                       position: "relative",
                                                       mb: 3,

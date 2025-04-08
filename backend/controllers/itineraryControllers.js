@@ -5,6 +5,7 @@ import {
   createItineraryUpdateNotification,
   createItineraryInviteNotification,
   createItineraryLeaveNotification,
+  createTravelerRemovedNotification,
 } from "../services/notificationService.js";
 
 const createItinerary = async (req, res, next) => {
@@ -270,6 +271,112 @@ export const leaveItinerary = async (req, res, next) => {
   }
 };
 
+export const addTraveler = async (req, res, next) => {
+  try {
+    const itineraryId = req.params.id;
+    const { userId, role } = req.body; // traveler is added by their id and assigned a role
+    const itinerary = await Itinerary.findById(itineraryId);
+    if (!itinerary) {
+      return res.status(404).json({ message: "Itinerario no encontrado" });
+    }
+    // Check if traveler is already added
+    if (itinerary.travelers.some((t) => t.userId.toString() === userId)) {
+      return res
+        .status(400)
+        .json({ message: "El viajero ya ha sido agregado" });
+    }
+    // Add the traveler
+    itinerary.travelers.push({ userId, role });
+    await itinerary.save();
+
+    // Send notification to the added traveler (if they're not the creator)
+    if (userId !== req.user._id.toString()) {
+      await createItineraryInviteNotification(
+        req.user._id,
+        req.user.name,
+        itinerary._id,
+        itinerary.name,
+        userId,
+        role
+      );
+    }
+
+    res.status(200).json(itinerary);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Update a traveler's role
+export const updateTravelerRole = async (req, res, next) => {
+  try {
+    const itineraryId = req.params.id;
+    const { travelerId, role } = req.body; // travelerId is the id of the traveler object (or user id)
+    const itinerary = await Itinerary.findById(itineraryId);
+    if (!itinerary) {
+      return res.status(404).json({ message: "Itinerario no encontrado" });
+    }
+    // Find the traveler and update their role
+    const traveler = itinerary.travelers.find(
+      (t) => t.userId.toString() === travelerId
+    );
+    if (!traveler) {
+      return res.status(404).json({ message: "Viajero no encontrado" });
+    }
+    traveler.role = role;
+    await itinerary.save();
+
+    // Send notification to the traveler about the role update
+    await createItineraryUpdateNotification(
+      req.user._id,
+      req.user.name,
+      itinerary._id,
+      itinerary.name,
+      travelerId
+    );
+
+    res.status(200).json(itinerary);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Remove a traveler from an itinerary
+export const removeTraveler = async (req, res, next) => {
+  try {
+    const itineraryId = req.params.id;
+    const { travelerId } = req.body; // travelerId: the user id to remove
+    const itinerary = await Itinerary.findById(itineraryId);
+    if (!itinerary) {
+      return res.status(404).json({ message: "Itinerario no encontrado" });
+    }
+    // Filter out the traveler
+    const originalCount = itinerary.travelers.length;
+    itinerary.travelers = itinerary.travelers.filter(
+      (t) => t.userId.toString() !== travelerId
+    );
+    if (itinerary.travelers.length === originalCount) {
+      return res
+        .status(400)
+        .json({ message: "El viajero no se encuentra en el itinerario" });
+    }
+    await itinerary.save();
+
+    // Optionally, send a notification to the traveler that they were removed (if desired)
+    (await createTravelerRemovedNotification) &&
+      createTravelerRemovedNotification(
+        req.user._id,
+        req.user.name,
+        itinerary._id,
+        itinerary.name,
+        travelerId
+      );
+
+    res.status(200).json(itinerary);
+  } catch (error) {
+    next(error);
+  }
+};
 export {
   createItinerary,
   getAllItineraries,

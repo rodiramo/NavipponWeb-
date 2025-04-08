@@ -198,3 +198,28 @@ export const createReviewApprovedNotification = async (
     data: { reviewId },
   });
 };
+
+// Traveler Removed Notification
+export const createTravelerRemovedNotification = async ({
+  removerId,
+  removerName,
+  itineraryId,
+  itineraryName,
+  recipient,
+}) => {
+  const now = new Date();
+  return await createNotification({
+    recipient,
+    sender: removerId,
+    type: "traveler_removed",
+    message: `${removerName} ha eliminado a un compañero del itinerario "${itineraryName}" el ${now.toLocaleDateString()}.`,
+    data: {
+      removerId,
+      removerName,
+      itineraryId,
+      itineraryName,
+      date: now,
+      removerProfileUrl: `/profile/${removerId}`,
+    },
+  });
+};

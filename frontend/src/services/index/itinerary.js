@@ -193,7 +193,6 @@ export const updateTravelerRole = async (
   }
 };
 
-// Remove a traveler from the itinerary
 export const removeTravelerFromItinerary = async (
   itineraryId,
   travelerId,

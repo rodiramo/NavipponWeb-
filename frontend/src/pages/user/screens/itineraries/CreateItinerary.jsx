@@ -138,7 +138,7 @@ const CreateItinerary = () => {
         setFavorites(validFavorites);
         setFilteredFavorites(validFavorites);
       } catch (error) {
-        toast.error("Error fetching favorites");
+        toast.error("Error obteniendo favoritos");
         console.error("Error fetching favorites:", error);
       }
     };
@@ -152,7 +152,7 @@ const CreateItinerary = () => {
         const data = await getUserFriends({ userId: user._id, token: jwt });
         setAvailableFriends(data);
       } catch (error) {
-        toast.error("Error fetching friends");
+        toast.error("Error obteniendo amigos.");
         console.error("Error fetching friends:", error);
       }
     };
