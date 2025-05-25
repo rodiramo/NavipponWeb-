@@ -164,8 +164,6 @@ const ExperienceCard = ({
           className="absolute top-2 right-2 p-2 rounded-full focus:outline-none"
           style={{ backgroundColor: theme.palette.primary.main }}
         >
-          {" "}
-          {favoritesCount}
           {isFavorite ? (
             <AiFillHeart className="text-white text-2xl" />
           ) : (

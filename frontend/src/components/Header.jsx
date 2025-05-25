@@ -101,7 +101,6 @@ const Header = () => {
           </h1>
         </Link>
 
-        {/* Navigation (Hidden below 1000px, Visible at 1000px+) */}
         {/* Navigation (Hidden below 1024px, visible at 1024px and above) */}
         <nav className="hidden lg:flex flex-grow justify-center">
           <ul className="flex gap-6">

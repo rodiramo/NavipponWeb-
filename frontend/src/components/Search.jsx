@@ -68,7 +68,7 @@ const Search = ({ className, onSearchKeyword }) => {
           padding: "0.8rem 1.5rem",
           borderRadius: "50px",
           "&:hover": {
-            backgroundColor: theme.palette.primary.black,
+            backgroundColor: theme.palette.primary.mid,
           },
         }}
       >
