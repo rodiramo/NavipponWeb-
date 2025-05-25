@@ -11,7 +11,7 @@ const UserImage = ({ image, name = "Usuario", size = "60px" }) => {
             ? `${stables.UPLOAD_FOLDER_BASE_URL}/${image}`
             : "/default-avatar.png"
         }
-        alt={name} // ✅ Use `name` for accessibility
+        alt={name}
         sx={{ width: size, height: size }}
       />
     </Box>

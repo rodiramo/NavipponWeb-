@@ -7,6 +7,7 @@ import {
   getUserFriends,
   updateProfile,
   updateProfilePicture,
+  updateCoverImg,
   getAllUsers,
   deleteUser,
   userProfileById,
@@ -25,6 +26,12 @@ router.put(
   authGuard,
   upload.single("profilePicture"),
   updateProfilePicture
+);
+router.put(
+  "/updateCoverImg",
+  authGuard,
+  upload.single("coverImg"),
+  updateCoverImg
 );
 router.get("/", authGuard, getAllUsers);
 router.delete("/:userId", authGuard, adminGuard, deleteUser);

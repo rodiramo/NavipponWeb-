@@ -23,9 +23,6 @@ import {
   TextField,
   Box,
   Typography,
-  Stepper,
-  Step,
-  StepLabel,
   Chip,
   useTheme,
 } from "@mui/material";
@@ -106,16 +103,6 @@ const ExperienceForm = () => {
   const [schedule, setSchedule] = useState("");
   const [map, setMap] = useState("");
   const [address, setAddress] = useState("");
-  // Multi-step state: steps: 0 = Detalles, 1 = Fechas y Boards, 2 = Amigos, 3 = Favorites, 4 = Revisión
-  const [activeStep, setActiveStep] = useState(0);
-  const steps = [
-    "Detalles",
-    "Contenido",
-    "Ubicación",
-    "Contacto",
-    "Categorías",
-    "Revisión",
-  ];
 
   // Extract coordinates from the map URL
   const extractCoordinates = (mapUrl) => {
@@ -423,13 +410,7 @@ const ExperienceForm = () => {
 
   if (isLoading) return <ExperienceDetailSkeleton />;
   if (isError) return <ErrorMessage message="Error cargando los datos." />;
-  const handleNext = () => {
-    setActiveStep((prev) => prev + 1);
-  };
 
-  const handleBack = () => {
-    setActiveStep((prev) => prev - 1);
-  };
   return (
     <LoadScript
       googleMapsApiKey={process.env.REACT_APP_GOOGLE_API_KEY}

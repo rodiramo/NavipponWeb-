@@ -16,7 +16,7 @@ import { BsCheckLg } from "react-icons/bs";
 import { AiOutlineClose } from "react-icons/ai";
 import { RiDeleteBin6Line } from "react-icons/ri";
 import { useQueryClient } from "@tanstack/react-query";
-
+import { Trash2 } from "lucide-react";
 const Users = () => {
   const { jwt } = useUser();
   const queryClient = useQueryClient();
@@ -99,8 +99,8 @@ const Users = () => {
 
   return (
     <DataTable
-      pageTitle="Administrar Usuarios"
-      dataListName="Usuarios"
+      pageTitle=""
+      dataListName="Administrar Usuarios"
       searchInputPlaceHolder="Email del usuario..."
       searchKeywordOnSubmitHandler={submitSearchKeywordHandler}
       searchKeywordOnChangeHandler={searchKeywordHandler}
@@ -202,14 +202,21 @@ const Users = () => {
             <button
               disabled={isLoadingDeleteData}
               type="button"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "0.5rem",
+                borderRadius: "4px",
+                padding: "0.5rem 1rem",
+              }}
+              className="text-red-600 border border-red-600 hover:text-red-900 hover:border-red-900  disabled:opacity-70 disabled:cursor-not-allowed"
               onClick={() =>
                 deleteDataHandler({ slug: userItem._id, token: jwt })
               }
-              className="flex items-center space-x-2 text-red-600 hover:text-red-900 transition-colors focus:outline-none"
             >
-              <RiDeleteBin6Line className="text-xl" />
-              <span className="text-sm">Eliminar</span>
-            </button>
+              <Trash2 size={16} />
+              Borrar
+            </button>{" "}
           </td>
         </tr>
       ))}

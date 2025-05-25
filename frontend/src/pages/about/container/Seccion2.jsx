@@ -13,7 +13,7 @@ const Seccion2 = () => {
         backgroundColor: primaryLight,
         alignItems: "center",
         marginBottom: "2rem",
-        padding: "2rem",
+        padding: "3rem",
         borderRadius: "20rem 0rem 0rem 20rem",
       }}
     >
@@ -32,7 +32,15 @@ const Seccion2 = () => {
 
       {/* Text Section */}
       <div className="w-full md:w-1/2 flex flex-col md:items-start p-4 md:p-12">
-        <h2 className="text-2xl font-bold mb-4">¿Por qué Japón?</h2>
+        <h3
+          className="text-2xl font-bold mb-2"
+          style={{
+            fontSize: "2em",
+            paddingBottom: "1.5rem",
+          }}
+        >
+          ¿Por qué Japón?
+        </h3>
         <p>
           Viajar a Japón es una experiencia única que te sumerge en una cultura
           milenaria, paisajes impresionantes y tecnología de vanguardia.

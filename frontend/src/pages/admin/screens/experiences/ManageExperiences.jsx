@@ -6,8 +6,7 @@ import {
 import { Link } from "react-router-dom";
 import { useDataTable } from "../../../../hooks/useDataTable";
 import DataTable from "../../components/DataTable";
-import { BsCheckLg } from "react-icons/bs";
-import { AiOutlineClose } from "react-icons/ai";
+import { Trash2, Pencil } from "lucide-react";
 import { useState, useEffect } from "react";
 import useUser from "../../../../hooks/useUser";
 
@@ -47,19 +46,13 @@ const ManageExperiences = () => {
 
   return (
     <DataTable
-      pageTitle="Administrar Experiencias"
-      dataListName="Experiencias"
+      pageTitle=""
+      dataListName="Administrar Experiencias"
       searchInputPlaceHolder="Título Experiencia..."
       searchKeywordOnSubmitHandler={submitSearchKeywordHandler}
       searchKeywordOnChangeHandler={searchKeywordHandler}
       searchKeyword={searchKeyword}
-      tableHeaderTitleList={[
-        "Título",
-        "Categoría",
-        "Creado",
-        "Aprobado",
-        "Acciones",
-      ]}
+      tableHeaderTitleList={["Título", "Categoría", "Creado", "Acciones"]}
       isLoading={isLoading}
       isFetching={isFetching}
       data={updatedExperiences}
@@ -80,7 +73,7 @@ const ManageExperiences = () => {
                         : images.sampleExperienceImage
                     }
                     alt={experience.title}
-                    className="mx-auto object-cover rounded-lg w-10 aspect-square"
+                    className="mx-auto object-cover rounded-lg w-30 h-20"
                   />
                 </a>
               </div>
@@ -106,39 +99,43 @@ const ManageExperiences = () => {
             </p>
           </td>
 
-          <td className="px-5 py-5 text-sm bg-white border-b border-gray-200">
-            {" "}
-            <span
-              className={`${
-                experience.approved ? "bg-[#36B37E]" : "bg-[#FF4A5A]"
-              } w-fit bg-opacity-20 rounded-full`}
-            >
-              {experience.approved ? (
-                <BsCheckLg className=" text-[#36B37E]" />
-              ) : (
-                <AiOutlineClose className=" text-[#FF4A5A]" />
-              )}
-            </span>
-          </td>
-          <td className="px-5 py-5 text-sm bg-white border-b border-gray-200 space-x-5">
-            <button
-              disabled={isLoadingDeleteData}
-              type="button"
-              className="text-red-600 hover:text-red-900 disabled:opacity-70 disabled:cursor-not-allowed"
-              onClick={() => {
-                deleteDataHandler({
-                  slug: experience?.slug,
-                });
-              }}
-            >
-              Borrar
-            </button>
-            <Link
-              to={`/admin/experiences/manage/edit/${experience?.slug}`}
-              className="text-green-600 hover:text-green-900"
-            >
-              Editar
-            </Link>
+          <td className="px-2 py-2 text-sm bg-white border-b border-gray-200 space-x-5 ">
+            <div style={{ display: "flex", gap: "0.5rem" }}>
+              {" "}
+              <button
+                disabled={isLoadingDeleteData}
+                type="button"
+                style={{
+                  display: "flex",
+                  gap: "0.5rem",
+                  borderRadius: "4px",
+                  padding: "0.5rem 1rem",
+                }}
+                className="text-red-600 border border-red-600 hover:text-red-900 hover:border-red-900  disabled:opacity-70 disabled:cursor-not-allowed"
+                onClick={() => {
+                  deleteDataHandler({
+                    slug: experience?.slug,
+                  });
+                }}
+              >
+                <Trash2 size={16} />
+                Borrar
+              </button>
+              <Link
+                style={{
+                  display: "flex",
+                  gap: "0.5rem",
+                  borderRadius: "4px",
+                  padding: "0.5rem 1rem",
+                }}
+                to={`/admin/experiences/manage/edit/${experience?.slug}`}
+                className="text-green-600 border border-green-600  hover:text-green-900 hover:border-green-900 "
+              >
+                {" "}
+                <Pencil size={16} />
+                Editar
+              </Link>
+            </div>
           </td>
         </tr>
       ))}

@@ -48,8 +48,8 @@ const Search = ({ className, onSearchKeyword }) => {
           flex: 1,
           padding: "12px 15px",
           paddingLeft: "3rem",
-          borderRadius: "50px", // Makes input rounded
-          backgroundColor: theme.palette.secondary.light, // Background color
+          borderRadius: "50px",
+          backgroundColor: theme.palette.secondary.light,
           color: theme.palette.text.primary,
           "&::placeholder": {
             color: theme.palette.secondary.dark,
@@ -62,13 +62,13 @@ const Search = ({ className, onSearchKeyword }) => {
       <IconButton
         type="submit"
         sx={{
-          backgroundColor: theme.palette.primary.main,
+          backgroundColor: theme.palette.primary.dark,
           color: "white",
           fontSize: "1rem",
           padding: "0.8rem 1.5rem",
           borderRadius: "50px",
           "&:hover": {
-            backgroundColor: theme.palette.primary.dark,
+            backgroundColor: theme.palette.primary.black,
           },
         }}
       >

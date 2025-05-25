@@ -26,6 +26,7 @@ const registerUser = async (req, res, next) => {
     return res.status(201).json({
       _id: user._id,
       avatar: user.avatar,
+      coverImg: user.coverImg,
       name: user.name,
       email: user.email,
       verified: user.verified,
@@ -51,6 +52,7 @@ const loginUser = async (req, res, next) => {
       return res.status(201).json({
         _id: user._id,
         avatar: user.avatar,
+        coverImg: user.coverImg,
         name: user.name,
         email: user.email,
         verified: user.verified,
@@ -76,6 +78,7 @@ const userProfile = async (req, res, next) => {
       return res.status(200).json({
         _id: user._id,
         avatar: user.avatar,
+        coverImg: user.coverImg,
         name: user.name,
         email: user.email,
         verified: user.verified,
@@ -119,6 +122,7 @@ const updateProfile = async (req, res, next) => {
       email: user.email,
       city: user.city,
       country: user.country,
+      coverImg: user.coverImg,
       avatar: user.avatar,
       friends: user.friends,
       verified: user.verified,
@@ -158,7 +162,47 @@ const updateProfilePicture = async (req, res, next) => {
 
     res.json({
       _id: user._id,
-      avatar: user.avatar, // Returns only `public_id`
+      avatar: user.avatar,
+      coverImg: user.coverImg, // Returns only `public_id`
+      name: user.name,
+      email: user.email,
+      verified: user.verified,
+      admin: user.admin,
+      token: await user.generateJWT(),
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+export const updateCoverImg = async (req, res, next) => {
+  try {
+    if (!req.file) {
+      throw new Error("No file uploaded.");
+    }
+
+    let user = await User.findById(req.user._id);
+
+    if (!user) {
+      throw new Error("User not found.");
+    }
+
+    if (user.coverImg) {
+      await cloudinary.uploader.destroy(user.coverImg);
+    }
+
+    const result = await cloudinary.uploader.upload(req.file.path, {
+      folder: "uploads", // Store images inside 'uploads' folder
+    });
+
+    // ✅ Save only the `public_id` instead of full URL
+    user.coverImg = result.public_id; // 👈 This saves only "uploads/1739621073399-activities"
+
+    await user.save();
+
+    res.json({
+      _id: user._id,
+      avatar: user.avatar,
+      coverImg: user.coverImg, // Returns only `public_id`
       name: user.name,
       email: user.email,
       verified: user.verified,

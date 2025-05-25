@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { useQueryClient } from "@tanstack/react-query";
+import { updateCoverImg } from "../../../services/index/users";
+
 import { updateProfile } from "../../../services/index/users";
 import useUser from "../../../hooks/useUser";
 import FriendsWidget from "../widgets/FriendWidget";
@@ -32,6 +34,7 @@ import { setUserInfo } from "../../../store/reducers/authSlice";
 const User = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const [newCoverImage, setNewCoverImage] = useState(null); // For uploading new cover image
   const queryClient = useQueryClient();
   const theme = useTheme();
   const { user: reduxUser, jwt } = useUser();
@@ -43,6 +46,8 @@ const User = () => {
   const [coverImage, setCoverImage] = useState(
     user?.coverImage || "/assets/bg-home1.jpg"
   );
+  const [city, setCity] = useState(user?.city || "");
+  const [country, setCountry] = useState(user?.country || "");
 
   useEffect(() => {
     console.log("🔄 Redux User Updated:", reduxUser);
@@ -86,7 +91,22 @@ const User = () => {
             color: "white",
             "&:hover": { background: "rgba(0,0,0,0.7)" },
           }}
+          component="label"
         >
+          <input
+            type="file"
+            hidden
+            accept="image/*"
+            onChange={(e) => {
+              const file = e.target.files[0];
+              if (file) {
+                setNewCoverImage(file);
+                const reader = new FileReader();
+                reader.onloadend = () => setCoverImage(reader.result); // for preview
+                reader.readAsDataURL(file);
+              }
+            }}
+          />
           <CameraAlt fontSize="small" />
         </IconButton>
       </Box>
@@ -104,7 +124,7 @@ const User = () => {
         }}
       >
         <ProfilePicture avatar={user?.avatar} size="150px" />
-        <Typography variant="h6" color={theme.palette.secondary.main}>
+        <Typography variant="h6" color={theme.palette.secondary.medium}>
           @{user?.name}
         </Typography>
         <Box
@@ -182,14 +202,6 @@ const User = () => {
             margin="dense"
             name="email"
             label="Email"
-            fullWidth
-            variant="outlined"
-          />
-          <TextField
-            margin="dense"
-            name="password"
-            label="Nueva Contraseña"
-            type="password"
             fullWidth
             variant="outlined"
           />

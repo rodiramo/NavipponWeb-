@@ -139,12 +139,13 @@ const ProfilePicture = ({ avatar }) => {
           onClick={handleDeleteImage}
           sx={{
             mt: 1,
+            mb: 2,
             borderRadius: "20px",
             textTransform: "none",
             fontWeight: "bold",
           }}
         >
-          Eliminar Foto
+          Eliminar Avatar
         </Button>
       </Box>
     </>

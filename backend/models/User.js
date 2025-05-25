@@ -7,6 +7,7 @@ const { sign } = jwt;
 const UserSchema = new Schema(
   {
     avatar: { type: String, default: "" },
+    coverImg: { type: String, default: "" },
     username: {
       type: String,
       min: 2,

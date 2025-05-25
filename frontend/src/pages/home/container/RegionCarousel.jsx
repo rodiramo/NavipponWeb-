@@ -141,7 +141,7 @@ const RegionCarousel = () => {
     <div style={{ padding: "2rem 0rem" }}>
       <h2
         className="text-left mb-4 text-2xl md:text-3xl font-bold"
-        style={{ marginLeft: "7.25rem", marginBottom: "3rem" }}
+        style={{ marginLeft: "13rem", marginBottom: "3rem" }}
       >
         Explora Japón por Región
       </h2>
@@ -153,7 +153,7 @@ const RegionCarousel = () => {
             onClick={() => handleRegionClick(region.name)}
           >
             <div
-              className="relative overflow-hidden shadow-lg"
+              className="relative overflow-hidden "
               style={{ borderRadius: "100rem" }}
             >
               {/* Region Image */}

@@ -95,6 +95,29 @@ export const updateProfilePicture = async ({ token, formData }) => {
     throw new Error(error.message);
   }
 };
+export const updateCoverImg = async ({ token, formData }) => {
+  try {
+    const config = {
+      headers: {
+        "Content-Type": "multipart/form-data",
+        Authorization: `Bearer ${token}`,
+      },
+    };
+
+    const { data } = await axios.put(
+      "http://localhost:5001/api/users/updateCoverImg", // Ensure this is correct
+      formData,
+      config
+    );
+
+    return data;
+  } catch (error) {
+    console.error("Error updating cover img:", error);
+    if (error.response && error.response.data.message)
+      throw new Error(error.response.data.message);
+    throw new Error(error.message);
+  }
+};
 
 export const getAllUsers = async (
   token,

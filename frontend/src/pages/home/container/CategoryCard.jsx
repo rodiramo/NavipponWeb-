@@ -37,7 +37,7 @@ const CategoryCard = () => {
   };
 
   return (
-    <div className="category-carousel my-12 px-6">
+    <section className="flex flex-col container mx-auto px-5 py-10">
       <h2
         className="text-center mb-8 text-3xl font-bold"
         style={{ color: theme.palette.text.primary }}
@@ -112,7 +112,7 @@ const CategoryCard = () => {
           </div>
         ))}
       </div>
-    </div>
+    </section>
   );
 };
 

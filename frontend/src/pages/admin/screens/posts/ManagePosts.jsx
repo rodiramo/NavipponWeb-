@@ -13,7 +13,7 @@ import { RiDeleteBin6Line } from "react-icons/ri"; // Trash icon
 import { useState, useEffect } from "react";
 import useUser from "../../../../hooks/useUser";
 import { useQueryClient } from "@tanstack/react-query";
-
+import { Trash2 } from "lucide-react";
 const ManagePosts = () => {
   const { user, jwt } = useUser();
   const queryClient = useQueryClient();
@@ -62,8 +62,8 @@ const ManagePosts = () => {
   return (
     <div className="container mx-auto p-4">
       <DataTable
-        pageTitle="Administrar Posts"
-        dataListName="Posts"
+        pageTitle=""
+        dataListName="Administrar Posts"
         searchInputPlaceHolder="Título Post..."
         searchKeywordOnSubmitHandler={submitSearchKeywordHandler}
         searchKeywordOnChangeHandler={searchKeywordHandler}
@@ -175,11 +175,22 @@ const ManagePosts = () => {
               <button
                 disabled={isLoadingDeleteData}
                 type="button"
-                onClick={() => deleteDataHandler({ slug: post?.slug })}
-                className="flex items-center space-x-2 text-red-600 hover:text-red-900 transition-colors"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.5rem",
+                  borderRadius: "4px",
+                  padding: "0.5rem 1rem",
+                }}
+                className="text-red-600 border border-red-600 hover:text-red-900 hover:border-red-900  disabled:opacity-70 disabled:cursor-not-allowed"
+                onClick={() => {
+                  deleteDataHandler({
+                    slug: post?.slug,
+                  });
+                }}
               >
-                <RiDeleteBin6Line className="text-xl" />
-                <span>Borrar</span>
+                <Trash2 size={16} />
+                Borrar
               </button>
             </td>
           </tr>

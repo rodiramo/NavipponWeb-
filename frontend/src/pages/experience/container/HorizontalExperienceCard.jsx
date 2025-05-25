@@ -111,7 +111,6 @@ const HorizontalExperienceCard = ({
         borderRadius: "20px",
         padding: "0.5rem",
         gap: "1rem",
-        cursor: "pointer",
         transition: "box-shadow 0.3s ease-in-out",
       }}
     >

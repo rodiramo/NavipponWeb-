@@ -13,6 +13,7 @@ import { useNavigate } from "react-router-dom";
 import { getUserFriends, toggleFriend } from "../../../services/index/users";
 import { setFriends } from "../../../store/reducers/authSlice";
 import useUser from "../../../hooks/useUser";
+import { stables } from "../../../constants";
 import {
   ExpandMore,
   ExpandLess,
@@ -99,7 +100,11 @@ const FriendsWidget = () => {
               }}
             >
               <Avatar
-                src={friend.avatar || "/default-avatar.png"}
+                src={
+                  friend.avatar
+                    ? `${stables.UPLOAD_FOLDER_BASE_URL}/${friend.avatar}`
+                    : "/default-avatar.png"
+                }
                 alt={friend.name || "Amigo"}
                 sx={{ width: "40px", height: "40px" }}
               />
@@ -117,7 +122,7 @@ const FriendsWidget = () => {
                   textTransform: "none",
                 }}
               >
-                Ver
+                Visitar Perfil
               </Button>
 
               {/* Unfollow Friend Icon */}

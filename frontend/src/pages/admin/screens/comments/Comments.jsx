@@ -15,7 +15,7 @@ import { Link } from "react-router-dom";
 import useUser from "../../../../hooks/useUser";
 import { FaCheckCircle, FaTimesCircle } from "react-icons/fa";
 import { RiDeleteBin6Line } from "react-icons/ri";
-
+import { Trash2 } from "lucide-react";
 const Comments = () => {
   const { user, jwt } = useUser();
 
@@ -186,14 +186,21 @@ const Comments = () => {
               <button
                 disabled={isLoadingDeleteData}
                 type="button"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.5rem",
+                  borderRadius: "4px",
+                  padding: "0.5rem 1rem",
+                }}
+                className="text-red-600 border border-red-600 hover:text-red-900 hover:border-red-900  disabled:opacity-70 disabled:cursor-not-allowed"
                 onClick={() =>
                   deleteDataHandler({ slug: comment?._id, token: jwt })
                 }
-                className="flex items-center space-x-2 text-red-600 hover:text-red-900 transition-colors focus:outline-none"
               >
-                <RiDeleteBin6Line className="text-xl" />
-                <span className="text-sm">Borrar</span>
-              </button>
+                <Trash2 size={16} />
+                Borrar
+              </button>{" "}
             </td>
           </tr>
         ))}

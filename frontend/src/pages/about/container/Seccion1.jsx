@@ -14,7 +14,7 @@ const Seccion1 = () => {
       style={{
         height: "auto",
         fontSize: "1rem",
-        padding: "2rem",
+        padding: "2rem 7rem",
       }}
     >
       {/* Text Section */}
@@ -33,9 +33,17 @@ const Seccion1 = () => {
           }}
           className="mb-4 md:mx-0"
         />
-        <h2 className="text-2xl font-bold mb-4 mx-auto md:mx-0">
+        <h3
+          className="text-2xl font-bold mb-2"
+          style={{
+            fontSize: "2em",
+            paddingTop: "2rem",
+            paddingBottom: "1.5rem",
+          }}
+        >
+          {" "}
           ¿Qué es Navippon?
-        </h2>
+        </h3>
         <p className="text-left">
           En un mundo donde los viajes de ocio son cada vez más populares, hemos
           desarrollado una{" "}

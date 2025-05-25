@@ -26,7 +26,7 @@ const InfoPill = () => {
   ];
 
   return (
-    <section className="relative p-8 -mt-12">
+    <section className="flex flex-col container mx-auto px-5 py-10">
       <div className="text-center">
         <h3
           className="text-2xl font-bold mb-2"
