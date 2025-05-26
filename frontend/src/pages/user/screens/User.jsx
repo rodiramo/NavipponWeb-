@@ -102,7 +102,7 @@ const User = () => {
               if (file) {
                 setNewCoverImage(file);
                 const reader = new FileReader();
-                reader.onloadend = () => setCoverImage(reader.result); // for preview
+                reader.onloadend = () => setCoverImage(reader.result);
                 reader.readAsDataURL(file);
               }
             }}

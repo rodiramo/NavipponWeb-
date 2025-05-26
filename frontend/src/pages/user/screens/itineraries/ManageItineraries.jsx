@@ -199,25 +199,7 @@ const ManageItineraries = () => {
                     >
                       Ver
                     </Button>
-                    <Button
-                      onClick={() =>
-                        navigate(
-                          `/user/itineraries/manage/edit/${itinerary._id}`
-                        )
-                      }
-                      sx={{
-                        backgroundColor: theme.palette.primary.light,
-                        color: theme.palette.primary.dark,
-                        borderRadius: "20rem",
-                        textTransform: "none",
-                        "&:hover": {
-                          backgroundColor: theme.palette.primary.main,
-                          color: "white",
-                        },
-                      }}
-                    >
-                      Editar
-                    </Button>
+
                     <Button
                       onClick={() => handleDelete(itinerary._id)}
                       sx={{
