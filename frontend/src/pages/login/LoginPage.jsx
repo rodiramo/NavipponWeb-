@@ -199,7 +199,7 @@ const LoginPage = () => {
               />
 
               <Link
-                to="/forget-password"
+                to="/forgot-password"
                 style={{ color: theme.palette.primary.main }}
               >
                 ¿Olvidaste tu contraseña?

@@ -9,9 +9,13 @@ import {
   updateProfilePicture,
   updateCoverImg,
   getAllUsers,
+  fixExistingUsers,
   deleteUser,
   userProfileById,
-  toggleFriend, // ✅ New function
+  toggleFriend,
+  forgotPassword,
+  verifyResetToken,
+  resetPassword,
 } from "../controllers/userControllers.js";
 import { adminGuard, authGuard } from "../middleware/authMiddleware.js";
 
@@ -33,12 +37,17 @@ router.put(
   upload.single("coverImg"),
   updateCoverImg
 );
+router.post("/fix-existing-users", authGuard, adminGuard, fixExistingUsers);
+
 router.get("/", authGuard, getAllUsers);
 router.delete("/:userId", authGuard, adminGuard, deleteUser);
 router.get("/:userId/friends", authGuard, getUserFriends);
 
 router.get("/profile/:userId", authGuard, userProfileById);
-// ✅ Friend Request Routes
-router.post("/toggleFriend/:userId", authGuard, toggleFriend); // Add/remove friend
+router.post("/toggleFriend/:userId", authGuard, toggleFriend);
+
+router.post("/forgot-password", forgotPassword);
+router.get("/verify-reset-token/:token", verifyResetToken);
+router.post("/reset-password", resetPassword);
 
 export default router;

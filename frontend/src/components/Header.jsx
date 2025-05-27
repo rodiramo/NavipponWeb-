@@ -159,7 +159,7 @@ const Header = () => {
                       color: "white",
                       backdropFilter: "blur(10px) saturate(180%)",
                       WebkitBackdropFilter: "blur(10px) saturate(180%)",
-                      borderRadius: "0 0 1rem 1rem",
+                      borderRadius: " 1rem",
                       boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
                     },
                   },

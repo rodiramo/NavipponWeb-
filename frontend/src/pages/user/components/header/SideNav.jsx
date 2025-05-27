@@ -116,43 +116,47 @@ const SideNav = () => {
         <NavItem
           title="Dashboard"
           link="/user/dashboard"
-          icon={<LucideHome size={22} />}
+          icon={<LucideHome size={22} color={theme.palette.primary.main} />}
           isMenuOpen={isMenuOpen}
         />
         <NavItem
           title="Mi Perfil"
           link="/user/profile"
-          icon={<LucideUser size={22} />}
+          icon={<LucideUser size={22} color={theme.palette.primary.main} />}
           isMenuOpen={isMenuOpen}
         />{" "}
         <NavItem
           title="Notificaciones"
           link="/user/notifications"
-          icon={<Bell size={22} />}
+          icon={<Bell size={22} color={theme.palette.primary.main} />}
           isMenuOpen={isMenuOpen}
         />
         <NavItem
           title="Mis Publicaciónes"
           link="/user/posts/manage"
-          icon={<LucideClipboardList size={22} />}
+          icon={
+            <LucideClipboardList size={22} color={theme.palette.primary.main} />
+          }
           isMenuOpen={isMenuOpen}
         />
         <NavItem
           title="Mis Itinerarios"
           link="/user/itineraries/manage"
-          icon={<LucideCalendarDays size={22} />}
+          icon={
+            <LucideCalendarDays size={22} color={theme.palette.primary.main} />
+          }
           isMenuOpen={isMenuOpen}
         />
         <NavItem
           title="Mis Favoritos"
           link="/user/favorites/manage"
-          icon={<LucideStar size={22} />}
+          icon={<LucideStar size={22} color={theme.palette.primary.main} />}
           isMenuOpen={isMenuOpen}
         />{" "}
         <NavItem
           title="Mis Comentarios"
           link="/user/comments"
-          icon={<MessagesSquare size={24} />}
+          icon={<MessagesSquare size={24} color={theme.palette.primary.main} />}
           isMenuOpen={isMenuOpen}
         />
       </Box>

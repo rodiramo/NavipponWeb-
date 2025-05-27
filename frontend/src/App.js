@@ -9,6 +9,9 @@ import { ThemeProvider } from "@mui/material";
 import createTheme from "@mui/material/styles/createTheme";
 import { themeSettings } from "./theme.js";
 import ArticleDetailPage from "./pages/articleDetail/ArticleDetailPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
+
 import HomePage from "./pages/home/HomePage";
 import RegisterPage from "./pages/register/RegisterPage";
 import LoginPage from "./pages/login/LoginPage";
@@ -82,7 +85,12 @@ function App() {
           <Route path="/experience" element={<ExperiencePage />} />
           <Route path="/experience/:slug" element={<ExperienceDetailPage />} />
           <Route path="/register" element={<RegisterPage />} />
-          <Route path="/login" element={<LoginPage />} />
+          <Route path="/login" element={<LoginPage />} />{" "}
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route
+            path="/reset-password/:token"
+            element={<ResetPasswordPage />}
+          />
           <Route path="/blog/:slug" element={<ArticleDetailPage />} />
           <Route path="/blog" element={<BlogPage />} />
           <Route path="/about" element={<AboutPage />} />
