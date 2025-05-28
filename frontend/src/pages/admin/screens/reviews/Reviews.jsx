@@ -13,10 +13,38 @@ import { Link } from "react-router-dom";
 import useUser from "../../../../hooks/useUser";
 import { BsCheckLg } from "react-icons/bs";
 import { AiOutlineClose } from "react-icons/ai";
-import { RiDeleteBin6Line } from "react-icons/ri";
-import { Trash2 } from "lucide-react";
+import {
+  Trash2,
+  Calendar,
+  User,
+  Star,
+  CheckCircle,
+  XCircle,
+  ExternalLink,
+  MessageSquare,
+} from "lucide-react";
+import {
+  useTheme,
+  Box,
+  Typography,
+  Avatar,
+  Chip,
+  IconButton,
+  Button,
+  Card,
+  CardContent,
+  Grid,
+  useMediaQuery,
+  Tooltip,
+  Stack,
+  Rating,
+} from "@mui/material";
+
 const Reviews = () => {
   const { jwt } = useUser();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const isTablet = useMediaQuery(theme.breakpoints.down("lg"));
 
   const {
     currentPage,
@@ -53,70 +81,175 @@ const Reviews = () => {
     },
   });
 
-  return (
-    <DataTable
-      pageTitle=""
-      dataListName="Administrar Reseñas"
-      searchInputPlaceHolder="Buscar reseñas..."
-      searchKeywordOnSubmitHandler={submitSearchKeywordHandler}
-      searchKeywordOnChangeHandler={searchKeywordHandler}
-      searchKeyword={searchKeyword}
-      tableHeaderTitleList={[
-        "Autor",
-        "Reseña",
-        "Creado",
-        "Aprobado",
-        "Acciones",
-      ]}
-      isFetching={isFetching}
-      isLoading={isLoading}
-      data={reviewsData?.data}
-      setCurrentPage={setCurrentPage}
-      currentPage={currentPage}
-      headers={reviewsData?.headers}
+  // Mobile Card Component
+  const ReviewCard = ({ review }) => (
+    <Card
+      sx={{
+        mb: 2,
+        backgroundColor: theme.palette.background.default,
+        border: `1px solid ${theme.palette.neutral.light}`,
+        borderRadius: 2,
+        transition: "all 0.2s ease-in-out",
+        "&:hover": {
+          boxShadow: theme.shadows[4],
+          transform: "translateY(-2px)",
+        },
+      }}
     >
-      {reviewsData?.data.map((review) => (
-        <tr
-          key={review._id}
-          className="bg-white hover:shadow-md transition-shadow rounded-lg"
+      <CardContent sx={{ p: 3 }}>
+        {/* Review Header - Author and Status */}
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            mb: 2,
+          }}
         >
-          {/* Author */}
-          <td className="px-6 py-4 whitespace-nowrap border-b border-gray-200">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <a href="/" className="block">
-                  <img
-                    src={
-                      review?.user?.avatar
-                        ? stables.UPLOAD_FOLDER_BASE_URL + review?.user?.avatar
-                        : images.userImage
-                    }
-                    alt={review?.user?.name}
-                    className="w-10 h-10 rounded-full object-cover"
-                  />
-                </a>
-              </div>
-              <div className="ml-4">
-                <p className="text-gray-900 whitespace-nowrap">
-                  {review?.user?.name}
-                </p>
-              </div>
-            </div>
-          </td>
-          {/* Review (Experience Title) */}
-          <td className="px-6 py-4 whitespace-nowrap border-b border-gray-200">
-            <p className="text-gray-900 whitespace-nowrap">
-              <Link
-                to={`/experience/${review?.experience?.slug}`}
-                className="text-blue-500"
+          <Box sx={{ display: "flex", alignItems: "center" }}>
+            <Avatar
+              src={
+                review?.user?.avatar
+                  ? stables.UPLOAD_FOLDER_BASE_URL + review?.user?.avatar
+                  : images.userImage
+              }
+              alt={review?.user?.name}
+              sx={{
+                width: 48,
+                height: 48,
+                mr: 2,
+                border: `2px solid ${theme.palette.primary.main}`,
+              }}
+            />
+            <Box>
+              <Typography
+                variant="subtitle1"
+                sx={{
+                  color: theme.palette.primary.main,
+                  fontWeight: "bold",
+                }}
               >
-                {review?.experience?.title}
-              </Link>
-            </p>
-          </td>
-          {/* Created Date */}
-          <td className="px-6 py-4 whitespace-nowrap border-b border-gray-200">
-            <p className="text-gray-900 whitespace-nowrap">
+                {review?.user?.name}
+              </Typography>
+              <Box sx={{ display: "flex", alignItems: "center" }}>
+                <User
+                  size={14}
+                  style={{
+                    marginRight: 4,
+                    color: theme.palette.neutral.medium,
+                  }}
+                />
+                <Typography variant="body2" color="textSecondary">
+                  Autor de la reseña
+                </Typography>
+              </Box>
+            </Box>
+          </Box>
+
+          <Chip
+            size="small"
+            label={review?.check ? "Aprobada" : "Pendiente"}
+            color={review?.check ? "success" : "warning"}
+            variant="filled"
+            sx={{
+              backgroundColor: review?.check
+                ? theme.palette.success.main
+                : theme.palette.warning.main,
+              color: "white",
+              fontWeight: "bold",
+            }}
+          />
+        </Box>
+
+        {/* Experience Link */}
+        <Box sx={{ mb: 2 }}>
+          <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+            <Star
+              size={16}
+              style={{ marginRight: 8, color: theme.palette.primary.main }}
+            />
+            <Typography variant="body2" color="textSecondary">
+              Reseña para:
+            </Typography>
+          </Box>
+          <Button
+            component={Link}
+            to={`/experience/${review?.experience?.slug}`}
+            endIcon={<ExternalLink size={14} />}
+            sx={{
+              color: theme.palette.primary.main,
+              textTransform: "none",
+              fontWeight: "bold",
+              padding: 0,
+              minHeight: "auto",
+              "&:hover": {
+                backgroundColor: "transparent",
+                textDecoration: "underline",
+              },
+            }}
+          >
+            {review?.experience?.title}
+          </Button>
+        </Box>
+
+        {/* Review Content */}
+        {review?.desc && (
+          <Box sx={{ mb: 2 }}>
+            <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+              <MessageSquare
+                size={16}
+                style={{ marginRight: 8, color: theme.palette.neutral.medium }}
+              />
+              <Typography variant="body2" color="textSecondary">
+                Comentario:
+              </Typography>
+            </Box>
+            <Typography
+              variant="body2"
+              sx={{
+                padding: 2,
+                borderRadius: 1,
+                fontStyle: "italic",
+                display: "-webkit-box",
+                WebkitLineClamp: 3,
+                WebkitBoxOrient: "vertical",
+                overflow: "hidden",
+              }}
+            >
+              "{review.desc}"
+            </Typography>
+          </Box>
+        )}
+
+        {/* Rating if available */}
+        {review?.rating && (
+          <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+            <Typography variant="body2" color="textSecondary" sx={{ mr: 1 }}>
+              Calificación:
+            </Typography>
+            <Rating value={review.rating} readOnly size="small" />
+            <Typography variant="body2" sx={{ ml: 1, fontWeight: "bold" }}>
+              {review.rating}/5
+            </Typography>
+          </Box>
+        )}
+
+        {/* Date and Actions */}
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            flexWrap: "wrap",
+            gap: 1,
+          }}
+        >
+          <Box sx={{ display: "flex", alignItems: "center" }}>
+            <Calendar
+              size={16}
+              style={{ marginRight: 8, color: theme.palette.neutral.medium }}
+            />
+            <Typography variant="body2" color="textSecondary">
               {new Date(review.createdAt).toLocaleDateString("es-ES", {
                 day: "2-digit",
                 month: "2-digit",
@@ -124,59 +257,342 @@ const Reviews = () => {
                 hour: "numeric",
                 minute: "numeric",
               })}
-            </p>
-          </td>
-          {/* Approval Toggle */}
-          <td className="px-6 py-4 whitespace-nowrap border-b border-gray-200">
-            <button
-              disabled={isLoadingDeleteData}
-              type="button"
-              onClick={() =>
-                mutateUpdateReviewCheck({
-                  token: jwt,
-                  check: review?.check ? false : true,
-                  reviewId: review._id,
-                })
-              }
-              className="focus:outline-none"
+            </Typography>
+          </Box>
+
+          <Box sx={{ display: "flex", gap: 1 }}>
+            {/* Approval Toggle */}
+            <Tooltip
+              title={review?.check ? "Desaprobar reseña" : "Aprobar reseña"}
             >
-              <span
-                className={`w-12 h-12 flex items-center justify-center rounded-full ${
-                  review?.check ? "bg-green-200" : "bg-red-200"
-                }`}
+              <IconButton
+                disabled={isLoadingDeleteData}
+                onClick={() =>
+                  mutateUpdateReviewCheck({
+                    token: jwt,
+                    check: review?.check ? false : true,
+                    reviewId: review._id,
+                  })
+                }
+                sx={{
+                  backgroundColor: review?.check
+                    ? theme.palette.success.lightest
+                    : theme.palette.warning.lightest,
+                  color: review?.check
+                    ? theme.palette.success.main
+                    : theme.palette.warning.main,
+                  "&:hover": {
+                    backgroundColor: review?.check
+                      ? theme.palette.success.light
+                      : theme.palette.warning.light,
+                    transform: "scale(1.05)",
+                  },
+                }}
               >
                 {review?.check ? (
-                  <BsCheckLg className="text-green-700 text-xl" />
+                  <CheckCircle size={18} />
                 ) : (
-                  <AiOutlineClose className="text-red-700 text-xl" />
+                  <XCircle size={18} />
                 )}
-              </span>
-            </button>
-          </td>
-          {/* Actions (Delete) */}
-          <td className="px-6 py-4 whitespace-nowrap border-b border-gray-200">
-            <button
+              </IconButton>
+            </Tooltip>
+
+            {/* Delete Button */}
+            <Button
               disabled={isLoadingDeleteData}
-              type="button"
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "0.5rem",
-                borderRadius: "4px",
-                padding: "0.5rem 1rem",
-              }}
-              className="text-red-600 border border-red-600 hover:text-red-900 hover:border-red-900  disabled:opacity-70 disabled:cursor-not-allowed"
+              startIcon={<Trash2 size={16} />}
               onClick={() =>
                 deleteDataHandler({ slug: review?._id, token: jwt })
               }
+              sx={{
+                color: theme.palette.error.main,
+                borderColor: theme.palette.error.main,
+                "&:hover": {
+                  backgroundColor: theme.palette.error.lightest,
+                  borderColor: theme.palette.error.dark,
+                },
+              }}
+              variant="outlined"
+              size="small"
             >
-              <Trash2 size={16} />
               Borrar
-            </button>{" "}
-          </td>
-        </tr>
-      ))}
-    </DataTable>
+            </Button>
+          </Box>
+        </Box>
+      </CardContent>
+    </Card>
+  );
+
+  return (
+    <Box
+      sx={{
+        minHeight: "100vh",
+        p: 3,
+      }}
+    >
+      <DataTable
+        pageTitle=""
+        dataListName="Administrar Reseñas"
+        searchInputPlaceHolder="Buscar reseñas..."
+        searchKeywordOnSubmitHandler={submitSearchKeywordHandler}
+        searchKeywordOnChangeHandler={searchKeywordHandler}
+        searchKeyword={searchKeyword}
+        tableHeaderTitleList={
+          isMobile
+            ? []
+            : ["Autor", "Experiencia", "Creado", "Estado", "Acciones"]
+        }
+        isFetching={isFetching}
+        isLoading={isLoading}
+        data={reviewsData?.data}
+        setCurrentPage={setCurrentPage}
+        currentPage={currentPage}
+        headers={reviewsData?.headers}
+      >
+        {isMobile ? (
+          // Mobile Card Layout
+          <Box sx={{ width: "100%" }}>
+            {reviewsData?.data.map((review) => (
+              <ReviewCard key={review._id} review={review} />
+            ))}
+          </Box>
+        ) : (
+          // Desktop Table Layout
+          reviewsData?.data.map((review) => (
+            <tr
+              key={review._id}
+              style={{
+                backgroundColor: theme.palette.background.default,
+                transition: "all 0.2s ease-in-out",
+              }}
+              className="hover:shadow-lg"
+            >
+              {/* Author */}
+              <td
+                style={{
+                  padding: "16px 24px",
+                  borderBottom: `1px solid ${theme.palette.neutral.light}`,
+                }}
+              >
+                <Box sx={{ display: "flex", alignItems: "center" }}>
+                  <Avatar
+                    src={
+                      review?.user?.avatar
+                        ? stables.UPLOAD_FOLDER_BASE_URL + review?.user?.avatar
+                        : images.userImage
+                    }
+                    alt={review?.user?.name}
+                    sx={{
+                      width: 48,
+                      height: 48,
+                      mr: 2,
+                      border: `2px solid ${theme.palette.primary.main}`,
+                    }}
+                  />
+                  <Box>
+                    <Typography
+                      variant="subtitle1"
+                      sx={{
+                        color: theme.palette.primary.main,
+                        fontWeight: "bold",
+                      }}
+                    >
+                      {review?.user?.name}
+                    </Typography>
+                    <Box sx={{ display: "flex", alignItems: "center" }}>
+                      <User
+                        size={14}
+                        style={{
+                          marginRight: 4,
+                          color: theme.palette.neutral.medium,
+                        }}
+                      />
+                      <Typography variant="caption" color="textSecondary">
+                        Autor
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Box>
+              </td>
+
+              {/* Experience */}
+              <td
+                style={{
+                  padding: "16px 24px",
+                  borderBottom: `1px solid ${theme.palette.neutral.light}`,
+                  maxWidth: "300px",
+                }}
+              >
+                <Box sx={{ display: "flex", alignItems: "center" }}>
+                  <Star
+                    size={16}
+                    style={{
+                      marginRight: 8,
+                      color: theme.palette.primary.main,
+                    }}
+                  />
+                  <Box>
+                    <Button
+                      component={Link}
+                      to={`/experience/${review?.experience?.slug}`}
+                      endIcon={<ExternalLink size={14} />}
+                      sx={{
+                        color: theme.palette.primary.main,
+                        textTransform: "none",
+                        fontWeight: "bold",
+                        padding: 0,
+                        minHeight: "auto",
+                        textAlign: "left",
+                        justifyContent: "flex-start",
+                        "&:hover": {
+                          backgroundColor: "transparent",
+                          textDecoration: "underline",
+                        },
+                      }}
+                    >
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          display: "-webkit-box",
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: "vertical",
+                          overflow: "hidden",
+                          textAlign: "left",
+                        }}
+                      >
+                        {review?.experience?.title}
+                      </Typography>
+                    </Button>
+                    {review?.rating && (
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", mt: 0.5 }}
+                      >
+                        <Rating value={review.rating} readOnly size="small" />
+                        <Typography variant="caption" sx={{ ml: 0.5 }}>
+                          ({review.rating})
+                        </Typography>
+                      </Box>
+                    )}
+                  </Box>
+                </Box>
+              </td>
+
+              {/* Created Date */}
+              <td
+                style={{
+                  padding: "16px 24px",
+                  borderBottom: `1px solid ${theme.palette.neutral.light}`,
+                }}
+              >
+                <Box sx={{ display: "flex", alignItems: "center" }}>
+                  <Calendar
+                    size={16}
+                    style={{
+                      marginRight: 8,
+                      color: theme.palette.neutral.medium,
+                    }}
+                  />
+                  <Typography variant="body2" color="textPrimary">
+                    {new Date(review.createdAt).toLocaleDateString("es-ES", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    })}
+                  </Typography>
+                </Box>
+              </td>
+
+              {/* Approval Status */}
+              <td
+                style={{
+                  padding: "16px 24px",
+                  borderBottom: `1px solid ${theme.palette.neutral.light}`,
+                }}
+              >
+                <Stack direction="column" spacing={1} alignItems="center">
+                  <Tooltip
+                    title={
+                      review?.check
+                        ? "Click para desaprobar"
+                        : "Click para aprobar"
+                    }
+                  >
+                    <IconButton
+                      disabled={isLoadingDeleteData}
+                      onClick={() =>
+                        mutateUpdateReviewCheck({
+                          token: jwt,
+                          check: review?.check ? false : true,
+                          reviewId: review._id,
+                        })
+                      }
+                      sx={{
+                        backgroundColor: review?.check
+                          ? theme.palette.success.lightest
+                          : theme.palette.warning.lightest,
+                        color: review?.check
+                          ? theme.palette.success.main
+                          : theme.palette.warning.main,
+                        width: 48,
+                        height: 48,
+                        "&:hover": {
+                          backgroundColor: review?.check
+                            ? theme.palette.success.light
+                            : theme.palette.warning.light,
+                          transform: "scale(1.05)",
+                        },
+                      }}
+                    >
+                      {review?.check ? (
+                        <CheckCircle size={20} />
+                      ) : (
+                        <XCircle size={20} />
+                      )}
+                    </IconButton>
+                  </Tooltip>
+                  <Chip
+                    size="small"
+                    label={review?.check ? "Aprobada" : "Pendiente"}
+                    color={review?.check ? "success" : "warning"}
+                    variant="outlined"
+                  />
+                </Stack>
+              </td>
+
+              {/* Actions */}
+              <td
+                style={{
+                  padding: "16px 24px",
+                  borderBottom: `1px solid ${theme.palette.neutral.light}`,
+                }}
+              >
+                <Button
+                  disabled={isLoadingDeleteData}
+                  startIcon={<Trash2 size={16} />}
+                  onClick={() =>
+                    deleteDataHandler({ slug: review?._id, token: jwt })
+                  }
+                  sx={{
+                    color: theme.palette.error.main,
+                    borderColor: theme.palette.error.main,
+                    "&:hover": {
+                      backgroundColor: theme.palette.error.lightest,
+                      borderColor: theme.palette.error.dark,
+                      transform: "translateY(-1px)",
+                    },
+                    transition: "all 0.2s ease-in-out",
+                  }}
+                  variant="outlined"
+                  size="small"
+                >
+                  Borrar
+                </Button>
+              </td>
+            </tr>
+          ))
+        )}
+      </DataTable>
+    </Box>
   );
 };
 

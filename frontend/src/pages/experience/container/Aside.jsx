@@ -10,7 +10,34 @@ import * as LuIcons from "react-icons/lu";
 import * as PiIcons from "react-icons/pi";
 import { Disclosure } from "@headlessui/react";
 import { FaChevronUp, FaChevronDown } from "react-icons/fa";
-import { useTheme, Button } from "@mui/material";
+import {
+  MapPin,
+  Filter,
+  RefreshCw,
+  Check,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
+import {
+  useTheme,
+  Button,
+  Box,
+  Typography,
+  FormControl,
+  Select,
+  MenuItem,
+  Card,
+  CardContent,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Checkbox,
+  FormControlLabel,
+  Chip,
+  Stack,
+  Divider,
+  useMediaQuery,
+} from "@mui/material";
 
 const regions = [
   "Hokkaido",
@@ -25,36 +52,23 @@ const regions = [
 
 const generalTags = {
   season: [
-    { icon: <FaIcons.FaLeaf className="text-[#FF4A5A]" />, title: "Primavera" },
-    { icon: <FaIcons.FaSun className="text-[#FF4A5A]" />, title: "Verano" },
-    { icon: <FaIcons.FaTree className="text-[#FF4A5A]" />, title: "Otoño" },
-    {
-      icon: <FaIcons.FaSnowflake className="text-[#FF4A5A]" />,
-      title: "Invierno",
-    },
-    {
-      icon: <MdIcons.MdAllInclusive className="text-[#FF4A5A]" />,
-      title: "Todo el año",
-    },
+    { icon: <FaIcons.FaLeaf />, title: "Primavera" },
+    { icon: <FaIcons.FaSun />, title: "Verano" },
+    { icon: <FaIcons.FaTree />, title: "Otoño" },
+    { icon: <FaIcons.FaSnowflake />, title: "Invierno" },
+    { icon: <MdIcons.MdAllInclusive />, title: "Todo el año" },
   ],
   budget: [
-    { icon: <TbIcons.TbCoin className="text-[#FF4A5A]" />, title: "Gratis" },
-    { icon: <TbIcons.TbCoin className="text-[#FF4A5A]" />, title: "Económico" },
-    { icon: <TbIcons.TbCoin className="text-[#FF4A5A]" />, title: "Moderado" },
-    { icon: <TbIcons.TbCoin className="text-[#FF4A5A]" />, title: "Lujo" },
+    { icon: <TbIcons.TbCoin />, title: "Gratis" },
+    { icon: <TbIcons.TbCoin />, title: "Económico" },
+    { icon: <TbIcons.TbCoin />, title: "Moderado" },
+    { icon: <TbIcons.TbCoin />, title: "Lujo" },
   ],
-
   location: [
+    { icon: <FaIcons.FaTrain />, title: "Cerca de estaciones de tren o metro" },
+    { icon: <FaIcons.FaPlane />, title: "Cerca de aeropuertos" },
     {
-      icon: <FaIcons.FaTrain className="text-[#FF4A5A]" />,
-      title: "Cerca de estaciones de tren o metro",
-    },
-    {
-      icon: <FaIcons.FaPlane className="text-[#FF4A5A]" />,
-      title: "Cerca de aeropuertos",
-    },
-    {
-      icon: <FaIcons.FaMapMarkerAlt className="text-[#FF4A5A]" />,
+      icon: <FaIcons.FaMapMarkerAlt />,
       title: "Cerca de áreas de puntos de interés",
     },
   ],
@@ -62,305 +76,108 @@ const generalTags = {
 
 const hotelTags = {
   accommodations: [
-    {
-      icon: <FaIcons.FaHotel className="text-[#FF4A5A]" />,
-      title: "Hoteles de lujo",
-    },
-    {
-      icon: <MdIcons.MdOutlineSpa className="text-[#FF4A5A]" />,
-      title: "Ryokan (tradicional)",
-    },
-    {
-      icon: <FaIcons.FaCapsules className="text-[#FF4A5A]" />,
-      title: "Hoteles cápsula",
-    },
-    {
-      icon: <FaIcons.FaBuilding className="text-[#FF4A5A]" />,
-      title: "Hoteles de negocios",
-    },
-    {
-      icon: <FaIcons.FaHome className="text-[#FF4A5A]" />,
-      title: "Apartamentos",
-    },
-    { icon: <GiIcons.GiBed className="text-[#FF4A5A]" />, title: "Hostales" },
+    { icon: <FaIcons.FaHotel />, title: "Hoteles de lujo" },
+    { icon: <MdIcons.MdOutlineSpa />, title: "Ryokan (tradicional)" },
+    { icon: <FaIcons.FaCapsules />, title: "Hoteles cápsula" },
+    { icon: <FaIcons.FaBuilding />, title: "Hoteles de negocios" },
+    { icon: <FaIcons.FaHome />, title: "Apartamentos" },
+    { icon: <GiIcons.GiBed />, title: "Hostales" },
   ],
   hotelServices: [
-    {
-      icon: <FaIcons.FaWifi className="text-[#FF4A5A]" />,
-      title: "Wi-Fi gratis",
-    },
-    {
-      icon: <MdIcons.MdFreeBreakfast className="text-[#FF4A5A]" />,
-      title: "Desayuno incluido",
-    },
-    {
-      icon: <FaIcons.FaParking className="text-[#FF4A5A]" />,
-      title: "Aparcamiento gratuito",
-    },
-    {
-      icon: <MdIcons.MdAirportShuttle className="text-[#FF4A5A]" />,
-      title: "Transporte al aeropuerto",
-    },
-    {
-      icon: <FaIcons.FaSwimmer className="text-[#FF4A5A]" />,
-      title: "Piscina",
-    },
-    {
-      icon: <FaIcons.FaDumbbell className="text-[#FF4A5A]" />,
-      title: "Gimnasio",
-    },
-    {
-      icon: <FaIcons.FaUtensils className="text-[#FF4A5A]" />,
-      title: "Restaurante en el hotel",
-    },
-    {
-      icon: <FaIcons.FaWheelchair className="text-[#FF4A5A]" />,
-      title: "Accesible",
-    },
-    {
-      icon: <FaIcons.FaDog className="text-[#FF4A5A]" />,
-      title: "Admite mascotas",
-    },
+    { icon: <FaIcons.FaWifi />, title: "Wi-Fi gratis" },
+    { icon: <MdIcons.MdFreeBreakfast />, title: "Desayuno incluido" },
+    { icon: <FaIcons.FaParking />, title: "Aparcamiento gratuito" },
+    { icon: <MdIcons.MdAirportShuttle />, title: "Transporte al aeropuerto" },
+    { icon: <FaIcons.FaSwimmer />, title: "Piscina" },
+    { icon: <FaIcons.FaDumbbell />, title: "Gimnasio" },
+    { icon: <FaIcons.FaUtensils />, title: "Restaurante en el hotel" },
+    { icon: <FaIcons.FaWheelchair />, title: "Accesible" },
+    { icon: <FaIcons.FaDog />, title: "Admite mascotas" },
   ],
   typeTrip: [
-    { icon: <FaIcons.FaChild className="text-[#FF4A5A]" />, title: "Familiar" },
-    {
-      icon: <FaIcons.FaHeart className="text-[#FF4A5A]" />,
-      title: "Luna de miel",
-    },
-    {
-      icon: <FaIcons.FaBriefcase className="text-[#FF4A5A]" />,
-      title: "De negocios",
-    },
-    {
-      icon: <FaIcons.FaHiking className="text-[#FF4A5A]" />,
-      title: "Amigable para mochileros",
-    },
-    {
-      icon: <FaIcons.FaMountain className="text-[#FF4A5A]" />,
-      title: "Para aventureros",
-    },
+    { icon: <FaIcons.FaChild />, title: "Familiar" },
+    { icon: <FaIcons.FaHeart />, title: "Luna de miel" },
+    { icon: <FaIcons.FaBriefcase />, title: "De negocios" },
+    { icon: <FaIcons.FaHiking />, title: "Amigable para mochileros" },
+    { icon: <FaIcons.FaMountain />, title: "Para aventureros" },
   ],
 };
 
 const attractionTags = [
-  {
-    icon: <MdIcons.MdOutlineForest className="text-[#FF4A5A]" />,
-    title: "Naturaleza",
-  },
-  {
-    icon: <MdIcons.MdOutlineBeachAccess className="text-[#FF4A5A]" />,
-    title: "Playa",
-  },
-  {
-    icon: <TbIcons.TbBuildingMonument className="text-[#FF4A5A]" />,
-    title: "Monumento",
-  },
-  {
-    icon: <MdIcons.MdOutlineRamenDining className="text-[#FF4A5A]" />,
-    title: "Gastronomía",
-  },
-  {
-    icon: <LiaIcons.LiaCocktailSolid className="text-[#FF4A5A]" />,
-    title: "Noche",
-  },
-  {
-    icon: <GiIcons.GiGreekTemple className="text-[#FF4A5A]" />,
-    title: "Museo",
-  },
-  {
-    icon: <MdIcons.MdOutlineCoffee className="text-[#FF4A5A]" />,
-    title: "Cafés",
-  },
-  {
-    icon: <MdIcons.MdOutlineShoppingBag className="text-[#FF4A5A]" />,
-    title: "Shopping",
-  },
-  { icon: <FaIcons.FaRegStar className="text-[#FF4A5A]" />, title: "Ocio" },
-  {
-    icon: <GiIcons.GiPartyPopper className="text-[#FF4A5A]" />,
-    title: "Festival",
-  },
-  { icon: <BsIcons.BsRobot className="text-[#FF4A5A]" />, title: "Tecnología" },
-  {
-    icon: <LiaIcons.LiaGamepadSolid className="text-[#FF4A5A]" />,
-    title: "Juegos",
-  },
-  { icon: <VscIcons.VscOctoface className="text-[#FF4A5A]" />, title: "Anime" },
-  {
-    icon: <LuIcons.LuFerrisWheel className="text-[#FF4A5A]" />,
-    title: "Parques temáticos",
-  },
-  {
-    icon: <GiIcons.GiSamuraiHelmet className="text-[#FF4A5A]" />,
-    title: "Samurai",
-  },
-  {
-    icon: <MdIcons.MdOutlineTempleBuddhist className="text-[#FF4A5A]" />,
-    title: "Templo Budista",
-  },
-  {
-    icon: <PiIcons.PiBirdBold className="text-[#FF4A5A]" />,
-    title: "Reserva de Aves",
-  },
-  {
-    icon: <MdIcons.MdOutlineCastle className="text-[#FF4A5A]" />,
-    title: "Castillos",
-  },
-  {
-    icon: <PiIcons.PiCross className="text-[#FF4A5A]" />,
-    title: "Templo Cristiano",
-  },
-  {
-    icon: <TbIcons.TbTorii className="text-[#FF4A5A]" />,
-    title: "Templo Sintoísta",
-  },
-  {
-    icon: <MdIcons.MdOutlineTempleHindu className="text-[#FF4A5A]" />,
-    title: "Templo Hindú",
-  },
-  {
-    icon: <MdIcons.MdOutlineHotTub className="text-[#FF4A5A]" />,
-    title: "Aguas Termales",
-  },
-  { icon: <GiIcons.GiGrapes className="text-[#FF4A5A]" />, title: "Viñedos" },
+  { icon: <MdIcons.MdOutlineForest />, title: "Naturaleza" },
+  { icon: <MdIcons.MdOutlineBeachAccess />, title: "Playa" },
+  { icon: <TbIcons.TbBuildingMonument />, title: "Monumento" },
+  { icon: <MdIcons.MdOutlineRamenDining />, title: "Gastronomía" },
+  { icon: <LiaIcons.LiaCocktailSolid />, title: "Noche" },
+  { icon: <GiIcons.GiGreekTemple />, title: "Museo" },
+  { icon: <MdIcons.MdOutlineCoffee />, title: "Cafés" },
+  { icon: <MdIcons.MdOutlineShoppingBag />, title: "Shopping" },
+  { icon: <FaIcons.FaRegStar />, title: "Ocio" },
+  { icon: <GiIcons.GiPartyPopper />, title: "Festival" },
+  { icon: <BsIcons.BsRobot />, title: "Tecnología" },
+  { icon: <LiaIcons.LiaGamepadSolid />, title: "Juegos" },
+  { icon: <VscIcons.VscOctoface />, title: "Anime" },
+  { icon: <LuIcons.LuFerrisWheel />, title: "Parques temáticos" },
+  { icon: <GiIcons.GiSamuraiHelmet />, title: "Samurai" },
+  { icon: <MdIcons.MdOutlineTempleBuddhist />, title: "Templo Budista" },
+  { icon: <PiIcons.PiBirdBold />, title: "Reserva de Aves" },
+  { icon: <MdIcons.MdOutlineCastle />, title: "Castillos" },
+  { icon: <PiIcons.PiCross />, title: "Templo Cristiano" },
+  { icon: <TbIcons.TbTorii />, title: "Templo Sintoísta" },
+  { icon: <MdIcons.MdOutlineTempleHindu />, title: "Templo Hindú" },
+  { icon: <MdIcons.MdOutlineHotTub />, title: "Aguas Termales" },
+  { icon: <GiIcons.GiGrapes />, title: "Viñedos" },
 ];
 
 const restaurantTags = {
   restaurantTypes: [
     {
-      icon: <MdIcons.MdOutlineFoodBank className="text-[#FF4A5A]" />,
+      icon: <MdIcons.MdOutlineFoodBank />,
       title: "Restaurantes tradicionales",
     },
+    { icon: <MdIcons.MdOutlineFoodBank />, title: "Cadenas de comida rápida" },
+    { icon: <MdIcons.MdOutlineFoodBank />, title: "Cafeterías y cafés" },
     {
-      icon: <MdIcons.MdOutlineFoodBank className="text-[#FF4A5A]" />,
-      title: "Cadenas de comida rápida",
-    },
-    {
-      icon: <MdIcons.MdOutlineFoodBank className="text-[#FF4A5A]" />,
-      title: "Cafeterías y cafés",
-    },
-    {
-      icon: <MdIcons.MdOutlineFoodBank className="text-[#FF4A5A]" />,
+      icon: <MdIcons.MdOutlineFoodBank />,
       title: "Restaurantes de alta cocina",
     },
-    {
-      icon: <MdIcons.MdOutlineFoodBank className="text-[#FF4A5A]" />,
-      title: "Food trucks",
-    },
-    {
-      icon: <MdIcons.MdOutlineFoodBank className="text-[#FF4A5A]" />,
-      title: "Ramen",
-    },
-    {
-      icon: <MdIcons.MdOutlineFoodBank className="text-[#FF4A5A]" />,
-      title: "Sushi",
-    },
+    { icon: <MdIcons.MdOutlineFoodBank />, title: "Food trucks" },
+    { icon: <MdIcons.MdOutlineFoodBank />, title: "Ramen" },
+    { icon: <MdIcons.MdOutlineFoodBank />, title: "Sushi" },
   ],
   cuisines: [
-    {
-      icon: <PiIcons.PiBowlFoodBold className="text-[#FF4A5A]" />,
-      title: "Cocina japonesa tradicional",
-    },
-    {
-      icon: <PiIcons.PiBowlFoodBold className="text-[#FF4A5A]" />,
-      title: "Internacional",
-    },
-    {
-      icon: <PiIcons.PiBowlFoodBold className="text-[#FF4A5A]" />,
-      title: "Fusión",
-    },
-    {
-      icon: <PiIcons.PiBowlFoodBold className="text-[#FF4A5A]" />,
-      title: "Cocina vegetariana/vegana",
-    },
-    {
-      icon: <PiIcons.PiBowlFoodBold className="text-[#FF4A5A]" />,
-      title: "Cocina sin gluten",
-    },
-    {
-      icon: <PiIcons.PiBowlFoodBold className="text-[#FF4A5A]" />,
-      title: "Cocina halal",
-    },
-    {
-      icon: <PiIcons.PiBowlFoodBold className="text-[#FF4A5A]" />,
-      title: "Cocina kosher",
-    },
-    {
-      icon: <PiIcons.PiBowlFoodBold className="text-[#FF4A5A]" />,
-      title: "Rápida",
-    },
-    {
-      icon: <PiIcons.PiBowlFoodBold className="text-[#FF4A5A]" />,
-      title: "Cocina de autor",
-    },
-    {
-      icon: <PiIcons.PiBowlFoodBold className="text-[#FF4A5A]" />,
-      title: "Con espectáculo",
-    },
-    {
-      icon: <PiIcons.PiBowlFoodBold className="text-[#FF4A5A]" />,
-      title: "Familiar",
-    },
-    {
-      icon: <PiIcons.PiBowlFoodBold className="text-[#FF4A5A]" />,
-      title: "Romántica",
-    },
-    {
-      icon: <PiIcons.PiBowlFoodBold className="text-[#FF4A5A]" />,
-      title: "Negocios",
-    },
-    {
-      icon: <PiIcons.PiBowlFoodBold className="text-[#FF4A5A]" />,
-      title: "Ocasiones especiales",
-    },
+    { icon: <PiIcons.PiBowlFoodBold />, title: "Cocina japonesa tradicional" },
+    { icon: <PiIcons.PiBowlFoodBold />, title: "Internacional" },
+    { icon: <PiIcons.PiBowlFoodBold />, title: "Fusión" },
+    { icon: <PiIcons.PiBowlFoodBold />, title: "Cocina vegetariana/vegana" },
+    { icon: <PiIcons.PiBowlFoodBold />, title: "Cocina sin gluten" },
+    { icon: <PiIcons.PiBowlFoodBold />, title: "Cocina halal" },
+    { icon: <PiIcons.PiBowlFoodBold />, title: "Cocina kosher" },
+    { icon: <PiIcons.PiBowlFoodBold />, title: "Rápida" },
+    { icon: <PiIcons.PiBowlFoodBold />, title: "Cocina de autor" },
+    { icon: <PiIcons.PiBowlFoodBold />, title: "Con espectáculo" },
+    { icon: <PiIcons.PiBowlFoodBold />, title: "Familiar" },
+    { icon: <PiIcons.PiBowlFoodBold />, title: "Romántica" },
+    { icon: <PiIcons.PiBowlFoodBold />, title: "Negocios" },
+    { icon: <PiIcons.PiBowlFoodBold />, title: "Ocasiones especiales" },
   ],
   restaurantServices: [
-    {
-      icon: <FaIcons.FaWifi className="text-[#FF4A5A]" />,
-      title: "Wi-Fi gratis",
-    },
-    {
-      icon: <FaIcons.FaUtensils className="text-[#FF4A5A]" />,
-      title: "Menú en inglés",
-    },
-    {
-      icon: <FaIcons.FaUtensils className="text-[#FF4A5A]" />,
-      title: "Reservas en línea",
-    },
-    {
-      icon: <FaIcons.FaUtensils className="text-[#FF4A5A]" />,
-      title: "Entregas a domicilio",
-    },
-    {
-      icon: <FaIcons.FaUtensils className="text-[#FF4A5A]" />,
-      title: "Terraza o comedor al aire libre",
-    },
-    {
-      icon: <FaIcons.FaUtensils className="text-[#FF4A5A]" />,
-      title: "Opciones de comida para llevar",
-    },
-    {
-      icon: <FaIcons.FaDog className="text-[#FF4A5A]" />,
-      title: "Admite mascotas",
-    },
-    {
-      icon: <FaIcons.FaLeaf className="text-[#FF4A5A]" />,
-      title: "Ingredientes orgánicos",
-    },
-    {
-      icon: <FaIcons.FaFish className="text-[#FF4A5A]" />,
-      title: "Mariscos frescos",
-    },
-    {
-      icon: <FaIcons.FaChild className="text-[#FF4A5A]" />,
-      title: "Menús infantiles",
-    },
+    { icon: <FaIcons.FaWifi />, title: "Wi-Fi gratis" },
+    { icon: <FaIcons.FaUtensils />, title: "Menú en inglés" },
+    { icon: <FaIcons.FaUtensils />, title: "Reservas en línea" },
+    { icon: <FaIcons.FaUtensils />, title: "Entregas a domicilio" },
+    { icon: <FaIcons.FaUtensils />, title: "Terraza o comedor al aire libre" },
+    { icon: <FaIcons.FaUtensils />, title: "Opciones de comida para llevar" },
+    { icon: <FaIcons.FaDog />, title: "Admite mascotas" },
+    { icon: <FaIcons.FaLeaf />, title: "Ingredientes orgánicos" },
+    { icon: <FaIcons.FaFish />, title: "Mariscos frescos" },
+    { icon: <FaIcons.FaChild />, title: "Menús infantiles" },
   ],
 };
 
 const Aside = ({ onFilterChange, selectedFilter }) => {
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [selectedFilters, setSelectedFilters] = useState({
     region: "",
     tags: [],
@@ -391,8 +208,6 @@ const Aside = ({ onFilterChange, selectedFilter }) => {
     };
 
     console.log("Applying filters:", formattedFilters);
-
-    // ✅ Automatically switch to "resultados" tab when filtering
     onFilterChange(formattedFilters, "resultados");
   };
 
@@ -403,325 +218,551 @@ const Aside = ({ onFilterChange, selectedFilter }) => {
     };
     setSelectedFilters(clearedFilters);
     console.log("Clearing filters:", clearedFilters);
-
-    // ✅ Reset to "Todo" when clearing filters and remove URL params
     onFilterChange({}, "todo", true);
   };
 
+  const FilterCheckbox = ({ tag, isChecked, onChange }) => (
+    <FormControlLabel
+      control={
+        <Checkbox
+          checked={isChecked}
+          onChange={onChange}
+          sx={{
+            color: theme.palette.primary.main,
+            "&.Mui-checked": {
+              color: theme.palette.primary.main,
+            },
+            "&:hover": {
+              backgroundColor: `${theme.palette.primary.main}10`,
+            },
+          }}
+        />
+      }
+      label={
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <Box
+            sx={{
+              color: theme.palette.primary.main,
+              display: "flex",
+              alignItems: "center",
+              fontSize: "18px",
+            }}
+          >
+            {tag.icon}
+          </Box>
+          <Typography
+            variant="body2"
+            sx={{
+              color: theme.palette.text.primary,
+              fontSize: "0.875rem",
+            }}
+          >
+            {tag.title}
+          </Typography>
+        </Box>
+      }
+      sx={{
+        width: "100%",
+        margin: 0,
+        padding: "4px 0",
+        "&:hover": {
+          backgroundColor: `${theme.palette.primary.main}05`,
+          borderRadius: 1,
+        },
+        transition: "background-color 0.2s ease-in-out",
+      }}
+    />
+  );
+
   return (
-    <aside className="px-4 rounded-lg">
+    <Box
+      sx={{
+        width: "100%",
+        maxWidth: { xs: "100%", md: "320px" },
+        backgroundColor: theme.palette.background.default,
+        borderRadius: 2,
+        p: 3,
+        height: "fit-content",
+        border: `1px solid ${
+          theme.palette.neutral?.light || theme.palette.grey[200]
+        }`,
+        boxShadow: theme.shadows[2],
+      }}
+    >
+      {/* Header */}
+      <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3 }}>
+        <Filter sx={{ color: theme.palette.primary.main, fontSize: 24 }} />
+        <Typography
+          variant="h6"
+          sx={{
+            color: theme.palette.primary.main,
+            fontWeight: "bold",
+            fontSize: "1.25rem",
+          }}
+        >
+          Filtros
+        </Typography>
+      </Box>
+
+      {/* Active Filters Display */}
+      {selectedFilters.tags.length > 0 && (
+        <Box sx={{ mb: 3 }}>
+          <Typography variant="body2" color="textSecondary" sx={{ mb: 1 }}>
+            Filtros activos:
+          </Typography>
+          <Stack
+            direction="row"
+            spacing={0.5}
+            sx={{ flexWrap: "wrap", gap: 0.5 }}
+          >
+            {selectedFilters.tags.slice(0, 3).map((tag, index) => (
+              <Chip
+                key={index}
+                label={tag}
+                size="small"
+                onDelete={() => handleTagChange(tag)}
+                sx={{
+                  backgroundColor: theme.palette.primary.light,
+                  color: theme.palette.primary.main,
+                  fontSize: "0.75rem",
+                }}
+              />
+            ))}
+            {selectedFilters.tags.length > 3 && (
+              <Chip
+                label={`+${selectedFilters.tags.length - 3} más`}
+                size="small"
+                sx={{
+                  backgroundColor: theme.palette.secondary.light,
+                  color: theme.palette.secondary.main,
+                  fontSize: "0.75rem",
+                }}
+              />
+            )}
+          </Stack>
+        </Box>
+      )}
+
+      <Divider sx={{ mb: 3 }} />
+
       {/* Region Filter */}
-      <div
-        className="mb-4 p-4 rounded-lg"
-        style={{ background: theme.palette.primary.light }}
+      <Card
+        elevation={0}
+        sx={{
+          mb: 3,
+          backgroundColor: theme.palette.primary.light,
+          border: `1px solid ${theme.palette.primary.main}20`,
+        }}
       >
-        <h4
-          className="font-semibold"
-          style={{ color: theme.palette.text.primary }}
-        >
-          Región
-        </h4>
-        <select
-          value={selectedFilters.region}
-          onChange={(e) => handleFilterChange("region", e.target.value)}
-          className="w-full p-2 rounded-lg outline-none focus:ring-2"
-          style={{
-            border: `1px solid ${theme.palette.primary.main}`,
-            backgroundColor: theme.palette.background.default,
-            color: theme.palette.text.primary,
+        <CardContent sx={{ p: 2, "&:last-child": { pb: 2 } }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
+            <MapPin size={18} style={{ color: theme.palette.primary.main }} />
+            <Typography
+              variant="subtitle1"
+              sx={{
+                color: theme.palette.text.primary,
+                fontWeight: "bold",
+              }}
+            >
+              Región
+            </Typography>
+          </Box>
+          <FormControl fullWidth size="small">
+            <Select
+              value={selectedFilters.region}
+              onChange={(e) => handleFilterChange("region", e.target.value)}
+              displayEmpty
+              sx={{
+                backgroundColor: theme.palette.background.default,
+                "& .MuiOutlinedInput-notchedOutline": {
+                  borderColor: theme.palette.primary.main,
+                },
+                "&:hover .MuiOutlinedInput-notchedOutline": {
+                  borderColor: theme.palette.primary.dark,
+                },
+                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                  borderColor: theme.palette.primary.main,
+                  borderWidth: 2,
+                },
+              }}
+            >
+              <MenuItem value="">
+                <em>Selecciona una región</em>
+              </MenuItem>
+              {regions.map((region) => (
+                <MenuItem key={region} value={region}>
+                  {region}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </CardContent>
+      </Card>
+
+      {/* Filter Sections */}
+      <Box sx={{ "& .MuiAccordion-root": { mb: 1 } }}>
+        {/* General Filters */}
+        <Accordion
+          elevation={0}
+          sx={{
+            backgroundColor: theme.palette.secondary.light,
+            border: `1px solid ${theme.palette.secondary.main}20`,
+            "&:before": { display: "none" },
+            borderRadius: "8px !important",
           }}
         >
-          <option value="">Selecciona una región</option>
-          {regions.map((region) => (
-            <option key={region} value={region}>
-              {region}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {/* General Filters */}
-      <Disclosure>
-        {({ open }) => (
-          <>
-            <Disclosure.Button
-              className="flex justify-between w-full p-4 py-2 text-sm font-medium text-left rounded-lg hover:bg-opacity-80 focus:outline-none focus-visible:ring focus-visible:ring-opacity-75"
-              style={{
-                backgroundColor: theme.palette.secondary.light,
+          <AccordionSummary
+            expandIcon={
+              <ChevronDown sx={{ color: theme.palette.text.primary }} />
+            }
+            sx={{
+              backgroundColor: theme.palette.secondary.light,
+              "& .MuiAccordionSummary-content": {
+                alignItems: "center",
+              },
+            }}
+          >
+            <Typography
+              variant="subtitle1"
+              sx={{
                 color: theme.palette.text.primary,
-                marginBottom: "1rem",
+                fontWeight: "bold",
               }}
             >
-              <span>Filtros Generales</span>
-              {open ? (
-                <FaChevronUp className="w-5 h-5" />
-              ) : (
-                <FaChevronDown className="w-5 h-5" />
-              )}
-            </Disclosure.Button>
-            <Disclosure.Panel className="px-4 pt-4 pb-2 text-sm">
-              <h5 className="font-semibold mt-3 mb-1">Época del Año</h5>
-              {generalTags.season.map((tag) => (
-                <label key={tag.title} className="flex items-center mb-2">
-                  <input
-                    type="checkbox"
-                    checked={selectedFilters.tags.includes(tag.title)}
-                    onChange={() => handleTagChange(tag.title)}
-                    className="mr-2"
-                  />
-                  <span className="flex items-center ml-2">
-                    {tag.icon} <span className="ml-2">{tag.title}</span>
-                  </span>
-                </label>
-              ))}
-              <h5 className="font-semibold mt-3 mb-1">Presupuesto</h5>
-              {generalTags.budget.map((tag) => (
-                <label key={tag.title} className="flex items-center mb-2">
-                  <input
-                    type="checkbox"
-                    checked={selectedFilters.tags.includes(tag.title)}
-                    onChange={() => handleTagChange(tag.title)}
-                    className="mr-2"
-                  />
-                  <span className="flex items-center ml-2">
-                    {tag.icon} <span className="ml-2">{tag.title}</span>
-                  </span>
-                </label>
-              ))}
-              <h5 className="font-semibold mt-3 mb-1">Localización</h5>
-              {generalTags.location.map((tag) => (
-                <label key={tag.title} className="flex items-center mb-2">
-                  <input
-                    type="checkbox"
-                    checked={selectedFilters.tags.includes(tag.title)}
-                    onChange={() => handleTagChange(tag.title)}
-                    className="mr-2"
-                  />
-                  <span className="flex items-center ml-2">
-                    {tag.icon} <span className="ml-2">{tag.title}</span>
-                  </span>
-                </label>
-              ))}
-            </Disclosure.Panel>
-          </>
-        )}
-      </Disclosure>
-
-      {/* Attraction Filters */}
-      <Disclosure>
-        {({ open }) => (
-          <>
-            <Disclosure.Button
-              className="flex justify-between w-full px-4 py-2 text-sm font-medium text-left rounded-lg hover:bg-opacity-80 focus:outline-none focus-visible:ring focus-visible:ring-opacity-75"
-              style={{
-                backgroundColor: theme.palette.secondary.light,
-                color: theme.palette.text.primary,
-                marginBottom: "1rem",
+              Filtros Generales
+            </Typography>
+          </AccordionSummary>
+          <AccordionDetails sx={{ pt: 1 }}>
+            <Typography
+              variant="body2"
+              sx={{
+                fontWeight: "bold",
+                mb: 1,
+                color: theme.palette.primary.main,
               }}
             >
-              <span>Filtros de Atractivos</span>
-              {open ? (
-                <FaChevronUp className="w-5 h-5" />
-              ) : (
-                <FaChevronDown className="w-5 h-5" />
-              )}
-            </Disclosure.Button>
-            <Disclosure.Panel className="px-4 pt-4 pb-2 text-sm">
-              {attractionTags.map((tag) => (
-                <label key={tag.title} className="flex items-center mb-2">
-                  <input
-                    type="checkbox"
-                    checked={selectedFilters.tags.includes(tag.title)}
-                    onChange={() => handleTagChange(tag.title)}
-                    className="mr-2"
-                  />
-                  <span className="flex items-center ml-2">
-                    {tag.icon} <span className="ml-2">{tag.title}</span>
-                  </span>
-                </label>
-              ))}
-            </Disclosure.Panel>
-          </>
-        )}
-      </Disclosure>
+              Época del Año
+            </Typography>
+            {generalTags.season.map((tag) => (
+              <FilterCheckbox
+                key={tag.title}
+                tag={tag}
+                isChecked={selectedFilters.tags.includes(tag.title)}
+                onChange={() => handleTagChange(tag.title)}
+              />
+            ))}
 
-      {/* Hotel Filters */}
-      <Disclosure>
-        {({ open }) => (
-          <>
-            <Disclosure.Button
-              className="flex justify-between w-full px-4 py-2 text-sm font-medium text-left rounded-lg hover:bg-opacity-80 focus:outline-none focus-visible:ring focus-visible:ring-opacity-75"
-              style={{
-                backgroundColor: theme.palette.secondary.light,
-                color: theme.palette.text.primary,
-                marginBottom: "1rem",
+            <Typography
+              variant="body2"
+              sx={{
+                fontWeight: "bold",
+                mt: 2,
+                mb: 1,
+                color: theme.palette.primary.main,
               }}
             >
-              <span>Filtros de Hoteles</span>
-              {open ? (
-                <FaChevronUp className="w-5 h-5" />
-              ) : (
-                <FaChevronDown className="w-5 h-5" />
-              )}
-            </Disclosure.Button>
-            <Disclosure.Panel className="px-4 pt-4 pb-2 text-sm">
-              <h5 className="font-semibold mt-3 mb-1">Acomodación</h5>
-              {hotelTags.accommodations.map((tag) => (
-                <label key={tag.title} className="flex items-center mb-2">
-                  <input
-                    type="checkbox"
-                    checked={selectedFilters.tags.includes(tag.title)}
-                    onChange={() => handleTagChange(tag.title)}
-                    className="mr-2"
-                  />
-                  <span className="flex items-center ml-2">
-                    {tag.icon} <span className="ml-2">{tag.title}</span>
-                  </span>
-                </label>
-              ))}
-              <h5 className="font-semibold mt-3 mb-1">Servicios de hotel</h5>
-              {hotelTags.hotelServices.map((tag) => (
-                <label key={tag.title} className="flex items-center mb-2">
-                  <input
-                    type="checkbox"
-                    checked={selectedFilters.tags.includes(tag.title)}
-                    onChange={() => handleTagChange(tag.title)}
-                    className="mr-2"
-                  />
-                  <span className="flex items-center ml-2">
-                    {tag.icon} <span className="ml-2">{tag.title}</span>
-                  </span>
-                </label>
-              ))}
-              <h5 className="font-semibold mt-3 mb-1">Tipo de Viaje</h5>
-              {hotelTags.typeTrip.map((tag) => (
-                <label key={tag.title} className="flex items-center mb-2">
-                  <input
-                    type="checkbox"
-                    checked={selectedFilters.tags.includes(tag.title)}
-                    onChange={() => handleTagChange(tag.title)}
-                    className="mr-2"
-                  />
-                  <span className="flex items-center ml-2">
-                    {tag.icon} <span className="ml-2">{tag.title}</span>
-                  </span>
-                </label>
-              ))}
-            </Disclosure.Panel>
-          </>
-        )}
-      </Disclosure>
+              Presupuesto
+            </Typography>
+            {generalTags.budget.map((tag) => (
+              <FilterCheckbox
+                key={tag.title}
+                tag={tag}
+                isChecked={selectedFilters.tags.includes(tag.title)}
+                onChange={() => handleTagChange(tag.title)}
+              />
+            ))}
 
-      {/* Restaurant Filters */}
-      <Disclosure>
-        {({ open }) => (
-          <>
-            <Disclosure.Button
-              className="flex justify-between w-full px-4 py-2 text-sm font-medium text-left rounded-lg hover:bg-opacity-80 focus:outline-none focus-visible:ring focus-visible:ring-opacity-75"
-              style={{
-                backgroundColor: theme.palette.secondary.light,
-                color: theme.palette.text.primary,
+            <Typography
+              variant="body2"
+              sx={{
+                fontWeight: "bold",
+                mt: 2,
+                mb: 1,
+                color: theme.palette.primary.main,
               }}
             >
-              <span>Filtros de Restaurantes</span>
-              {open ? (
-                <FaChevronUp className="w-5 h-5" />
-              ) : (
-                <FaChevronDown className="w-5 h-5" />
-              )}
-            </Disclosure.Button>
-            <Disclosure.Panel className="px-4 pt-4 pb-2 text-sm">
-              <h5 className="font-semibold mt-3 mb-1">Tipos de restaurantes</h5>
-              {restaurantTags.restaurantTypes.map((tag) => (
-                <label key={tag.title} className="flex items-center mb-2">
-                  <input
-                    type="checkbox"
-                    checked={selectedFilters.tags.includes(tag.title)}
-                    onChange={() => handleTagChange(tag.title)}
-                    className="mr-2"
-                  />
-                  <span className="flex items-center ml-2">
-                    {tag.icon} <span className="ml-2">{tag.title}</span>
-                  </span>
-                </label>
-              ))}
-              <h5 className="font-semibold mt-3 mb-1">Tipo de cocina</h5>
-              {restaurantTags.cuisines.map((tag) => (
-                <label key={tag.title} className="flex items-center mb-2">
-                  <input
-                    type="checkbox"
-                    checked={selectedFilters.tags.includes(tag.title)}
-                    onChange={() => handleTagChange(tag.title)}
-                    className="mr-2"
-                  />
-                  <span className="flex items-center ml-2">
-                    {tag.icon} <span className="ml-2">{tag.title}</span>
-                  </span>
-                </label>
-              ))}
-              <h5 className="font-semibold mt-3 mb-1">
-                Servicio de Restaurante
-              </h5>
-              {restaurantTags.restaurantServices.map((tag) => (
-                <label key={tag.title} className="flex items-center mb-2">
-                  <input
-                    type="checkbox"
-                    checked={selectedFilters.tags.includes(tag.title)}
-                    onChange={() => handleTagChange(tag.title)}
-                    className="mr-2"
-                  />
-                  <span className="flex items-center ml-2">
-                    {tag.icon} <span className="ml-2">{tag.title}</span>
-                  </span>
-                </label>
-              ))}
-            </Disclosure.Panel>
-          </>
-        )}
-      </Disclosure>
+              Localización
+            </Typography>
+            {generalTags.location.map((tag) => (
+              <FilterCheckbox
+                key={tag.title}
+                tag={tag}
+                isChecked={selectedFilters.tags.includes(tag.title)}
+                onChange={() => handleTagChange(tag.title)}
+              />
+            ))}
+          </AccordionDetails>
+        </Accordion>
 
-      {/* Buttons */}
-      <div className="flex justify-between mt-6">
+        {/* Attraction Filters */}
+        <Accordion
+          elevation={0}
+          sx={{
+            backgroundColor: theme.palette.secondary.light,
+            border: `1px solid ${theme.palette.secondary.main}20`,
+            "&:before": { display: "none" },
+            borderRadius: "8px !important",
+          }}
+        >
+          <AccordionSummary
+            expandIcon={
+              <ChevronDown sx={{ color: theme.palette.text.primary }} />
+            }
+          >
+            <Typography
+              variant="subtitle1"
+              sx={{
+                color: theme.palette.text.primary,
+                fontWeight: "bold",
+              }}
+            >
+              Filtros de Atractivos
+            </Typography>
+          </AccordionSummary>
+          <AccordionDetails sx={{ pt: 1 }}>
+            {attractionTags.map((tag) => (
+              <FilterCheckbox
+                key={tag.title}
+                tag={tag}
+                isChecked={selectedFilters.tags.includes(tag.title)}
+                onChange={() => handleTagChange(tag.title)}
+              />
+            ))}
+          </AccordionDetails>
+        </Accordion>
+
+        {/* Hotel Filters */}
+        <Accordion
+          elevation={0}
+          sx={{
+            backgroundColor: theme.palette.secondary.light,
+            border: `1px solid ${theme.palette.secondary.main}20`,
+            "&:before": { display: "none" },
+            borderRadius: "8px !important",
+          }}
+        >
+          <AccordionSummary
+            expandIcon={
+              <ChevronDown sx={{ color: theme.palette.text.primary }} />
+            }
+          >
+            <Typography
+              variant="subtitle1"
+              sx={{
+                color: theme.palette.text.primary,
+                fontWeight: "bold",
+              }}
+            >
+              Filtros de Hoteles
+            </Typography>
+          </AccordionSummary>
+          <AccordionDetails sx={{ pt: 1 }}>
+            <Typography
+              variant="body2"
+              sx={{
+                fontWeight: "bold",
+                mb: 1,
+                color: theme.palette.primary.main,
+              }}
+            >
+              Acomodación
+            </Typography>
+            {hotelTags.accommodations.map((tag) => (
+              <FilterCheckbox
+                key={tag.title}
+                tag={tag}
+                isChecked={selectedFilters.tags.includes(tag.title)}
+                onChange={() => handleTagChange(tag.title)}
+              />
+            ))}
+
+            <Typography
+              variant="body2"
+              sx={{
+                fontWeight: "bold",
+                mt: 2,
+                mb: 1,
+                color: theme.palette.primary.main,
+              }}
+            >
+              Servicios de hotel
+            </Typography>
+            {hotelTags.hotelServices.map((tag) => (
+              <FilterCheckbox
+                key={tag.title}
+                tag={tag}
+                isChecked={selectedFilters.tags.includes(tag.title)}
+                onChange={() => handleTagChange(tag.title)}
+              />
+            ))}
+
+            <Typography
+              variant="body2"
+              sx={{
+                fontWeight: "bold",
+                mt: 2,
+                mb: 1,
+                color: theme.palette.primary.main,
+              }}
+            >
+              Tipo de Viaje
+            </Typography>
+            {hotelTags.typeTrip.map((tag) => (
+              <FilterCheckbox
+                key={tag.title}
+                tag={tag}
+                isChecked={selectedFilters.tags.includes(tag.title)}
+                onChange={() => handleTagChange(tag.title)}
+              />
+            ))}
+          </AccordionDetails>
+        </Accordion>
+
+        {/* Restaurant Filters */}
+        <Accordion
+          elevation={0}
+          sx={{
+            backgroundColor: theme.palette.secondary.light,
+            border: `1px solid ${theme.palette.secondary.main}20`,
+            "&:before": { display: "none" },
+            borderRadius: "8px !important",
+          }}
+        >
+          <AccordionSummary
+            expandIcon={
+              <ChevronDown sx={{ color: theme.palette.text.primary }} />
+            }
+          >
+            <Typography
+              variant="subtitle1"
+              sx={{
+                color: theme.palette.text.primary,
+                fontWeight: "bold",
+              }}
+            >
+              Filtros de Restaurantes
+            </Typography>
+          </AccordionSummary>
+          <AccordionDetails sx={{ pt: 1 }}>
+            <Typography
+              variant="body2"
+              sx={{
+                fontWeight: "bold",
+                mb: 1,
+                color: theme.palette.primary.main,
+              }}
+            >
+              Tipos de restaurantes
+            </Typography>
+            {restaurantTags.restaurantTypes.map((tag) => (
+              <FilterCheckbox
+                key={tag.title}
+                tag={tag}
+                isChecked={selectedFilters.tags.includes(tag.title)}
+                onChange={() => handleTagChange(tag.title)}
+              />
+            ))}
+
+            <Typography
+              variant="body2"
+              sx={{
+                fontWeight: "bold",
+                mt: 2,
+                mb: 1,
+                color: theme.palette.primary.main,
+              }}
+            >
+              Tipo de cocina
+            </Typography>
+            {restaurantTags.cuisines.map((tag) => (
+              <FilterCheckbox
+                key={tag.title}
+                tag={tag}
+                isChecked={selectedFilters.tags.includes(tag.title)}
+                onChange={() => handleTagChange(tag.title)}
+              />
+            ))}
+
+            <Typography
+              variant="body2"
+              sx={{
+                fontWeight: "bold",
+                mt: 2,
+                mb: 1,
+                color: theme.palette.primary.main,
+              }}
+            >
+              Servicio de Restaurante
+            </Typography>
+            {restaurantTags.restaurantServices.map((tag) => (
+              <FilterCheckbox
+                key={tag.title}
+                tag={tag}
+                isChecked={selectedFilters.tags.includes(tag.title)}
+                onChange={() => handleTagChange(tag.title)}
+              />
+            ))}
+          </AccordionDetails>
+        </Accordion>
+      </Box>
+
+      {/* Action Buttons */}
+      <Box
+        sx={{
+          display: "flex",
+          gap: 2,
+          mt: 4,
+          flexDirection: { xs: "column", sm: "row" },
+        }}
+      >
         <Button
+          variant="outlined"
+          startIcon={<RefreshCw size={18} />}
           onClick={clearFilters}
-          className="px-4 py-2 font-semibold rounded-lg transition-all duration-300"
-          style={{
-            borderRadius: "30rem",
+          fullWidth
+          sx={{
+            borderColor: theme.palette.primary.main,
+            color: theme.palette.primary.main,
+            borderRadius: "25px",
+            py: 1.5,
             textTransform: "none",
-            padding: "0.5rem",
-          }}
-          onMouseEnter={(e) => {
-            e.target.style.backgroundColor = theme.palette.primary.light;
-            e.target.style.color = theme.palette.secondary.dark;
-          }}
-          onMouseLeave={(e) => {
-            e.target.style.backgroundColor = "transparent";
-            e.target.style.color = theme.palette.primary.main;
+            fontWeight: "bold",
+            "&:hover": {
+              backgroundColor: theme.palette.primary.light,
+              borderColor: theme.palette.primary.dark,
+              transform: "translateY(-1px)",
+            },
+            transition: "all 0.2s ease-in-out",
           }}
         >
           Borrar Filtros
-        </Button>{" "}
+        </Button>
+
         <Button
+          variant="contained"
+          startIcon={<Check size={18} />}
           onClick={applyFilters}
-          className=" text-white transition-all duration-300"
-          style={{
-            backgroundColor: theme.palette.secondary.medium,
-            color: theme.palette.primary.white,
+          fullWidth
+          sx={{
+            backgroundColor: theme.palette.secondary.main,
+            color: "white",
+            borderRadius: "25px",
+            py: 1.5,
             textTransform: "none",
-            borderRadius: "30rem",
-            padding: "0.5rem",
+            fontWeight: "bold",
+            boxShadow: theme.shadows[3],
+            "&:hover": {
+              backgroundColor: theme.palette.secondary.dark,
+              transform: "translateY(-1px)",
+              boxShadow: theme.shadows[6],
+            },
+            transition: "all 0.2s ease-in-out",
           }}
-          onMouseEnter={(e) =>
-            (e.target.style.backgroundColor = theme.palette.secondary.dark)
-          }
-          onMouseLeave={(e) =>
-            (e.target.style.backgroundColor = theme.palette.secondary.medium)
-          }
         >
           Aplicar Filtros
         </Button>
-      </div>
-    </aside>
+      </Box>
+    </Box>
   );
 };
 

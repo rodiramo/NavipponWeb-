@@ -111,7 +111,7 @@ export const themeSettings = (mode) => {
             secondary: {
               dark: colorTokens.darkBlue[200],
               main: colorTokens.darkBlue[500],
-              medium: colorTokens.lightBlue[300],
+              medium: colorTokens.lightBlue[100],
               light: colorTokens.darkBlue[800],
             },
             success: {

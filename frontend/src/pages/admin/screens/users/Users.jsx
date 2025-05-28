@@ -16,54 +16,107 @@ import { BsCheckLg } from "react-icons/bs";
 import { AiOutlineClose } from "react-icons/ai";
 import { RiDeleteBin6Line } from "react-icons/ri";
 import { useQueryClient } from "@tanstack/react-query";
-import { Trash2 } from "lucide-react";
+import {
+  Trash2,
+  Mail,
+  Calendar,
+  Shield,
+  ShieldCheck,
+  User,
+} from "lucide-react";
+import {
+  useTheme,
+  Box,
+  Typography,
+  Avatar,
+  Chip,
+  IconButton,
+  Select,
+  MenuItem,
+  FormControl,
+  Button,
+  Card,
+  CardContent,
+  Grid,
+  useMediaQuery,
+  Tooltip,
+} from "@mui/material";
+
 const Users = () => {
   const { jwt } = useUser();
   const queryClient = useQueryClient();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const isTablet = useMediaQuery(theme.breakpoints.down("lg"));
+
+  // Debug: Check if JWT is valid
+  console.log("JWT Token:", jwt ? "Present" : "Missing");
 
   // Mutation for updating admin status
   const { mutate: mutateUpdateUser, isLoading: isLoadingUpdateUser } =
     useMutation({
-      mutationFn: ({ isAdmin, userId }) =>
-        updateProfile({ token: jwt, userData: { admin: isAdmin }, userId }),
-      onSuccess: () => {
+      mutationFn: ({ isAdmin, userId }) => {
+        console.log("Updating user admin status:", {
+          isAdmin,
+          userId: String(userId),
+          token: jwt,
+        });
+        // Fix: Call with correct parameter order (userId, userData, token)
+        return updateProfile(String(userId), { admin: isAdmin }, jwt);
+      },
+      onSuccess: (data) => {
+        console.log("Admin update success:", data);
         queryClient.invalidateQueries(["users"]);
         toast.success("Usuario actualizado");
       },
       onError: (error) => {
-        toast.error(error.message);
-        console.log(error);
+        console.error("Admin update error:", error);
+        toast.error(error.message || "Error al actualizar usuario");
       },
     });
 
   // Mutation for updating verified status
   const { mutate: mutateUpdateVerified, isLoading: isLoadingUpdateVerified } =
     useMutation({
-      mutationFn: ({ isVerified, userId }) =>
-        updateProfile({
+      mutationFn: ({ isVerified, userId }) => {
+        console.log("Updating user verified status:", {
+          isVerified,
+          userId: String(userId),
           token: jwt,
-          userData: { verified: isVerified },
-          userId,
-        }),
-      onSuccess: () => {
+        });
+        // Fix: Call with correct parameter order (userId, userData, token)
+        return updateProfile(String(userId), { verified: isVerified }, jwt);
+      },
+      onSuccess: (data) => {
+        console.log("Verified update success:", data);
         queryClient.invalidateQueries(["users"]);
         toast.success("Estado de verificación actualizado");
       },
       onError: (error) => {
-        toast.error(error.message);
-        console.log(error);
+        console.error("Verified update error:", error);
+        toast.error(error.message || "Error al actualizar verificación");
       },
     });
 
-  // Admin toggle is still a dropdown; you can keep or change it.
-  const handleAdminToggle = (userItem) => {
-    const newStatus = !userItem.admin;
-    if (
-      window.confirm(
-        "¿Quieres cambiar el estado de administrador de este usuario?"
-      )
-    ) {
-      mutateUpdateUser({ isAdmin: newStatus, userId: userItem._id });
+  // Fixed admin toggle function
+  const handleAdminToggle = (e, userItem) => {
+    const selectedValue = e.target.value;
+    const newAdminStatus = selectedValue === "admin";
+
+    // Only proceed if the status is actually changing
+    if (userItem.admin !== newAdminStatus) {
+      if (
+        window.confirm(
+          `¿Quieres cambiar este usuario ${
+            newAdminStatus ? "a administrador" : "a usuario regular"
+          }?`
+        )
+      ) {
+        mutateUpdateUser({ isAdmin: newAdminStatus, userId: userItem._id });
+      } else {
+        // Reset the select to original value if user cancels
+        e.target.value = userItem.admin ? "admin" : "user";
+      }
     }
   };
 
@@ -97,130 +150,457 @@ const Users = () => {
     mutateDeleteFn: ({ slug, token }) => deleteUser({ slug, token }),
   });
 
-  return (
-    <DataTable
-      pageTitle=""
-      dataListName="Administrar Usuarios"
-      searchInputPlaceHolder="Email del usuario..."
-      searchKeywordOnSubmitHandler={submitSearchKeywordHandler}
-      searchKeywordOnChangeHandler={searchKeywordHandler}
-      searchKeyword={searchKeyword}
-      tableHeaderTitleList={[
-        "Nombre",
-        "Email",
-        "Creado",
-        "Verificado",
-        "Es Admin",
-        "Acciones",
-      ]}
-      isLoading={isLoading}
-      isFetching={isFetching}
-      data={usersData?.data}
-      setCurrentPage={setCurrentPage}
-      currentPage={currentPage}
-      headers={usersData?.headers}
-    >
-      {usersData?.data.map((userItem) => (
-        <tr
-          key={userItem._id}
-          className="bg-white hover:shadow-md transition-shadow rounded-lg"
+  // Check if JWT is missing or invalid
+  if (!jwt) {
+    return (
+      <Box
+        sx={{
+          p: 4,
+          backgroundColor: theme.palette.background.default,
+          minHeight: "100vh",
+        }}
+      >
+        <Card
+          sx={{
+            backgroundColor: theme.palette.error.lightest,
+            borderColor: theme.palette.error.main,
+          }}
         >
-          {/* Name & Avatar */}
-          <td className="px-6 py-4 whitespace-nowrap border-b border-gray-200">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <a href="/" className="block">
-                  <img
+          <CardContent>
+            <Typography color="error">
+              Error: No se encontró token de autenticación. Por favor, inicia
+              sesión nuevamente.
+            </Typography>
+          </CardContent>
+        </Card>
+      </Box>
+    );
+  }
+
+  // Mobile Card Component
+  const UserCard = ({ userItem }) => (
+    <Card
+      sx={{
+        mb: 2,
+        backgroundColor: theme.palette.background.default,
+        border: `1px solid ${theme.palette.neutral.light}`,
+        borderRadius: 2,
+        transition: "all 0.2s ease-in-out",
+        "&:hover": {
+          boxShadow: theme.shadows[4],
+          transform: "translateY(-2px)",
+        },
+      }}
+    >
+      <CardContent sx={{ p: 3 }}>
+        {/* User Header */}
+        <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+          <Avatar
+            src={
+              userItem?.avatar
+                ? stables.UPLOAD_FOLDER_BASE_URL + userItem?.avatar
+                : images.userImage
+            }
+            alt={userItem.name}
+            sx={{
+              width: 56,
+              height: 56,
+              mr: 2,
+            }}
+          />
+          <Box sx={{ flex: 1 }}>
+            <Typography
+              variant="h6"
+              sx={{
+                color: theme.palette.primary.main,
+                fontWeight: "bold",
+                mb: 0.5,
+              }}
+            >
+              {userItem.name}
+            </Typography>
+            <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+              <Mail
+                size={16}
+                style={{ marginRight: 8, color: theme.palette.neutral.medium }}
+              />
+              <Typography variant="body2" color="textSecondary">
+                {userItem.email}
+              </Typography>
+            </Box>
+          </Box>
+        </Box>
+
+        {/* User Info Grid */}
+        <Grid container spacing={2} sx={{ mb: 2 }}>
+          <Grid item xs={6}>
+            <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+              <Calendar
+                size={16}
+                style={{ marginRight: 8, color: theme.palette.neutral.medium }}
+              />
+              <Typography variant="body2" color="textSecondary">
+                Creado:
+              </Typography>
+            </Box>
+            <Typography variant="body2" sx={{ fontWeight: "medium" }}>
+              {new Date(userItem.createdAt).toLocaleDateString("es-ES", {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+              })}
+            </Typography>
+          </Grid>
+          <Grid item xs={6}>
+            <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+              <Shield
+                size={16}
+                style={{ marginRight: 8, color: theme.palette.neutral.medium }}
+              />
+              <Typography variant="body2" color="textSecondary">
+                Estado:
+              </Typography>
+            </Box>
+            <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+              <Chip
+                size="small"
+                label={userItem.verified ? "Verificado" : "Sin verificar"}
+                color={userItem.verified ? "success" : "error"}
+                variant={userItem.verified ? "filled" : "outlined"}
+              />
+              <Chip
+                size="small"
+                label={userItem.admin ? "Admin" : "Usuario"}
+                color={userItem.admin ? "primary" : "default"}
+                variant={userItem.admin ? "filled" : "outlined"}
+              />
+            </Box>
+          </Grid>
+        </Grid>
+
+        {/* Actions */}
+        <Box
+          sx={{
+            display: "flex",
+            gap: 1,
+            flexWrap: "wrap",
+            alignItems: "center",
+          }}
+        >
+          {/* Verified Toggle */}
+          <Tooltip title="Cambiar verificación">
+            <IconButton
+              onClick={() => handleVerifiedToggle(userItem)}
+              disabled={isLoadingUpdateVerified}
+              sx={{
+                backgroundColor: userItem.verified
+                  ? theme.palette.success.lightest
+                  : theme.palette.error.lightest,
+                color: userItem.verified
+                  ? theme.palette.success.main
+                  : theme.palette.error.main,
+                "&:hover": {
+                  backgroundColor: userItem.verified
+                    ? theme.palette.success.light
+                    : theme.palette.error.light,
+                },
+              }}
+            >
+              {userItem.verified ? <BsCheckLg /> : <AiOutlineClose />}
+            </IconButton>
+          </Tooltip>
+
+          {/* Admin Select */}
+          <FormControl size="small" sx={{ minWidth: 140 }}>
+            <Select
+              value={userItem.admin ? "admin" : "user"}
+              onChange={(e) => handleAdminToggle(e, userItem)}
+              disabled={isLoadingUpdateUser}
+              sx={{
+                backgroundColor: theme.palette.background.default,
+                "& .MuiOutlinedInput-notchedOutline": {
+                  borderColor: theme.palette.primary.main,
+                },
+              }}
+            >
+              <MenuItem value="user">Usuario Regular</MenuItem>
+              <MenuItem value="admin">Administrador</MenuItem>
+            </Select>
+          </FormControl>
+
+          {/* Delete Button */}
+          <Button
+            disabled={isLoadingDeleteData}
+            startIcon={<Trash2 size={16} />}
+            onClick={() =>
+              deleteDataHandler({ slug: userItem._id, token: jwt })
+            }
+            sx={{
+              color: theme.palette.error.main,
+              borderColor: theme.palette.error.main,
+              "&:hover": {
+                backgroundColor: theme.palette.error.lightest,
+                borderColor: theme.palette.error.dark,
+              },
+            }}
+            variant="outlined"
+            size="small"
+          >
+            Borrar
+          </Button>
+        </Box>
+      </CardContent>
+    </Card>
+  );
+
+  return (
+    <Box
+      sx={{
+        minHeight: "100vh",
+      }}
+    >
+      <DataTable
+        pageTitle=""
+        dataListName="Administrar Usuarios"
+        searchInputPlaceHolder="Email del usuario..."
+        searchKeywordOnSubmitHandler={submitSearchKeywordHandler}
+        searchKeywordOnChangeHandler={searchKeywordHandler}
+        searchKeyword={searchKeyword}
+        tableHeaderTitleList={
+          isMobile
+            ? []
+            : ["Usuario", "Email", "Creado", "Verificado", "Rol", "Acciones"]
+        }
+        isLoading={isLoading}
+        isFetching={isFetching}
+        data={usersData?.data}
+        setCurrentPage={setCurrentPage}
+        currentPage={currentPage}
+        headers={usersData?.headers}
+      >
+        {isMobile ? (
+          // Mobile Card Layout
+          <Box sx={{ width: "100%" }}>
+            {usersData?.data.map((userItem) => (
+              <UserCard key={userItem._id} userItem={userItem} />
+            ))}
+          </Box>
+        ) : (
+          // Desktop Table Layout
+          usersData?.data.map((userItem) => (
+            <tr
+              key={userItem._id}
+              style={{
+                backgroundColor: theme.palette.background.default,
+                transition: "all 0.2s ease-in-out",
+              }}
+              className="hover:shadow-lg"
+            >
+              {/* User Info */}
+              <td
+                style={{
+                  padding: "16px 24px",
+                  borderBottom: `1px solid ${theme.palette.neutral.light}`,
+                }}
+              >
+                <Box sx={{ display: "flex", alignItems: "center" }}>
+                  <Avatar
                     src={
                       userItem?.avatar
                         ? stables.UPLOAD_FOLDER_BASE_URL + userItem?.avatar
                         : images.userImage
                     }
                     alt={userItem.name}
-                    className="w-10 h-10 rounded-full object-cover"
+                    sx={{
+                      width: 48,
+                      height: 48,
+                      mr: 2,
+                      border: `2px solid ${theme.palette.primary.main}`,
+                    }}
                   />
-                </a>
-              </div>
-              <div className="ml-4">
-                <Link
-                  to={`/profile/${userItem._id}`}
-                  className="whitespace-nowrap"
-                >
-                  {userItem.name}
-                </Link>
-              </div>
-            </div>
-          </td>
-          {/* Email */}
-          <td className="px-6 py-4 whitespace-nowrap border-b border-gray-200">
-            <p className="text-gray-900 whitespace-nowrap">{userItem.email}</p>
-          </td>
-          {/* Created Date */}
-          <td className="px-6 py-4 whitespace-nowrap border-b border-gray-200">
-            <p className="text-gray-900 whitespace-nowrap">
-              {new Date(userItem.createdAt).toLocaleDateString("en-US", {
-                day: "numeric",
-                month: "short",
-                year: "numeric",
-              })}
-            </p>
-          </td>
-          {/* Verified Toggle */}
-          <td className="px-6 py-4 whitespace-nowrap border-b border-gray-200">
-            <button
-              onClick={() => handleVerifiedToggle(userItem)}
-              className="focus:outline-none"
-              disabled={isLoadingUpdateVerified}
-            >
-              <span
-                className={`w-12 h-12 flex items-center justify-center rounded-full ${
-                  userItem.verified ? "bg-green-200" : "bg-red-200"
-                }`}
+                  <Box>
+                    <Link
+                      to={`/profile/${userItem._id}`}
+                      style={{ textDecoration: "none" }}
+                    >
+                      <Typography
+                        variant="subtitle1"
+                        sx={{
+                          color: theme.palette.primary.main,
+                          fontWeight: "bold",
+                          "&:hover": {
+                            color: theme.palette.primary.dark,
+                          },
+                        }}
+                      >
+                        {userItem.name}
+                      </Typography>
+                    </Link>
+                  </Box>
+                </Box>
+              </td>
+
+              {/* Email */}
+              <td
+                style={{
+                  padding: "16px 24px",
+                  borderBottom: `1px solid ${theme.palette.neutral.light}`,
+                }}
               >
-                {userItem.verified ? (
-                  <BsCheckLg className="text-green-700 text-xl" />
-                ) : (
-                  <AiOutlineClose className="text-red-700 text-xl" />
-                )}
-              </span>
-            </button>
-          </td>
-          {/* Admin Dropdown */}
-          <td className="px-6 py-4 whitespace-nowrap border-b border-gray-200">
-            <select
-              value={userItem.admin ? "admin" : "user"}
-              onChange={(e) => handleAdminToggle(userItem)}
-              disabled={isLoadingUpdateUser}
-              className="rounded-md border-gray-300 focus:border-blue-500 focus:ring-blue-500 text-sm"
-            >
-              <option value="user">Usuario Regular</option>
-              <option value="admin">Administrador</option>
-            </select>
-          </td>
-          {/* Actions (Delete) */}
-          <td className="px-6 py-4 whitespace-nowrap border-b border-gray-200">
-            <button
-              disabled={isLoadingDeleteData}
-              type="button"
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "0.5rem",
-                borderRadius: "4px",
-                padding: "0.5rem 1rem",
-              }}
-              className="text-red-600 border border-red-600 hover:text-red-900 hover:border-red-900  disabled:opacity-70 disabled:cursor-not-allowed"
-              onClick={() =>
-                deleteDataHandler({ slug: userItem._id, token: jwt })
-              }
-            >
-              <Trash2 size={16} />
-              Borrar
-            </button>{" "}
-          </td>
-        </tr>
-      ))}
-    </DataTable>
+                <Box sx={{ display: "flex", alignItems: "center" }}>
+                  <Mail
+                    size={16}
+                    style={{
+                      marginRight: 8,
+                      color: theme.palette.neutral.medium,
+                    }}
+                  />
+                  <Typography variant="body2" color="textPrimary">
+                    {userItem.email}
+                  </Typography>
+                </Box>
+              </td>
+
+              {/* Created Date */}
+              <td
+                style={{
+                  padding: "16px 24px",
+                  borderBottom: `1px solid ${theme.palette.neutral.light}`,
+                }}
+              >
+                <Box sx={{ display: "flex", alignItems: "center" }}>
+                  <Calendar
+                    size={16}
+                    style={{
+                      marginRight: 8,
+                      color: theme.palette.neutral.medium,
+                    }}
+                  />
+                  <Typography variant="body2" color="textPrimary">
+                    {new Date(userItem.createdAt).toLocaleDateString("es-ES", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    })}
+                  </Typography>
+                </Box>
+              </td>
+
+              {/* Verified Status */}
+              <td
+                style={{
+                  padding: "16px 24px",
+                  borderBottom: `1px solid ${theme.palette.neutral.light}`,
+                }}
+              >
+                <Tooltip title="Click para cambiar estado">
+                  <IconButton
+                    onClick={() => handleVerifiedToggle(userItem)}
+                    disabled={isLoadingUpdateVerified}
+                    sx={{
+                      backgroundColor: userItem.verified
+                        ? theme.palette.success.lightest
+                        : theme.palette.error.lightest,
+                      color: userItem.verified
+                        ? theme.palette.success.main
+                        : theme.palette.error.main,
+                      width: 48,
+                      height: 48,
+                      "&:hover": {
+                        backgroundColor: userItem.verified
+                          ? theme.palette.success.light
+                          : theme.palette.error.light,
+                        transform: "scale(1.05)",
+                      },
+                    }}
+                  >
+                    {userItem.verified ? (
+                      <BsCheckLg size={20} />
+                    ) : (
+                      <AiOutlineClose size={20} />
+                    )}
+                  </IconButton>
+                </Tooltip>
+              </td>
+
+              {/* Admin Role */}
+              <td
+                style={{
+                  padding: "16px 24px",
+                  borderBottom: `1px solid ${theme.palette.neutral.light}`,
+                }}
+              >
+                <FormControl size="small" fullWidth sx={{ maxWidth: 160 }}>
+                  <Select
+                    value={userItem.admin ? "admin" : "user"}
+                    onChange={(e) => handleAdminToggle(e, userItem)}
+                    disabled={isLoadingUpdateUser}
+                    sx={{
+                      borderRadius: 30,
+
+                      backgroundColor: theme.palette.background.default,
+                      "& .MuiOutlinedInput-notchedOutline": {
+                        borderColor: theme.palette.primary.main,
+                      },
+                      "&:hover .MuiOutlinedInput-notchedOutline": {
+                        borderColor: theme.palette.primary.dark,
+                      },
+                      "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                        borderColor: theme.palette.primary.main,
+                      },
+                    }}
+                  >
+                    <MenuItem value="user">
+                      <Box sx={{ display: "flex", alignItems: "center" }}>
+                        <User size={16} style={{ marginRight: 1 }} />
+                        Usuario Regular
+                      </Box>
+                    </MenuItem>
+                    <MenuItem value="admin">
+                      <Box sx={{ display: "flex", alignItems: "center" }}>
+                        <ShieldCheck size={16} style={{ marginRight: 1 }} />
+                        Administrador
+                      </Box>
+                    </MenuItem>
+                  </Select>
+                </FormControl>
+              </td>
+
+              {/* Actions */}
+              <td
+                style={{
+                  padding: "16px 24px",
+                  borderBottom: `1px solid ${theme.palette.neutral.light}`,
+                }}
+              >
+                <Button
+                  disabled={isLoadingDeleteData}
+                  startIcon={<Trash2 size={16} />}
+                  onClick={() =>
+                    deleteDataHandler({ slug: userItem._id, token: jwt })
+                  }
+                  sx={{
+                    color: theme.palette.error.main,
+                    borderColor: theme.palette.error.main,
+                    "&:hover": {
+                      backgroundColor: theme.palette.error.lightest,
+                      borderColor: theme.palette.error.dark,
+                      transform: "translateY(-1px)",
+                    },
+                    transition: "all 0.2s ease-in-out",
+                    borderRadius: 30,
+                  }}
+                  variant="outlined"
+                  size="small"
+                >
+                  Borrar
+                </Button>
+              </td>
+            </tr>
+          ))
+        )}
+      </DataTable>
+    </Box>
   );
 };
 
