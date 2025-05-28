@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { AiOutlineMenu, AiOutlineClose } from "react-icons/ai";
-import Notifications from "../components/Notifications"; // Import the dropdown
+import Notifications from "../components/Notifications";
 import {
   Bolt,
   Shield,
@@ -13,7 +13,7 @@ import {
 import { useSelector, useDispatch } from "react-redux";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
-import { IconButton, Menu, MenuItem, Button } from "@mui/material";
+import { IconButton, Menu, MenuItem, Button, Tooltip } from "@mui/material";
 import { images, stables } from "../constants";
 import useUser from "../hooks/useUser";
 import { toggleMode } from "../themeSlice";
@@ -90,16 +90,18 @@ const Header = () => {
         }}
       >
         {/* Logo */}
-        <Link to="/" className="flex items-center">
-          <img
-            src={mode === "dark" ? images.LogoWhite : images.LogoWhite}
-            alt="Logo"
-            className="h-16"
-          />
-          <h1 className="font-bold pl-2 text-xl md:text-2xl text-white">
-            Navippon
-          </h1>
-        </Link>
+        <Tooltip title="Volver al Inicio">
+          <Link to="/" className="flex items-center">
+            <img
+              src={mode === "dark" ? images.LogoWhite : images.LogoWhite}
+              alt="Logo"
+              className="h-16"
+            />
+            <h1 className="font-bold pl-2 text-xl md:text-2xl text-white">
+              Navippon
+            </h1>
+          </Link>
+        </Tooltip>
 
         {/* Navigation (Hidden below 1024px, visible at 1024px and above) */}
         <nav className="hidden lg:flex flex-grow justify-center">
@@ -118,35 +120,40 @@ const Header = () => {
         {/* Right-Side Controls */}
         <div className="flex items-center gap-4 ml-auto">
           {/* Theme Toggle */}
-          <IconButton onClick={() => dispatch(toggleMode())}>
-            {mode === "dark" ? (
-              <Sun size={24} color="white" />
-            ) : (
-              <Moon size={24} color="white" />
-            )}
-          </IconButton>
+          <Tooltip title={mode === "dark" ? "Modo claro" : "Modo oscuro"}>
+            <IconButton onClick={() => dispatch(toggleMode())}>
+              {mode === "dark" ? (
+                <Sun size={24} color="white" />
+              ) : (
+                <Moon size={24} color="white" />
+              )}
+            </IconButton>
+          </Tooltip>
+
           {/* Conditionally render Notifications if user is signed in */}
           {!!user && <Notifications />}
 
           {/* User Profile */}
           {user ? (
             <div className="relative" ref={profileRef}>
-              <IconButton onClick={(e) => setProfileAnchor(e.currentTarget)}>
-                <img
-                  src={
-                    user.avatar
-                      ? `${stables.UPLOAD_FOLDER_BASE_URL}${user.avatar}`
-                      : images.DefaultAvatar
-                  }
-                  alt="Profile"
-                  className="rounded-full object-cover"
-                  style={{
-                    width: "45px",
-                    height: "45px",
-                    border: `2px solid ${theme.palette.primary.main}`,
-                  }}
-                />
-              </IconButton>
+              <Tooltip title={`Perfil de ${user.name || "Usuario"}`}>
+                <IconButton onClick={(e) => setProfileAnchor(e.currentTarget)}>
+                  <img
+                    src={
+                      user.avatar
+                        ? `${stables.UPLOAD_FOLDER_BASE_URL}${user.avatar}`
+                        : images.DefaultAvatar
+                    }
+                    alt="Profile"
+                    className="rounded-full object-cover"
+                    style={{
+                      width: "45px",
+                      height: "45px",
+                      border: `2px solid ${theme.palette.primary.main}`,
+                    }}
+                  />
+                </IconButton>
+              </Tooltip>
               <Menu
                 anchorEl={profileAnchor}
                 open={Boolean(profileAnchor)}
@@ -216,13 +223,15 @@ const Header = () => {
 
           {/* Burger Menu (Mobile Only) */}
           {isMobile && (
-            <IconButton onClick={() => setNavIsVisible((prev) => !prev)}>
-              {navIsVisible ? (
-                <AiOutlineClose size={24} color="white" />
-              ) : (
-                <AiOutlineMenu size={24} color="white" />
-              )}
-            </IconButton>
+            <Tooltip title="Menú">
+              <IconButton onClick={() => setNavIsVisible((prev) => !prev)}>
+                {navIsVisible ? (
+                  <AiOutlineClose size={24} color="white" />
+                ) : (
+                  <AiOutlineMenu size={24} color="white" />
+                )}
+              </IconButton>
+            </Tooltip>
           )}
         </div>
       </header>
