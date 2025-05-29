@@ -23,7 +23,7 @@ export const colorTokens = {
     200: "#FF85A3",
     300: "#FF6E8C",
     400: "#FF5775",
-    500: "#FF4081", // Primary pink Navippon
+    500: "#FF4081",
     600: "#E63675",
     700: "#CC2D69",
     800: "#B3245D",
@@ -111,7 +111,7 @@ export const themeSettings = (mode) => {
             secondary: {
               dark: colorTokens.darkBlue[200],
               main: colorTokens.darkBlue[500],
-              medium: colorTokens.lightBlue[300],
+              medium: colorTokens.lightBlue[100],
               light: colorTokens.darkBlue[800],
             },
             success: {

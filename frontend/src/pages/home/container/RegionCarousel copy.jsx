@@ -71,14 +71,15 @@ const regions = [
   },
 ];
 
+// Custom Arrow Components
 const CustomPrevArrow = (props) => {
   const theme = useTheme();
   return (
     <div
       {...props}
-      className="slick-prev group"
+      className="slick-prev group hidden sm:block"
       style={{
-        left: window.innerWidth < 640 ? "-10px" : "-50px", // Closer on mobile
+        left: "-60px",
         zIndex: 10,
         cursor: "pointer",
         position: "absolute",
@@ -86,11 +87,11 @@ const CustomPrevArrow = (props) => {
         transform: "translateY(-50%)",
       }}
     >
-      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center hover:bg-white/30 transition-all duration-300">
+      <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center shadow-lg hover:bg-white/30 hover:scale-110 transition-all duration-300">
         <CircleArrowLeft
-          size={window.innerWidth < 640 ? 20 : 24} // Smaller icon on mobile
+          size={24}
           style={{ color: theme.palette.primary.main }}
-          className="transition-transform duration-300"
+          className="group-hover:scale-110 transition-transform duration-300"
         />
       </div>
     </div>
@@ -102,9 +103,9 @@ const CustomNextArrow = (props) => {
   return (
     <div
       {...props}
-      className="slick-next group"
+      className="slick-next group hidden sm:block"
       style={{
-        right: window.innerWidth < 640 ? "-1px" : "-20px", // Closer on mobile
+        right: "-60px",
         zIndex: 10,
         cursor: "pointer",
         position: "absolute",
@@ -112,11 +113,11 @@ const CustomNextArrow = (props) => {
         transform: "translateY(-50%)",
       }}
     >
-      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center  hover:bg-white/30 transition-all duration-300">
+      <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center shadow-lg hover:bg-white/30 hover:scale-110 transition-all duration-300">
         <CircleArrowRight
-          size={window.innerWidth < 640 ? 20 : 24} // Smaller icon on mobile
+          size={24}
           style={{ color: theme.palette.primary.main }}
-          className="transition-transform duration-300"
+          className="group-hover:scale-110 transition-transform duration-300"
         />
       </div>
     </div>
@@ -162,7 +163,7 @@ const RegionCarousel = () => {
   };
 
   return (
-    <section className="relative overflow-hidden py-16 sm:py-20 lg:py-24 bg-gradient-to-br ">
+    <section className="relative overflow-hidden py-16 sm:py-20 lg:py-24 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
       {/* Background Pattern */}
       <div
         className="absolute inset-0 opacity-20"
@@ -176,20 +177,22 @@ const RegionCarousel = () => {
         {/* Header */}
         <div className="text-center mb-12 sm:mb-16">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full backdrop-blur-sm border border-white/20 mb-6">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 backdrop-blur-sm border border-white/20 shadow-sm mb-6">
             <span className="w-2 h-2 bg-gradient-to-r from-pink-500 to-blue-500 rounded-full animate-pulse"></span>
-            <span className="text-sm font-medium ">8 Regiones únicas</span>
+            <span className="text-sm font-medium text-slate-600 dark:text-slate-300">
+              8 Regiones únicas
+            </span>
           </div>
 
           {/* Title */}
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">
-            <span className="bg-gradient-to-r  bg-clip-text">
+            <span className="bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
               Explora Japón por{" "}
             </span>
             <span
-              className="bg-clip-text "
+              className="bg-clip-text text-transparent"
               style={{
-                color: theme.palette.primary.main,
+                backgroundImage: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
               }}
             >
               Región
@@ -197,7 +200,7 @@ const RegionCarousel = () => {
           </h2>
 
           {/* Subtitle */}
-          <p className="text-lg sm:text-xl max-w-2xl mx-auto leading-relaxed">
+          <p className="text-lg sm:text-xl text-slate-600 dark:text-slate-300 max-w-2xl mx-auto leading-relaxed">
             Cada región de Japón tiene su propio encanto y tradiciones únicas
             esperándote
           </p>
@@ -258,22 +261,29 @@ const RegionCarousel = () => {
             {regions.map((region, index) => (
               <div key={index} className="px-3">
                 <div
-                  className="group relative overflow-hidden rounded-3xl cursor-pointer transition-all duration-500 bg-white/10 backdrop-blur-xl border border-white/20"
+                  className="group relative overflow-hidden rounded-3xl cursor-pointer transition-all duration-500 hover:-translate-y-2 bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl hover:shadow-2xl"
                   onClick={() => handleRegionClick(region.name)}
                   style={{ height: "400px" }}
                 >
                   {/* Background Image */}
                   <div
-                    className="absolute inset-0 bg-cover bg-center transition-transform duration-700"
+                    className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110"
                     style={{
                       backgroundImage: `url(${region.image})`,
                     }}
                   >
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/70 to-transparent"></div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
                   </div>
 
                   {/* Content */}
                   <div className="relative h-full flex flex-col justify-end p-6 text-white">
+                    {/* Region Badge */}
+                    <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-white/20 backdrop-blur-sm border border-white/30">
+                      <span className="text-xs font-medium">
+                        Región {index + 1}
+                      </span>
+                    </div>
+
                     {/* Region Name */}
                     <h3 className="text-2xl sm:text-3xl font-bold mb-3 leading-tight">
                       {region.name}

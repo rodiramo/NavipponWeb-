@@ -52,7 +52,7 @@ const SideNav = () => {
           onClick={() => setIsMenuOpen(!isMenuOpen)}
           sx={{
             background: theme.palette.primary.main,
-
+            color: theme.palette.primary.white,
             "&:hover": { backgroundColor: theme.palette.primary.dark },
           }}
         >
