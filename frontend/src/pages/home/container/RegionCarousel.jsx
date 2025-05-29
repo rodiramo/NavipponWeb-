@@ -71,15 +71,14 @@ const regions = [
   },
 ];
 
-// Custom Arrow Components
 const CustomPrevArrow = (props) => {
   const theme = useTheme();
   return (
     <div
       {...props}
-      className="slick-prev group hidden sm:block"
+      className="slick-prev group"
       style={{
-        left: "-60px",
+        left: window.innerWidth < 640 ? "-10px" : "-50px", // Closer on mobile
         zIndex: 10,
         cursor: "pointer",
         position: "absolute",
@@ -87,11 +86,11 @@ const CustomPrevArrow = (props) => {
         transform: "translateY(-50%)",
       }}
     >
-      <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center shadow-lg hover:bg-white/30 hover:scale-110 transition-all duration-300">
+      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center hover:bg-white/30 transition-all duration-300">
         <CircleArrowLeft
-          size={24}
+          size={window.innerWidth < 640 ? 20 : 24} // Smaller icon on mobile
           style={{ color: theme.palette.primary.main }}
-          className="group-hover:scale-110 transition-transform duration-300"
+          className="transition-transform duration-300"
         />
       </div>
     </div>
@@ -103,9 +102,9 @@ const CustomNextArrow = (props) => {
   return (
     <div
       {...props}
-      className="slick-next group hidden sm:block"
+      className="slick-next group"
       style={{
-        right: "-60px",
+        right: window.innerWidth < 640 ? "-1px" : "-20px", // Closer on mobile
         zIndex: 10,
         cursor: "pointer",
         position: "absolute",
@@ -113,11 +112,11 @@ const CustomNextArrow = (props) => {
         transform: "translateY(-50%)",
       }}
     >
-      <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center shadow-lg hover:bg-white/30 hover:scale-110 transition-all duration-300">
+      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center  hover:bg-white/30 transition-all duration-300">
         <CircleArrowRight
-          size={24}
+          size={window.innerWidth < 640 ? 20 : 24} // Smaller icon on mobile
           style={{ color: theme.palette.primary.main }}
-          className="group-hover:scale-110 transition-transform duration-300"
+          className="transition-transform duration-300"
         />
       </div>
     </div>
@@ -177,7 +176,7 @@ const RegionCarousel = () => {
         {/* Header */}
         <div className="text-center mb-12 sm:mb-16">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full backdrop-blur-sm border border-white/20 shadow-sm mb-6">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full backdrop-blur-sm border border-white/20 mb-6">
             <span className="w-2 h-2 bg-gradient-to-r from-pink-500 to-blue-500 rounded-full animate-pulse"></span>
             <span className="text-sm font-medium ">8 Regiones únicas</span>
           </div>
@@ -259,29 +258,22 @@ const RegionCarousel = () => {
             {regions.map((region, index) => (
               <div key={index} className="px-3">
                 <div
-                  className="group relative overflow-hidden rounded-3xl cursor-pointer transition-all duration-500 hover:-translate-y-2 bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl hover:shadow-2xl"
+                  className="group relative overflow-hidden rounded-3xl cursor-pointer transition-all duration-500 bg-white/10 backdrop-blur-xl border border-white/20"
                   onClick={() => handleRegionClick(region.name)}
                   style={{ height: "400px" }}
                 >
                   {/* Background Image */}
                   <div
-                    className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110"
+                    className="absolute inset-0 bg-cover bg-center transition-transform duration-700"
                     style={{
                       backgroundImage: `url(${region.image})`,
                     }}
                   >
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/70 to-transparent"></div>
                   </div>
 
                   {/* Content */}
                   <div className="relative h-full flex flex-col justify-end p-6 text-white">
-                    {/* Region Badge */}
-                    <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-white/20 backdrop-blur-sm border border-white/30">
-                      <span className="text-xs font-medium">
-                        Región {index + 1}
-                      </span>
-                    </div>
-
                     {/* Region Name */}
                     <h3 className="text-2xl sm:text-3xl font-bold mb-3 leading-tight">
                       {region.name}

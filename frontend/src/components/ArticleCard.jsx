@@ -75,7 +75,6 @@ const ArticleCard = ({ post, className, currentUser, token }) => {
         backdropFilter: "blur(20px)",
         border: "1px solid rgba(255, 255, 255, 0.2)",
         boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)",
-        transform: isHovered ? "translateY(-8px)" : "translateY(0)",
       }}
     >
       {/* Image Section */}
@@ -148,10 +147,13 @@ const ArticleCard = ({ post, className, currentUser, token }) => {
         <button
           className="absolute top-3 right-3 group/heart w-12 h-12 rounded-full backdrop-blur-md border border-white/20 flex items-center justify-center transition-all duration-300 hover:scale-110 hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/50"
           style={{
-            backgroundColor: "rgba(255, 255, 255, 0.15)",
+            backgroundColor: theme.palette.primary.white,
           }}
         >
-          <AiOutlineHeart className="text-white text-xl transition-transform duration-300 group-hover/heart:scale-125" />
+          <AiFillHeart
+            style={{ color: theme.palette.primary.main, fontSize: "1.5rem" }}
+            className="text-xl transition-transform duration-300 group-hover/heart:scale-125"
+          />
         </button>
       </div>
 
@@ -159,21 +161,19 @@ const ArticleCard = ({ post, className, currentUser, token }) => {
       <div className="p-6 space-y-4">
         <Link to={`/blog/${post.slug}`} className="block space-y-3">
           {/* Date */}
-          <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+          <div className="flex items-center gap-2 text-sm ">
             <Calendar size={14} />
             <span>{formatDate(post.createdAt)}</span>
           </div>
 
           {/* Title */}
           <h2 className="text-xl sm:text-2xl font-bold leading-tight transition-colors duration-300">
-            <span className="bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
-              {post.title}
-            </span>
+            <span className="bg-gradient-to-r bg-clip-text ">{post.title}</span>
           </h2>
 
           {/* Caption */}
           <p
-            className="text-slate-600 dark:text-slate-300 leading-relaxed line-clamp-3"
+            className="leading-relaxed line-clamp-3"
             style={{
               overflow: "hidden",
               display: "-webkit-box",
@@ -205,12 +205,8 @@ const ArticleCard = ({ post, className, currentUser, token }) => {
 
             {/* Author Info */}
             <div>
-              <h4 className="font-semibold text-slate-900 dark:text-white">
-                {post.user.name}
-              </h4>
-              <p className="text-sm text-slate-500 dark:text-slate-400">
-                Autor
-              </p>
+              <h4 className="font-semibold">{post.user.name}</h4>
+              <p className="text-sm">Autor</p>
             </div>
           </div>
 

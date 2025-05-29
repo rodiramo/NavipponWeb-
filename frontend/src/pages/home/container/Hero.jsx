@@ -188,7 +188,6 @@ const Hero = () => {
             fontWeight: 800,
             lineHeight: 1.1,
             mb: 3,
-            textShadow: "0 4px 20px rgba(0,0,0,0.3)",
             animation: "fadeInUp 1s ease-out 0.7s both",
             letterSpacing: "-0.02em",
           }}
