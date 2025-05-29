@@ -41,7 +41,7 @@ const ContactPage = () => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const response = await axios.post("/api/emailweb", formData);
+      const response = await axios.post("/api/email", formData);
       if (response.status === 201) {
         alert("Mensaje enviado con éxito");
         setFormData({
