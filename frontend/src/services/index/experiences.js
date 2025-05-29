@@ -15,6 +15,7 @@ export const getAllExperiences = async (
       region: filters.region || "",
       tags:
         filters.tags && filters.tags.length > 0 ? filters.tags.join(",") : "",
+        sortBy: filters.sortBy || "",
     });
 
     console.log("Sending params:", queryParams.toString());

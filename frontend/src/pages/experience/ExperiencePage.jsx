@@ -44,7 +44,7 @@ const ExperiencePage = ({ filters: initialFilters }) => {
     { value: "favorites", label: "Más Favoritos" },
     { value: "budgetHigh", label: "Más Caro" },
     { value: "budgetLow", label: "Más Barato" },
-    { value: "ratings", label: "Más Valorados" },
+    { value: "ratings", label: "Más Valorados" }, 
   ];
 
   const [anchorEl, setAnchorEl] = useState(null); // For dropdown menu
@@ -53,12 +53,14 @@ const ExperiencePage = ({ filters: initialFilters }) => {
     setAnchorEl(event.currentTarget);
   };
 
-  const handleSortSelection = (option) => {
-    setSortBy(option);
-    setSearchParams({ ...filters, sortBy: option });
-    setAnchorEl(null);
-    refetch();
-  };
+const handleSortSelection = (option) => {
+  setSortBy(option);
+  const updatedFilters = { ...filters, sortBy: option };
+  setFilters(updatedFilters);
+  setSearchParams(updatedFilters);
+  setAnchorEl(null);
+  refetch();
+};
 
   const searchParamsValue = Object.fromEntries([...searchParams]);
 
