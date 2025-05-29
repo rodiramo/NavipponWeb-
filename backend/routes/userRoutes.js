@@ -16,10 +16,13 @@ import {
   forgotPassword,
   verifyResetToken,
   resetPassword,
+  getUserCount,
 } from "../controllers/userControllers.js";
 import { adminGuard, authGuard } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
+
+router.get("/count", authGuard, getUserCount); 
 
 router.post("/register", registerUser);
 router.post("/login", loginUser);

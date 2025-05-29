@@ -9,8 +9,13 @@ import {
   getExperience,
   updateExperience,
   getExperienceById,
+  getExperienceCount,
+  getTopExperiences,
 } from "../controllers/experienceControllers.js";
 import { authGuard, adminGuard } from "../middleware/authMiddleware.js";
+
+router.get("/count", authGuard, getExperienceCount);
+router.get("/top", getTopExperiences);
 
 router
   .route("/")

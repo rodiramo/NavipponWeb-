@@ -113,7 +113,7 @@ const Header = ({ isMenuOpen, setIsMenuOpen }) => {
           justifyContent: "space-between",
         }}
       >
-        <Link>
+        <Link to="/">
           {" "}
           <img
             src={images.Logo}

@@ -8,35 +8,22 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   ResponsiveContainer,
-  LineChart,
-  Line,
-  Area,
   AreaChart,
+  Area,
 } from "recharts";
-
-// Mock services for demonstration (replace with your actual services)
-const mockServices = {
-  getUserCount: async (jwt) => 1250,
-  getExperienceCount: async (jwt) => 342,
-  getReviewCount: async (jwt) => 1876,
-  getPostCount: async (jwt) => 956,
-  getCommentCount: async (jwt) => 3421,
-  getTopExperiences: async () => [
-    { _id: "1", title: "Mountain Hiking Adventure", favoritesCount: 245 },
-    { _id: "2", title: "City Food Tour", favoritesCount: 189 },
-    { _id: "3", title: "Beach Sunset Photography", favoritesCount: 156 },
-    { _id: "4", title: "Historical Walking Tour", favoritesCount: 134 },
-    { _id: "5", title: "Local Art Gallery Visit", favoritesCount: 98 },
-  ],
-  getFavoritesCount: async (id) => ({
-    favoritesCount: Math.floor(Math.random() * 300),
-  }),
-};
-
-// Mock user hook
-const useUser = () => ({ jwt: "mock-jwt-token" });
+import { getUserCount } from "../../../services/index/users";
+import {
+  getExperienceCount,
+  getTopExperiences,
+} from "../../../services/index/experiences";
+import { getReviewCount } from "../../../services/index/reviews";
+import { getPostCount } from "../../../services/index/posts";
+import { getCommentCount } from "../../../services/index/comments";
+import { getFavoritesCount } from "../../../services/index/favorites";
+import useUser from "../../../hooks/useUser";
+import { Typography } from "@mui/material";
 
 const Admin = () => {
   const { jwt } = useUser();
@@ -63,20 +50,18 @@ const Admin = () => {
           commentsCount,
           topExperiencesData,
         ] = await Promise.all([
-          mockServices.getUserCount(jwt),
-          mockServices.getExperienceCount(jwt),
-          mockServices.getReviewCount(jwt),
-          mockServices.getPostCount(jwt),
-          mockServices.getCommentCount(jwt),
-          mockServices.getTopExperiences(),
+          getUserCount(jwt),
+          getExperienceCount(jwt),
+          getReviewCount(jwt),
+          getPostCount(jwt),
+          getCommentCount(jwt),
+          getTopExperiences(),
         ]);
 
-        // Get favorites count for each experience
         const experiencesWithFavorites = await Promise.all(
           topExperiencesData.map(async (experience) => {
-            const favoritesData = await mockServices.getFavoritesCount(
-              experience._id
-            );
+            if (typeof experience.favoritesCount !== "undefined") return experience;
+            const favoritesData = await getFavoritesCount(experience._id);
             return {
               ...experience,
               favoritesCount: favoritesData.favoritesCount,
@@ -113,59 +98,56 @@ const Admin = () => {
     );
   }
 
-  // Calculate total content for percentages
+  // Calcular totales para los gráficos
   const totalContent =
     counts.experiences + counts.reviews + counts.posts + counts.comments;
 
-  // Data for pie chart
   const contentData = [
     {
       name: "Reviews",
       value: counts.reviews,
       color: "#F59E0B",
-      percentage: ((counts.reviews / totalContent) * 100).toFixed(1),
+      percentage: totalContent ? ((counts.reviews / totalContent) * 100).toFixed(1) : 0,
     },
     {
       name: "Comments",
       value: counts.comments,
       color: "#EF4444",
-      percentage: ((counts.comments / totalContent) * 100).toFixed(1),
+      percentage: totalContent ? ((counts.comments / totalContent) * 100).toFixed(1) : 0,
     },
     {
       name: "Posts",
       value: counts.posts,
       color: "#8B5CF6",
-      percentage: ((counts.posts / totalContent) * 100).toFixed(1),
+      percentage: totalContent ? ((counts.posts / totalContent) * 100).toFixed(1) : 0,
     },
     {
       name: "Experiences",
       value: counts.experiences,
       color: "#10B981",
-      percentage: ((counts.experiences / totalContent) * 100).toFixed(1),
+      percentage: totalContent ? ((counts.experiences / totalContent) * 100).toFixed(1) : 0,
     },
   ];
 
-  // Data for bar chart (top experiences)
   const experienceData = topExperiences.map((exp, index) => ({
-    name:
-      exp.title.length > 20 ? exp.title.substring(0, 20) + "..." : exp.title,
+    name: exp.title.length > 20 ? exp.title.substring(0, 20) + "..." : exp.title,
     favorites: exp.favoritesCount,
     rank: index + 1,
   }));
 
-  // Mock trend data for line chart
+  // Puedes traer datos reales de tendencias si los tienes, aquí es mock:
   const trendData = [
     { month: "Jan", users: 980, experiences: 280, reviews: 1200 },
     { month: "Feb", users: 1050, experiences: 295, reviews: 1350 },
     { month: "Mar", users: 1120, experiences: 315, reviews: 1520 },
     { month: "Apr", users: 1180, experiences: 325, reviews: 1680 },
-    { month: "May", users: 1250, experiences: 342, reviews: 1876 },
+    { month: "May", users: counts.users, experiences: counts.experiences, reviews: counts.reviews },
   ];
 
-  // Calculate growth percentages
-  const userGrowth = (((1250 - 980) / 980) * 100).toFixed(1);
-  const expGrowth = (((342 - 280) / 280) * 100).toFixed(1);
-  const reviewGrowth = (((1876 - 1200) / 1200) * 100).toFixed(1);
+  // Calcular crecimiento (mock)
+  const userGrowth = (((counts.users - 980) / 980) * 100).toFixed(1);
+  const expGrowth = (((counts.experiences - 280) / 280) * 100).toFixed(1);
+  const reviewGrowth = (((counts.reviews - 1200) / 1200) * 100).toFixed(1);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
@@ -184,11 +166,7 @@ const Admin = () => {
           <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-shadow">
             <div className="flex items-center justify-between mb-4">
               <div className="bg-blue-100 p-3 rounded-full">
-                <svg
-                  className="w-6 h-6 text-blue-600"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
+                <svg className="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
                 </svg>
               </div>
@@ -203,15 +181,10 @@ const Admin = () => {
               {counts.users.toLocaleString()}
             </p>
           </div>
-
           <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-shadow">
             <div className="flex items-center justify-between mb-4">
               <div className="bg-green-100 p-3 rounded-full">
-                <svg
-                  className="w-6 h-6 text-green-600"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
+                <svg className="w-6 h-6 text-green-600" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" />
                 </svg>
               </div>
@@ -226,15 +199,10 @@ const Admin = () => {
               {counts.experiences}
             </p>
           </div>
-
           <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-shadow">
             <div className="flex items-center justify-between mb-4">
               <div className="bg-yellow-100 p-3 rounded-full">
-                <svg
-                  className="w-6 h-6 text-yellow-600"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
+                <svg className="w-6 h-6 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                 </svg>
               </div>
@@ -249,15 +217,10 @@ const Admin = () => {
               {counts.reviews.toLocaleString()}
             </p>
           </div>
-
           <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-shadow">
             <div className="flex items-center justify-between mb-4">
               <div className="bg-purple-100 p-3 rounded-full">
-                <svg
-                  className="w-6 h-6 text-purple-600"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
+                <svg className="w-6 h-6 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
                   <path
                     fillRule="evenodd"
                     d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z"
@@ -266,7 +229,10 @@ const Admin = () => {
                 </svg>
               </div>
               <span className="text-blue-500 text-sm font-semibold">
-                {((counts.comments / counts.posts) * 100).toFixed(0)}% ratio
+                {counts.posts > 0
+                  ? ((counts.comments / counts.posts) * 100).toFixed(0)
+                  : 0}
+                % ratio
               </span>
             </div>
             <h3 className="text-lg font-semibold text-gray-700 mb-1">
@@ -301,7 +267,7 @@ const Admin = () => {
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip
+                  <RechartsTooltip
                     formatter={(value, name) => [
                       `${value.toLocaleString()}`,
                       name,
@@ -346,7 +312,7 @@ const Admin = () => {
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                 <XAxis dataKey="month" stroke="#6b7280" />
                 <YAxis stroke="#6b7280" />
-                <Tooltip
+                <RechartsTooltip
                   contentStyle={{
                     backgroundColor: "#fff",
                     border: "1px solid #e5e7eb",
@@ -386,7 +352,7 @@ const Admin = () => {
                 interval={0}
               />
               <YAxis stroke="#6b7280" />
-              <Tooltip
+              <RechartsTooltip
                 contentStyle={{
                   backgroundColor: "#fff",
                   border: "1px solid #e5e7eb",
@@ -405,10 +371,9 @@ const Admin = () => {
                 (sum, e) => sum + e.favoritesCount,
                 0
               );
-              const percentage = (
-                (exp.favoritesCount / totalFavorites) *
-                100
-              ).toFixed(1);
+              const percentage = totalFavorites
+                ? ((exp.favoritesCount / totalFavorites) * 100).toFixed(1)
+                : 0;
               return (
                 <div
                   key={exp._id}

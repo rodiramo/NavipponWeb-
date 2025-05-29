@@ -1,10 +1,20 @@
 import axios from "axios";
 
-export const getAllPosts = async (searchKeyword = "", page = 1, limit = 10) => {
+export const getAllPosts = async (
+  searchKeyword = "",
+  page = 1,
+  limit = 10,
+  sortBy = ""
+) => {
   try {
-    const { data, headers } = await axios.get(
-      `/api/posts?searchKeyword=${searchKeyword}&page=${page}&limit=${limit}`
-    );
+    const params = new URLSearchParams({
+      searchKeyword,
+      page,
+      limit,
+      sortBy,
+    });
+
+    const { data, headers } = await axios.get(`/api/posts?${params.toString()}`);
     return { data, headers };
   } catch (error) {
     if (error.response && error.response.data.message)
