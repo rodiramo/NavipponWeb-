@@ -28,6 +28,7 @@ export const markNotificationAsRead = async (req, res, next) => {
     next(error);
   }
 };
+
 export const deleteNotification = async (req, res, next) => {
   try {
     const { notificationId } = req.params;
@@ -40,6 +41,22 @@ export const deleteNotification = async (req, res, next) => {
     res.status(200).json({ message: "Notificación eliminada con éxito" });
   } catch (error) {
     console.error("Error deleting notification:", error);
+    next(error);
+  }
+};
+
+export const clearAllNotifications = async (req, res, next) => {
+  try {
+    const userId = req.user._id; // Get the authenticated user's ID
+
+    const result = await Notification.deleteMany({ recipient: userId });
+
+    res.status(200).json({
+      message: "Todas las notificaciones han sido eliminadas",
+      deletedCount: result.deletedCount,
+    });
+  } catch (error) {
+    console.error("Error clearing all notifications:", error);
     next(error);
   }
 };

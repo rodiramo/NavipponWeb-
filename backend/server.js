@@ -52,12 +52,10 @@ app.post("/upload", upload.single("image"), (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: "No file uploaded" });
   }
-  res.json({ imageUrl: req.file.path }); // Return Cloudinary URL
+  res.json({ imageUrl: req.file.path });
 });
 
 const GOOGLE_API_KEY = process.env.REACT_APP_GOOGLE_API_KEY;
-
-// Endpoint to perform a nearby search using latitude and longitude
 
 app.get("/api/places", async (req, res) => {
   const { lat, lng } = req.query;

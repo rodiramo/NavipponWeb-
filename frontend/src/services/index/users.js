@@ -50,12 +50,18 @@ export const getUserProfile = async ({ token }) => {
     throw new Error(error.message);
   }
 };
-
-export const updateProfile = async ({ token, userData, userId }) => {
+export const updateProfile = async (userId, userData, token) => {
   try {
+    console.log("updateProfile called with:", {
+      userId,
+      userData,
+      token: token ? "Present" : "Missing",
+    });
+
     const config = {
       headers: {
         Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
       },
     };
 
@@ -64,11 +70,66 @@ export const updateProfile = async ({ token, userData, userId }) => {
       userData,
       config
     );
+
+    console.log("updateProfile response:", data);
     return data;
   } catch (error) {
-    if (error.response && error.response.data.message)
-      throw new Error(error.response.data.message);
-    throw new Error(error.message);
+    console.error(
+      "updateProfile error:",
+      error.response?.data || error.message
+    );
+    throw new Error(
+      error.response?.data?.message || error.message || "Error updating profile"
+    );
+  }
+};
+
+// Alternative: If your backend expects a different format, try this:
+export const updateProfileAlt = async (userId, userData, token) => {
+  try {
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    };
+
+    // Method 1: PUT with userId in URL
+    const { data } = await axios.put(
+      `/api/users/updateProfile/${userId}`,
+      userData,
+      config
+    );
+    return data;
+  } catch (error) {
+    console.error("Update profile error:", error.response?.data);
+    throw new Error(error.response?.data?.message || "Error updating profile");
+  }
+};
+
+// Debug: Check your JWT token
+export const debugToken = (token) => {
+  if (!token) {
+    console.error("❌ No token provided");
+    return false;
+  }
+
+  try {
+    // Decode JWT to check expiration (don't do this in production)
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    const isExpired = payload.exp * 1000 < Date.now();
+
+    console.log("🔍 Token debug:", {
+      hasToken: !!token,
+      tokenLength: token.length,
+      isExpired,
+      expiresAt: new Date(payload.exp * 1000),
+      userId: payload.id,
+    });
+
+    return !isExpired;
+  } catch (error) {
+    console.error("❌ Invalid token format:", error);
+    return false;
   }
 };
 
@@ -82,7 +143,7 @@ export const updateProfilePicture = async ({ token, formData }) => {
     };
 
     const { data } = await axios.put(
-      "http://localhost:5001/api/users/updateProfilePicture", // Ensure this is correct
+      "/api/users/updateProfilePicture", // Ensure this is correct
       formData,
       config
     );
@@ -105,7 +166,7 @@ export const updateCoverImg = async ({ token, formData }) => {
     };
 
     const { data } = await axios.put(
-      "http://localhost:5001/api/users/updateCoverImg", // Ensure this is correct
+      "/api/users/updateCoverImg", // Ensure this is correct
       formData,
       config
     );
@@ -182,6 +243,7 @@ export const getUserFriends = async ({ userId, token }) => {
     throw new Error(error.response?.data?.message || error.message);
   }
 };
+
 export const toggleFriend = async ({ userId, token }) => {
   try {
     const config = { headers: { Authorization: `Bearer ${token}` } };
@@ -239,6 +301,7 @@ export const getUserCount = async (token) => {
     throw new Error(error.message);
   }
 };
+
 export const getUserProfileById = async ({ userId, token }) => {
   try {
     console.log(`🔍 Fetching user profile for: ${userId}`); // Debug
@@ -259,6 +322,42 @@ export const getUserProfileById = async ({ userId, token }) => {
     );
     throw new Error(
       error.response?.data?.message || "Error fetching user profile."
+    );
+  }
+};
+
+export const forgotPassword = async (email) => {
+  try {
+    const { data } = await axios.post("/api/users/forgot-password", { email });
+    return data;
+  } catch (error) {
+    throw new Error(
+      error.response?.data?.message || "Error sending reset email"
+    );
+  }
+};
+
+export const resetPassword = async ({ token, newPassword }) => {
+  try {
+    const { data } = await axios.post("/api/users/reset-password", {
+      token,
+      newPassword,
+    });
+    return data;
+  } catch (error) {
+    throw new Error(
+      error.response?.data?.message || "Error resetting password"
+    );
+  }
+};
+
+export const verifyResetToken = async (token) => {
+  try {
+    const { data } = await axios.get(`/api/users/verify-reset-token/${token}`);
+    return data;
+  } catch (error) {
+    throw new Error(
+      error.response?.data?.message || "Invalid or expired token"
     );
   }
 };

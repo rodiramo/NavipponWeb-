@@ -63,7 +63,7 @@ const Header = ({ isMenuOpen, setIsMenuOpen }) => {
   } = useMutation({
     mutationFn: ({ newExperienceData, token }) => {
       return createExperience({
-        experienceData: newExperienceData,  
+        experienceData: newExperienceData,
         token,
       });
     },
@@ -113,7 +113,7 @@ const Header = ({ isMenuOpen, setIsMenuOpen }) => {
           justifyContent: "space-between",
         }}
       >
-        <Link>
+        <Link to="/">
           {" "}
           <img
             src={images.Logo}
@@ -180,81 +180,97 @@ const Header = ({ isMenuOpen, setIsMenuOpen }) => {
           {/* Navigation Items */}
           <Box>
             <Tooltip title={!isMenuOpen ? "Dashboard" : ""} placement="right">
-              <NavItem
-                title="Dashboard"
-                link="/admin"
-                name="dashboard"
-                activeNavName={activeNavName}
-                setActiveNavName={setActiveNavName}
-                icon={<SquareKanban size={24} />}
-                isMenuOpen={isMenuOpen}
-              />
+              <span>
+                {" "}
+                <NavItem
+                  title="Dashboard"
+                  link="/admin"
+                  name="dashboard"
+                  activeNavName={activeNavName}
+                  setActiveNavName={setActiveNavName}
+                  icon={<SquareKanban size={24} />}
+                  isMenuOpen={isMenuOpen}
+                />
+              </span>
             </Tooltip>
 
             <Tooltip
               title={!isMenuOpen ? "Experiencias" : ""}
               placement="right"
             >
-              <NavItem
-                title="Experiencias"
-                link="/admin/experiences/manage"
-                name="experiences"
-                activeNavName={activeNavName}
-                setActiveNavName={setActiveNavName}
-                icon={<Compass size={24} />}
-                isMenuOpen={isMenuOpen}
-              />
+              <span>
+                <NavItem
+                  title="Experiencias"
+                  link="/admin/experiences/manage"
+                  name="experiences"
+                  activeNavName={activeNavName}
+                  setActiveNavName={setActiveNavName}
+                  icon={<Compass size={24} />}
+                  isMenuOpen={isMenuOpen}
+                />
+              </span>
             </Tooltip>
 
             <Tooltip
               title={!isMenuOpen ? "Publicaciones" : ""}
               placement="right"
             >
-              <NavItem
-                title="Publicaciones"
-                link="/admin/posts/manage"
-                name="posts"
-                activeNavName={activeNavName}
-                setActiveNavName={setActiveNavName}
-                icon={<Newspaper size={24} />}
-                isMenuOpen={isMenuOpen}
-              />
+              <span>
+                <NavItem
+                  title="Publicaciones"
+                  link="/admin/posts/manage"
+                  name="posts"
+                  activeNavName={activeNavName}
+                  setActiveNavName={setActiveNavName}
+                  icon={<Newspaper size={24} />}
+                  isMenuOpen={isMenuOpen}
+                />
+              </span>
             </Tooltip>
 
             <Tooltip title={!isMenuOpen ? "Comentarios" : ""} placement="right">
-              <NavItem
-                title="Comentarios"
-                link="/admin/comments"
-                name="comments"
-                activeNavName={activeNavName}
-                setActiveNavName={setActiveNavName}
-                icon={<MessagesSquare size={24} />}
-                isMenuOpen={isMenuOpen}
-              />
+              <span>
+                {" "}
+                <NavItem
+                  title="Comentarios"
+                  link="/admin/comments"
+                  name="comments"
+                  activeNavName={activeNavName}
+                  setActiveNavName={setActiveNavName}
+                  icon={<MessagesSquare size={24} />}
+                  isMenuOpen={isMenuOpen}
+                />
+              </span>
             </Tooltip>
 
             <Tooltip title={!isMenuOpen ? "Reseñas" : ""} placement="right">
-              <NavItem
-                title="Reseñas"
-                link="/admin/reviews"
-                name="reviews"
-                activeNavName={activeNavName}
-                setActiveNavName={setActiveNavName}
-                icon={<Star size={24} />}
-                isMenuOpen={isMenuOpen}
-              />
+              <span>
+                {" "}
+                <NavItem
+                  title="Reseñas"
+                  link="/admin/reviews"
+                  name="reviews"
+                  activeNavName={activeNavName}
+                  setActiveNavName={setActiveNavName}
+                  icon={<Star size={24} />}
+                  isMenuOpen={isMenuOpen}
+                />
+              </span>{" "}
             </Tooltip>
 
             <Tooltip title={!isMenuOpen ? "Usuarios" : ""} placement="right">
-              <NavItem
-                title="Usuarios"
-                link="/admin/users/manage"
-                name="users"
-                activeNavName={activeNavName}
-                setActiveNavName={setActiveNavName}
-                icon={<UsersRound size={24} />}
-                isMenuOpen={isMenuOpen}
-              />
+              <span>
+                {" "}
+                <NavItem
+                  title="Usuarios"
+                  link="/admin/users/manage"
+                  name="users"
+                  activeNavName={activeNavName}
+                  setActiveNavName={setActiveNavName}
+                  icon={<UsersRound size={24} />}
+                  isMenuOpen={isMenuOpen}
+                />
+              </span>{" "}
             </Tooltip>
           </Box>
         </Box>
@@ -282,44 +298,50 @@ const Header = ({ isMenuOpen, setIsMenuOpen }) => {
               title={!isMenuOpen ? "Crear Experiencia" : ""}
               placement="right"
             >
-              <NavLink
-                to="/admin/experiences/manage/create"
-                className="flex flex-col items-center text-white text-center no-underline"
-                style={{
-                  textDecoration: "none",
-                  color: "inherit",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                }}
-              >
-                <CirclePlus size={28} />
-                {isMenuOpen && (
-                  <Box
-                    sx={{
-                      fontSize: "14px",
-                      fontWeight: "bold",
-                      marginTop: "5px",
-                    }}
-                  >
-                    Crear Experiencia
-                  </Box>
-                )}
-              </NavLink>
+              <span>
+                {" "}
+                <NavLink
+                  to="/admin/experiences/manage/create"
+                  className="flex flex-col items-center text-white text-center no-underline"
+                  style={{
+                    textDecoration: "none",
+                    color: "inherit",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                  }}
+                >
+                  <CirclePlus size={28} />
+                  {isMenuOpen && (
+                    <Box
+                      sx={{
+                        fontSize: "14px",
+                        fontWeight: "bold",
+                        marginTop: "5px",
+                      }}
+                    >
+                      Crear Experiencia
+                    </Box>
+                  )}
+                </NavLink>
+              </span>{" "}
             </Tooltip>
           </Box>
 
           {/* Volver al Inicio Button */}
           <Tooltip title={!isMenuOpen ? "Inicio" : ""} placement="right">
-            <NavItem
-              title="Volver al Inicio"
-              link="/"
-              name="inicio"
-              activeNavName={activeNavName}
-              setActiveNavName={setActiveNavName}
-              icon={<House size={24} />}
-              isMenuOpen={isMenuOpen}
-            />
+            <span>
+              {" "}
+              <NavItem
+                title="Volver al Inicio"
+                link="/"
+                name="inicio"
+                activeNavName={activeNavName}
+                setActiveNavName={setActiveNavName}
+                icon={<House size={24} />}
+                isMenuOpen={isMenuOpen}
+              />
+            </span>{" "}
           </Tooltip>
         </Box>
       </Box>
