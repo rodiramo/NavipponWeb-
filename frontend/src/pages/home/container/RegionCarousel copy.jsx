@@ -163,7 +163,7 @@ const RegionCarousel = () => {
   };
 
   return (
-    <section className="relative overflow-hidden py-16 sm:py-20 lg:py-24 bg-gradient-to-br ">
+    <section className="relative overflow-hidden py-16 sm:py-20 lg:py-24 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
       {/* Background Pattern */}
       <div
         className="absolute inset-0 opacity-20"
@@ -177,20 +177,22 @@ const RegionCarousel = () => {
         {/* Header */}
         <div className="text-center mb-12 sm:mb-16">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full backdrop-blur-sm border border-white/20 shadow-sm mb-6">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 backdrop-blur-sm border border-white/20 shadow-sm mb-6">
             <span className="w-2 h-2 bg-gradient-to-r from-pink-500 to-blue-500 rounded-full animate-pulse"></span>
-            <span className="text-sm font-medium ">8 Regiones únicas</span>
+            <span className="text-sm font-medium text-slate-600 dark:text-slate-300">
+              8 Regiones únicas
+            </span>
           </div>
 
           {/* Title */}
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">
-            <span className="bg-gradient-to-r  bg-clip-text">
+            <span className="bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
               Explora Japón por{" "}
             </span>
             <span
-              className="bg-clip-text "
+              className="bg-clip-text text-transparent"
               style={{
-                color: theme.palette.primary.main,
+                backgroundImage: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
               }}
             >
               Región
@@ -198,7 +200,7 @@ const RegionCarousel = () => {
           </h2>
 
           {/* Subtitle */}
-          <p className="text-lg sm:text-xl max-w-2xl mx-auto leading-relaxed">
+          <p className="text-lg sm:text-xl text-slate-600 dark:text-slate-300 max-w-2xl mx-auto leading-relaxed">
             Cada región de Japón tiene su propio encanto y tradiciones únicas
             esperándote
           </p>
