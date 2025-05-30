@@ -12,6 +12,8 @@ import {
   Grid,
   Chip,
 } from "@mui/material";
+import { images, stables } from "../../constants";
+import { useSelector, useDispatch } from "react-redux";
 import { FaPhone, FaEnvelope, FaMapMarkerAlt } from "react-icons/fa";
 import { useTheme } from "@mui/material/styles";
 import MainLayout from "../../components/MainLayout";
@@ -19,6 +21,7 @@ import { Send } from "lucide-react";
 import axios from "axios";
 
 const ContactPage = () => {
+  const mode = useSelector((state) => state.theme.mode);
   const theme = useTheme();
   const [formData, setFormData] = useState({
     name: "",
@@ -73,6 +76,11 @@ const ContactPage = () => {
         <Container maxWidth="xl">
           {/* Header Section */}
           <Box display="flex" alignItems="center" mb={6}>
+            <img
+              src={mode === "dark" ? images.LogoWhite : images.LogoBlack}
+              alt="Logo"
+              className="h-16 mr-5"
+            />{" "}
             <Box>
               <Typography
                 variant="h3"
