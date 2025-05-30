@@ -126,7 +126,15 @@ const LoginPage = () => {
             Iniciar sesión
           </Typography>
 
-          <form onSubmit={handleSubmit(submitHandler)}>
+          <form
+            onSubmit={handleSubmit(submitHandler)}
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
             <TextField
               fullWidth
               margin="normal"
@@ -210,7 +218,14 @@ const LoginPage = () => {
               fullWidth
               variant="contained"
               color="primary"
-              sx={{ mt: 3, borderRadius: "50px", padding: "10px" }}
+              sx={{
+                mt: 3,
+                fontSize: "1rem",
+                width: "fit-content",
+                borderRadius: "50px",
+                padding: "10px",
+                textTransform: "none",
+              }}
               disabled={!isValid || isLoginLoading}
             >
               Acceder
@@ -219,7 +234,9 @@ const LoginPage = () => {
               ¿No tienes cuenta?{" "}
               <Link
                 to="/register"
-                style={{ color: theme.palette.primary.main }}
+                style={{
+                  color: theme.palette.primary.main,
+                }}
               >
                 Registrarse
               </Link>
