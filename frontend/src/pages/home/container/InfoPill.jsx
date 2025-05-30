@@ -33,12 +33,6 @@ const InfoPill = () => {
       <div className="relative container mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-16 sm:mb-20 lg:mb-24">
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full backdrop-blur-sm border border-white/20 shadow-sm mb-6">
-            <span className="w-2 h-2 bg-gradient-to-r to-purple-500 rounded-full animate-pulse"></span>
-            <span className="text-sm font-medium ">Proceso simple</span>
-          </div>
-
           {/* Title */}
           <h3 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6">
             <span className="bg-gradient-to-r bg-clip-text ">
@@ -58,7 +52,7 @@ const InfoPill = () => {
           {pills.map((pill, index) => (
             <div
               key={index}
-              className="group relative overflow-hidden rounded-3xl backdrop-blur-xl border border-white/20 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 p-8 text-center"
+              className="group relative overflow-hidden rounded-3xl backdrop-blur-xl border border-white/20 transition-all duration-500 p-8 text-center"
             >
               {/* Step Number */}
               <div className="absolute top-6 right-6 w-8 h-8 rounded-full bg-gradient-to-r flex items-center justify-center text-white text-sm font-bold">

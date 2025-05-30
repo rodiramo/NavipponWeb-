@@ -94,7 +94,6 @@ const BlogPage = () => {
                 justifyContent="space-between"
                 alignItems="center"
               >
-                {/* ✅ Floating "Create Post" Button */}
                 {user && (
                   <Button
                     variant="contained"

@@ -222,7 +222,7 @@ const ExperienceForm = () => {
     onSuccess: (data) => {
       queryClient.invalidateQueries(["experience", slug]);
       toast.success(`Experiencia ${isEditing ? "actualizada" : "creada"}`);
-      navigate(`/admin/experiences/manage/edit/${data.slug}`, {
+      navigate(`/admin/experiences/manage`, {
         replace: true,
       });
     },

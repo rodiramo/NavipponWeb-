@@ -94,7 +94,7 @@ const Hero = () => {
       <Box
         sx={{
           position: "absolute",
-          top: "10%",
+          top: "20%",
           right: "10%",
           width: "120px",
           height: "80px",
@@ -109,7 +109,24 @@ const Hero = () => {
           },
         }}
       />
-
+      <Box
+        sx={{
+          position: "absolute",
+          bottom: "20%",
+          left: "10%",
+          width: "120px",
+          height: "80px",
+          backgroundImage: `url(${nube})`,
+          backgroundSize: "contain",
+          backgroundRepeat: "no-repeat",
+          opacity: 0.3,
+          animation: "float 6s ease-in-out infinite",
+          "@keyframes float": {
+            "0%, 100%": { transform: "translateY(0px)" },
+            "50%": { transform: "translateY(-20px)" },
+          },
+        }}
+      />
       {/* Content Overlay */}
       <Box
         sx={{
@@ -126,51 +143,6 @@ const Hero = () => {
           transition: "all 1s ease-out",
         }}
       >
-        {/* Badge */}
-        <Box
-          sx={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 1,
-            px: 3,
-            py: 1.5,
-            borderRadius: "50px",
-            backgroundColor: "rgba(255, 255, 255, 0.15)",
-            backdropFilter: "blur(20px)",
-            border: "1px solid rgba(255, 255, 255, 0.2)",
-            mb: 4,
-            animation: "fadeInUp 1s ease-out 0.5s both",
-            "@keyframes fadeInUp": {
-              from: { opacity: 0, transform: "translateY(20px)" },
-              to: { opacity: 1, transform: "translateY(0)" },
-            },
-          }}
-        >
-          <Box
-            sx={{
-              width: 8,
-              height: 8,
-              borderRadius: "50%",
-              background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-              animation: "pulse 2s ease-in-out infinite",
-              "@keyframes pulse": {
-                "0%, 100%": { opacity: 1 },
-                "50%": { opacity: 0.5 },
-              },
-            }}
-          />
-          <Typography
-            sx={{
-              color: "white",
-              fontSize: "0.9rem",
-              fontWeight: 500,
-              letterSpacing: "0.5px",
-            }}
-          >
-            Descubre la magia de Japón
-          </Typography>
-        </Box>
-
         {/* Main Title */}
         <Typography
           variant="h1"
@@ -221,7 +193,6 @@ const Hero = () => {
             color: "rgba(255, 255, 255, 0.9)",
             fontSize: { xs: "1.1rem", sm: "1.3rem", md: "1.5rem" },
             fontWeight: 400,
-            mb: 6,
             maxWidth: "600px",
             lineHeight: 1.6,
             animation: "fadeInUp 1s ease-out 0.9s both",
@@ -239,6 +210,7 @@ const Hero = () => {
             maxWidth: "600px",
             display: "flex",
             justifyContent: "center",
+            marginTop: "2rem",
             alignItems: "center",
             animation: "fadeInUp 1s ease-out 1.1s both",
             "& > *": {
