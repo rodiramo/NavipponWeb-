@@ -272,7 +272,14 @@ const RegionCarousel = () => {
                       backgroundImage: `url(${region.image})`,
                     }}
                   >
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/70 to-transparent"></div>
+                    {/* Dark Blue Overlay instead of black */}
+                    <div
+                      className="absolute inset-0"
+                      style={{
+                        background:
+                          "linear-gradient(to top, rgba(15, 23, 42, 0.9) 0%, rgba(30, 58, 138, 0.7) 50%, transparent 100%)",
+                      }}
+                    ></div>
                   </div>
 
                   {/* Content */}

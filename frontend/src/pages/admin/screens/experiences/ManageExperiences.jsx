@@ -484,6 +484,8 @@ const ManageExperiences = () => {
                     to={`/admin/experiences/manage/edit/${experience?.slug}`}
                     sx={{
                       color: theme.palette.primary.main,
+                      textTransform: "none",
+                      borderRadius: 30,
                       borderColor: theme.palette.primary.main,
                       "&:hover": {
                         backgroundColor: theme.palette.primary.light,
@@ -505,6 +507,8 @@ const ManageExperiences = () => {
                     }
                     sx={{
                       color: theme.palette.error.main,
+                      textTransform: "none",
+                      borderRadius: 30,
                       borderColor: theme.palette.error.main,
                       "&:hover": {
                         backgroundColor: theme.palette.error.lightest,

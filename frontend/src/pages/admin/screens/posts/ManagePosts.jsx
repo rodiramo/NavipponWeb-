@@ -283,6 +283,8 @@ const ManagePosts = () => {
             to={`/admin/posts/manage/edit/${post.slug}`}
             sx={{
               color: theme.palette.primary.main,
+              textTransform: "none",
+              borderRadius: 30,
               borderColor: theme.palette.primary.main,
               "&:hover": {
                 backgroundColor: theme.palette.primary.light,
@@ -302,6 +304,8 @@ const ManagePosts = () => {
             onClick={() => deleteDataHandler({ slug: post?.slug })}
             sx={{
               color: theme.palette.error.main,
+              textTransform: "none",
+              borderRadius: 30,
               borderColor: theme.palette.error.main,
               "&:hover": {
                 backgroundColor: theme.palette.error.lightest,
@@ -581,6 +585,8 @@ const ManagePosts = () => {
                     sx={{
                       color: theme.palette.primary.main,
                       borderColor: theme.palette.primary.main,
+                      textTransform: "none",
+                      borderRadius: 30,
                       "&:hover": {
                         backgroundColor: theme.palette.primary.light,
                         borderColor: theme.palette.primary.dark,
@@ -601,6 +607,8 @@ const ManagePosts = () => {
                     sx={{
                       color: theme.palette.error.main,
                       borderColor: theme.palette.error.main,
+                      textTransform: "none",
+                      borderRadius: 30,
                       "&:hover": {
                         backgroundColor: theme.palette.error.lightest,
                         borderColor: theme.palette.error.dark,
