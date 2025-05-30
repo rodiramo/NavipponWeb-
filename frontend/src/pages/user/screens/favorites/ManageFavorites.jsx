@@ -18,6 +18,7 @@ import {
   Search,
   Compass,
   Star,
+  Eye,
   MapPin,
 } from "lucide-react";
 import {
@@ -84,7 +85,7 @@ const ManageFavorites = () => {
 
   const handleFavoriteClick = async (favorite) => {
     if (!user || !jwt) {
-      toast.error("Debes iniciar sesión para agregar a favoritos");
+      toast.primary("Debes iniciar sesión para agregar a favoritos");
       console.log("User or token is not defined");
       return;
     }
@@ -119,9 +120,9 @@ const ManageFavorites = () => {
       setFavorites((prevData) =>
         prevData.filter((fav) => fav._id !== favorite._id)
       );
-    } catch (error) {
-      toast.error("Error al actualizar favoritos");
-      console.error("Error updating favorites:", error);
+    } catch (primary) {
+      toast.primary("primary al actualizar favoritos");
+      console.primary("primary updating favorites:", primary);
     }
   };
 
@@ -154,7 +155,7 @@ const ManageFavorites = () => {
                 transform: "translate(-50%, -50%)",
                 width: "80%",
                 height: "80%",
-                background: `linear-gradient(135deg, ${theme.palette.error.main}20, ${theme.palette.primary.main}20)`,
+                background: `linear-gradient(135deg, ${theme.palette.primary.main}20, ${theme.palette.primary.main}20)`,
                 borderRadius: "50%",
                 animation: "heartbeat 2s ease-in-out infinite",
               },
@@ -296,7 +297,7 @@ const ManageFavorites = () => {
             size="small"
             label="Favorito"
             sx={{
-              backgroundColor: theme.palette.error.main,
+              backgroundColor: theme.palette.primary.main,
               color: "white",
               fontWeight: "bold",
             }}
@@ -437,10 +438,10 @@ const ManageFavorites = () => {
             <IconButton
               onClick={() => handleFavoriteClick(favorite)}
               sx={{
-                backgroundColor: theme.palette.error.main,
+                backgroundColor: theme.palette.primary.main,
                 color: "white",
                 "&:hover": {
-                  backgroundColor: theme.palette.error.dark,
+                  backgroundColor: theme.palette.primary.dark,
                   transform: "scale(1.1)",
                 },
                 transition: "all 0.2s ease-in-out",
@@ -474,21 +475,13 @@ const ManageFavorites = () => {
       sx={{
         backgroundColor: theme.palette.background.bg,
         minHeight: "100vh",
+        width: "100%",
         p: 3,
       }}
     >
       {/* Header */}
-      <Box sx={{ mb: 4, textAlign: "center" }}>
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 2,
-            mb: 2,
-          }}
-        >
-          <Heart sx={{ color: theme.palette.error.main, fontSize: 32 }} />
+      <Box sx={{ mb: 4 }}>
+        <Box sx={{ px: 3 }}>
           <Typography
             variant="h4"
             sx={{
@@ -500,19 +493,16 @@ const ManageFavorites = () => {
           >
             Mis Favoritos
           </Typography>
+          <Typography
+            variant="body1"
+            sx={{
+              color: theme.palette.text.secondary,
+              mb: 3,
+            }}
+          >
+            Aquí tienes todas las experiencias que has guardado como favoritas
+          </Typography>
         </Box>
-
-        <Typography
-          variant="body1"
-          sx={{
-            color: theme.palette.text.secondary,
-            mb: 3,
-            maxWidth: "600px",
-            mx: "auto",
-          }}
-        >
-          Aquí tienes todas las experiencias que has guardado como favoritas
-        </Typography>
       </Box>
 
       <DataTable
@@ -521,9 +511,7 @@ const ManageFavorites = () => {
         searchKeywordOnChangeHandler={searchKeywordHandler}
         searchKeyword={searchKeyword}
         tableHeaderTitleList={
-          isMobile
-            ? []
-            : ["Experiencia", "Categoría", "Agregado", "Etiquetas", "Acciones"]
+          isMobile ? [] : ["Experiencia", "Categoría", "Agregado", "Acciones"]
         }
         isLoading={isLoading}
         data={filteredFavorites}
@@ -568,9 +556,8 @@ const ManageFavorites = () => {
                     variant="rounded"
                     sx={{
                       width: 60,
-                      height: 60,
+                      height: 50,
                       mr: 2,
-                      border: `2px solid ${theme.palette.error.main}`,
                     }}
                   />
                   <Box sx={{ flex: 1 }}>
@@ -588,18 +575,6 @@ const ManageFavorites = () => {
                     >
                       {favorite.experienceId.title}
                     </Typography>
-                    <Chip
-                      icon={<Star size={12} />}
-                      size="small"
-                      label="Favorito"
-                      sx={{
-                        backgroundColor: theme.palette.error.main,
-                        color: "white",
-                        fontSize: "0.7rem",
-                        height: 20,
-                        mt: 0.5,
-                      }}
-                    />
                   </Box>
                 </Box>
               </td>
@@ -672,45 +647,6 @@ const ManageFavorites = () => {
                 </Box>
               </td>
 
-              {/* Tags */}
-              <td
-                style={{
-                  padding: "16px 24px",
-                  borderBottom: `1px solid ${
-                    theme.palette.neutral?.light || theme.palette.grey[200]
-                  }`,
-                  maxWidth: "200px",
-                }}
-              >
-                <Stack
-                  direction="row"
-                  spacing={0.5}
-                  sx={{ flexWrap: "wrap", gap: 0.5 }}
-                >
-                  {favorite.experienceId.tags &&
-                  favorite.experienceId.tags.length > 0 ? (
-                    favorite.experienceId.tags.slice(0, 3).map((tag, index) => (
-                      <Chip
-                        key={index}
-                        size="small"
-                        label={tag}
-                        sx={{
-                          backgroundColor:
-                            theme.palette.secondary?.light ||
-                            theme.palette.secondary.main,
-                          color: "white",
-                          fontSize: "0.75rem",
-                        }}
-                      />
-                    ))
-                  ) : (
-                    <Typography variant="body2" color="textSecondary">
-                      Sin etiquetas
-                    </Typography>
-                  )}
-                </Stack>
-              </td>
-
               {/* Actions */}
               <td
                 style={{
@@ -724,9 +660,11 @@ const ManageFavorites = () => {
                   <Button
                     component={Link}
                     to={`/experience/${favorite.experienceId.slug}`}
-                    startIcon={<MapPin size={16} />}
+                    startIcon={<Eye size={16} />}
                     sx={{
                       color: theme.palette.primary.main,
+                      textTransform: "none",
+                      borderRadius: "30rem",
                       borderColor: theme.palette.primary.main,
                       "&:hover": {
                         backgroundColor: theme.palette.primary.light,
@@ -745,12 +683,12 @@ const ManageFavorites = () => {
                     <IconButton
                       onClick={() => handleFavoriteClick(favorite)}
                       sx={{
-                        backgroundColor: theme.palette.error.main,
+                        backgroundColor: theme.palette.primary.main,
                         color: "white",
                         width: 40,
                         height: 40,
                         "&:hover": {
-                          backgroundColor: theme.palette.error.dark,
+                          backgroundColor: theme.palette.primary.dark,
                           transform: "scale(1.1)",
                         },
                         transition: "all 0.2s ease-in-out",

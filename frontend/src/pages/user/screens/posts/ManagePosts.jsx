@@ -208,9 +208,7 @@ const ManagePosts = () => {
       sx={{
         mb: 2,
         backgroundColor: theme.palette.background.default,
-        border: `1px solid ${
-          theme.palette.neutral?.light || theme.palette.grey[200]
-        }`,
+
         borderRadius: 2,
         transition: "all 0.2s ease-in-out",
         "&:hover": {
@@ -352,8 +350,8 @@ const ManagePosts = () => {
                   label={tag}
                   sx={{
                     backgroundColor:
-                      theme.palette.secondary?.light ||
-                      theme.palette.secondary.main,
+                      theme.palette.secondary.medium ||
+                      theme.palette.secondary.medium,
                     color: "white",
                     fontSize: "0.75rem",
                   }}
@@ -542,10 +540,9 @@ const ManagePosts = () => {
                     alt={post.title}
                     variant="rounded"
                     sx={{
-                      width: 60,
+                      width: 70,
                       height: 60,
                       mr: 2,
-                      border: `2px solid ${theme.palette.primary.main}`,
                     }}
                   />
                   <Box sx={{ flex: 1 }}>
@@ -590,8 +587,8 @@ const ManagePosts = () => {
                         label={category.title}
                         variant="outlined"
                         sx={{
-                          borderColor: theme.palette.secondary.main,
-                          color: theme.palette.secondary.main,
+                          borderColor: theme.palette.secondary.medium,
+                          color: theme.palette.secondary.medium,
                           fontSize: "0.75rem",
                         }}
                       />
@@ -656,7 +653,7 @@ const ManagePosts = () => {
                         label={tag}
                         sx={{
                           backgroundColor:
-                            theme.palette.secondary?.light ||
+                            theme.palette.secondary?.medium ||
                             theme.palette.secondary.main,
                           color: "white",
                           fontSize: "0.75rem",
@@ -725,6 +722,8 @@ const ManagePosts = () => {
                     sx={{
                       color: theme.palette.primary.main,
                       borderColor: theme.palette.primary.main,
+                      textTransform: "none",
+                      borderRadius: "30rem",
                       "&:hover": {
                         backgroundColor: theme.palette.primary.light,
                         borderColor: theme.palette.primary.dark,
@@ -745,6 +744,8 @@ const ManagePosts = () => {
                     sx={{
                       color: theme.palette.error.main,
                       borderColor: theme.palette.error.main,
+                      textTransform: "none",
+                      borderRadius: "30rem",
                       "&:hover": {
                         backgroundColor:
                           theme.palette.error.lightest ||
