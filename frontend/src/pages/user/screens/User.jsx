@@ -527,6 +527,7 @@ const User = () => {
   }, [jwt, navigate, user]);
 
   // Mutation for updating profile
+  // Replace your updateProfileMutation with this fixed version:
   const updateProfileMutation = useMutation({
     mutationFn: async (data) => {
       console.log("🔄 Updating profile:", {
@@ -540,12 +541,17 @@ const User = () => {
       }
 
       try {
-        const response = await axios.put(`/api/users/coverImg`, data, {
-          headers: {
-            Authorization: `Bearer ${jwt}`,
-            "Content-Type": "application/json",
-          },
-        });
+        // ✅ FIXED: Use the correct profile update endpoint
+        const response = await axios.put(
+          `/api/users/updateProfile/${user._id}`, // ✅ This matches your backend route
+          data,
+          {
+            headers: {
+              Authorization: `Bearer ${jwt}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
         return response.data;
       } catch (apiError) {
         console.error("❌ Profile update API error:", {

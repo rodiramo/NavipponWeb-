@@ -153,12 +153,6 @@ const SideNav = () => {
           icon={<LucideStar size={22} color={theme.palette.primary.main} />}
           isMenuOpen={isMenuOpen}
         />{" "}
-        <NavItem
-          title="Mis Comentarios"
-          link="/user/comments"
-          icon={<MessagesSquare size={24} color={theme.palette.primary.main} />}
-          isMenuOpen={isMenuOpen}
-        />
       </Box>
 
       <Divider
