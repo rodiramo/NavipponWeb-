@@ -252,11 +252,11 @@ const Admin = () => {
     <Box
       sx={{
         minHeight: "100vh",
-        background: `linear-gradient(135deg, ${theme.palette.primary.light}15, ${theme.palette.secondary.light}15)`,
+        width: "100%",
         p: 3,
       }}
     >
-      <Box sx={{ maxWidth: "1200px", margin: "0 auto" }}>
+      <Box sx={{ margin: "0 auto" }}>
         {/* Header */}
         <Box sx={{ mb: 4 }}>
           <Typography

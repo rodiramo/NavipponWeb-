@@ -92,15 +92,20 @@ const CategoryCard = () => {
                 background: `linear-gradient(135deg, ${theme.palette.primary.main}10, ${theme.palette.primary.light}05)`,
               }}
             >
-              {/* Background Image with Enhanced Overlay */}
+              {/* Background Image with Enhanced Dark Blue Overlay */}
               <div
                 className="absolute inset-0 bg-cover bg-center transition-transform duration-700"
                 style={{
                   backgroundImage: `url(${category.bgImage})`,
                 }}
               >
+                {/* Dark Blue Overlay instead of black */}
                 <div
-                  className={`absolute inset-0 bg-gradient-to-br from-black/40 to-black/60 transition-opacity duration-500 group-hover:opacity-75`}
+                  className="absolute inset-0 transition-opacity duration-500 group-hover:opacity-75"
+                  style={{
+                    background:
+                      "linear-gradient(135deg, rgba(15, 23, 42, 0.6) 0%, rgba(30, 58, 138, 0.7) 100%)",
+                  }}
                 ></div>
               </div>
 

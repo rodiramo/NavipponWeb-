@@ -1,9 +1,9 @@
 import React from "react";
 import { useTheme } from "@mui/material/styles";
-import { Box, Typography, Container, Chip } from "@mui/material";
+import { Box, Typography, Container, Button } from "@mui/material";
+import { Create, Explore } from "@mui/icons-material";
 
-const Hero = ({ user, jwt }) => {
-  // ✅ Fixed props destructuring
+const Hero = ({ user, jwt, onOpenModal }) => {
   const theme = useTheme();
 
   return (
@@ -91,6 +91,121 @@ const Hero = ({ user, jwt }) => {
           </Box>{" "}
           por Japón.
         </Typography>
+
+        {/* Call-to-Action Buttons - Only show if user is logged in */}
+        {user && jwt && (
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: { xs: "column", sm: "row" },
+              gap: 2,
+              mt: 2,
+              alignItems: "center",
+            }}
+          >
+            <Button
+              variant="contained"
+              size="large"
+              onClick={onOpenModal}
+              startIcon={<Create />}
+              sx={{
+                borderRadius: "50px",
+                padding: { xs: "12px 32px", sm: "16px 40px" },
+                fontSize: { xs: "1rem", sm: "1.125rem" },
+                fontWeight: 600,
+                textTransform: "none",
+                boxShadow: "none",
+                minWidth: { xs: "250px", sm: "auto" },
+                background: `linear-gradient(135deg, ${theme.palette.primary.main})`,
+                "&:hover": {
+                  boxShadow: "none",
+                  "& .MuiButton-startIcon": {
+                    transform: "translateX(4px) rotate(15deg)",
+                  },
+                },
+                "& .MuiButton-startIcon": {
+                  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                  transformOrigin: "center",
+                },
+                transition: "all 0.3s ease-in-out",
+              }}
+            >
+              Subir una Publicación
+            </Button>
+          </Box>
+        )}
+
+        {/* Welcome Message for logged-in users */}
+        {user && (
+          <Box
+            sx={{
+              mt: 1,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 1,
+              flexWrap: "wrap",
+            }}
+          >
+            <Typography
+              variant="body1"
+              sx={{
+                color: theme.palette.text.secondary,
+                fontSize: { xs: "0.875rem", sm: "1rem" },
+                textAlign: "center",
+              }}
+            >
+              ¡Hola,{" "}
+              <Box
+                component="span"
+                sx={{
+                  fontWeight: 600,
+                  color: theme.palette.primary.main,
+                }}
+              >
+                {user.name}
+              </Box>
+              ! Bienvenido de vuelta
+            </Typography>
+          </Box>
+        )}
+
+        {/* Guest Call-to-Action */}
+        {!user && (
+          <Box
+            sx={{
+              mt: 2,
+              p: 3,
+              backgroundColor: `${theme.palette.primary.main}08`,
+              borderRadius: "20px",
+              border: `1px solid ${theme.palette.primary.main}20`,
+            }}
+          >
+            <Typography
+              variant="body1"
+              sx={{
+                color: theme.palette.text.secondary,
+                fontSize: { xs: "0.875rem", sm: "1rem" },
+                textAlign: "center",
+                mb: 2,
+              }}
+            >
+              ¿Quieres compartir tus experiencias en Japón?
+            </Typography>
+            <Button
+              variant="contained"
+              size="medium"
+              href="/login"
+              sx={{
+                borderRadius: "25px",
+                textTransform: "none",
+                fontWeight: 600,
+              }}
+            >
+              Iniciar Sesión
+            </Button>
+          </Box>
+        )}
       </Container>
     </Box>
   );

@@ -306,6 +306,8 @@ const Reviews = () => {
               }
               sx={{
                 color: theme.palette.error.main,
+                textTransform: "none",
+                borderRadius: 30,
                 borderColor: theme.palette.error.main,
                 "&:hover": {
                   backgroundColor: theme.palette.error.lightest,
@@ -575,6 +577,8 @@ const Reviews = () => {
                   sx={{
                     color: theme.palette.error.main,
                     borderColor: theme.palette.error.main,
+                    textTransform: "none",
+                    borderRadius: 30,
                     "&:hover": {
                       backgroundColor: theme.palette.error.lightest,
                       borderColor: theme.palette.error.dark,

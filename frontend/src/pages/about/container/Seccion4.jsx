@@ -179,9 +179,9 @@ const CommunitySection = () => {
           }}
         >
           {[
-            { number: "1", label: "Miembros Activos" },
-            { number: "5+", label: "Experiencias Compartidas" },
-            { number: "2+", label: "Países Conectados" },
+            { number: "10", label: "Miembros Activos" },
+            { number: "15+", label: "Experiencias Compartidas" },
+            { number: "5+", label: "Países Conectados" },
           ].map((stat, index) => (
             <Box
               key={index}

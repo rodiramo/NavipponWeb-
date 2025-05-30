@@ -156,9 +156,7 @@ const HorizontalExperienceCard = ({
           ${theme.palette.background.paper} 0%, 
           ${theme.palette.primary.main}03 100%)`,
         border: `2px solid ${theme.palette.primary.main}08`,
-        boxShadow: isHovered
-          ? `0 20px 40px ${theme.palette.primary.main}15`
-          : `0 8px 32px ${theme.palette.primary.main}08`,
+        boxShadow: "none",
         transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
         position: "relative",
         "&::before": {
@@ -219,7 +217,6 @@ const HorizontalExperienceCard = ({
             fontSize: "0.75rem",
             fontWeight: 600,
             height: "28px",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
             "& .MuiChip-label": {
               paddingX: 1.5,
             },
@@ -413,12 +410,12 @@ const HorizontalExperienceCard = ({
                 paddingX: 3,
                 paddingY: 1.5,
                 fontWeight: 600,
+                boxShadow: "none",
                 fontSize: "0.875rem",
-                boxShadow: `0 4px 16px ${theme.palette.primary.main}40`,
                 "&:hover": {
-                  background: `linear-gradient(135deg, 
-                    ${theme.palette.secondary.medium} 0%, 
-                    ${theme.palette.secondary.mid} 100%)`,
+                  boxShadow: "none",
+                  background: theme.palette.secondary.light,
+                  color: theme.palette.secondary.dark,
                 },
                 transition: "all 0.3s ease",
               }}
