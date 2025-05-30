@@ -78,7 +78,7 @@ const RestaurantTags = ({
           marginBottom: "8px",
         }}
       >
-        Tipos de Restaurantes
+        Tipos de restaurantes
       </Typography>
       <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
         {restaurantTypes.map((type) => (

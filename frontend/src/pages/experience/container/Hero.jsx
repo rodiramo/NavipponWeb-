@@ -16,24 +16,12 @@ const Header = ({ onSearchKeyword }) => {
         paddingTop: { xs: "6rem", sm: "8rem", md: "9rem" },
         paddingBottom: { xs: 6, sm: 8, md: 5 },
         paddingX: { xs: 2, sm: 4, md: 6 },
-        background: theme.palette.secondary.main + 80,
         borderRadius: {
           xs: "0 0 3rem 3rem",
           sm: "0 0 4rem 4rem",
           md: "0 0 5rem 5rem",
         },
         overflow: "hidden",
-        "&::before": {
-          content: '""',
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: `radial-gradient(circle at 30% 20%, ${theme.palette.primary.main}12 0%, transparent 50%), 
-                      radial-gradient(circle at 70% 80%, ${theme.palette.secondary.main}10 0%, transparent 50%)`,
-          zIndex: 0,
-        },
       }}
     >
       {/* Floating Cloud Element - Top Right */}
@@ -47,8 +35,6 @@ const Header = ({ onSearchKeyword }) => {
           backgroundImage: `url(${nube})`,
           backgroundSize: "contain",
           backgroundRepeat: "no-repeat",
-          opacity: 0.3,
-          filter: "brightness(0) invert(1)", // This makes the cloud white
           animation: "float 6s ease-in-out infinite",
           "@keyframes float": {
             "0%, 100%": { transform: "translateY(0px)" },
@@ -68,8 +54,6 @@ const Header = ({ onSearchKeyword }) => {
           backgroundImage: `url(${nube})`,
           backgroundSize: "contain",
           backgroundRepeat: "no-repeat",
-          opacity: 0.3,
-          filter: "brightness(0) invert(1)", // This makes the cloud white
           animation: "float 6s ease-in-out infinite",
           "@keyframes float": {
             "0%, 100%": { transform: "translateY(0px)" },
@@ -98,12 +82,11 @@ const Header = ({ onSearchKeyword }) => {
             fontSize: { xs: "2.5rem", sm: "3.5rem", md: "4rem", lg: "4.5rem" },
             fontWeight: 800,
             lineHeight: { xs: 1.1, sm: 1.2 },
-            textShadow: `0 4px 20px ${theme.palette.primary.main}20`,
             letterSpacing: "-0.02em",
             textAlign: "center",
           }}
         >
-          Planea tu viaje Ideal
+          Planea tu viaje ideal
         </Typography>
 
         {/* Subtitle */}

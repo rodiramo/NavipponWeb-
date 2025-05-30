@@ -101,7 +101,7 @@ const ArticleCard = ({ post, className, currentUser, token }) => {
           {/* Hover Read More Button */}
           <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-500 transform translate-y-4 group-hover:translate-y-0">
             <div
-              className="px-6 py-3 rounded-2xl backdrop-blur-xl border border-white/30 text-white font-semibold transition-all duration-300 hover:scale-105"
+              className="px-6 py-3 rounded-full backdrop-blur-xl border border-white/30 text-white font-semibold transition-all duration-300 hover:scale-105"
               style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
             >
               <span className="flex items-center gap-2">

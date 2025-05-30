@@ -32,7 +32,7 @@ const InfoPill = () => {
     <section className="relative overflow-hidden py-16 sm:py-20 lg:py-24 ">
       <div className="relative container mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="text-center mb-16 sm:mb-20 lg:mb-24">
+        <div className="text-center ">
           {/* Title */}
           <h3 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6">
             <span className="bg-gradient-to-r bg-clip-text ">
@@ -41,9 +41,17 @@ const InfoPill = () => {
           </h3>
 
           {/* Subtitle */}
-          <p className="text-lg sm:text-xl 0 max-w-2xl mx-auto leading-relaxed">
-            Navippon te ayuda a planificar tu viaje de manera intuitiva y
-            personalizada
+          <p className="text-lg sm:text-xl 0 max-w-2xl mx-auto ">
+            <span
+              style={{
+                fontWeight: "bold",
+                color: theme.palette.primary.main,
+              }}
+            >
+              {" "}
+              Navippon
+            </span>{" "}
+            te ayuda a planificar tu viaje de manera intuitiva y personalizada
           </p>
         </div>
 

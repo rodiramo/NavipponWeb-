@@ -90,7 +90,7 @@ const FriendsWidget = () => {
               fontSize: "1.1rem",
             }}
           >
-            Mis Amigos
+            Mis amigos
           </Typography>
           <Typography
             variant="body2"
@@ -224,7 +224,7 @@ const FriendsWidget = () => {
                     },
                   }}
                 >
-                  Ver Perfil
+                  Ver perfil
                 </Button>
 
                 <IconButton

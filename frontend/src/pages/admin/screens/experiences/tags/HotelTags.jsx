@@ -76,7 +76,7 @@ const HotelTags = ({ selectedHotelTags, setSelectedHotelTags }) => {
           marginBottom: "8px",
         }}
       >
-        Tipos de Alojamiento
+        Tipos de alojamiento
       </Typography>
       <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
         {accommodation.map(({ icon, label }) => (
@@ -122,7 +122,7 @@ const HotelTags = ({ selectedHotelTags, setSelectedHotelTags }) => {
           marginBottom: "8px",
         }}
       >
-        Servicios del Hotel
+        Servicios del hotel
       </Typography>
       <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
         {hotelServices.map(({ icon, label }) => (
@@ -168,7 +168,7 @@ const HotelTags = ({ selectedHotelTags, setSelectedHotelTags }) => {
           marginBottom: "8px",
         }}
       >
-        Tipo de Viaje
+        Tipo de viaje
       </Typography>
       <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
         {typeTrip.map(({ icon, label }) => (

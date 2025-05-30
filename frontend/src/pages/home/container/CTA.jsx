@@ -94,10 +94,28 @@ const Highlights = () => {
               className="text-lg sm:text-xl leading-relaxed"
               style={{ color: theme.palette.neutral.dark }}
             >
-              Con Navippon, cada paso de tu viaje se transforma en una
-              experiencia inolvidable. Personaliza tu aventura, descubre lugares
-              únicos y crea recuerdos que durarán toda la vida. Deja que
-              Navippon sea tu guía confiable en el viaje de tus sueños.
+              Con{" "}
+              <span
+                style={{
+                  fontWeight: "bold",
+                  color: theme.palette.primary.main,
+                }}
+              >
+                Navippon
+              </span>
+              , cada paso de tu viaje se transforma en una experiencia
+              inolvidable. Personaliza tu aventura, descubre lugares únicos y
+              crea recuerdos que durarán toda la vida. Deja que
+              <span
+                style={{
+                  fontWeight: "bold",
+                  color: theme.palette.primary.main,
+                }}
+              >
+                {" "}
+                Navippon{" "}
+              </span>{" "}
+              sea tu guía confiable en el viaje de tus sueños.
             </p>
 
             {/* CTA Button */}

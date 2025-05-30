@@ -205,7 +205,7 @@ const Dashboard = () => {
           >
             <Plane size={20} />
             <Typography variant="h6" fontWeight="bold">
-              {type === "current" ? "Viaje Actual" : "Próximo Viaje"}
+              {type === "current" ? "Viaje actual" : "Próximo viaje"}
             </Typography>
           </Box>
 
@@ -252,11 +252,12 @@ const Dashboard = () => {
                 onClick={() => navigate("/user/itineraries/manage/create")}
                 sx={{
                   borderRadius: "50px",
+                  textTransform: "none",
                   backgroundColor: theme.palette.primary.main,
                   "&:hover": { backgroundColor: theme.palette.primary.dark },
                 }}
               >
-                Crear Itinerario
+                Crear itinerario
               </Button>
             </Box>
           )}
@@ -273,7 +274,7 @@ const Dashboard = () => {
                 "&:hover": { backgroundColor: "rgba(255,255,255,0.3)" },
               }}
             >
-              Ver Detalles
+              Ver detalles
             </Button>
           </Box>
         )}
@@ -341,7 +342,7 @@ const Dashboard = () => {
                   <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                     <CheckSquare size={24} color={theme.palette.primary.main} />
                     <Typography variant="h6" fontWeight="bold">
-                      Lista de Viaje
+                      Lista de viaje
                     </Typography>
                   </Box>
                   <Chip
@@ -465,7 +466,7 @@ const Dashboard = () => {
                   {itineraries.length}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  Viajes Creados
+                  Viajes creados
                 </Typography>
               </Card>
             </Grid>
@@ -480,7 +481,7 @@ const Dashboard = () => {
                   )}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  Días de Viaje
+                  Días de viaje
                 </Typography>
               </Card>
             </Grid>
@@ -492,7 +493,7 @@ const Dashboard = () => {
                   {user?.friends?.length || 0}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  Amigos Viajeros
+                  Amigos viajeros
                 </Typography>
               </Card>
             </Grid>
@@ -504,7 +505,7 @@ const Dashboard = () => {
                   {Math.round(completionPercentage)}%
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  Tareas Completadas
+                  Tareas completadas
                 </Typography>
               </Card>
             </Grid>
@@ -520,7 +521,7 @@ const Dashboard = () => {
               >
                 <TrendingUpIcon size={24} color={theme.palette.primary.main} />
                 <Typography variant="h6" fontWeight="bold">
-                  Actividad Reciente
+                  Actividad reciente
                 </Typography>
               </Box>
 
@@ -538,7 +539,7 @@ const Dashboard = () => {
                       color="primary"
                       sx={{ mb: 1 }}
                     >
-                      🎉 Últimos Logros
+                      Últimos logros
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
                       Has completado {completedTasks} tareas de viaje esta
@@ -560,7 +561,7 @@ const Dashboard = () => {
                       color="primary"
                       sx={{ mb: 1 }}
                     >
-                      📅 Próximos Eventos
+                      Próximos eventos
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
                       {upcomingTrip

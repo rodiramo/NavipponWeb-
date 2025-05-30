@@ -420,7 +420,7 @@ const Aside = ({ onFilterChange, selectedFilter }) => {
                 color: theme.palette.text.primary,
               }}
             >
-              Filtros Generales
+              Filtros generales
             </Typography>
           </AccordionSummary>
           <AccordionDetails sx={{ pt: 1 }}>
@@ -431,7 +431,7 @@ const Aside = ({ onFilterChange, selectedFilter }) => {
                 color: theme.palette.primary.main,
               }}
             >
-              Época del Año
+              Época del año
             </Typography>
             {generalTags.season.map((tag) => (
               <FilterCheckbox
@@ -495,7 +495,7 @@ const Aside = ({ onFilterChange, selectedFilter }) => {
                 color: theme.palette.text.primary,
               }}
             >
-              Filtros de Atractivos
+              Filtros de atractivos
             </Typography>
           </AccordionSummary>
           <AccordionDetails sx={{ pt: 1 }}>
@@ -523,7 +523,7 @@ const Aside = ({ onFilterChange, selectedFilter }) => {
                 color: theme.palette.text.primary,
               }}
             >
-              Filtros de Hoteles
+              Filtros de hoteles
             </Typography>
           </AccordionSummary>
           <AccordionDetails sx={{ pt: 1 }}>
@@ -572,7 +572,7 @@ const Aside = ({ onFilterChange, selectedFilter }) => {
                 color: theme.palette.primary.main,
               }}
             >
-              Tipo de Viaje
+              Tipo de viaje
             </Typography>
             {hotelTags.typeTrip.map((tag) => (
               <FilterCheckbox
@@ -598,7 +598,7 @@ const Aside = ({ onFilterChange, selectedFilter }) => {
                 color: theme.palette.text.primary,
               }}
             >
-              Filtros de Restaurantes
+              Filtros de restaurantes
             </Typography>
           </AccordionSummary>
           <AccordionDetails sx={{ pt: 1 }}>
@@ -647,7 +647,7 @@ const Aside = ({ onFilterChange, selectedFilter }) => {
                 color: theme.palette.primary.main,
               }}
             >
-              Servicio de Restaurante
+              Servicio de restaurante
             </Typography>
             {restaurantTags.restaurantServices.map((tag) => (
               <FilterCheckbox

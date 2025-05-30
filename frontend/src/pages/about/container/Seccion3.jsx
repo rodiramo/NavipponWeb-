@@ -10,6 +10,7 @@ import {
 } from "@mui/material";
 import { Goal, Telescope, HandHeart } from "lucide-react";
 import CustomShape from "../../../components/Shapes/CustomShape";
+import { fontWeight } from "@mui/system";
 
 const PrinciplesSection = () => {
   const theme = useTheme();
@@ -127,7 +128,7 @@ const PrinciplesSection = () => {
             position: "relative",
           }}
         >
-          Nuestros Principios
+          Nuestros principios
         </Typography>
 
         {/* Subtitle */}
@@ -146,7 +147,13 @@ const PrinciplesSection = () => {
             lineHeight: 1.6,
           }}
         >
-          Navippon te ayuda a planificar tu viaje con nuestros ideales.
+          <span
+            style={{ color: theme.palette.primary.main, fontWeight: "bold" }}
+          >
+            {" "}
+            Navippon{" "}
+          </span>{" "}
+          te ayuda a planificar tu viaje con nuestros ideales.
         </Typography>
       </Box>
 

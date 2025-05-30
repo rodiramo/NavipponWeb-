@@ -472,7 +472,7 @@ const ContactPage = () => {
                         right: 0,
                         bottom: 0,
                         background:
-                          "linear-gradient(45deg, rgba(0,0,0,0.3), rgba(0,0,0,0.1))",
+                          "linear-gradient(180deg, rgba(15, 39, 96, 0.15), rgba(9, 26, 73, 0.85))",
                       },
                     }}
                   >

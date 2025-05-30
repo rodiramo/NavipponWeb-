@@ -439,7 +439,6 @@ const ManagePosts = () => {
             mb: 2,
           }}
         >
-          <FileText sx={{ color: theme.palette.primary.main, fontSize: 32 }} />
           <Typography
             variant="h4"
             sx={{
@@ -449,7 +448,7 @@ const ManagePosts = () => {
               fontFamily: theme.typography.h1?.fontFamily,
             }}
           >
-            Administrar Publicaciones
+            Administrar publicaciones
           </Typography>
         </Box>
 

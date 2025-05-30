@@ -134,7 +134,7 @@ const CommunitySection = () => {
             },
           }}
         >
-          Nuestra Comunidad
+          Nuestra comunidad
         </Typography>
 
         {/* Description */}
@@ -179,9 +179,9 @@ const CommunitySection = () => {
           }}
         >
           {[
-            { number: "10", label: "Miembros Activos" },
-            { number: "15+", label: "Experiencias Compartidas" },
-            { number: "5+", label: "Países Conectados" },
+            { number: "10", label: "Miembros activos" },
+            { number: "15+", label: "Experiencias compartidas" },
+            { number: "5+", label: "Países conectados" },
           ].map((stat, index) => (
             <Box
               key={index}

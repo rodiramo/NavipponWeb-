@@ -361,7 +361,7 @@ const Users = () => {
     >
       <DataTable
         pageTitle=""
-        dataListName="Administrar Usuarios"
+        dataListName="Administrar usuarios"
         searchInputPlaceHolder="Email del usuario..."
         searchKeywordOnSubmitHandler={submitSearchKeywordHandler}
         searchKeywordOnChangeHandler={searchKeywordHandler}

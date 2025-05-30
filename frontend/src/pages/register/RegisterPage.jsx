@@ -157,6 +157,7 @@ const RegisterPage = () => {
               type="text"
               sx={{
                 borderRadius: "50px",
+                width: "450px",
                 "& fieldset": { borderRadius: "50px" },
               }}
               {...register("name", { required: "El nombre es requerido" })}
@@ -170,6 +171,7 @@ const RegisterPage = () => {
               type="email"
               sx={{
                 borderRadius: "50px",
+                width: "450px",
                 "& fieldset": { borderRadius: "50px" },
               }}
               {...register("email", { required: "El Email es requerido" })}
@@ -183,6 +185,7 @@ const RegisterPage = () => {
               type={showPassword ? "text" : "password"}
               sx={{
                 borderRadius: "50px",
+                width: "450px",
                 "& fieldset": { borderRadius: "50px" },
               }}
               {...register("password", {
@@ -213,6 +216,7 @@ const RegisterPage = () => {
               label="Confirmar Contraseña: *"
               sx={{
                 borderRadius: "50px",
+                width: "450px",
                 "& fieldset": { borderRadius: "50px" },
               }}
               type={showConfirmPassword ? "text" : "password"}
@@ -247,7 +251,7 @@ const RegisterPage = () => {
                 mt: 3,
                 borderRadius: "50px",
                 padding: "10px",
-                width: "fit-content",
+                width: "200px",
                 textTransform: "none",
                 fontSize: "1rem",
               }}

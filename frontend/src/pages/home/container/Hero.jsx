@@ -183,7 +183,7 @@ const Hero = () => {
               mt: 1,
             }}
           >
-            a Tu Manera
+            a tu manera
           </Box>
         </Typography>
 
@@ -191,12 +191,21 @@ const Hero = () => {
         <Typography
           sx={{
             color: "rgba(255, 255, 255, 0.9)",
+            padding: "0.5rem 1rem",
+            borderRadius: "30px",
             fontSize: { xs: "1.1rem", sm: "1.3rem", md: "1.5rem" },
             fontWeight: 400,
             maxWidth: "600px",
             lineHeight: 1.6,
             animation: "fadeInUp 1s ease-out 0.9s both",
             textShadow: "0 2px 10px rgba(0,0,0,0.5)",
+
+            backdropFilter: "blur(90px)",
+            backgroundColor: "rgba(17, 1, 1, 0.1)",
+            border: "1px solid rgba(255, 255, 255, 0.2)",
+            borderRadius: "1rem",
+            boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3)",
+            transition: "all 0.3s ease",
           }}
         >
           Encuentra experiencias únicas, crea itinerarios personalizados y vive

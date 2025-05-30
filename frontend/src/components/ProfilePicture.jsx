@@ -145,7 +145,7 @@ const ProfilePicture = ({ avatar }) => {
             fontWeight: "bold",
           }}
         >
-          Eliminar Avatar
+          Eliminar avatar
         </Button>
       </Box>
     </>
