@@ -71,7 +71,7 @@ const RegionPrefectureSelect = ({
           marginBottom: "8px",
         }}
       >
-        Región y Prefectura
+        Región y prefectura
       </Typography>
       {/* Región Selector */}
       <Typography

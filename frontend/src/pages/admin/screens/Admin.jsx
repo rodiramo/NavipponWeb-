@@ -265,7 +265,7 @@ const Admin = () => {
             color="text.primary"
             gutterBottom
           >
-            Panel de Análisis
+            Panel de análisis
           </Typography>
           <Typography variant="h6" color="text.secondary">
             Rendimiento de la plataforma y métricas de participación de usuarios
@@ -276,7 +276,7 @@ const Admin = () => {
         <Grid container spacing={3} sx={{ mb: 4 }}>
           <Grid item xs={12} sm={6} lg={3}>
             <MetricCard
-              title="Total de Usuarios"
+              title="Total de usuarios"
               value={counts.users}
               icon={<People />}
               growth={userGrowth}
@@ -334,7 +334,7 @@ const Admin = () => {
                 color="text.primary"
                 gutterBottom
               >
-                Distribución de Contenido
+                Distribución de contenido
               </Typography>
               <Box
                 sx={{
@@ -418,7 +418,7 @@ const Admin = () => {
                 color="text.primary"
                 gutterBottom
               >
-                Tendencias de Crecimiento
+                Tendencias de crecimiento
               </Typography>
               <ResponsiveContainer width="100%" height={300}>
                 <AreaChart data={trendData}>
@@ -487,7 +487,7 @@ const Admin = () => {
             color="text.primary"
             gutterBottom
           >
-            Experiencias Más Populares por Favoritos
+            Experiencias más populares por favoritos
           </Typography>
           <ResponsiveContainer width="100%" height={400}>
             <BarChart

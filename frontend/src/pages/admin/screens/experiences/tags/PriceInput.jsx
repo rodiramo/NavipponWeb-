@@ -15,7 +15,7 @@ const PriceInput = ({ price, setPrice }) => {
           marginBottom: "8px",
         }}
       >
-        Precio Aproximado
+        Precio aproximado
       </Typography>
 
       <CurrencyInput

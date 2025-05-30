@@ -114,13 +114,13 @@ const SideNav = () => {
         }}
       >
         <NavItem
-          title="Dashboard"
+          title="Panel de usuario"
           link="/user/dashboard"
           icon={<LucideHome size={22} color={theme.palette.primary.main} />}
           isMenuOpen={isMenuOpen}
         />
         <NavItem
-          title="Mi Perfil"
+          title="Perfil"
           link="/user/profile"
           icon={<LucideUser size={22} color={theme.palette.primary.main} />}
           isMenuOpen={isMenuOpen}
@@ -132,7 +132,7 @@ const SideNav = () => {
           isMenuOpen={isMenuOpen}
         />
         <NavItem
-          title="Mis Publicaciónes"
+          title="Publicaciónes"
           link="/user/posts/manage"
           icon={
             <LucideClipboardList size={22} color={theme.palette.primary.main} />
@@ -140,7 +140,7 @@ const SideNav = () => {
           isMenuOpen={isMenuOpen}
         />
         <NavItem
-          title="Mis Itinerarios"
+          title="Itinerarios"
           link="/user/itineraries/manage"
           icon={
             <LucideCalendarDays size={22} color={theme.palette.primary.main} />
@@ -148,7 +148,7 @@ const SideNav = () => {
           isMenuOpen={isMenuOpen}
         />
         <NavItem
-          title="Mis Favoritos"
+          title="Favoritos"
           link="/user/favorites/manage"
           icon={<LucideStar size={22} color={theme.palette.primary.main} />}
           isMenuOpen={isMenuOpen}
@@ -178,7 +178,7 @@ const SideNav = () => {
         }}
       >
         <LucideLogOut size={22} />
-        {isMenuOpen && "Cerrar Sesión"}
+        {isMenuOpen && "Cerrar sesión"}
       </Button>
     </Box>
   );

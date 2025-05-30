@@ -214,10 +214,22 @@ const Notifications = () => {
         ) : (
           <MenuItem
             onClick={() => setAnchorEl(null)}
-            sx={{ py: 3, justifyContent: "center" }}
+            sx={{ py: 3, justifyContent: "center", alignItems: "center" }}
           >
-            <Box sx={{ textAlign: "center", color: "text.secondary" }}>
-              <FiBell size={32} style={{ opacity: 0.3, marginBottom: 8 }} />
+            <Box
+              sx={{
+                color: "text.secondary",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <FiBell
+                size={32}
+                color={theme.palette.primary.main}
+                style={{ opacity: 0.3, marginBottom: 8 }}
+              />
               <Typography variant="body2">No hay notificaciones</Typography>
             </Box>
           </MenuItem>

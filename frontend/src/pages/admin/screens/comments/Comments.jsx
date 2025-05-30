@@ -371,8 +371,7 @@ const Comments = () => {
       }}
     >
       <DataTable
-        pageTitle="Administrar Comentarios"
-        dataListName="Comentarios"
+        pageTitle="Administrar comentarios"
         searchInputPlaceHolder="Buscar comentarios..."
         searchKeywordOnSubmitHandler={submitSearchKeywordHandler}
         searchKeywordOnChangeHandler={searchKeywordHandler}

@@ -235,7 +235,7 @@ const ExperienceCard = ({
         </Typography>
 
         {/* 🔹 "Ver Más" Button */}
-        <div className="pt-2">
+        <div className="pt-2 mt-8">
           <Button
             component={Link}
             to={`/experience/${experience.slug}`}

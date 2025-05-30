@@ -202,7 +202,14 @@ const ForgotPasswordPage = () => {
             </Alert>
           )}
 
-          <form onSubmit={handleSubmit(submitHandler)}>
+          <form
+            onSubmit={handleSubmit(submitHandler)}
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+            }}
+          >
             <TextField
               fullWidth
               margin="normal"
@@ -219,6 +226,7 @@ const ForgotPasswordPage = () => {
               helperText={errors.email?.message}
               sx={{
                 borderRadius: "50px",
+                width: "450px",
                 "& fieldset": { borderRadius: "50px" },
               }}
             />
@@ -228,7 +236,13 @@ const ForgotPasswordPage = () => {
               fullWidth
               variant="contained"
               color="primary"
-              sx={{ mt: 3, borderRadius: "50px", padding: "10px" }}
+              sx={{
+                mt: 3,
+                borderRadius: "50px",
+                padding: "10px",
+                textTransform: "none",
+                width: "250px",
+              }}
               disabled={!isValid || mutation.isLoading}
             >
               {mutation.isLoading ? (

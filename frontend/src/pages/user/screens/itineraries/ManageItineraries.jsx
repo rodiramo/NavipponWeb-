@@ -413,7 +413,7 @@ const ManageItineraries = () => {
             WebkitTextFillColor: "transparent",
           }}
         >
-          Mis Itinerarios
+          Mis itinerarios
         </Typography>
         <Typography
           variant="h6"
@@ -451,7 +451,7 @@ const ManageItineraries = () => {
                 variant="h4"
                 sx={{ fontWeight: "bold", color: theme.palette.text.primary }}
               >
-                Mis Viajes
+                Mis viajes
               </Typography>
               <Typography variant="body2" color="text.secondary">
                 {createdItineraries.length} itinerarios creados
@@ -473,7 +473,7 @@ const ManageItineraries = () => {
                 background: theme.palette.primary.main,
               }}
             >
-              Crear Nuevo
+              Crear nuevo
             </Button>
           )}
         </Box>

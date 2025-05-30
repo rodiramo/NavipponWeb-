@@ -334,7 +334,7 @@ const Reviews = () => {
     >
       <DataTable
         pageTitle=""
-        dataListName="Administrar Reseñas"
+        dataListName="Administrar reseñas"
         searchInputPlaceHolder="Buscar reseñas..."
         searchKeywordOnSubmitHandler={submitSearchKeywordHandler}
         searchKeywordOnChangeHandler={searchKeywordHandler}

@@ -2,6 +2,7 @@ import React from "react";
 import { useTheme } from "@mui/material/styles";
 import { Box, Typography, Container, Button } from "@mui/material";
 import { Create, Explore } from "@mui/icons-material";
+import nube from "../../../assets/nube.png";
 
 const Hero = ({ user, jwt, onOpenModal }) => {
   const theme = useTheme();
@@ -16,31 +17,53 @@ const Hero = ({ user, jwt, onOpenModal }) => {
         justifyContent: "center",
         alignItems: "center",
         textAlign: "center",
-        paddingY: { xs: 6, sm: 8, md: 15 },
+        paddingTop: { xs: 6, sm: 8, md: 20 },
         paddingX: { xs: 2, sm: 4 },
-        background: `linear-gradient(135deg, 
-          ${theme.palette.primary.main}08 0%, 
-          ${theme.palette.secondary.main}05 50%, 
-          ${theme.palette.background.default} 100%)`,
         borderRadius: {
           xs: "0 0 30px 30px",
           sm: "0 0 40px 40px",
           md: "0 0 50px 50px",
         },
         overflow: "hidden",
-        "&::before": {
-          content: '""',
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: `radial-gradient(circle at 30% 30%, ${theme.palette.primary.main}12 0%, transparent 50%), 
-                      radial-gradient(circle at 70% 80%, ${theme.palette.secondary.main}10 0%, transparent 50%)`,
-          zIndex: 0,
-        },
       }}
     >
+      {" "}
+      {/* Floating Cloud Element - Top Right */}
+      <Box
+        sx={{
+          position: "absolute",
+          top: "30%",
+          right: "10%",
+          width: "120px",
+          height: "80px",
+          backgroundImage: `url(${nube})`,
+          backgroundSize: "contain",
+          backgroundRepeat: "no-repeat",
+          animation: "float 6s ease-in-out infinite",
+          "@keyframes float": {
+            "0%, 100%": { transform: "translateY(0px)" },
+            "50%": { transform: "translateY(-20px)" },
+          },
+        }}
+      />
+      {/* Floating Cloud Element - Bottom Left */}
+      <Box
+        sx={{
+          position: "absolute",
+          bottom: "20%",
+          left: "10%",
+          width: "120px",
+          height: "80px",
+          backgroundImage: `url(${nube})`,
+          backgroundSize: "contain",
+          backgroundRepeat: "no-repeat",
+          animation: "float 6s ease-in-out infinite",
+          "@keyframes float": {
+            "0%, 100%": { transform: "translateY(0px)" },
+            "50%": { transform: "translateY(-20px)" },
+          },
+        }}
+      />
       <Container
         maxWidth="lg"
         sx={{
@@ -63,7 +86,7 @@ const Hero = ({ user, jwt, onOpenModal }) => {
             letterSpacing: "-0.02em",
           }}
         >
-          Comparte, Conecta y Descubre Japón
+          Comparte, conecta y descubre Japón
         </Typography>
 
         {/* Subtitle */}

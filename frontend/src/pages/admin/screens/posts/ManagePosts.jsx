@@ -331,8 +331,8 @@ const ManagePosts = () => {
     >
       <DataTable
         pageTitle=""
-        dataListName="Administrar Posts"
-        searchInputPlaceHolder="Título Post..."
+        dataListName="Administrar publicaciones"
+        searchInputPlaceHolder="Título publicación..."
         searchKeywordOnSubmitHandler={submitSearchKeywordHandler}
         searchKeywordOnChangeHandler={searchKeywordHandler}
         searchKeyword={searchKeyword}
@@ -340,7 +340,7 @@ const ManagePosts = () => {
           isMobile
             ? []
             : [
-                "Post",
+                "Título",
                 "Categorías",
                 "Creado",
                 "Etiquetas",

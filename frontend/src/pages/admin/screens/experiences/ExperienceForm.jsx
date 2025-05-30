@@ -337,10 +337,9 @@ const ExperienceForm = () => {
       case 0: // Detalles Básicos
         return (
           <Box sx={{ space: 3 }}>
-            {/* Image Upload */}
             <Box sx={{ mb: 3 }}>
               <Typography variant="h6" gutterBottom>
-                Imagen de la Experiencia
+                Imagen de la experiencia
               </Typography>
               <Box display="flex" alignItems="center" gap="2rem">
                 <label
@@ -378,7 +377,7 @@ const ExperienceForm = () => {
                       }}
                     >
                       <ImageUp size={40} color={theme.palette.primary.main} />
-                      <Typography>Subir Imagen</Typography>
+                      <Typography>Subir imagen</Typography>
                     </Box>
                   )}
                 </label>
@@ -406,7 +405,7 @@ const ExperienceForm = () => {
             <Box sx={{ mb: 3 }}>
               <Typography variant="h6" gutterBottom>
                 <Earth style={{ verticalAlign: "middle", marginRight: 8 }} />
-                Buscar Lugar
+                Buscar lugar
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                 Ingresa el nombre o dirección para cargar información
@@ -462,7 +461,7 @@ const ExperienceForm = () => {
             {/* Caption */}
             <Box sx={{ mb: 3 }}>
               <Typography variant="h6" gutterBottom>
-                Descripción Breve*
+                Descripción breve*
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                 Una descripción concisa que destaque lo más importante
@@ -489,7 +488,7 @@ const ExperienceForm = () => {
         return (
           <Box sx={{ space: 3 }}>
             <Typography variant="h6" gutterBottom>
-              Contenido Detallado*
+              Contenido detallado*
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
               Describe completamente la experiencia, qué incluye, horarios, etc.
@@ -524,7 +523,7 @@ const ExperienceForm = () => {
         return (
           <Card elevation={2} sx={{ p: 3 }}>
             <Typography variant="h6" gutterBottom>
-              Información de Contacto
+              Información de contacto
             </Typography>
             <Grid container spacing={3}>
               <Grid item xs={12} md={6}>
@@ -548,7 +547,7 @@ const ExperienceForm = () => {
               </Grid>
               <Grid item xs={12} md={6}>
                 <Typography variant="subtitle1" sx={{ mb: 1 }}>
-                  Correo Electrónico
+                  Correo electrónico
                 </Typography>
                 <TextField
                   value={email}
@@ -731,7 +730,7 @@ const ExperienceForm = () => {
         }}
       >
         <Typography variant="h2" textAlign="center">
-          {isEditing ? "Editar" : "Crear"} Experiencia
+          {isEditing ? "Editar" : "Crear"} experiencia
         </Typography>
       </Box>
 
@@ -768,13 +767,13 @@ const ExperienceForm = () => {
                 }
                 variant="contained"
                 disabled={mutation.isLoading}
-                sx={{ px: 4 }}
+                sx={{ px: 4, borderRadius: "30rem", textTransform: "none" }}
               >
                 {mutation.isLoading
                   ? "Procesando..."
                   : isEditing
-                  ? "Actualizar Experiencia"
-                  : "Crear Experiencia"}
+                  ? "Actualizar experiencia"
+                  : "Crear experiencia"}
               </Button>
             ) : (
               <Button

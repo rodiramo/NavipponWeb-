@@ -1,5 +1,6 @@
 import { Box, Typography, useTheme } from "@mui/material";
 import Search from "../../../components/Search"; // Import your Search component
+import nube from "../../../assets/nube.png";
 
 const Header = ({ onSearchKeyword }) => {
   // Accept search handler as prop
@@ -15,29 +16,52 @@ const Header = ({ onSearchKeyword }) => {
         paddingTop: { xs: "6rem", sm: "8rem", md: "9rem" },
         paddingBottom: { xs: 6, sm: 8, md: 5 },
         paddingX: { xs: 2, sm: 4, md: 6 },
-        background: `linear-gradient(135deg, 
-          ${theme.palette.secondary.light} 0%, 
-          ${theme.palette.primary.main}08 80%, 
-          ${theme.palette.secondary.medium}05 100%)`,
         borderRadius: {
           xs: "0 0 3rem 3rem",
           sm: "0 0 4rem 4rem",
           md: "0 0 5rem 5rem",
         },
         overflow: "hidden",
-        "&::before": {
-          content: '""',
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: `radial-gradient(circle at 30% 20%, ${theme.palette.primary.main}12 0%, transparent 50%), 
-                      radial-gradient(circle at 70% 80%, ${theme.palette.secondary.main}10 0%, transparent 50%)`,
-          zIndex: 0,
-        },
       }}
     >
+      {/* Floating Cloud Element - Top Right */}
+      <Box
+        sx={{
+          position: "absolute",
+          top: "30%",
+          right: "10%",
+          width: "120px",
+          height: "80px",
+          backgroundImage: `url(${nube})`,
+          backgroundSize: "contain",
+          backgroundRepeat: "no-repeat",
+          animation: "float 6s ease-in-out infinite",
+          "@keyframes float": {
+            "0%, 100%": { transform: "translateY(0px)" },
+            "50%": { transform: "translateY(-20px)" },
+          },
+        }}
+      />
+
+      {/* Floating Cloud Element - Bottom Left */}
+      <Box
+        sx={{
+          position: "absolute",
+          bottom: "20%",
+          left: "10%",
+          width: "120px",
+          height: "80px",
+          backgroundImage: `url(${nube})`,
+          backgroundSize: "contain",
+          backgroundRepeat: "no-repeat",
+          animation: "float 6s ease-in-out infinite",
+          "@keyframes float": {
+            "0%, 100%": { transform: "translateY(0px)" },
+            "50%": { transform: "translateY(-20px)" },
+          },
+        }}
+      />
+
       {/* Content Container */}
       <Box
         sx={{
@@ -58,12 +82,11 @@ const Header = ({ onSearchKeyword }) => {
             fontSize: { xs: "2.5rem", sm: "3.5rem", md: "4rem", lg: "4.5rem" },
             fontWeight: 800,
             lineHeight: { xs: 1.1, sm: 1.2 },
-            textShadow: `0 4px 20px ${theme.palette.primary.main}20`,
             letterSpacing: "-0.02em",
             textAlign: "center",
           }}
         >
-          Planea tu viaje Ideal
+          Planea tu viaje ideal
         </Typography>
 
         {/* Subtitle */}

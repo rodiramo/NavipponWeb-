@@ -323,7 +323,6 @@ const ItineraryDetailPage = () => {
         const destinationBoard = { ...newBoards[destinationBoardIndex] };
         const [movedFavorite] = sourceBoard.favorites.splice(source.index, 1);
 
-        // Duplicate Check for destination board
         const isDuplicate = destinationBoard.favorites.some(
           (fav) => fav.experienceId._id === movedFavorite.experienceId._id
         );
@@ -332,14 +331,12 @@ const ItineraryDetailPage = () => {
             "This experience is already added on this day. Do you want to add it again?"
           );
           if (!confirmDuplicate) {
-            // Revert the removal from the source board
             sourceBoard.favorites.splice(source.index, 0, movedFavorite);
             newBoards[sourceBoardIndex] = sourceBoard;
             return;
           }
         }
 
-        // City/Region/Prefecture Check for destination board
         if (destinationBoard.favorites.length > 0) {
           const boardPrefecture =
             destinationBoard.favorites[0].experienceId.prefecture;
@@ -695,7 +692,7 @@ const ItineraryDetailPage = () => {
                                 backgroundColor: theme.palette.primary.white,
                                 height: "min-content",
                                 maxHeight: "75vh",
-                                minWidth: "300px !important",
+                                minWidth: "325px !important",
                                 display: "flex",
                                 flexDirection: "column",
                                 overflow: "hidden",
@@ -774,9 +771,8 @@ const ItineraryDetailPage = () => {
                                   overflowY: "auto",
                                   px: 2,
                                   py: 1,
-                                  // Add top and bottom padding to ensure the sticky elements don't overlap content
                                   pt: 0,
-                                  pb: 50, // adjust bottom padding to leave space for the sticky note button
+                                  pb: 50,
                                 }}
                               >
                                 <Box
@@ -786,14 +782,13 @@ const ItineraryDetailPage = () => {
                                   <Box
                                     sx={{
                                       position: "relative",
-                                      width: "25px", // space for the vertical line and icons
+                                      width: "25px",
                                       display: "flex",
                                       flexDirection: "column",
                                       alignItems: "center",
                                       pt: 2,
                                     }}
                                   >
-                                    {/* Vertical line that spans full height */}
                                     <Box
                                       sx={{
                                         position: "absolute",
@@ -807,10 +802,8 @@ const ItineraryDetailPage = () => {
                                         zIndex: 0,
                                       }}
                                     />
-                                    {/* Optionally render icons here if desired */}
                                   </Box>
 
-                                  {/* Right Side: Favorites List */}
                                   <Droppable
                                     droppableId={`${boardIndex}`}
                                     type="FAVORITE"
@@ -841,6 +834,7 @@ const ItineraryDetailPage = () => {
                                                     sx={{
                                                       position: "relative",
                                                       mb: 3,
+                                                      mt: 2,
                                                       borderRadius: 2,
                                                       boxShadow: 1,
                                                       overflow: "visible",
@@ -855,7 +849,6 @@ const ItineraryDetailPage = () => {
                                                         flexDirection: "row",
                                                       }}
                                                     >
-                                                      {/* Left: Icon Column */}
                                                       <Box
                                                         sx={{
                                                           position: "absolute",
@@ -888,18 +881,18 @@ const ItineraryDetailPage = () => {
                                                           )}
                                                         </Box>
                                                       </Box>
-
-                                                      {/* Right: Activity Details and Cover */}
                                                       <Box
-                                                        sx={{ flex: 1, p: 1 }}
+                                                        sx={{
+                                                          flex: 1,
+                                                          p: 1,
+                                                        }}
                                                       >
-                                                        {/* Cover Image */}
                                                         <Box
                                                           sx={{
                                                             width: "100%",
                                                             height: 100,
                                                             overflow: "hidden",
-                                                            borderRadius: 1,
+                                                            borderRadius: 3,
                                                           }}
                                                         >
                                                           <img
@@ -924,8 +917,7 @@ const ItineraryDetailPage = () => {
                                                             }}
                                                           />
                                                         </Box>
-                                                        {/* Details */}
-                                                        <Box sx={{ p: 2 }}>
+                                                        <Box sx={{ p: 1 }}>
                                                           <Typography
                                                             variant="subtitle1"
                                                             sx={{
@@ -961,7 +953,6 @@ const ItineraryDetailPage = () => {
                                                       </Box>
                                                     </Box>
 
-                                                    {/* Remove Favorite Button */}
                                                     <IconButton
                                                       onClick={() =>
                                                         handleRemoveFavorite(

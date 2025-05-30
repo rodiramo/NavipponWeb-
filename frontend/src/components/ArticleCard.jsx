@@ -101,7 +101,7 @@ const ArticleCard = ({ post, className, currentUser, token }) => {
           {/* Hover Read More Button */}
           <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-500 transform translate-y-4 group-hover:translate-y-0">
             <div
-              className="px-6 py-3 rounded-2xl backdrop-blur-xl border border-white/30 text-white font-semibold transition-all duration-300 hover:scale-105"
+              className="px-6 py-3 rounded-full backdrop-blur-xl border border-white/30 text-white font-semibold transition-all duration-300 hover:scale-105"
               style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
             >
               <span className="flex items-center gap-2">
@@ -134,7 +134,7 @@ const ArticleCard = ({ post, className, currentUser, token }) => {
             style={{
               backgroundColor: `${theme.palette.secondary.main}20`,
               borderColor: `${theme.palette.secondary.main}30`,
-              color: theme.palette.primary.white,
+              color: "white",
               width: "fit-content",
             }}
           >
@@ -210,8 +210,8 @@ const ArticleCard = ({ post, className, currentUser, token }) => {
             </div>
           </div>
 
-          {/* Friend Toggle Button */}
-          {!isOwnProfile && (
+          {/* Friend Toggle Button - Only show if user is logged in and it's not their own profile */}
+          {currentUser && !isOwnProfile && (
             <button
               onClick={handleFriendToggle}
               className="group/friend relative w-10 h-10 rounded-full transition-all duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2"

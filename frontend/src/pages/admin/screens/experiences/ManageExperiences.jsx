@@ -304,8 +304,8 @@ const ManageExperiences = () => {
     >
       <DataTable
         pageTitle=""
-        dataListName="Administrar Experiencias"
-        searchInputPlaceHolder="Título Experiencia..."
+        dataListName="Administrar experiencias"
+        searchInputPlaceHolder="Título experiencia..."
         searchKeywordOnSubmitHandler={submitSearchKeywordHandler}
         searchKeywordOnChangeHandler={searchKeywordHandler}
         searchKeyword={searchKeyword}
@@ -357,7 +357,6 @@ const ManageExperiences = () => {
                       width: 80,
                       height: 60,
                       mr: 2,
-                      border: `2px solid ${theme.palette.primary.main}`,
                       borderRadius: 2,
                     }}
                   />

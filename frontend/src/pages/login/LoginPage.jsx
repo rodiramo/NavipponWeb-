@@ -60,7 +60,7 @@ const LoginPage = () => {
     >
       {isNonMobileScreens ? (
         <Box
-          flexBasis="40%"
+          flexBasis="60%"
           position="relative"
           sx={{
             borderRadius: "0rem 200rem 200rem 0rem",
@@ -110,7 +110,7 @@ const LoginPage = () => {
         </Box>
       )}
       <Box
-        flexBasis={isNonMobileScreens ? "60%" : "100%"}
+        flexBasis={isNonMobileScreens ? "80%" : "100%"}
         backgroundColor={theme.palette.primary.white}
         p="2rem"
         display="flex"
@@ -151,6 +151,7 @@ const LoginPage = () => {
               helperText={errors.email?.message}
               sx={{
                 borderRadius: "50px",
+                width: "450px",
                 "& fieldset": { borderRadius: "50px" },
               }}
             />
@@ -161,6 +162,7 @@ const LoginPage = () => {
               type={showPassword ? "text" : "password"}
               sx={{
                 borderRadius: "50px",
+                width: "450px",
                 "& fieldset": { borderRadius: "50px" },
               }}
               {...register("password", {
@@ -221,7 +223,7 @@ const LoginPage = () => {
               sx={{
                 mt: 3,
                 fontSize: "1rem",
-                width: "fit-content",
+                width: "200px",
                 borderRadius: "50px",
                 padding: "10px",
                 textTransform: "none",

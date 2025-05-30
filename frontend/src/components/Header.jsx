@@ -178,7 +178,7 @@ const Header = () => {
                       className="mr-3"
                       color={theme.palette.primary.main}
                     />{" "}
-                    Admin Panel
+                    Panel de administración
                   </MenuItem>
                 )}
                 <MenuItem component={Link} to="/user/profile">
@@ -186,7 +186,7 @@ const Header = () => {
                     className="mr-3"
                     color={theme.palette.primary.main}
                   />{" "}
-                  Mi Perfil
+                  Perfil
                 </MenuItem>{" "}
                 <MenuItem component={Link} to="/user/dashboard">
                   <Bolt className="mr-3" color={theme.palette.primary.main} />{" "}
@@ -194,11 +194,11 @@ const Header = () => {
                 </MenuItem>
                 <MenuItem component={Link} to="/user/itineraries/manage">
                   <Plane className="mr-3" color={theme.palette.primary.main} />{" "}
-                  Mis Viajes
+                  Mis viajes
                 </MenuItem>
                 <MenuItem onClick={logout}>
                   <LogOut className="mr-3" color={theme.palette.primary.main} />{" "}
-                  Cerrar Sesión
+                  Cerrar sesión
                 </MenuItem>
               </Menu>
             </div>

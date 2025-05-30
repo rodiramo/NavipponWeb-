@@ -73,7 +73,7 @@ const AttractionTags = ({
       <Typography
         sx={{ fontWeight: "bold", color: theme.palette.text.primary }}
       >
-        Etiquetas de Atractivos
+        Etiquetas de atractivos
       </Typography>
       <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, marginTop: "8px" }}>
         {attractionTags.map(({ title, icon }) => (

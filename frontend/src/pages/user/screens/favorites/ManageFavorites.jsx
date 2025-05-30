@@ -282,28 +282,7 @@ const ManageFavorites = () => {
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}
-      >
-        <Box
-          sx={{
-            position: "absolute",
-            top: 16,
-            right: 16,
-            display: "flex",
-            gap: 1,
-          }}
-        >
-          <Chip
-            icon={<Star size={16} />}
-            size="small"
-            label="Favorito"
-            sx={{
-              backgroundColor: theme.palette.primary.main,
-              color: "white",
-              fontWeight: "bold",
-            }}
-          />
-        </Box>
-      </CardMedia>
+      ></CardMedia>
 
       <CardContent sx={{ p: 3 }}>
         {/* Experience Title */}
@@ -491,7 +470,7 @@ const ManageFavorites = () => {
               fontFamily: theme.typography.h1?.fontFamily,
             }}
           >
-            Mis Favoritos
+            Mis favoritos
           </Typography>
           <Typography
             variant="body1"
@@ -517,14 +496,12 @@ const ManageFavorites = () => {
         data={filteredFavorites}
       >
         {isMobile ? (
-          // Mobile Card Layout
           <Box sx={{ width: "100%" }}>
             {filteredFavorites.map((favorite) => (
               <FavoriteCard key={favorite._id} favorite={favorite} />
             ))}
           </Box>
         ) : (
-          // Desktop Table Layout
           filteredFavorites.map((favorite) => (
             <tr
               key={favorite._id}
@@ -534,7 +511,6 @@ const ManageFavorites = () => {
               }}
               className="hover:shadow-lg"
             >
-              {/* Experience Thumbnail and Title */}
               <td
                 style={{
                   padding: "16px 24px",

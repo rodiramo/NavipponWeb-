@@ -3,11 +3,10 @@ import { useSelector } from "react-redux";
 import {
   useTheme,
   Typography,
-  Select,
-  MenuItem,
-  FormControl,
   Box,
-  InputLabel,
+  IconButton,
+  Menu,
+  MenuItem,
 } from "@mui/material";
 import { ArrowDownWideNarrow } from "lucide-react";
 import PropTypes from "prop-types";
@@ -30,14 +29,23 @@ const ReviewsContainer = ({
   experienceSlug,
 }) => {
   const queryClient = useQueryClient();
-  const [sortOption, setSortOption] = useState("date-reciente");
+  const [sortOption, setSortOption] = useState("fecha-reciente");
+  const [anchorEl, setAnchorEl] = useState(null);
   const { user, jwt } = useUser();
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [allReviews, setAllReviews] = useState(reviews);
   const [affectedReview, setAffectedReview] = useState(null);
   const theme = useTheme();
-  // Sort reviews based on the selected option
 
+  // Sorting options
+  const sortingOptions = [
+    { value: "fecha-reciente", label: "Fecha Reciente" },
+    { value: "fecha-antigua", label: "Fecha más Antigua" },
+    { value: "best-rating", label: "Mejores Calificaciones" },
+    { value: "worst-rating", label: "Peores Calificaciones" },
+  ];
+
+  // Sort reviews based on the selected option
   const sortReviews = (option, reviews) => {
     if (option === "fecha-reciente") {
       return reviews.sort(
@@ -53,6 +61,17 @@ const ReviewsContainer = ({
       return reviews.sort((a, b) => a.rating - b.rating);
     }
     return reviews;
+  };
+
+  // Handle sort button click
+  const handleSortClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  // Handle sort option selection
+  const handleSortSelection = (value) => {
+    setSortOption(value);
+    setAnchorEl(null);
   };
 
   // Calculate average rating
@@ -153,12 +172,12 @@ const ReviewsContainer = ({
   const deleteReviewHandler = (reviewId) => {
     mutateDeleteReview({ token: jwt, reviewId });
   };
+
   // Sort the reviews based on the selected sort option
   const sortedReviews = sortReviews(sortOption, [...allReviews]);
 
   return (
     <div className={`${className}`}>
-      {" "}
       {/* Header with Button and Sorting Dropdown */}
       <div
         style={{
@@ -220,40 +239,51 @@ const ReviewsContainer = ({
               <StarIcon rating={averageRating} size={30} />
             </Box>
           </Box>
-          <FormControl sx={{ minWidth: 160 }}>
-            <InputLabel>
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  width: "100%",
-                }}
-              >
-                Ordenar
-                <ArrowDownWideNarrow />
-              </Box>
-            </InputLabel>
-            <Select
-              value={sortOption}
-              onChange={(e) => setSortOption(e.target.value)}
-              label="Ordenar"
+
+          {/* Sort Dropdown */}
+          <div className="flex items-center gap-2">
+            <Typography
+              variant="body2"
+              className="text-gray-600 hidden sm:block"
+            >
+              Ordenar por:
+            </Typography>
+            <IconButton
+              onClick={handleSortClick}
               sx={{
-                borderRadius: "30rem",
-                backgroundColor: theme.palette.primary.white,
+                border: `1px solid ${theme.palette.primary.main}`,
+                borderRadius: "30px",
+                padding: "8px",
               }}
             >
-              <MenuItem value="">
-                <em>Selecciona una opción</em>
-              </MenuItem>
-              <MenuItem value="fecha-reciente">Fecha Reciente</MenuItem>
-              <MenuItem value="fecha-antigua">Fecha más Antigua</MenuItem>
-              <MenuItem value="best-rating">Mejores Calificaciones</MenuItem>
-              <MenuItem value="worst-rating">Peores Calificaciones</MenuItem>
-            </Select>
-          </FormControl>
+              <ArrowDownWideNarrow
+                size={20}
+                color={theme.palette.primary.main}
+              />
+            </IconButton>
+
+            <Menu
+              anchorEl={anchorEl}
+              open={Boolean(anchorEl)}
+              onClose={() => setAnchorEl(null)}
+            >
+              {sortingOptions.map((option) => (
+                <MenuItem
+                  key={option.value}
+                  onClick={() => handleSortSelection(option.value)}
+                  sx={{
+                    fontSize: "0.875rem",
+                    padding: "12px 20px",
+                  }}
+                >
+                  {option.label}
+                </MenuItem>
+              ))}
+            </Menu>
+          </div>
         </Box>
       )}
+
       {/* Reviews List */}
       <div
         className="space-y-4 mt-8"
@@ -289,12 +319,11 @@ const ReviewsContainer = ({
             alignContent="center"
             alignItems="center"
           >
-            {" "}
             <img
               src="/assets/nothing-here.png"
               alt="nothing-here"
               style={{ width: "35%", marginRight: "1rem" }}
-            ></img>
+            />
             <Typography
               variant="h6"
               style={{
@@ -305,7 +334,7 @@ const ReviewsContainer = ({
               }}
             >
               No hay reseñas aún. ¡Sé el primero en escribir una!
-            </Typography>{" "}
+            </Typography>
             <button
               className="py-2 px-4"
               style={{
