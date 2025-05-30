@@ -141,7 +141,15 @@ const RegisterPage = () => {
           <Typography variant="h4" mb={2} textAlign="center">
             Registro
           </Typography>
-          <form onSubmit={handleSubmit(submitHandler)}>
+          <form
+            onSubmit={handleSubmit(submitHandler)}
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
             <TextField
               fullWidth
               margin="normal"
@@ -235,7 +243,14 @@ const RegisterPage = () => {
               fullWidth
               variant="contained"
               color="primary"
-              sx={{ mt: 3, borderRadius: "50px", padding: "10px" }}
+              sx={{
+                mt: 3,
+                borderRadius: "50px",
+                padding: "10px",
+                width: "fit-content",
+                textTransform: "none",
+                fontSize: "1rem",
+              }}
               disabled={!isValid || isLoading}
             >
               Registrarse

@@ -258,9 +258,12 @@ const RegionCarousel = () => {
             {regions.map((region, index) => (
               <div key={index} className="px-3">
                 <div
-                  className="group relative overflow-hidden rounded-3xl cursor-pointer transition-all duration-500 bg-white/10 backdrop-blur-xl border border-white/20"
+                  className="group relative overflow-hidden cursor-pointer transition-all duration-500 bg-white/10 backdrop-blur-xl border border-white/20"
                   onClick={() => handleRegionClick(region.name)}
-                  style={{ height: "400px" }}
+                  style={{
+                    height: "400px",
+                    borderRadius: "30rem 30rem 2rem 2rem",
+                  }}
                 >
                   {/* Background Image */}
                   <div

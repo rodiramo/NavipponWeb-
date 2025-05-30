@@ -46,7 +46,7 @@ const Highlights = () => {
               <img
                 src="/assets/home.jpg"
                 alt="templo de kyoto"
-                className=" h-[400px] sm:h-[500px] lg:h-[600px] object-cover  duration-700 group-hover:scale-105 p-0 m-0"
+                className=" h-[400px] sm:h-[500px] lg:h-[600px] object-cover  duration-700 p-0 m-0"
                 style={{
                   width: "80%",
                   borderRadius: isDesktop ? "0rem 200rem 200rem 0rem" : "2rem",

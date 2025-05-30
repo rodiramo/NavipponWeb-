@@ -239,7 +239,14 @@ const Aside = ({ onFilterChange, selectedFilter }) => {
         />
       }
       label={
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+            width: "fit-content",
+          }}
+        >
           <Box
             sx={{
               color: theme.palette.primary.main,
@@ -296,7 +303,7 @@ const Aside = ({ onFilterChange, selectedFilter }) => {
           variant="h6"
           sx={{
             color: theme.palette.primary.main,
-            fontWeight: "bold",
+
             fontSize: "1.25rem",
           }}
         >
@@ -361,7 +368,6 @@ const Aside = ({ onFilterChange, selectedFilter }) => {
               variant="subtitle1"
               sx={{
                 color: theme.palette.text.primary,
-                fontWeight: "bold",
               }}
             >
               Región
@@ -387,7 +393,7 @@ const Aside = ({ onFilterChange, selectedFilter }) => {
               }}
             >
               <MenuItem value="">
-                <em>Selecciona una región</em>
+                <em>Todas</em>
               </MenuItem>
               {regions.map((region) => (
                 <MenuItem key={region} value={region}>
@@ -402,31 +408,16 @@ const Aside = ({ onFilterChange, selectedFilter }) => {
       {/* Filter Sections */}
       <Box sx={{ "& .MuiAccordion-root": { mb: 1 } }}>
         {/* General Filters */}
-        <Accordion
-          elevation={0}
-          sx={{
-            backgroundColor: theme.palette.secondary.light,
-            border: `1px solid ${theme.palette.secondary.main}20`,
-            "&:before": { display: "none" },
-            borderRadius: "8px !important",
-          }}
-        >
+        <Accordion elevation={0}>
           <AccordionSummary
             expandIcon={
               <ChevronDown sx={{ color: theme.palette.text.primary }} />
             }
-            sx={{
-              backgroundColor: theme.palette.secondary.light,
-              "& .MuiAccordionSummary-content": {
-                alignItems: "center",
-              },
-            }}
           >
             <Typography
               variant="subtitle1"
               sx={{
                 color: theme.palette.text.primary,
-                fontWeight: "bold",
               }}
             >
               Filtros Generales
@@ -436,7 +427,6 @@ const Aside = ({ onFilterChange, selectedFilter }) => {
             <Typography
               variant="body2"
               sx={{
-                fontWeight: "bold",
                 mb: 1,
                 color: theme.palette.primary.main,
               }}
@@ -455,7 +445,6 @@ const Aside = ({ onFilterChange, selectedFilter }) => {
             <Typography
               variant="body2"
               sx={{
-                fontWeight: "bold",
                 mt: 2,
                 mb: 1,
                 color: theme.palette.primary.main,
@@ -475,7 +464,6 @@ const Aside = ({ onFilterChange, selectedFilter }) => {
             <Typography
               variant="body2"
               sx={{
-                fontWeight: "bold",
                 mt: 2,
                 mb: 1,
                 color: theme.palette.primary.main,
@@ -495,15 +483,7 @@ const Aside = ({ onFilterChange, selectedFilter }) => {
         </Accordion>
 
         {/* Attraction Filters */}
-        <Accordion
-          elevation={0}
-          sx={{
-            backgroundColor: theme.palette.secondary.light,
-            border: `1px solid ${theme.palette.secondary.main}20`,
-            "&:before": { display: "none" },
-            borderRadius: "8px !important",
-          }}
-        >
+        <Accordion elevation={0}>
           <AccordionSummary
             expandIcon={
               <ChevronDown sx={{ color: theme.palette.text.primary }} />
@@ -513,7 +493,6 @@ const Aside = ({ onFilterChange, selectedFilter }) => {
               variant="subtitle1"
               sx={{
                 color: theme.palette.text.primary,
-                fontWeight: "bold",
               }}
             >
               Filtros de Atractivos
@@ -532,15 +511,7 @@ const Aside = ({ onFilterChange, selectedFilter }) => {
         </Accordion>
 
         {/* Hotel Filters */}
-        <Accordion
-          elevation={0}
-          sx={{
-            backgroundColor: theme.palette.secondary.light,
-            border: `1px solid ${theme.palette.secondary.main}20`,
-            "&:before": { display: "none" },
-            borderRadius: "8px !important",
-          }}
-        >
+        <Accordion elevation={0}>
           <AccordionSummary
             expandIcon={
               <ChevronDown sx={{ color: theme.palette.text.primary }} />
@@ -550,7 +521,6 @@ const Aside = ({ onFilterChange, selectedFilter }) => {
               variant="subtitle1"
               sx={{
                 color: theme.palette.text.primary,
-                fontWeight: "bold",
               }}
             >
               Filtros de Hoteles
@@ -560,7 +530,6 @@ const Aside = ({ onFilterChange, selectedFilter }) => {
             <Typography
               variant="body2"
               sx={{
-                fontWeight: "bold",
                 mb: 1,
                 color: theme.palette.primary.main,
               }}
@@ -579,7 +548,6 @@ const Aside = ({ onFilterChange, selectedFilter }) => {
             <Typography
               variant="body2"
               sx={{
-                fontWeight: "bold",
                 mt: 2,
                 mb: 1,
                 color: theme.palette.primary.main,
@@ -599,7 +567,6 @@ const Aside = ({ onFilterChange, selectedFilter }) => {
             <Typography
               variant="body2"
               sx={{
-                fontWeight: "bold",
                 mt: 2,
                 mb: 1,
                 color: theme.palette.primary.main,
@@ -619,15 +586,7 @@ const Aside = ({ onFilterChange, selectedFilter }) => {
         </Accordion>
 
         {/* Restaurant Filters */}
-        <Accordion
-          elevation={0}
-          sx={{
-            backgroundColor: theme.palette.secondary.light,
-            border: `1px solid ${theme.palette.secondary.main}20`,
-            "&:before": { display: "none" },
-            borderRadius: "8px !important",
-          }}
-        >
+        <Accordion elevation={0}>
           <AccordionSummary
             expandIcon={
               <ChevronDown sx={{ color: theme.palette.text.primary }} />
@@ -637,7 +596,6 @@ const Aside = ({ onFilterChange, selectedFilter }) => {
               variant="subtitle1"
               sx={{
                 color: theme.palette.text.primary,
-                fontWeight: "bold",
               }}
             >
               Filtros de Restaurantes
@@ -647,7 +605,6 @@ const Aside = ({ onFilterChange, selectedFilter }) => {
             <Typography
               variant="body2"
               sx={{
-                fontWeight: "bold",
                 mb: 1,
                 color: theme.palette.primary.main,
               }}
@@ -666,7 +623,6 @@ const Aside = ({ onFilterChange, selectedFilter }) => {
             <Typography
               variant="body2"
               sx={{
-                fontWeight: "bold",
                 mt: 2,
                 mb: 1,
                 color: theme.palette.primary.main,
@@ -686,7 +642,6 @@ const Aside = ({ onFilterChange, selectedFilter }) => {
             <Typography
               variant="body2"
               sx={{
-                fontWeight: "bold",
                 mt: 2,
                 mb: 1,
                 color: theme.palette.primary.main,
@@ -712,32 +667,9 @@ const Aside = ({ onFilterChange, selectedFilter }) => {
           display: "flex",
           gap: 2,
           mt: 4,
-          flexDirection: { xs: "column", sm: "row" },
+          flexDirection: "column",
         }}
       >
-        <Button
-          variant="outlined"
-          startIcon={<RefreshCw size={18} />}
-          onClick={clearFilters}
-          fullWidth
-          sx={{
-            borderColor: theme.palette.primary.main,
-            color: theme.palette.primary.main,
-            borderRadius: "25px",
-            py: 1.5,
-            textTransform: "none",
-            fontWeight: "bold",
-            "&:hover": {
-              backgroundColor: theme.palette.primary.light,
-              borderColor: theme.palette.primary.dark,
-              transform: "translateY(-1px)",
-            },
-            transition: "all 0.2s ease-in-out",
-          }}
-        >
-          Borrar Filtros
-        </Button>
-
         <Button
           variant="contained"
           startIcon={<Check size={18} />}
@@ -749,7 +681,7 @@ const Aside = ({ onFilterChange, selectedFilter }) => {
             borderRadius: "25px",
             py: 1.5,
             textTransform: "none",
-            fontWeight: "bold",
+
             boxShadow: theme.shadows[3],
             "&:hover": {
               backgroundColor: theme.palette.secondary.dark,
@@ -760,6 +692,28 @@ const Aside = ({ onFilterChange, selectedFilter }) => {
           }}
         >
           Aplicar Filtros
+        </Button>{" "}
+        <Button
+          variant="outlined"
+          startIcon={<RefreshCw size={18} />}
+          onClick={clearFilters}
+          fullWidth
+          sx={{
+            borderColor: theme.palette.primary.main,
+            color: theme.palette.primary.main,
+            borderRadius: "25px",
+            py: 1.5,
+            textTransform: "none",
+
+            "&:hover": {
+              backgroundColor: theme.palette.primary.light,
+              borderColor: theme.palette.primary.dark,
+              transform: "translateY(-1px)",
+            },
+            transition: "all 0.2s ease-in-out",
+          }}
+        >
+          Borrar Filtros
         </Button>
       </Box>
     </Box>

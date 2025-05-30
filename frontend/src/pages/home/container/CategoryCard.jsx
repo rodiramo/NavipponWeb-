@@ -84,7 +84,7 @@ const CategoryCard = () => {
           {categories.map((category, index) => (
             <div
               key={index}
-              className="group relative overflow-hidden rounded-3xl cursor-pointer transition-all duration-500 hover:-translate-y-2 bg-white/10 backdrop-blur-xl border shadow-xl hover:shadow-2xl"
+              className="group relative overflow-hidden rounded-3xl cursor-pointer transition-all duration-500  bg-white/10 backdrop-blur-xl border shadow-xl hover:shadow-2xl"
               onClick={() => handleCategoryClick(category.url)}
               style={{
                 height: "420px",
@@ -94,13 +94,13 @@ const CategoryCard = () => {
             >
               {/* Background Image with Enhanced Overlay */}
               <div
-                className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110"
+                className="absolute inset-0 bg-cover bg-center transition-transform duration-700"
                 style={{
                   backgroundImage: `url(${category.bgImage})`,
                 }}
               >
                 <div
-                  className={`absolute inset-0 bg-gradient-to-br from-black/60 to-black/80 transition-opacity duration-500 group-hover:opacity-75`}
+                  className={`absolute inset-0 bg-gradient-to-br from-black/40 to-black/60 transition-opacity duration-500 group-hover:opacity-75`}
                 ></div>
               </div>
 
@@ -109,7 +109,7 @@ const CategoryCard = () => {
                 {/* Top Section */}
                 <div>
                   {/* Icon Container */}
-                  <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white/20 backdrop-blur-sm border border-white/30 mb-6 transition-all duration-300 group-hover:scale-110 group-hover:bg-white/30">
+                  <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white/20 backdrop-blur-sm border border-white/30 mb-6 transition-all duration-300  group-hover:bg-white/30">
                     {React.cloneElement(category.icon, {
                       color: "white",
                       size: window.innerWidth < 640 ? "2rem" : "2.5rem",
@@ -172,7 +172,7 @@ const CategoryCard = () => {
         {/* Bottom CTA */}
         <div className="text-center mt-12 sm:mt-16">
           <div
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-full text-white font-medium shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-full text-white font-medium shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer"
             style={{
               backgroundColor: theme.palette.primary.main,
             }}

@@ -7,7 +7,15 @@ import {
 import { Link } from "react-router-dom";
 import { useDataTable } from "../../../../hooks/useDataTable";
 import DataTable from "../../components/DataTable";
-import { Trash2, Edit, Calendar, FolderOpen, MapPin, Star } from "lucide-react";
+import {
+  Trash2,
+  Edit,
+  Calendar,
+  FolderOpen,
+  MapPin,
+  Star,
+  Eye,
+} from "lucide-react";
 import useUser from "../../../../hooks/useUser";
 import {
   useTheme,
@@ -69,12 +77,10 @@ const ManageExperiences = () => {
       sx={{
         mb: 2,
         backgroundColor: theme.palette.background.default,
-        border: `1px solid ${theme.palette.neutral.light}`,
         borderRadius: 2,
         transition: "all 0.2s ease-in-out",
         "&:hover": {
           boxShadow: theme.shadows[4],
-          transform: "translateY(-2px)",
         },
       }}
     >
@@ -144,11 +150,26 @@ const ManageExperiences = () => {
               </Typography>
             </Box>
             <Typography variant="body2" sx={{ fontWeight: "medium" }}>
-              {new Date(experience.createdAt).toLocaleDateString("es-ES", {
-                day: "numeric",
-                month: "short",
-                year: "numeric",
-              })}
+              {(() => {
+                // Check if experience.createdAt exists and is a valid date
+                if (!experience.createdAt) {
+                  return "Fecha no definida";
+                }
+
+                const date = new Date(experience.createdAt);
+
+                // Check if the date is valid
+                if (isNaN(date.getTime())) {
+                  return "Fecha no válida";
+                }
+
+                // Return formatted date if valid
+                return date.toLocaleDateString("es-ES", {
+                  day: "numeric",
+                  month: "short",
+                  year: "numeric",
+                });
+              })()}
             </Typography>
           </Grid>
 
@@ -211,12 +232,33 @@ const ManageExperiences = () => {
             alignItems: "center",
           }}
         >
-          {/* Edit Button */}
+          {/* Edit Button */}{" "}
+          <Button
+            startIcon={<Eye size={16} />}
+            component={Link}
+            to={`/experience/${experience?.slug}`}
+            sx={{
+              textTransform: "none",
+              borderRadius: 30,
+              color: theme.palette.secondary.medium,
+              borderColor: theme.palette.secondary.medium,
+              "&:hover": {
+                backgroundColor: theme.palette.secondary.light,
+                borderColor: theme.palette.secondary.dark,
+              },
+            }}
+            variant="outlined"
+            size="small"
+          >
+            Ver Detalles
+          </Button>
           <Button
             startIcon={<Edit size={16} />}
             component={Link}
             to={`/admin/experiences/manage/edit/${experience?.slug}`}
             sx={{
+              textTransform: "none",
+              borderRadius: 30,
               color: theme.palette.primary.main,
               borderColor: theme.palette.primary.main,
               "&:hover": {
@@ -229,13 +271,14 @@ const ManageExperiences = () => {
           >
             Editar
           </Button>
-
           {/* Delete Button */}
           <Button
             disabled={isLoadingDeleteData}
             startIcon={<Trash2 size={16} />}
             onClick={() => deleteDataHandler({ slug: experience?.slug })}
             sx={{
+              textTransform: "none",
+              borderRadius: 30,
               color: theme.palette.error.main,
               borderColor: theme.palette.error.main,
               "&:hover": {
@@ -298,7 +341,6 @@ const ManageExperiences = () => {
               <td
                 style={{
                   padding: "16px 24px",
-                  borderBottom: `1px solid ${theme.palette.neutral.light}`,
                   minWidth: "350px",
                 }}
               >
@@ -378,8 +420,8 @@ const ManageExperiences = () => {
                       label={experience.categories}
                       variant="outlined"
                       sx={{
-                        borderColor: theme.palette.secondary.main,
-                        color: theme.palette.secondary.main,
+                        borderColor: theme.palette.secondary.medium,
+                        color: theme.palette.secondary.medium,
                         fontSize: "0.75rem",
                       }}
                     />
@@ -407,14 +449,23 @@ const ManageExperiences = () => {
                     }}
                   />
                   <Typography variant="body2" color="textPrimary">
-                    {new Date(experience.createdAt).toLocaleDateString(
-                      "es-ES",
-                      {
-                        day: "numeric",
-                        month: "short",
-                        year: "numeric",
+                    {(() => {
+                      try {
+                        if (!experience.createdAt) return "Fecha no disponible";
+
+                        const date = new Date(experience.createdAt);
+
+                        if (isNaN(date.getTime())) return "Fecha no válida";
+
+                        return date.toLocaleDateString("es-ES", {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                        });
+                      } catch {
+                        return "Fecha no disponible";
                       }
-                    )}
+                    })()}
                   </Typography>
                 </Box>
               </td>
@@ -437,7 +488,6 @@ const ManageExperiences = () => {
                       "&:hover": {
                         backgroundColor: theme.palette.primary.light,
                         borderColor: theme.palette.primary.dark,
-                        transform: "translateY(-1px)",
                       },
                       transition: "all 0.2s ease-in-out",
                     }}

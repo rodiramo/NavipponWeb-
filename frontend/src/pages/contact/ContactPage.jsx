@@ -67,7 +67,6 @@ const ContactPage = () => {
       <Box
         sx={{
           minHeight: "100vh",
-          background: "linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)",
           py: 20,
         }}
       >
@@ -105,7 +104,6 @@ const ContactPage = () => {
                   borderRadius: "24px",
                   boxShadow: "0 20px 60px rgba(0, 0, 0, 0.1)",
                   overflow: "hidden",
-                  background: "rgba(255, 255, 255, 0.95)",
                   backdropFilter: "blur(20px)",
                 }}
               >
@@ -149,15 +147,12 @@ const ContactPage = () => {
                           sx={{
                             "& .MuiOutlinedInput-root": {
                               borderRadius: "16px",
-                              backgroundColor: "#f8f9fa",
                               transition: "all 0.3s ease",
                               "&:hover": {
-                                backgroundColor: "#fff",
                                 transform: "translateY(-2px)",
                                 boxShadow: "0 8px 25px rgba(0,0,0,0.1)",
                               },
                               "&.Mui-focused": {
-                                backgroundColor: "#fff",
                                 transform: "translateY(-2px)",
                                 boxShadow: "0 8px 25px rgba(0,0,0,0.1)",
                               },
@@ -179,15 +174,12 @@ const ContactPage = () => {
                           sx={{
                             "& .MuiOutlinedInput-root": {
                               borderRadius: "16px",
-                              backgroundColor: "#f8f9fa",
                               transition: "all 0.3s ease",
                               "&:hover": {
-                                backgroundColor: "#fff",
                                 transform: "translateY(-2px)",
                                 boxShadow: "0 8px 25px rgba(0,0,0,0.1)",
                               },
                               "&.Mui-focused": {
-                                backgroundColor: "#fff",
                                 transform: "translateY(-2px)",
                                 boxShadow: "0 8px 25px rgba(0,0,0,0.1)",
                               },
@@ -208,15 +200,12 @@ const ContactPage = () => {
                           sx={{
                             "& .MuiOutlinedInput-root": {
                               borderRadius: "16px",
-                              backgroundColor: "#f8f9fa",
                               transition: "all 0.3s ease",
                               "&:hover": {
-                                backgroundColor: "#fff",
                                 transform: "translateY(-2px)",
                                 boxShadow: "0 8px 25px rgba(0,0,0,0.1)",
                               },
                               "&.Mui-focused": {
-                                backgroundColor: "#fff",
                                 transform: "translateY(-2px)",
                                 boxShadow: "0 8px 25px rgba(0,0,0,0.1)",
                               },
@@ -240,15 +229,12 @@ const ContactPage = () => {
                           sx={{
                             "& .MuiOutlinedInput-root": {
                               borderRadius: "16px",
-                              backgroundColor: "#f8f9fa",
                               transition: "all 0.3s ease",
                               "&:hover": {
-                                backgroundColor: "#fff",
                                 transform: "translateY(-2px)",
                                 boxShadow: "0 8px 25px rgba(0,0,0,0.1)",
                               },
                               "&.Mui-focused": {
-                                backgroundColor: "#fff",
                                 transform: "translateY(-2px)",
                                 boxShadow: "0 8px 25px rgba(0,0,0,0.1)",
                               },
@@ -314,9 +300,6 @@ const ContactPage = () => {
                             transform: "translateY(-2px)",
                             boxShadow: "0 12px 35px rgba(0,0,0,0.3)",
                           },
-                          "&:disabled": {
-                            background: "#ccc",
-                          },
                         }}
                       >
                         {isSubmitting ? "Enviando..." : "Enviar mensaje"}
@@ -334,7 +317,6 @@ const ContactPage = () => {
                 <Card
                   sx={{
                     borderRadius: "20px",
-                    background: "rgba(255, 255, 255, 0.95)",
                     backdropFilter: "blur(20px)",
                     boxShadow: "0 10px 30px rgba(0,0,0,0.1)",
                     p: 3,
@@ -419,7 +401,6 @@ const ContactPage = () => {
                 <Card
                   sx={{
                     borderRadius: "20px",
-                    background: "rgba(255, 255, 255, 0.95)",
                     backdropFilter: "blur(20px)",
                     boxShadow: "0 10px 30px rgba(0,0,0,0.1)",
                     p: 3,

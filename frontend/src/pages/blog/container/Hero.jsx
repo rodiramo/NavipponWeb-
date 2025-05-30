@@ -1,126 +1,97 @@
-import React, { useState } from "react";
-import { AddCircleOutline } from "@mui/icons-material";
+import React from "react";
 import { useTheme } from "@mui/material/styles";
-import { Box, Typography, Modal, Button } from "@mui/material";
-import PostForm from "../../../components/PostForm";
-const Hero = (user, jwt) => {
+import { Box, Typography, Container, Chip } from "@mui/material";
+
+const Hero = ({ user, jwt }) => {
+  // ✅ Fixed props destructuring
   const theme = useTheme();
-  const [open, setOpen] = useState(false);
+
   return (
     <Box
       sx={{
         position: "relative",
-        minHeight: "50vh",
+        minHeight: { xs: "60vh", sm: "50vh" },
         display: "flex",
         flexDirection: "column",
         justifyContent: "center",
         alignItems: "center",
         textAlign: "center",
-        padding: "3rem 1rem",
-        borderRadius: "0 0 50px 50px",
+        paddingY: { xs: 6, sm: 8, md: 15 },
+        paddingX: { xs: 2, sm: 4 },
+        background: `linear-gradient(135deg, 
+          ${theme.palette.primary.main}08 0%, 
+          ${theme.palette.secondary.main}05 50%, 
+          ${theme.palette.background.default} 100%)`,
+        borderRadius: {
+          xs: "0 0 30px 30px",
+          sm: "0 0 40px 40px",
+          md: "0 0 50px 50px",
+        },
         overflow: "hidden",
+        "&::before": {
+          content: '""',
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: `radial-gradient(circle at 30% 30%, ${theme.palette.primary.main}12 0%, transparent 50%), 
+                      radial-gradient(circle at 70% 80%, ${theme.palette.secondary.main}10 0%, transparent 50%)`,
+          zIndex: 0,
+        },
       }}
     >
-      {/* Background Image */}
-      <Box
+      <Container
+        maxWidth="lg"
         sx={{
-          position: "absolute",
-          inset: 0,
-          backgroundImage: `url('/assets/bg-blog.jpg')`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          filter: "blur(5px)", // Blur effect
-          zIndex: -2,
-        }}
-      />
-
-      {/* Overlay */}
-      <Box
-        sx={{
-          position: "absolute",
-          inset: 0,
-          backgroundColor: theme.palette.secondary.dark,
-          opacity: 0.6, // Adjust transparency for better readability
-          zIndex: -1,
-        }}
-      />
-
-      {/* Hero Content */}
-      <Typography
-        variant="h2"
-        sx={{
-          fontWeight: "bold",
-          paddingTop: "50px",
-          fontSize: "2.5rem",
-          maxWidth: "800px",
-          color: theme.palette.primary.contrastText,
+          position: "relative",
+          zIndex: 1,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: { xs: 3, sm: 4 },
         }}
       >
-        Comparte, Conecta y Descubre Japón
-      </Typography>
-
-      <Typography
-        variant="h5"
-        sx={{
-          marginTop: "1rem",
-          maxWidth: "700px",
-          opacity: 0.9,
-          color: theme.palette.primary.contrastText,
-        }}
-      >
-        Publica tus experiencias, descubre historias de otros viajeros y conecta
-        con una comunidad apasionada por Japón.
-      </Typography>
-
-      {/* ✅ Floating "Create Post" Button */}
-      {user && (
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => setOpen(true)}
+        {/* Main Title */}
+        <Typography
+          variant="h1"
           sx={{
-            borderRadius: "30px",
-            minWidth: "auto",
-            marginTop: "1rem",
-            textTransform: "none",
-            boxShadow: "0px 4px 10px rgba(0,0,0,0.2)",
+            fontWeight: 800,
+            fontSize: { xs: "2rem", sm: "2.5rem", md: "3rem", lg: "3.5rem" },
+            lineHeight: { xs: 1.1, sm: 1.2 },
+            maxWidth: "900px",
+            letterSpacing: "-0.02em",
           }}
         >
-          Subir una Publicación
-        </Button>
-      )}
+          Comparte, Conecta y Descubre Japón
+        </Typography>
 
-      {/* ✅ Create Post Modal */}
-      <Modal open={open} onClose={() => setOpen(false)}>
-        <Box
+        {/* Subtitle */}
+        <Typography
+          variant="h6"
           sx={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            bgcolor: "rgba(0, 0, 0, 0.5)", // Semi-transparent background
+            fontSize: { xs: "1rem", sm: "1.125rem", md: "1.25rem" },
+            fontWeight: 400,
+            lineHeight: 1.6,
+            color: theme.palette.text.secondary,
+            maxWidth: "700px",
+            opacity: 0.9,
           }}
         >
+          Publica tus experiencias, descubre historias de otros viajeros y
+          conecta con una{" "}
           <Box
+            component="span"
             sx={{
-              width: "95%",
-              maxWidth: "800px",
-              maxHeight: "95vh",
-              overflowY: "auto", // Enables scrolling if content is too large
-              bgcolor: "background.paper",
-              boxShadow: 24,
-              p: 4,
-              borderRadius: "10px",
+              fontWeight: 600,
+              color: theme.palette.primary.main,
             }}
           >
-            <PostForm onClose={() => setOpen(false)} token={jwt} />
-          </Box>
-        </Box>
-      </Modal>
+            comunidad apasionada
+          </Box>{" "}
+          por Japón.
+        </Typography>
+      </Container>
     </Box>
   );
 };
