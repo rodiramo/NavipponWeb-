@@ -59,12 +59,30 @@ const FiltersDrawer = ({
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
   const theme = useTheme();
+
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
   };
+
   const handleClose = () => {
     setAnchorEl(null);
   };
+
+  // Fix: Get prefectures safely with fallback to empty array
+  const getPrefecturesForRegion = (region) => {
+    if (region === "All" || !region) return [];
+    return regions[region] || [];
+  };
+
+  // Fix: Reset prefecture when region changes to "All" or invalid region
+  const handleRegionChange = (newRegion) => {
+    setSelectedRegion(newRegion);
+    if (newRegion === "All" || !regions[newRegion]) {
+      setSelectedPrefecture("All");
+    }
+  };
+
+  const availablePrefectures = getPrefecturesForRegion(selectedRegion);
 
   return (
     <Box
@@ -92,7 +110,7 @@ const FiltersDrawer = ({
           Category:
         </Typography>
         <Select
-          value={selectedCategory}
+          value={selectedCategory || "All"}
           onChange={(e) => setSelectedCategory(e.target.value)}
           fullWidth
           size="small"
@@ -110,8 +128,8 @@ const FiltersDrawer = ({
           Region:
         </Typography>
         <Select
-          value={selectedRegion}
-          onChange={(e) => setSelectedRegion(e.target.value)}
+          value={selectedRegion || "All"}
+          onChange={(e) => handleRegionChange(e.target.value)}
           fullWidth
           size="small"
           sx={{ mb: 2 }}
@@ -128,21 +146,23 @@ const FiltersDrawer = ({
           Prefecture:
         </Typography>
         <Select
-          value={selectedPrefecture}
+          value={selectedPrefecture || "All"}
           onChange={(e) => setSelectedPrefecture(e.target.value)}
           fullWidth
           size="small"
           sx={{ mb: 2 }}
-          disabled={selectedRegion === "All"}
+          disabled={
+            selectedRegion === "All" || availablePrefectures.length === 0
+          }
         >
           <MenuItem value="All">All</MenuItem>
-          {selectedRegion !== "All" &&
-            regions[selectedRegion].map((prefecture) => (
-              <MenuItem key={prefecture} value={prefecture}>
-                {prefecture}
-              </MenuItem>
-            ))}
+          {availablePrefectures.map((prefecture) => (
+            <MenuItem key={prefecture} value={prefecture}>
+              {prefecture}
+            </MenuItem>
+          ))}
         </Select>
+
         <IconButton
           onClick={() => {
             handleClearFilters();
