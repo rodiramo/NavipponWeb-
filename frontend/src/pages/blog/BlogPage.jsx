@@ -165,7 +165,7 @@ const BlogPage = () => {
                         fontSize: { xs: "1.75rem", sm: "2rem" },
                       }}
                     >
-                      Comunidad de Viajeros
+                      Comunidad de viajeros
                     </Typography>
                     <Typography
                       variant="body1"
@@ -433,7 +433,7 @@ const BlogPage = () => {
                             color: theme.palette.text.primary,
                           }}
                         >
-                          Descubre Usuarios
+                          Descubre usuarios
                         </Typography>
                       </Box>
 
