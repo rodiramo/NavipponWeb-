@@ -44,7 +44,7 @@ const Notes = ({
   currentUser,
 }) => {
   const theme = useTheme();
-  const [noteType, setNoteType] = useState("message"); // "message" or "task"
+  const [noteType, setNoteType] = useState("message");
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -437,7 +437,7 @@ const Notes = ({
           {/* Note Type Selector */}
           <Box sx={{ display: "flex", gap: 1, mb: 2 }}>
             <Chip
-              label="💬 Mensaje"
+              label="Mensaje"
               variant={noteType === "message" ? "filled" : "outlined"}
               onClick={() => setNoteType("message")}
               sx={{
@@ -459,13 +459,13 @@ const Notes = ({
               }}
             />
             <Chip
-              label="✅ Tarea"
+              label=" Tarea"
               variant={noteType === "task" ? "filled" : "outlined"}
               onClick={() => setNoteType("task")}
               sx={{
                 background:
                   noteType === "task"
-                    ? `linear-gradient(135deg, ${theme.palette.warning.main}, ${theme.palette.warning.dark})`
+                    ? `linear-gradient(135deg, ${theme.palette.warning.main})`
                     : "transparent",
                 color:
                   noteType === "task" ? "white" : theme.palette.warning.main,
@@ -475,7 +475,7 @@ const Notes = ({
                 "&:hover": {
                   background:
                     noteType === "task"
-                      ? `linear-gradient(135deg, ${theme.palette.warning.dark}, ${theme.palette.warning.main})`
+                      ? `linear-gradient(135deg, ${theme.palette.warning.dark})`
                       : `${theme.palette.warning.main}10`,
                 },
               }}
@@ -529,15 +529,14 @@ const Notes = ({
                   width: 48,
                   height: 48,
                   background: newNote.trim()
-                    ? `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`
+                    ? `linear-gradient(135deg, ${theme.palette.primary.main})`
                     : theme.palette.grey[300],
                   color: "white",
                   transition: "all 0.3s ease",
                   "&:hover": {
                     background: newNote.trim()
-                      ? `linear-gradient(135deg, ${theme.palette.primary.dark}, ${theme.palette.secondary.dark})`
+                      ? `linear-gradient(135deg, ${theme.palette.primary.dark})`
                       : theme.palette.grey[400],
-                    transform: "translateY(-2px)",
                     boxShadow: newNote.trim()
                       ? `0 8px 24px ${theme.palette.primary.main}40`
                       : "none",
@@ -566,7 +565,8 @@ const Notes = ({
           onClick={onClose}
           variant="outlined"
           sx={{
-            borderRadius: 3,
+            borderRadius: 30,
+            textTransform: "none",
             px: 4,
             fontWeight: 600,
             borderColor: theme.palette.grey[300],

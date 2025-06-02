@@ -1,6 +1,5 @@
-// Updated BoardCard.jsx - Fixed scrollable activities container
-import React from "react";
-import { Box, Typography, IconButton, useTheme } from "@mui/material";
+import React, { useState } from "react";
+import { Box, Typography, IconButton, useTheme, Button } from "@mui/material";
 import {
   useSortable,
   SortableContext,
@@ -10,17 +9,19 @@ import { useDroppable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import { Trash2, Coins, Plus, Map, GripVertical } from "lucide-react";
 import ActivityCard from "./ItineraryActivity";
+import MapModal from "./MapModal";
 
 const BoardCard = ({
   board,
   boardIndex,
   onRemoveBoard,
+  onAddExperience,
   onRemoveFavorite,
   isDragDisabled = false,
 }) => {
   const theme = useTheme();
+  const [mapModalOpen, setMapModalOpen] = useState(false);
 
-  // Board dragging functionality
   const {
     attributes: boardAttributes,
     listeners: boardListeners,
@@ -33,10 +34,26 @@ const BoardCard = ({
     disabled: isDragDisabled,
   });
 
-  // Drop zone for activities from drawer or other boards
   const { setNodeRef: setDropRef, isOver } = useDroppable({
     id: `board-${board.id}`,
   });
+  const handleMapClick = (e) => {
+    e.stopPropagation(); // Prevent any parent click handlers
+    setMapModalOpen(true);
+  };
+
+  // ADD: Close map modal handler
+  const handleCloseMap = () => {
+    setMapModalOpen(false);
+  };
+  const getDayTitle = () => {
+    const date = new Date(board.date).toLocaleDateString("es-ES", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+    });
+    return `Día ${boardIndex + 1} - ${date}`;
+  };
 
   const boardStyle = {
     transform: CSS.Transform.toString(boardTransform),
@@ -44,7 +61,6 @@ const BoardCard = ({
     opacity: isBoardDragging ? 0.5 : 1,
   };
 
-  // Generate sortable IDs for activities
   const activityIds =
     board.favorites?.map(
       (fav, index) => fav.uniqueId || `${boardIndex}-${index}-${fav._id}`
@@ -59,13 +75,12 @@ const BoardCard = ({
         borderRadius: 5,
         boxShadow: 2,
         backgroundColor: theme.palette.primary.white,
-        height: "calc(75vh)", // Fixed height for the entire card
-        minWidth: "325px !important",
-        maxWidth: "325px",
+        height: "calc(75vh)",
+        minWidth: "350px !important",
+        maxWidth: "350px",
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
-        // Drop zone highlighting
         border: isOver
           ? `2px dashed ${theme.palette.primary.main}`
           : "2px solid transparent",
@@ -73,7 +88,6 @@ const BoardCard = ({
         transition: "all 0.2s ease",
       }}
     >
-      {/* Board Container for dragging */}
       <Box
         ref={setBoardRef}
         style={boardStyle}
@@ -84,7 +98,6 @@ const BoardCard = ({
           position: "relative",
         }}
       >
-        {/* FIXED HEIGHT Header - Always visible */}
         <Box
           sx={{
             backgroundColor: theme.palette.primary.white,
@@ -157,19 +170,18 @@ const BoardCard = ({
           </Box>
         </Box>
 
-        {/* SCROLLABLE Activities Container - Takes remaining space */}
         <Box
           sx={{
-            flex: 1, // Takes all remaining space
+            flex: 1,
             display: "flex",
             flexDirection: "column",
-            overflow: "hidden", // Prevent outer overflow
+            overflow: "hidden",
           }}
         >
           <Box
             sx={{
               flex: 1,
-              overflowY: "auto", // Enable vertical scrolling
+              overflowY: "auto",
               overflowX: "hidden",
               px: 2,
               py: 1,
@@ -279,64 +291,81 @@ const BoardCard = ({
             boxShadow: `0px -2px 6px ${theme.palette.secondary.main}20`,
             borderTop: `1px solid ${theme.palette.secondary.light}`,
             borderRadius: "0 0 20px 20px",
-            flexShrink: 0, // Prevent shrinking
-            minHeight: "100px", // Fixed height for footer
+            flexShrink: 0,
+            minHeight: "100px",
           }}
         >
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-              }}
-              style={{
-                color: theme.palette.primary.main,
-                borderRadius: "20px",
-                textTransform: "none",
-                padding: "8px 16px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "8px",
-                border: `1px solid ${theme.palette.primary.main}20`,
-                background: `${theme.palette.primary.main}10`,
-                cursor: "pointer",
-                pointerEvents: "auto",
-                width: "100%",
-                fontSize: "0.875rem",
-              }}
-            >
-              <Plus size={16} />
-              Añadir Experiencia
-            </button>
+          <Box
+            sx={{
+              background: `linear-gradient(135deg, ${theme.palette.background.paper}90, ${theme.palette.background.paper}70)`,
+              backdropFilter: "blur(20px)",
+              p: 3,
+              borderTop: `1px solid ${theme.palette.divider}40`,
+              borderRadius: "0 0 16px 16px",
+              flexShrink: 0,
+              minHeight: "120px",
+            }}
+          >
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+              {/* Add Experience Button */}
+              <Button
+                variant="contained"
+                startIcon={<Plus size={18} />}
+                onClick={() => onAddExperience?.(boardIndex)}
+                sx={{
+                  borderRadius: 30,
+                  textTransform: "none",
+                  fontWeight: 600,
+                  background: `linear-gradient(135deg, ${theme.palette.primary.main})`,
+                  color: "white",
+                  py: 1.5,
+                  boxShadow: `0 4px 16px ${theme.palette.primary.main}40`,
+                  transition: "all 0.3s ease",
+                  "&:hover": {
+                    background: `linear-gradient(135deg, ${theme.palette.primary.dark})`,
 
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-              }}
-              style={{
-                color: theme.palette.secondary.medium,
-                borderRadius: "20px",
-                textTransform: "none",
-                padding: "8px 16px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "8px",
-                border: `1px solid ${theme.palette.secondary.medium}20`,
-                background: `${theme.palette.secondary.medium}10`,
-                cursor: "pointer",
-                pointerEvents: "auto",
-                width: "100%",
-                fontSize: "0.875rem",
-              }}
-            >
-              <Map size={16} />
-              Ver Mapa
-            </button>
+                    boxShadow: `0 8px 24px ${theme.palette.primary.main}50`,
+                  },
+                }}
+              >
+                Añadir Experiencia
+              </Button>
+
+              <Button
+                variant="outlined"
+                startIcon={<Map size={18} />}
+                onClick={handleMapClick} // ADD: Click handler
+                disabled={
+                  !board.favorites?.some(
+                    (fav) =>
+                      fav?.experienceId?.location?.coordinates?.length === 2
+                  )
+                }
+                sx={{
+                  borderRadius: 30,
+                  textTransform: "none",
+                  fontWeight: 600,
+                  py: 1.5,
+                  background: `${theme.palette.secondary.medium}10`,
+                  borderColor: `${theme.palette.secondary.medium}`,
+                  color: theme.palette.secondary.medium,
+                  transition: "all 0.3s ease",
+                  "&:hover": {
+                    background: `${theme.palette.secondary.main}20`,
+                    borderColor: theme.palette.secondary.main,
+                  },
+                  "&:disabled": {
+                    opacity: 0.5,
+                    cursor: "not-allowed",
+                  },
+                }}
+              >
+                Ver en Mapa
+              </Button>
+            </Box>
           </Box>
         </Box>
       </Box>
-
       {/* Drop zone indicator */}
       {isOver && (
         <Box
@@ -362,21 +391,20 @@ const BoardCard = ({
               color: "white",
               px: 3,
               py: 1,
-              borderRadius: 2,
+              borderRadius: 30,
               boxShadow: 2,
             }}
           >
-            <Typography
-              variant="body1"
-              sx={{
-                fontWeight: "bold",
-              }}
-            >
-              Soltar aquí
-            </Typography>
-          </Box>
+            <Typography variant="body1">Soltar aquí</Typography>
+          </Box>{" "}
         </Box>
-      )}
+      )}{" "}
+      <MapModal
+        open={mapModalOpen}
+        onClose={handleCloseMap}
+        experiences={board.favorites || []}
+        dayTitle={getDayTitle()}
+      />
     </Box>
   );
 };

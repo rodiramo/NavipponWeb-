@@ -289,9 +289,9 @@ const RegionCarousel = () => {
                   </div>
 
                   <div className="relative h-full p-6 text-white flex flex-col">
-                    <div className="flex-1"></div>
+                    <div></div>
 
-                    <div className="h-20 flex items-end">
+                    <div className="h-10 flex items-end mt-0 sm:mt-[100px]">
                       <h3 className="text-2xl sm:text-3xl font-bold leading-tight">
                         {region.name}
                       </h3>

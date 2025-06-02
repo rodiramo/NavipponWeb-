@@ -99,7 +99,7 @@ const Header = ({ isMenuOpen, setIsMenuOpen }) => {
       <Box
         sx={{
           width: isMenuOpen ? 250 : 70,
-          backgroundColor: theme.palette.secondary.dark,
+          backgroundColor: theme.palette.background.nav,
           color: "white",
           transition: "width 0.3s ease-in-out",
           height: "100vh",
