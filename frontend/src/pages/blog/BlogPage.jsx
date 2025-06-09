@@ -20,25 +20,14 @@ import {
   Typography,
   MenuItem,
   useTheme,
-  Select,
-  FormControl,
   IconButton,
   Container,
   Grid,
   Paper,
   Chip,
-  Divider,
   Menu,
 } from "@mui/material";
-import {
-  Close,
-  Sort,
-  PostAdd,
-  PeopleOutlined,
-  TrendingUp,
-  Schedule,
-  Favorite,
-} from "@mui/icons-material";
+import { Close, PostAdd, PeopleOutlined } from "@mui/icons-material";
 
 let isFirstRun = true;
 

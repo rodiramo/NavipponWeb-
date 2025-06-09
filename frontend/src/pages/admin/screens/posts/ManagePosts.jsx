@@ -445,8 +445,8 @@ const ManagePosts = () => {
                         label={cat.title}
                         variant="outlined"
                         sx={{
-                          borderColor: theme.palette.secondary.main,
-                          color: theme.palette.secondary.main,
+                          borderColor: theme.palette.secondary.medium,
+                          color: theme.palette.secondary.medium,
                           fontSize: "0.75rem",
                         }}
                       />

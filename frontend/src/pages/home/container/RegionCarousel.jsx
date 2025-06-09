@@ -257,37 +257,41 @@ const RegionCarousel = () => {
             {regions.map((region, index) => (
               <div key={index} className="px-3">
                 <div
-                  className="group relative overflow-hidden cursor-pointer transition-all duration-500 bg-white/10 backdrop-blur-xl border border-white/20"
+                  className="group relative overflow-hidden cursor-pointer transition-all  bg-white/10 backdrop-blur-xl border border-white/20"
                   onClick={() => handleRegionClick(region.name)}
                   style={{
                     height: "400px",
                     borderRadius: "30rem 30rem 2rem 2rem",
                   }}
                 >
-                  {/* Background Image */}
+                  {/* Background Image with Blur Effect on Hover */}
                   <div
-                    className="absolute inset-0 bg-cover bg-center transition-transform duration-700"
+                    className="absolute inset-0 bg-cover bg-center transition-all group-hover:blur-sm"
                     style={{
                       backgroundImage: `url(${region.image})`,
+                      borderRadius: "30rem 30rem 2rem 2rem",
                     }}
                   >
-                    {/* Dark Blue Overlay instead of black */}
                     <div
-                      className="absolute inset-0"
+                      className="absolute inset-0 transition-all "
                       style={{
+                        borderRadius: "30rem 30rem 2rem 2rem",
                         background:
                           "linear-gradient(to top, rgba(15, 23, 42, 0.9) 0%, rgba(30, 58, 138, 0.7) 50%, transparent 100%)",
                       }}
                     ></div>
+                    <div
+                      style={{
+                        borderRadius: "30rem 30rem 2rem 2rem",
+                      }}
+                      className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all "
+                    ></div>
                   </div>
 
-                  {/* Content Container */}
                   <div className="relative h-full p-6 text-white flex flex-col">
-                    {/* Top spacer to push title to consistent position */}
-                    <div className="flex-1"></div>
+                    <div></div>
 
-                    {/* Fixed title position area */}
-                    <div className="h-20 flex items-end">
+                    <div className="h-10 flex items-end mt-0 sm:mt-[100px]">
                       <h3 className="text-2xl sm:text-3xl font-bold leading-tight">
                         {region.name}
                       </h3>
@@ -295,7 +299,6 @@ const RegionCarousel = () => {
 
                     {/* Content area with fixed height */}
                     <div className="h-32 flex flex-col justify-start">
-                      {/* Description - Always visible on mobile, hover on desktop */}
                       <p className="text-white/90 text-sm sm:text-base leading-relaxed mb-4 sm:opacity-0 sm:group-hover:opacity-100 sm:transform sm:translate-y-2 sm:group-hover:translate-y-0 transition-all duration-300">
                         {region.description}
                       </p>
@@ -335,22 +338,6 @@ const RegionCarousel = () => {
                       </div>
                     </div>
                   </div>
-
-                  {/* Shimmer Effect */}
-                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-                  </div>
-
-                  {/* Bottom Accent Line */}
-                  <div
-                    className="absolute bottom-0 left-0 h-1 transition-all duration-500 group-hover:h-2"
-                    style={{
-                      backgroundColor: theme.palette.secondary.main,
-                      width: "0%",
-                    }}
-                    onMouseEnter={(e) => (e.target.style.width = "100%")}
-                    onMouseLeave={(e) => (e.target.style.width = "0%")}
-                  ></div>
                 </div>
               </div>
             ))}
