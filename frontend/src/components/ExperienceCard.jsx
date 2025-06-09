@@ -96,7 +96,7 @@ const ExperienceCard = ({
     <Box
       className={`rounded-xl overflow-hidden shadow-[rgba(7,_65,_210,_0.1)_0px_9px_30px] ${className}`}
       sx={{
-        backgroundColor: theme.palette.background.alt,
+        background: "rgba(255, 255, 255, 0.1)",
         position: "relative",
         paddingBottom: "20px",
       }}
