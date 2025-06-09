@@ -1,530 +1,711 @@
-import React, { useState, useEffect } from "react";
-import { getUserProfile } from "../../../../services/index/users";
-import ChatBot from "react-simple-chatbot";
-import { ThemeProvider } from "styled-components";
+import React, { useState, useRef, useEffect } from "react";
+import { Send, X, User, Sparkles } from "lucide-react";
 import { useTheme } from "@mui/material";
-import "../../../../css/ChatBot.css";
-import botIcon from "../../../../assets/navippon-icon.png";
-import { AiOutlineClose } from "react-icons/ai";
-const LinkComponent = ({ link, text }) => (
-  <a
-    href={link}
-    target="_blank"
-    rel="noopener noreferrer"
-    style={{ color: "#FF4081", fontWeight: "bold" }}
-  >
-    {text}
-  </a>
-);
+import botIcon from "../../../../assets/botIcon.png";
 
-const ChatWithBot = ({ onClose }) => {
-  const [user, setUser] = useState(null);
+const ModernChatBot = ({ onClose, user }) => {
   const theme = useTheme();
+  const [messages, setMessages] = useState([
+    {
+      id: 1,
+      type: "bot",
+      content: `こんにちは！ ${
+        user?.name ? user.name + "-san" : ""
+      } 🌸 Soy NaviBot, tu asistente personal de viaje para Japón. ¿En qué puedo ayudarte hoy?`,
+      timestamp: new Date(),
+    },
+  ]);
+  const [inputValue, setInputValue] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
+  const messagesEndRef = useRef(null);
+  const inputRef = useRef(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      const inputField = document.querySelector(".rsc-input");
-      if (inputField) {
-        inputField.setAttribute("placeholder", "Escribe un mensaje...");
-        clearInterval(interval);
-      }
-    }, 500); // Check every 500ms until it's found
-  }, []);
+    scrollToBottom();
+  }, [messages]);
 
-  useEffect(() => {
-    const jwt = window.sessionStorage.getItem("jwt");
-    if (jwt) {
-      getUserProfile({ token: jwt })
-        .then((userData) => setUser(userData))
-        .catch((error) => {
-          console.error("Error fetching user profile:", error);
-          setUser(null);
-        });
+  const getBotResponse = (userMessage) => {
+    const message = userMessage.toLowerCase();
+
+    // Saludos
+    if (
+      ["hola", "hi", "hello", "buenas", "konnichiwa"].some((word) =>
+        message.includes(word)
+      )
+    ) {
+      return `¡Konnichiwa! 🌸 ${
+        user?.name ? user.name + "-san," : ""
+      } Soy tu asistente especializado en viajes a Japón. Puedo ayudarte con:
+
+🗓️ Planificación de viaje
+🌤️ Clima y mejores épocas  
+🍜 Gastronomía japonesa
+🚆 Transporte y JR Pass
+🏯 Cultura y tradiciones
+🎎 Festivales y eventos
+🗼 Destinos turísticos
+💰 Presupuesto y dinero
+🛡️ Seguridad y emergencias
+
+¿Qué te gustaría saber?`;
     }
-  }, []);
 
-  const steps = [
-    {
-      id: "1",
-      message: "こんにちは！ ¿En qué puedo ayudarte hoy con respecto a Japón?",
-      trigger: "userInput",
-    },
-    {
-      id: "userInput",
-      user: true,
-      trigger: ({ value }) => {
-        const question = value.toLowerCase();
+    // Clima y estaciones
+    if (
+      [
+        "clima",
+        "tiempo",
+        "temperatura",
+        "estación",
+        "primavera",
+        "verano",
+        "otoño",
+        "invierno",
+      ].some((word) => message.includes(word))
+    ) {
+      return `🌤️ **CLIMA EN JAPÓN:**
 
-        if (["hola", "hi", "hello", "buenas", "saludos"].includes(question)) {
-          return "greetingResponse";
-        }
-        // 🌦️ Clima
-        if (
-          question.includes("clima") ||
-          question.includes("tiempo") ||
-          question.includes("hace frío") ||
-          question.includes("temperatura")
-        )
-          return "climaResponse";
-        // 🍣 Comida
-        if (
-          question.includes("comida") ||
-          question.includes("gastronomía") ||
-          question.includes("qué comer") ||
-          question.includes("platos típicos")
-        )
-          return "comidaResponse";
-        // 🏯 Cultura
-        if (
-          question.includes("cultura") ||
-          question.includes("costumbres") ||
-          question.includes("qué tradiciones hay")
-        )
-          return "culturaResponse";
-        // 🛂 Visa
-        if (
-          question.includes("visa") ||
-          question.includes("necesito visa") ||
-          question.includes("documentos para viajar")
-        )
-          return "visaResponse";
-        if (question.includes("documentación")) return "documentacionResponse";
-        if (question.includes("idioma")) return "idiomaResponse";
-        // 🚆 Transporte
-        if (
-          question.includes("transporte") ||
-          question.includes("cómo moverse") ||
-          question.includes("tren") ||
-          question.includes("jr pass") ||
-          question.includes("pasajes")
-        )
-          return "transporteResponse";
-        if (question.includes("trabajo")) return "trabajoResponse";
-        if (question.includes("mapa")) return "mapaResponse";
-        if (question.includes("floración") || question.includes("sakura"))
-          return "sakuraResponse";
-        // 🏨 Alojamiento
-        if (
-          question.includes("dónde dormir") ||
-          question.includes("alojamiento") ||
-          question.includes("hoteles") ||
-          question.includes("dónde hospedarse")
-        )
-          return "alojamientoResponse";
+🌸 **Primavera (Mar-May):** 10-20°C, sakura, muy popular
+☀️ **Verano (Jun-Aug):** 25-35°C, húmedo, festivales matsuri  
+🍂 **Otoño (Sep-Nov):** 15-25°C, colores increíbles, clima perfecto
+❄️ **Invierno (Dic-Feb):** 0-10°C, nieve, menos turistas
 
-        // 💰 Tarjetas & Dinero
-        if (
-          question.includes("tarjetas") ||
-          question.includes("dinero") ||
-          question.includes("efectivo") ||
-          question.includes("se puede pagar con tarjeta")
-        )
-          return "tarjetasResponse";
-        if (
-          question.includes("festivales") ||
-          question.includes("actividades") ||
-          question.includes("eventos") ||
-          question.includes("celebraciones") ||
-          question.includes("atractivos")
-        )
-          return "festivalesResponse";
-        if (question.includes("propinas")) return "propinasResponse";
-        if (
-          question.includes("es seguro") ||
-          question.includes("seguridad") ||
-          question.includes("delitos") ||
-          question.includes("seguridad en japón")
-        )
-          return "seguridadResponse";
+**Fechas de sakura:**
+• Tokyo: 20 marzo - 10 abril
+• Kyoto: 25 marzo - 15 abril
+• Osaka: 22 marzo - 12 abril
 
-        if (question.includes("wifi") || question.includes("internet"))
-          return "internetResponse";
-        if (question.includes("etiqueta") || question.includes("costumbres"))
-          return "etiquetaResponse";
-        if (
-          question.includes("tokyo") ||
-          question.includes("kyoto") ||
-          question.includes("fuji")
-        )
-          return "atraccionesResponse";
-        if (question.includes("compras") || question.includes("shopping"))
-          return "comprasResponse";
-        if (question.includes("hospital") || question.includes("salud"))
-          return "saludResponse";
-        if (question.includes("emergencia") || question.includes("policía"))
-          return "emergenciaResponse";
-        return "defaultResponse";
-      },
-    },
+¿Te interesa alguna estación en particular?`;
+    }
 
-    // **Greeting Response**
-    {
-      id: "greetingResponse",
-      message:
-        "Konnichiwa! 🌸 Soy tu asistente de viaje para Japón. Puedes preguntarme sobre:\n\n- 🌤️ Clima en diferentes estaciones\n- 🍜 Comida japonesa\n- 🚆 Transporte (Japan Rail Pass, metro, etc.)\n- 🎎 Cultura y costumbres\n- 🎉 Festivales y eventos\n- 🗼 Qué visitar en Tokio, Kioto y más\n\n¡Pregunta lo que quieras! 😊",
-      trigger: "userInput",
-    },
+    // Comida
+    if (
+      ["comida", "gastronomía", "comer", "platos", "sushi", "ramen"].some(
+        (word) => message.includes(word)
+      )
+    ) {
+      return `🍜 **GASTRONOMÍA JAPONESA:**
 
-    // Other responses (same as before)
-    {
-      id: "climaResponse",
-      message: "El clima en Japón varía según la región y la estación.",
-      trigger: "climaLink",
-    },
-    {
-      id: "climaLink",
-      component: (
-        <LinkComponent
-          link="https://www.jma.go.jp/"
-          text="Consulta el clima aquí 🌤️"
-        />
-      ),
-      trigger: "userInput",
-    },
-    {
-      id: "comidaResponse",
-      message:
-        "Algunos platillos recomendados en Japón: 🍣 Sushi, 🍜 Ramen, 🥢 Okonomiyaki. ",
-      trigger: "comidaLink",
-    },
-    {
-      id: "comidaLink",
-      component: (
-        <LinkComponent
-          link="https://www.lonelyplanet.com/japan/food-and-drink"
-          text="Ver más sobre comida japonesa 🍣"
-        />
-      ),
-      trigger: "userInput",
-    },
-    {
-      id: "transporteResponse",
-      message: "Usa el **Japan Rail Pass** para viajar en tren bala 🚅. ",
-      trigger: "transporteLink",
-    },
-    {
-      id: "transporteLink",
-      component: (
-        <LinkComponent
-          link="https://www.japanrailpass.net/"
-          text="Ver información sobre el JR Pass 🚆"
-        />
-      ),
-      trigger: "userInput",
-    },
-    {
-      id: "atraccionesResponse",
-      message:
-        "Lugares turísticos populares:\n🏯 Kyoto: Fushimi Inari, Kinkakuji\n🏙️ Tokio: Shibuya, Akihabara\n🗻 Monte Fuji: Vista desde Kawaguchi. ",
-      trigger: "userInput",
-    },
-    {
-      id: "defaultResponse",
-      message:
-        "Lo siento, no tengo una respuesta para esa pregunta. ¿Puedes preguntar algo más sobre Japón? 😊",
-      trigger: "userInput",
-    },
-    {
-      id: "tarjetasResponse",
-      message:
-        "Es útil llevar efectivo en Japón, pero también puedes usar tarjetas IC.",
-      trigger: "tarjetasLink",
-    },
-    {
-      id: "tarjetasLink",
-      component: (
-        <LinkComponent
-          link="https://www.japanrailpass.net/"
-          text="Ver tarjetas de transporte 🚋"
-        />
-      ),
-      trigger: "userInput",
-    },
+🥢 **Platos imprescindibles:**
+• Sushi & Sashimi 🍣
+• Ramen (Shoyu, Miso, Tonkotsu) 🍜
+• Tempura 🍤
+• Okonomiyaki 🥞
+• Takoyaki 🐙
+• Katsu 🍖
+• Yakitori 🍗
 
-    {
-      id: "propinasResponse",
-      message:
-        "En Japón no se acostumbra dejar propina. El servicio siempre está incluido.",
-      trigger: "userInput",
-    },
+🏪 **Dónde comer:**
+• Konbini (7-Eleven): Comida barata 24/7
+• Restaurantes de cadena: Yoshinoya, Ichiran
+• Mercados: Tsukiji, Kuromon
 
-    {
-      id: "seguridadResponse",
-      message: "Japón es uno de los países más seguros del mundo.",
-      trigger: "userInput",
-    },
-    {
-      id: "alojamientoResponse",
-      message: "Encuentra alojamiento en Japón aquí.",
-      trigger: "alojamientoLink",
-    },
-    {
-      id: "alojamientoLink",
-      component: (
-        <LinkComponent
-          link="https://www.booking.com/"
-          text="Buscar hoteles en Japón 🏨"
-        />
-      ),
-      trigger: "userInput",
-    },
+💰 **Precios:**
+• Konbini: $3-8
+• Restaurante casual: $8-15
+• Restaurante medio: $20-40
 
+¿Quieres saber sobre algún plato específico?`;
+    }
+
+    // Transporte
+    if (
+      ["transporte", "tren", "jr pass", "metro", "shinkansen"].some((word) =>
+        message.includes(word)
+      )
+    ) {
+      return `🚆 **TRANSPORTE EN JAPÓN:**
+
+🎫 **JR PASS:**
+• 7 días: $280 USD
+• 14 días: $450 USD  
+• 21 días: $575 USD
+• Incluye shinkansen (excepto Nozomi)
+• DEBE comprarse antes del viaje
+
+🚄 **Tiempos de viaje:**
+• Tokyo-Kyoto: 2h 15min
+• Tokyo-Osaka: 2h 30min
+• Tokyo-Hiroshima: 4h
+
+🎫 **IC Cards (transporte local):**
+• Suica/Pasmo (Tokyo)
+• Icoca (Osaka/Kyoto)
+• Funciona en todo Japón
+
+¿Necesitas ayuda planificando rutas específicas?`;
+    }
+
+    // Dinero
+    if (
+      ["dinero", "yen", "tarjeta", "efectivo", "atm"].some((word) =>
+        message.includes(word)
+      )
+    ) {
+      return `💰 **DINERO EN JAPÓN:**
+
+💴 **Efectivo es rey:**
+• 80% de lugares solo aceptan efectivo
+• Lleva siempre yenes contigo
+• Billetes: ¥1000, ¥5000, ¥10000
+
+🏧 **Cajeros ATM:**
+• 7-Eleven: Acepta tarjetas extranjeras
+• Japan Post: En oficinas postales
+• Comisión: $3-5 por retiro
+
+💳 **Tarjetas aceptadas en:**
+• Hoteles grandes
+• Tiendas departamentales  
+• Combinis principales
+
+💡 **Recomendación:** Lleva $200-300 en efectivo por semana
+
+¿Necesitas consejos sobre presupuesto diario?`;
+    }
+
+    // Ciudades - Tokyo
+    if (
+      ["tokyo", "tokio", "shibuya", "harajuku", "akihabara"].some((word) =>
+        message.includes(word)
+      )
+    ) {
+      return `🏙️ **TOKYO - LA METRÓPOLIS:**
+
+🎯 **Barrios principales:**
+• Shibuya: Cruce famoso, vida nocturna
+• Harajuku: Moda kawaii, Takeshita Street
+• Akihabara: Electrónicos, anime, manga
+• Ginza: Lujo, compras exclusivas
+• Asakusa: Tradicional, Senso-ji Temple
+
+🗼 **Atracciones top:**
+• Tokyo Skytree (634m)
+• Tokyo Tower
+• Palacio Imperial
+• Mercado Tsukiji Outer
+• TeamLab Borderless
+
+📅 **Itinerario sugerido:**
+**1-2 días:** Shibuya → Harajuku → Asakusa
+**3+ días:** + Akihabara → Ginza → Ueno
+
+¿Te interesa algún barrio específico?`;
+    }
+
+    // Ciudades - Kyoto
+    if (
+      ["kyoto", "kioto", "fushimi", "bamboo", "geisha"].some((word) =>
+        message.includes(word)
+      )
+    ) {
+      return `🏯 **KYOTO - CAPITAL CULTURAL:**
+
+⛩️ **Templos imprescindibles:**
+• Fushimi Inari: 10,000 torii gates
+• Kinkaku-ji: Pabellón Dorado
+• Kiyomizu-dera: Vistas de la ciudad
+• Ginkaku-ji: Pabellón Plateado
+
+🎋 **Barrios especiales:**
+• Gion: Distrito de geishas
+• Arashiyama: Bosque de bambú
+• Pontocho: Callejón de restaurantes
+
+👘 **Experiencias únicas:**
+• Ceremonia del té
+• Vestir kimono
+• Ver maiko/geisha
+
+📅 **Plan 2-3 días:**
+**Día 1:** Fushimi Inari → Gion
+**Día 2:** Arashiyama → Kinkaku-ji
+
+¿Quieres detalles sobre algún templo?`;
+    }
+
+    // Presupuesto
+    if (
+      ["presupuesto", "precio", "costo", "barato", "caro"].some((word) =>
+        message.includes(word)
+      )
+    ) {
+      return `💰 **PRESUPUESTO JAPÓN (por día/persona):**
+
+🏕️ **Mochilero:** $40-60 USD
+• Hostel: $20-30
+• Comida: $15-25  
+• Transporte: $5-10
+
+🏨 **Medio:** $80-150 USD
+• Hotel: $50-80
+• Comida: $25-50
+• Transporte: $10-20
+
+💎 **Alto:** $200+ USD
+• Hotel de lujo: $150+
+• Restaurantes: $50+
+
+💡 **Consejos para ahorrar:**
+• Come en konbinis
+• Hostels y capsule hotels
+• Camina (muy seguro)
+• Day passes de transporte
+
+¿Cuál es tu presupuesto aproximado?`;
+    }
+
+    // Cultura
+    if (
+      ["cultura", "costumbres", "tradiciones", "respeto", "etiqueta"].some(
+        (word) => message.includes(word)
+      )
+    ) {
+      return `🏯 **CULTURA JAPONESA:**
+
+🙇‍♂️ **Etiqueta básica:**
+• Inclínate al saludar
+• Quítate zapatos en casas/templos
+• No hables alto en transporte público
+• No dejes propina (es ofensivo)
+
+🥢 **En restaurantes:**
+• Di "Itadakimasu" antes de comer
+• Di "Gochisousama" después
+• No claves palillos en arroz
+• Está bien sorber fideos
+
+⛩️ **En templos:**
+• Inclínate en la entrada
+• Lávate manos y boca
+• Habla en voz baja
+• Pregunta antes de fotografiar
+
+🎌 **Valores importantes:**
+• Respeto por otros
+• Puntualidad
+• Limpieza
+• Trabajo en equipo
+
+¿Hay alguna situación específica sobre la que tengas dudas?`;
+    }
+
+    // Emergencias
+    if (
+      ["emergencia", "ayuda", "hospital", "policía", "seguridad"].some((word) =>
+        message.includes(word)
+      )
+    ) {
+      return `🚨 **INFORMACIÓN DE EMERGENCIA:**
+
+📞 **Números críticos:**
+• 🚔 Policía: **110**
+• 🚑 Ambulancia: **119**  
+• 🔥 Bomberos: **119**
+
+🌐 **Líneas en inglés:**
+• Japan Hotline: **050-5814-7230**
+• Tourist Hotline: **050-3816-2787**
+
+🛡️ **Seguridad:**
+• Japón es extremadamente seguro
+• Baja criminalidad
+• Caminar solo de noche es normal
+
+🏥 **Hospitales internacionales:**
+• Tokyo: St. Luke's International
+• Osaka: Osaka University Hospital
+
+📱 **Apps útiles:**
+• Safety Tips (terremotos)
+• Google Translate
+
+¿Necesitas información sobre algún tema específico de seguridad?`;
+    }
+
+    // Respuesta por defecto
+    return `🤔 Entiendo que preguntas sobre "${userMessage}". 
+
+Puedo ayudarte con información detallada sobre:
+
+🗾 **Destinos:** Tokyo, Kyoto, Osaka, Hiroshima, Monte Fuji
+🎌 **Cultura:** Etiqueta, tradiciones, templos, festivales  
+🍜 **Comida:** Platos típicos, restaurantes, precios
+🚆 **Transporte:** JR Pass, trenes, metro, buses
+💰 **Dinero:** Presupuesto, cambio, tarjetas, ATMs
+🏨 **Alojamiento:** Hoteles, ryokans, hostels
+🌸 **Estaciones:** Mejor época para viajar, clima
+🛡️ **Seguridad:** Emergencias, hospitales, seguros
+
+¿Podrías ser más específico sobre qué aspecto de Japón te interesa? Por ejemplo:
+• "¿Cuánto cuesta un viaje de 10 días?"
+• "¿Qué ver en Tokyo en 3 días?"
+• "¿Cuál es la mejor época para ver sakura?"`;
+  };
+
+  const handleSendMessage = async () => {
+    if (!inputValue.trim()) return;
+
+    const userMessage = {
+      id: Date.now(),
+      type: "user",
+      content: inputValue,
+      timestamp: new Date(),
+    };
+
+    setMessages((prev) => [...prev, userMessage]);
+    setInputValue("");
+    setIsTyping(true);
+
+    // Simulate typing delay
+    setTimeout(() => {
+      const botResponse = {
+        id: Date.now() + 1,
+        type: "bot",
+        content: getBotResponse(inputValue),
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, botResponse]);
+      setIsTyping(false);
+    }, 1000 + Math.random() * 1000);
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
+
+  const quickActions = [
     {
-      id: "festivalesResponse",
-      message: "Japón tiene increíbles festivales durante todo el año.",
-      trigger: "festivalesLink",
+      label: "🗓️ Planificar viaje",
+      action: "Ayúdame a planificar mi viaje a Japón",
     },
     {
-      id: "festivalesLink",
-      component: (
-        <LinkComponent
-          link="https://www.japan.travel/en/uk/inspiration/6-must-see-festivals/"
-          text="Ver festivales en Japón 🎎"
-        />
-      ),
-      trigger: "userInput",
+      label: "🌸 Mejor época",
+      action: "¿Cuál es la mejor época para viajar a Japón?",
     },
-    {
-      id: "sakuraResponse",
-      message: "La floración de los cerezos es un evento importante en Japón.",
-      trigger: "sakuraLink",
-    },
-    {
-      id: "sakuraLink",
-      component: (
-        <LinkComponent
-          link="https://www.japan-guide.com/sakura/"
-          text="Ver pronóstico de sakura 🌸"
-        />
-      ),
-      trigger: "userInput",
-    },
-    {
-      id: "mapaResponse",
-      message: "Aquí puedes consultar un mapa de Japón.",
-      trigger: "mapaLink",
-    },
-    {
-      id: "mapaLink",
-      component: (
-        <LinkComponent
-          link="https://www.google.com/maps"
-          text="Abrir Google Maps 🗺️"
-        />
-      ),
-      trigger: "userInput",
-    },
-    {
-      id: "trabajoResponse",
-      message: "Consulta ofertas de trabajo en Japón aquí.",
-      trigger: "trabajoLink",
-    },
-    {
-      id: "trabajoLink",
-      component: (
-        <LinkComponent
-          link="https://jobs.gaijinpot.com/"
-          text="Buscar trabajo en Japón 💼"
-        />
-      ),
-      trigger: "userInput",
-    },
-    {
-      id: "transporteResponse",
-      message: "Consulta el Japan Rail Pass para transporte en Japón.",
-      trigger: "transporteLink",
-    },
-    {
-      id: "transporteLink",
-      component: (
-        <LinkComponent
-          link="https://www.japanrailpass.net/"
-          text="Ver información sobre el JR Pass 🚆"
-        />
-      ),
-      trigger: "userInput",
-    },
-    {
-      id: "idiomaResponse",
-      message: "Recomiendo estas herramientas para aprender japonés.",
-      trigger: "idiomaLink",
-    },
-    {
-      id: "idiomaLink",
-      component: (
-        <LinkComponent
-          link="https://www.duolingo.com/"
-          text="Duolingo para aprender japonés 🏯"
-        />
-      ),
-      trigger: "userInput",
-    },
-    {
-      id: "documentacionResponse",
-      message:
-        "Consulta los requisitos de documentación en la página de inmigración.",
-      trigger: "documentacionLink",
-    },
-    {
-      id: "documentacionLink",
-      component: (
-        <LinkComponent
-          link="https://www.moj.go.jp/EN/"
-          text="Ver documentación necesaria 📄"
-        />
-      ),
-      trigger: "userInput",
-    },
-    {
-      id: "visaResponse",
-      message:
-        "Para información sobre visas, consulta la web oficial del gobierno.",
-      trigger: "visaLink",
-    },
-    {
-      id: "visaLink",
-      component: (
-        <LinkComponent
-          link="https://www.mofa.go.jp/j_info/visit/visa/"
-          text="Ver requisitos de visa 🛂"
-        />
-      ),
-      trigger: "userInput",
-    },
-    {
-      id: "culturaResponse",
-      message:
-        "Para más información sobre la cultura japonesa, visita esta web.",
-      trigger: "culturaLink",
-    },
-    {
-      id: "culturaLink",
-      component: (
-        <LinkComponent
-          link="https://www.japan.travel/"
-          text="Explora la cultura japonesa 🏯"
-        />
-      ),
-      trigger: "userInput",
-    }, // 🚨 Emergencias (Police, Ambulance, Fire Department)
-    {
-      id: "emergenciaResponse",
-      message:
-        "En caso de emergencia en Japón, puedes llamar a los siguientes números:",
-      trigger: "emergenciaDetails",
-    },
-    {
-      id: "emergenciaDetails",
-      component: (
-        <ul>
-          <li>
-            🚔 Policía: <strong>110</strong>
-          </li>
-          <li>
-            🚑 Ambulancia: <strong>119</strong>
-          </li>
-          <li>
-            🔥 Bomberos: <strong>119</strong>
-          </li>
-          <li>
-            🌐 Encuentra más información:{" "}
-            <a
-              href="https://www.japan.travel/en/plan/emergency/"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Guía de emergencias en Japón
-            </a>
-          </li>
-        </ul>
-      ),
-      trigger: "userInput",
-    }, // 🏥 Salud (Hospitals & Healthcare)
-    {
-      id: "saludResponse",
-      message:
-        "Si necesitas atención médica en Japón, aquí tienes información útil.",
-      trigger: "saludLink",
-    },
-    {
-      id: "saludLink",
-      component: (
-        <LinkComponent
-          link="https://www.japan.travel/en/plan/hospitals-clinics/"
-          text="Encuentra hospitales y clínicas en Japón 🏥"
-        />
-      ),
-      trigger: "userInput",
-    }, // 🛍️ Compras (Shopping)
-    {
-      id: "comprasResponse",
-      message: "Japón es famoso por sus tiendas y centros comerciales.",
-      trigger: "comprasLink",
-    },
-    {
-      id: "comprasLink",
-      component: (
-        <LinkComponent
-          link="https://www.timeout.com/tokyo/shopping"
-          text="Descubre las mejores zonas de compras en Japón 🛍️"
-        />
-      ),
-      trigger: "userInput",
-    },
+    { label: "💰 Presupuesto", action: "¿Cuánto cuesta un viaje a Japón?" },
+    { label: "🍜 Comida", action: "Cuéntame sobre la comida japonesa" },
   ];
 
-  // Chatbot theme using useTheme() colors
-  const chatbotTheme = {
-    background: theme.palette.background.default,
-    fontFamily: theme.typography.fontFamily,
-
-    headerTitleFont: "Poppins",
-    botBubbleColor: theme.palette.primary.light,
-    botFontColor: theme.palette.secondary.dark,
-    userBubbleColor: theme.palette.secondary.main,
-    userFontColor: theme.palette.primary.contrastText,
+  const handleQuickAction = (action) => {
+    setInputValue(action);
+    inputRef.current?.focus();
   };
 
   return (
     <div
+      className="fixed right-6 bottom-6 w-96 h-[600px] rounded-2xl shadow-2xl border flex flex-col overflow-hidden z-50"
       style={{
-        zIndex: 9999,
-        position: "fixed",
-        right: 30,
-        bottom: 80,
+        backgroundColor: theme.palette.background.default,
+        borderColor:
+          theme.palette.mode === "dark"
+            ? theme.palette.grey[700]
+            : theme.palette.grey[300],
       }}
     >
-      <ThemeProvider theme={chatbotTheme}>
-        {/* Header with Close Button */}
+      {/* Header */}
+      <div
+        className="text-white p-4 flex items-center justify-between"
+        style={{ backgroundColor: theme.palette.primary.main }}
+      >
+        <div className="flex items-center space-x-3">
+          <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+            <img src={botIcon} alt="NaviBot" className="w-6 h-6 rounded-full" />
+          </div>
+          <div>
+            <h3 className="font-bold text-lg">NaviBot 🌸</h3>
+            <p className="text-sm opacity-90">Tu asistente de viajes a Japón</p>
+          </div>
+        </div>
+        <button
+          onClick={onClose}
+          className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition-colors"
+        >
+          <X className="w-5 h-5" />
+        </button>
+      </div>
+
+      {/* Messages Area */}
+      <div
+        className="flex-1 overflow-y-auto p-4 space-y-4"
+        style={{
+          backgroundColor:
+            theme.palette.mode === "dark"
+              ? theme.palette.grey[900]
+              : theme.palette.grey[50],
+        }}
+      >
+        {messages.map((message) => (
+          <div
+            key={message.id}
+            className={`flex ${
+              message.type === "user" ? "justify-end" : "justify-start"
+            }`}
+          >
+            <div
+              className={`flex items-start space-x-2 max-w-[80%] ${
+                message.type === "user"
+                  ? "flex-row-reverse space-x-reverse"
+                  : ""
+              }`}
+            >
+              <div
+                className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0`}
+                style={{
+                  backgroundColor:
+                    message.type === "user"
+                      ? theme.palette.secondary.main
+                      : theme.palette.mode === "dark"
+                      ? theme.palette.grey[700]
+                      : theme.palette.grey[100],
+                  color:
+                    message.type === "user"
+                      ? theme.palette.secondary.contrastText
+                      : theme.palette.primary.main,
+                }}
+              >
+                {message.type === "user" ? (
+                  <User className="w-4 h-4" />
+                ) : (
+                  <img
+                    src={botIcon}
+                    alt="Bot"
+                    className="w-4 h-4 rounded-full"
+                  />
+                )}
+              </div>
+              <div
+                className={`p-3 rounded-2xl shadow-sm ${
+                  message.type === "user"
+                    ? "rounded-br-md"
+                    : "rounded-bl-md border"
+                }`}
+                style={{
+                  backgroundColor:
+                    message.type === "user"
+                      ? theme.palette.secondary.main
+                      : theme.palette.background.paper,
+                  color:
+                    message.type === "user"
+                      ? theme.palette.secondary.contrastText
+                      : theme.palette.text.primary,
+                  borderColor:
+                    theme.palette.mode === "dark"
+                      ? theme.palette.grey[600]
+                      : theme.palette.grey[300],
+                }}
+              >
+                <div className="whitespace-pre-wrap text-sm leading-relaxed">
+                  {message.content}
+                </div>
+                <div
+                  className={`text-xs mt-1 opacity-70`}
+                  style={{
+                    color:
+                      message.type === "user"
+                        ? theme.palette.secondary.contrastText
+                        : theme.palette.text.secondary,
+                  }}
+                >
+                  {message.timestamp.toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+
+        {isTyping && (
+          <div className="flex justify-start">
+            <div className="flex items-start space-x-2 max-w-[80%]">
+              <div
+                className="w-8 h-8 rounded-full flex items-center justify-center"
+                style={{
+                  backgroundColor:
+                    theme.palette.mode === "dark"
+                      ? theme.palette.grey[700]
+                      : theme.palette.grey[100],
+                  color: theme.palette.primary.main,
+                }}
+              >
+                <img src={botIcon} alt="Bot" className="w-4 h-4 rounded-full" />
+              </div>
+              <div
+                className="p-3 rounded-2xl rounded-bl-md shadow-sm border"
+                style={{
+                  backgroundColor: theme.palette.background.paper,
+                  color: theme.palette.text.primary,
+                  borderColor:
+                    theme.palette.mode === "dark"
+                      ? theme.palette.grey[600]
+                      : theme.palette.grey[300],
+                }}
+              >
+                <div className="flex space-x-1">
+                  <div
+                    className="w-2 h-2 rounded-full animate-bounce"
+                    style={{ backgroundColor: theme.palette.text.secondary }}
+                  ></div>
+                  <div
+                    className="w-2 h-2 rounded-full animate-bounce"
+                    style={{
+                      backgroundColor: theme.palette.text.secondary,
+                      animationDelay: "0.1s",
+                    }}
+                  ></div>
+                  <div
+                    className="w-2 h-2 rounded-full animate-bounce"
+                    style={{
+                      backgroundColor: theme.palette.text.secondary,
+                      animationDelay: "0.2s",
+                    }}
+                  ></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* Quick Actions */}
+      {messages.length === 1 && (
         <div
-          className="flex justify-between items-center px-4 py-3"
+          className="p-4 border-t"
           style={{
-            backgroundColor: theme.palette.primary.main,
-            position: "relative",
-            borderRadius: "1rem 1rem 0 0",
-            marginBottom: "-30px",
-            zIndex: 9999,
+            backgroundColor: theme.palette.background.paper,
+            borderColor:
+              theme.palette.mode === "dark"
+                ? theme.palette.grey[600]
+                : theme.palette.grey[300],
           }}
         >
-          <span className="text-white text-bold">Chatea con NaviBot</span>
-          <button
-            onClick={() => onClose()} // Ensure it's a function
-            className="text-white hover:text-gray-300"
+          <div
+            className="text-xs mb-2"
+            style={{ color: theme.palette.text.secondary }}
           >
-            <AiOutlineClose size={20} />
+            Acciones rápidas:
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            {quickActions.map((action, index) => (
+              <button
+                key={index}
+                onClick={() => handleQuickAction(action.action)}
+                className="text-xs p-2 rounded-lg transition-colors text-left"
+                style={{
+                  backgroundColor:
+                    theme.palette.mode === "dark"
+                      ? theme.palette.grey[700]
+                      : theme.palette.grey[100],
+                  color: theme.palette.text.primary,
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.backgroundColor =
+                    theme.palette.mode === "dark"
+                      ? theme.palette.grey[600]
+                      : theme.palette.grey[200];
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.backgroundColor =
+                    theme.palette.mode === "dark"
+                      ? theme.palette.grey[700]
+                      : theme.palette.grey[100];
+                }}
+              >
+                {action.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Input Area */}
+      <div
+        className="p-4 border-t"
+        style={{
+          backgroundColor: theme.palette.background.paper,
+          borderColor:
+            theme.palette.mode === "dark"
+              ? theme.palette.grey[600]
+              : theme.palette.grey[300],
+        }}
+      >
+        <div className="flex items-end space-x-2">
+          <div className="flex-1 relative">
+            <textarea
+              ref={inputRef}
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="Pregúntame sobre Japón..."
+              className="w-full p-3 rounded-xl resize-none focus:outline-none focus:ring-2 focus:border-transparent"
+              rows="1"
+              style={{
+                minHeight: "44px",
+                maxHeight: "120px",
+                backgroundColor:
+                  theme.palette.mode === "dark"
+                    ? theme.palette.grey[800]
+                    : theme.palette.background.default,
+                color: theme.palette.text.primary,
+                border: `1px solid ${
+                  theme.palette.mode === "dark"
+                    ? theme.palette.grey[600]
+                    : theme.palette.grey[300]
+                }`,
+                "--focus-ring-color": theme.palette.primary.main + "50",
+              }}
+              onFocus={(e) => {
+                e.target.style.borderColor = theme.palette.primary.main;
+                e.target.style.boxShadow = `0 0 0 2px ${theme.palette.primary.main}25`;
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor =
+                  theme.palette.mode === "dark"
+                    ? theme.palette.grey[600]
+                    : theme.palette.grey[300];
+                e.target.style.boxShadow = "none";
+              }}
+            />
+          </div>
+          <button
+            onClick={handleSendMessage}
+            disabled={!inputValue.trim()}
+            className="w-11 h-11 text-white rounded-xl flex items-center justify-center transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ backgroundColor: theme.palette.primary.main }}
+            onMouseEnter={(e) => {
+              if (!e.target.disabled) {
+                e.target.style.backgroundColor = theme.palette.primary.dark;
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!e.target.disabled) {
+                e.target.style.backgroundColor = theme.palette.primary.main;
+              }
+            }}
+          >
+            <Send className="w-5 h-5" />
           </button>
         </div>
-
-        {/* Chatbot Component */}
-        <ChatBot
-          steps={steps}
-          botAvatar={botIcon}
-          inputPlaceholder="Escribe un mensaje..."
-          headerTitle=" "
-        />
-      </ThemeProvider>
+        <div
+          className="text-xs mt-2 text-center"
+          style={{ color: theme.palette.text.secondary }}
+        >
+          <Sparkles className="w-3 h-3 inline mr-1" />
+          Presiona Enter para enviar
+        </div>
+      </div>
     </div>
   );
 };
 
-export default ChatWithBot;
+export default ModernChatBot;

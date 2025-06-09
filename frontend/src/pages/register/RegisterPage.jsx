@@ -141,7 +141,15 @@ const RegisterPage = () => {
           <Typography variant="h4" mb={2} textAlign="center">
             Registro
           </Typography>
-          <form onSubmit={handleSubmit(submitHandler)}>
+          <form
+            onSubmit={handleSubmit(submitHandler)}
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
             <TextField
               fullWidth
               margin="normal"
@@ -149,6 +157,7 @@ const RegisterPage = () => {
               type="text"
               sx={{
                 borderRadius: "50px",
+                width: "450px",
                 "& fieldset": { borderRadius: "50px" },
               }}
               {...register("name", { required: "El nombre es requerido" })}
@@ -162,6 +171,7 @@ const RegisterPage = () => {
               type="email"
               sx={{
                 borderRadius: "50px",
+                width: "450px",
                 "& fieldset": { borderRadius: "50px" },
               }}
               {...register("email", { required: "El Email es requerido" })}
@@ -175,6 +185,7 @@ const RegisterPage = () => {
               type={showPassword ? "text" : "password"}
               sx={{
                 borderRadius: "50px",
+                width: "450px",
                 "& fieldset": { borderRadius: "50px" },
               }}
               {...register("password", {
@@ -205,6 +216,7 @@ const RegisterPage = () => {
               label="Confirmar Contraseña: *"
               sx={{
                 borderRadius: "50px",
+                width: "450px",
                 "& fieldset": { borderRadius: "50px" },
               }}
               type={showConfirmPassword ? "text" : "password"}
@@ -235,7 +247,14 @@ const RegisterPage = () => {
               fullWidth
               variant="contained"
               color="primary"
-              sx={{ mt: 3, borderRadius: "50px", padding: "10px" }}
+              sx={{
+                mt: 3,
+                borderRadius: "50px",
+                padding: "10px",
+                width: "200px",
+                textTransform: "none",
+                fontSize: "1rem",
+              }}
               disabled={!isValid || isLoading}
             >
               Registrarse

@@ -36,10 +36,6 @@ const ExperienceDetailSkeleton = () => {
       {/* Related Posts - Always at the Bottom */}
       <Box sx={{ mt: 5, width: "100%" }}>
         <Paper elevation={3} sx={{ borderRadius: 2, p: 3 }}>
-          <Typography variant="h6" sx={{ mb: 2 }}>
-            Publicaciones Relacionadas
-          </Typography>
-
           <Grid container spacing={2}>
             {[...Array(6)].map((_, index) => (
               <Grid key={index} item xs={12} sm={6} lg={4}>

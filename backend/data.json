@@ -1,0 +1,502 @@
+[
+  {
+    "title": "Templo Sensoji",
+    "caption": "El templo budista más antiguo de Tokio en el histórico Asakusa",
+    "body": "Senso-ji es el templo más antiguo de Tokio, fundado en el año 628 d.C. Ubicado en Asakusa, este sitio sagrado atrae a millones de visitantes anualmente. Camina a través de la icónica Puerta Kaminarimon con su enorme linterna roja, explora las tiendas tradicionales a lo largo de la calle Nakamise-dori y experimenta la auténtica cultura de los templos japoneses. El templo es especialmente hermoso durante la temporada de sakura y los festivales tradicionales.",
+    "categories": "Atractivos",
+    "slug": "templo-senso-ji-tokyo-asakusa",
+    "region": "Kanto",
+    "prefecture": "Tokyo",
+    "price": 0,
+    "approved": true,
+    "generalTags": {
+      "season": ["Todo el año"],
+      "budget": ["Gratis"],
+      "location": ["Cerca de estaciones de tren o metro"]
+    },
+    "attractionTags": ["Templo Budista", "Monumento", "Shopping"],
+    "hotelTags": {
+      "accommodations": [],
+      "hotelServices": [],
+      "typeTrip": []
+    },
+    "restaurantTags": {
+      "restaurantTypes": [],
+      "cuisines": [],
+      "restaurantServices": []
+    },
+    "location": {
+      "type": "Point",
+      "coordinates": [139.7967, 35.7148]
+    },
+    "phone": "+81-3-3842-0181",
+    "email": "info@senso-ji.jp",
+    "website": "https://www.senso-ji.jp/",
+    "address": "2-3-1 Asakusa, Taito City, Tokyo 111-0032",
+    "schedule": "6:00 AM - 5:00 PM (Abril-Septiembre), 6:30 AM - 5:00 PM (Octubre-Marzo)",
+    "map": "https://maps.app.goo.gl/Senso-ji-Temple",
+    "rating": [4.5],
+    "ratings": 4.5,
+    "numReviews": 15420
+  },
+  {
+    "title": "TeamLab Borderless",
+    "slug": "teamlab-borderless-tokyo-odaiba",
+
+    "caption": "Museo de arte digital con exhibiciones interactivas inmersivas",
+    "body": "TeamLab Borderless es un museo de arte digital revolucionario en Odaiba que cuenta con más de 520 computadoras y 470 proyectores. Experimenta instalaciones de arte sin fronteras que responden a tu presencia, creando interacciones únicas. El museo presenta mundos flotantes, cuevas de cristal y bosques atléticos. Reserva entradas con mucha anticipación ya que esta popular atracción se agota frecuentemente.",
+    "categories": "Atractivos",
+    "region": "Kanto",
+    "prefecture": "Tokyo",
+    "price": 3200,
+    "approved": true,
+    "generalTags": {
+      "season": ["Todo el año"],
+      "budget": ["Moderado"],
+      "location": ["Cerca de estaciones de tren o metro"]
+    },
+    "attractionTags": ["Tecnología", "Museo", "Ocio"],
+    "hotelTags": {
+      "accommodations": [],
+      "hotelServices": [],
+      "typeTrip": []
+    },
+    "restaurantTags": {
+      "restaurantTypes": [],
+      "cuisines": [],
+      "restaurantServices": []
+    },
+    "location": {
+      "type": "Point",
+      "coordinates": [139.7753, 35.625]
+    },
+    "phone": "+81-3-6406-3949",
+    "email": "info@teamlab.art",
+    "website": "https://borderless.teamlab.art/",
+    "address": "1-3-8 Ariake, Koto City, Tokyo 135-0063",
+    "schedule": "10:00 AM - 7:00 PM (Cerrado los martes)",
+    "map": "https://maps.app.goo.gl/TeamLab-Borderless",
+    "rating": [4.7],
+    "ratings": 4.7,
+    "numReviews": 8934
+  },
+  {
+    "title": "Shibuya Crossing",
+    "caption": "El cruce peatonal más famoso del mundo en el corazón de Tokio",
+    "body": "Shibuya Crossing es conocido como 'el Times Square de Tokio' y es uno de los cruces peatonales más transitados del mundo. Miles de personas cruzan simultáneamente desde todas las direcciones, creando un espectáculo urbano fascinante. Observa desde el Starbucks del segundo piso del edificio Tsutaya o desde el mirador del Shibuya Sky. El área está llena de tiendas, restaurantes y la famosa estatua de Hachiko.",
+    "categories": "Atractivos",
+    "slug": "shibuya-crossing-tokyo-intersection",
+
+    "region": "Kanto",
+    "prefecture": "Tokyo",
+    "price": 0,
+    "approved": true,
+    "generalTags": {
+      "season": ["Todo el año"],
+      "budget": ["Gratis"],
+      "location": ["Cerca de estaciones de tren o metro"]
+    },
+    "attractionTags": ["Ocio", "Shopping", "Noche"],
+    "hotelTags": {
+      "accommodations": [],
+      "hotelServices": [],
+      "typeTrip": []
+    },
+    "restaurantTags": {
+      "restaurantTypes": [],
+      "cuisines": [],
+      "restaurantServices": []
+    },
+    "location": {
+      "type": "Point",
+      "coordinates": [139.7016, 35.6598]
+    },
+    "website": "https://www.shibuya-crossing.com/",
+    "address": "Shibuya City, Tokyo",
+    "schedule": "24 horas",
+    "map": "https://maps.app.goo.gl/Shibuya-Crossing",
+    "rating": [4.2],
+    "ratings": 4.2,
+    "numReviews": 9876
+  },
+  {
+    "title": "Santuario Fushimi Inari",
+    "caption": "Famoso santuario con miles de puertas torii rojas",
+    "body": "Fushimi Inari Taisha es famoso por sus miles de puertas torii rojas que crean túneles hacia la cima del Monte Inari. Este santuario sintoísta está dedicado a Inari, el dios del arroz y la prosperidad. La caminata completa hasta la cumbre toma 2-3 horas, pero puedes regresar en cualquier momento. Visita temprano en la mañana o al atardecer para mejor iluminación y menos multitudes. El santuario es especialmente impresionante durante la temporada de follaje otoñal.",
+    "categories": "Atractivos",
+    "slug": "santuario-fushimi-inari-kyoto-torii",
+
+    "region": "Kansai",
+    "prefecture": "Kyoto",
+    "price": 0,
+    "approved": true,
+    "generalTags": {
+      "season": ["Todo el año"],
+      "budget": ["Gratis"],
+      "location": ["Cerca de estaciones de tren o metro"]
+    },
+    "attractionTags": ["Templo Sintoísta", "Naturaleza", "Monumento"],
+    "hotelTags": {
+      "accommodations": [],
+      "hotelServices": [],
+      "typeTrip": []
+    },
+    "restaurantTags": {
+      "restaurantTypes": [],
+      "cuisines": [],
+      "restaurantServices": []
+    },
+    "location": {
+      "type": "Point",
+      "coordinates": [135.7726, 34.9671]
+    },
+    "phone": "+81-75-641-7331",
+    "email": "info@inari.jp",
+    "website": "http://inari.jp/",
+    "address": "68 Fukakusa Yabunouchicho, Fushimi Ward, Kyoto 612-0882",
+    "schedule": "24 horas (terrenos del santuario), Oficina: 8:30 AM - 4:30 PM",
+    "map": "https://maps.app.goo.gl/Fushimi-Inari",
+    "rating": [4.6],
+    "ratings": 4.6,
+    "numReviews": 21543
+  },
+  {
+    "title": "Bosque de Bambú de Arashiyama",
+    "caption": "Encantador bosque de bambú que crea túneles verdes naturales",
+    "body": "El Bosque de Bambú de Arashiyama crea una experiencia de otro mundo mientras la luz del sol se filtra a través de altos tallos de bambú. Esta maravilla natural es uno de los lugares más fotografiados de Japón. El sendero se extiende por unos 500 metros y es parte de un complejo más grande que incluye el Templo Tenryu-ji. Visita temprano en la mañana para tranquilidad pacífica o al atardecer para iluminación mágica. El sonido del viento a través del bambú ha sido designado como uno de los '100 Paisajes Sonoros' de Japón.",
+    "categories": "Atractivos",
+    "slug": "bosque-bambu-arashiyama-kyoto",
+
+    "region": "Kansai",
+    "prefecture": "Kyoto",
+    "price": 0,
+    "approved": true,
+    "generalTags": {
+      "season": ["Todo el año"],
+      "budget": ["Gratis"],
+      "location": ["Cerca de estaciones de tren o metro"]
+    },
+    "attractionTags": ["Naturaleza", "Monumento"],
+    "hotelTags": {
+      "accommodations": [],
+      "hotelServices": [],
+      "typeTrip": []
+    },
+    "restaurantTags": {
+      "restaurantTypes": [],
+      "cuisines": [],
+      "restaurantServices": []
+    },
+    "location": {
+      "type": "Point",
+      "coordinates": [135.6684, 35.017]
+    },
+    "email": "info@arashiyama-kyoto.com",
+    "website": "https://www.arashiyama-kyoto.com/",
+    "address": "Arashiyama, Ukyo Ward, Kyoto 616-8394",
+    "schedule": "24 horas",
+    "map": "https://maps.app.goo.gl/Arashiyama-Bamboo",
+    "rating": [4.4],
+    "ratings": 4.4,
+    "numReviews": 12876
+  },
+  {
+    "title": "Daruma Kushikatsu",
+    "caption": "Icónico restaurante de kushikatsu desde 1929",
+    "body": "Daruma es el restaurante de kushikatsu (brochetas fritas) más famoso de Osaka, establecido en 1929. Ubicado en el vibrante distrito de Shinsekai, esta institución local sirve brochetas crujientes fritas de carne, mariscos y vegetales. ¡Recuerda la regla de oro: no mojar dos veces en la salsa! El restaurante mantiene su ambiente retro de la era Showa con decoraciones vintage y la icónica mascota Billiken. Prueba su kushikatsu de res característico y no te pierdas las especialidades de temporada.",
+    "categories": "Restaurantes",
+    "slug": "daruma-kushikatsu-osaka-shinsekai",
+
+    "region": "Kansai",
+    "prefecture": "Osaka",
+    "price": 1500,
+    "approved": true,
+    "generalTags": {
+      "season": ["Todo el año"],
+      "budget": ["Económico"],
+      "location": ["Cerca de estaciones de tren o metro"]
+    },
+    "attractionTags": [],
+    "hotelTags": {
+      "accommodations": [],
+      "hotelServices": [],
+      "typeTrip": []
+    },
+    "restaurantTags": {
+      "restaurantTypes": ["Restaurantes tradicionales"],
+      "cuisines": ["Cocina japonesa tradicional", "Rápida"],
+      "restaurantServices": ["Opciones de comida para llevar"]
+    },
+    "location": {
+      "type": "Point",
+      "coordinates": [135.5054, 34.6524]
+    },
+    "phone": "+81-6-6645-7056",
+    "email": "info@daruma.co.jp",
+    "website": "https://www.daruma.co.jp/",
+    "address": "2-3-9 Shinsekai, Naniwa Ward, Osaka 556-0002",
+    "schedule": "11:00 AM - 11:00 PM",
+    "map": "https://maps.app.goo.gl/Daruma-Kushikatsu",
+    "rating": [4.3],
+    "ratings": 4.3,
+    "numReviews": 3247
+  },
+  {
+    "title": "The Ritz-Carlton Tokyo",
+    "caption": "Hotel de lujo en los pisos superiores de Tokyo Midtown",
+    "body": "The Ritz-Carlton Tokyo ocupa los pisos 45-53 de la torre Tokyo Midtown, ofreciendo vistas impresionantes de la ciudad y del Monte Fuji. Este hotel ultra-lujoso cuenta con habitaciones espaciosas con ventanas del piso al techo, restaurantes con estrellas Michelin y un servicio excepcional. La ubicación del hotel en Roppongi proporciona fácil acceso a galerías de arte, tiendas y vida nocturna. Las comodidades incluyen un spa, centro de fitness y acceso exclusivo al Club Level.",
+    "categories": "Hoteles",
+    "slug": "okonomiyak-mizuno-osaka-dotonbori",
+
+    "region": "Kanto",
+    "prefecture": "Tokyo",
+    "price": 85000,
+    "approved": true,
+    "generalTags": {
+      "season": ["Todo el año"],
+      "budget": ["Lujo"],
+      "location": [
+        "Cerca de estaciones de tren o metro",
+        "Cerca de áreas de puntos de interés"
+      ]
+    },
+    "attractionTags": [],
+    "hotelTags": {
+      "accommodations": ["Hoteles de lujo"],
+      "hotelServices": [
+        "Wi-Fi gratis",
+        "Gimnasio",
+        "Restaurante en el hotel",
+        "Transporte al aeropuerto"
+      ],
+      "typeTrip": ["De negocios", "Luna de miel"]
+    },
+    "restaurantTags": {
+      "restaurantTypes": [],
+      "cuisines": [],
+      "restaurantServices": []
+    },
+    "location": {
+      "type": "Point",
+      "coordinates": [139.7319, 35.6654]
+    },
+    "phone": "+81-3-3423-8000",
+    "email": "reservations@ritzcarlton.com",
+    "website": "https://www.ritzcarlton.com/tokyo/",
+    "address": "9-7-1 Akasaka, Minato City, Tokyo 107-6245",
+    "schedule": "Check-in: 3:00 PM, Check-out: 12:00 PM",
+    "map": "https://maps.app.goo.gl/Ritz-Carlton-Tokyo",
+    "rating": [4.8],
+    "ratings": 4.8,
+    "numReviews": 2341
+  },
+  {
+    "title": "Okonomiyaki Mizuno",
+    "caption": "Restaurante tradicional de okonomiyaki en el corazón de Dotonbori",
+    "slug": "okonomiyaki-mizuno-osaka-dotonbori",
+    "body": "Establecido en 1945, Mizuno es uno de los restaurantes de okonomiyaki más queridos de Osaka. Ubicado en el bullicioso distrito de Dotonbori, este establecimiento familiar sirve auténtico okonomiyaki estilo Osaka (panqueques salados) cocinados frescos en la plancha teppan. El restaurante mantiene recetas tradicionales transmitidas a través de generaciones. Prueba su okonomiyaki característico de cerdo y mariscos, y observa a los hábiles chefs preparar tu comida justo frente a tus ojos.",
+    "categories": "Restaurantes",
+    "region": "Kansai",
+    "prefecture": "Osaka",
+    "price": 1200,
+    "approved": true,
+    "generalTags": {
+      "season": ["Todo el año"],
+      "budget": ["Económico"],
+      "location": ["Cerca de áreas de puntos de interés"]
+    },
+    "attractionTags": [],
+    "hotelTags": {
+      "accommodations": [],
+      "hotelServices": [],
+      "typeTrip": []
+    },
+    "restaurantTags": {
+      "restaurantTypes": ["Restaurantes tradicionales"],
+      "cuisines": ["Cocina japonesa tradicional", "Familiar"],
+      "restaurantServices": ["Menú en inglés"]
+    },
+    "location": {
+      "type": "Point",
+      "coordinates": [135.5023, 34.6687]
+    },
+    "phone": "+81-6-6212-6360",
+    "email": "reservas@mizuno-osaka.jp",
+    "address": "1-4-15 Dotonbori, Chuo Ward, Osaka 542-0071",
+    "schedule": "5:00 PM - 12:00 AM (Cerrado domingos)",
+    "map": "https://maps.app.goo.gl/Mizuno-Okonomiyaki",
+    "rating": [4.5],
+    "ratings": 4.5,
+    "numReviews": 1876
+  },
+  {
+    "title": "Ramen Yashichi",
+    "caption": "Auténtico ramen tonkotsu en un pequeño local tradicional",
+    "slug": "ramen-yashichi-osaka-tonkotsu",
+    "body": "Yashichi es un pequeño restaurante de ramen que sirve el mejor tonkotsu ramen de Osaka. Con solo 8 asientos en la barra, este lugar íntimo ofrece una experiencia auténtica japonesa. El caldo se cocina durante 20 horas para lograr la consistencia cremosa perfecta. El chef prepara cada tazón individualmente con fideos frescos, chashu tierno y vegetales crujientes. Popular entre locales y conocedores del ramen.",
+    "categories": "Restaurantes",
+    "region": "Kansai",
+    "prefecture": "Osaka",
+    "price": 900,
+    "approved": true,
+    "generalTags": {
+      "season": ["Todo el año"],
+      "budget": ["Económico"],
+      "location": ["Cerca de estaciones de tren o metro"]
+    },
+    "attractionTags": [],
+    "hotelTags": {
+      "accommodations": [],
+      "hotelServices": [],
+      "typeTrip": []
+    },
+    "restaurantTags": {
+      "restaurantTypes": ["Ramen"],
+      "cuisines": ["Cocina japonesa tradicional", "Rápida"],
+      "restaurantServices": ["Opciones de comida para llevar"]
+    },
+    "location": {
+      "type": "Point",
+      "coordinates": [135.496, 34.6681]
+    },
+    "phone": "+81-6-6634-2951",
+    "address": "3-2-15 Nanba, Chuo Ward, Osaka 542-0076",
+    "schedule": "11:30 AM - 2:30 PM, 6:00 PM - 11:00 PM (Cerrado miércoles)",
+    "map": "https://maps.app.goo.gl/Ramen-Yashichi",
+    "rating": [4.6],
+    "ratings": 4.6,
+    "numReviews": 892
+  },
+  {
+    "title": "The Ritz-Carlton Tokyo",
+    "caption": "Hotel de lujo en los pisos superiores de Tokyo Midtown",
+    "slug": "ritz-carlton-tokyo-luxury-hotel",
+    "body": "The Ritz-Carlton Tokyo ocupa los pisos 45-53 de la torre Tokyo Midtown, ofreciendo vistas impresionantes de la ciudad y del Monte Fuji. Este hotel ultra-lujoso cuenta con habitaciones espaciosas con ventanas del piso al techo, restaurantes con estrellas Michelin y un servicio excepcional. La ubicación del hotel en Roppongi proporciona fácil acceso a galerías de arte, tiendas y vida nocturna. Las comodidades incluyen un spa, centro de fitness y acceso exclusivo al Club Level.",
+    "categories": "Hoteles",
+    "region": "Kanto",
+    "prefecture": "Tokyo",
+    "price": 85000,
+    "approved": true,
+    "generalTags": {
+      "season": ["Todo el año"],
+      "budget": ["Lujo"],
+      "location": [
+        "Cerca de estaciones de tren o metro",
+        "Cerca de áreas de puntos de interés"
+      ]
+    },
+    "attractionTags": [],
+    "hotelTags": {
+      "accommodations": ["Hoteles de lujo"],
+      "hotelServices": [
+        "Wi-Fi gratis",
+        "Gimnasio",
+        "Restaurante en el hotel",
+        "Transporte al aeropuerto"
+      ],
+      "typeTrip": ["De negocios", "Luna de miel"]
+    },
+    "restaurantTags": {
+      "restaurantTypes": [],
+      "cuisines": [],
+      "restaurantServices": []
+    },
+    "location": {
+      "type": "Point",
+      "coordinates": [139.7319, 35.6654]
+    },
+    "phone": "+81-3-3423-8000",
+    "email": "reservations@ritzcarlton.com",
+    "website": "https://www.ritzcarlton.com/tokyo/",
+    "address": "9-7-1 Akasaka, Minato City, Tokyo 107-6245",
+    "schedule": "Check-in: 3:00 PM, Check-out: 12:00 PM",
+    "map": "https://maps.app.goo.gl/Ritz-Carlton-Tokyo",
+    "rating": [4.8],
+    "ratings": 4.8,
+    "numReviews": 2341
+  },
+  {
+    "title": "Hoshinoya Tokyo",
+    "caption": "Ryokan moderno en el corazón de Tokio",
+    "slug": "hoshinoya-tokyo-urban-ryokan",
+    "body": "Hoshinoya Tokyo es un innovador ryokan urbano que combina la hospitalidad tradicional japonesa con el lujo moderno. Ubicado en el distrito financiero de Otemachi, ofrece una experiencia única de ryokan en la ciudad. Cada habitación está diseñada como una casa tradicional japonesa con tatami, futon y vistas a jardines privados. Incluye onsen en la azotea, kaiseki en el restaurante del hotel y ceremonias de té tradicionales.",
+    "categories": "Hoteles",
+    "region": "Kanto",
+    "prefecture": "Tokyo",
+    "price": 65000,
+    "approved": true,
+    "generalTags": {
+      "season": ["Todo el año"],
+      "budget": ["Lujo"],
+      "location": ["Cerca de estaciones de tren o metro"]
+    },
+    "attractionTags": [],
+    "hotelTags": {
+      "accommodations": ["Ryokan (tradicional)"],
+      "hotelServices": [
+        "Wi-Fi gratis",
+        "Restaurante en el hotel",
+        "Aguas Termales"
+      ],
+      "typeTrip": ["Luna de miel", "Para aventureros"]
+    },
+    "restaurantTags": {
+      "restaurantTypes": [],
+      "cuisines": [],
+      "restaurantServices": []
+    },
+    "location": {
+      "type": "Point",
+      "coordinates": [139.764, 35.6895]
+    },
+    "phone": "+81-3-3211-4600",
+    "email": "reservations@hoshinoyatokyo.com",
+    "website": "https://hoshinoya.com/tokyo/",
+    "address": "1-9-1 Otemachi, Chiyoda City, Tokyo 100-0004",
+    "schedule": "Check-in: 3:00 PM, Check-out: 12:00 PM",
+    "map": "https://maps.app.goo.gl/Hoshinoya-Tokyo",
+    "rating": [4.7],
+    "ratings": 4.7,
+    "numReviews": 1543
+  },
+  {
+    "title": "Capsule Hotel Anshin Oyado",
+    "caption": "Hotel cápsula moderno con todas las comodidades",
+    "slug": "capsule-hotel-anshin-oyado-tokyo",
+    "body": "Anshin Oyado es un hotel cápsula premium que ofrece una experiencia japonesa única a precio accesible. Cada cápsula cuenta con TV personal, Wi-Fi gratuito, toma de corriente y espacio de almacenamiento. Las instalaciones incluyen baños públicos estilo onsen, área de relajación, máquinas expendedoras y armarios de seguridad. Ubicado cerca de la estación de Shimbashi, es perfecto para explorar tanto el Tokio tradicional como el moderno.",
+    "categories": "Hoteles",
+    "region": "Kanto",
+    "prefecture": "Tokyo",
+    "price": 4500,
+    "approved": true,
+    "generalTags": {
+      "season": ["Todo el año"],
+      "budget": ["Económico"],
+      "location": ["Cerca de estaciones de tren o metro"]
+    },
+    "attractionTags": [],
+    "hotelTags": {
+      "accommodations": ["Hoteles cápsula"],
+      "hotelServices": ["Wi-Fi gratis"],
+      "typeTrip": ["Amigable para mochileros", "De negocios"]
+    },
+    "restaurantTags": {
+      "restaurantTypes": [],
+      "cuisines": [],
+      "restaurantServices": []
+    },
+    "location": {
+      "type": "Point",
+      "coordinates": [139.7583, 35.6687]
+    },
+    "phone": "+81-3-3572-4131",
+    "email": "info@anshin-oyado.jp",
+    "website": "https://www.anshin-oyado.jp/",
+    "address": "2-1-3 Shimbashi, Minato City, Tokyo 105-0004",
+    "schedule": "Check-in: 4:00 PM, Check-out: 10:00 AM",
+    "map": "https://maps.app.goo.gl/Anshin-Oyado",
+    "rating": [4.1],
+    "ratings": 4.1,
+    "numReviews": 876
+  }
+]

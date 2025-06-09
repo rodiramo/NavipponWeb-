@@ -3,11 +3,12 @@ import { useSelector } from "react-redux";
 import {
   useTheme,
   Typography,
-  Select,
+  Box,
+  IconButton,
+  Menu,
   MenuItem,
-  FormControl,
-  InputLabel,
 } from "@mui/material";
+import { ArrowDownWideNarrow } from "lucide-react";
 import PropTypes from "prop-types";
 import Review from "./Review";
 import ReviewForm from "./ReviewForm";
@@ -28,14 +29,23 @@ const ReviewsContainer = ({
   experienceSlug,
 }) => {
   const queryClient = useQueryClient();
-  const [sortOption, setSortOption] = useState("date-reciente");
+  const [sortOption, setSortOption] = useState("fecha-reciente");
+  const [anchorEl, setAnchorEl] = useState(null);
   const { user, jwt } = useUser();
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [allReviews, setAllReviews] = useState(reviews);
   const [affectedReview, setAffectedReview] = useState(null);
   const theme = useTheme();
-  // Sort reviews based on the selected option
 
+  // Sorting options
+  const sortingOptions = [
+    { value: "fecha-reciente", label: "Fecha Reciente" },
+    { value: "fecha-antigua", label: "Fecha más Antigua" },
+    { value: "best-rating", label: "Mejores Calificaciones" },
+    { value: "worst-rating", label: "Peores Calificaciones" },
+  ];
+
+  // Sort reviews based on the selected option
   const sortReviews = (option, reviews) => {
     if (option === "fecha-reciente") {
       return reviews.sort(
@@ -51,6 +61,17 @@ const ReviewsContainer = ({
       return reviews.sort((a, b) => a.rating - b.rating);
     }
     return reviews;
+  };
+
+  // Handle sort button click
+  const handleSortClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  // Handle sort option selection
+  const handleSortSelection = (value) => {
+    setSortOption(value);
+    setAnchorEl(null);
   };
 
   // Calculate average rating
@@ -151,12 +172,12 @@ const ReviewsContainer = ({
   const deleteReviewHandler = (reviewId) => {
     mutateDeleteReview({ token: jwt, reviewId });
   };
+
   // Sort the reviews based on the selected sort option
   const sortedReviews = sortReviews(sortOption, [...allReviews]);
 
   return (
     <div className={`${className}`}>
-      {" "}
       {/* Header with Button and Sorting Dropdown */}
       <div
         style={{
@@ -188,52 +209,81 @@ const ReviewsContainer = ({
           loading={isLoadingNewReview}
         />
       )}
-      <div
-        style={{
-          display: "flex",
-          alignContent: "flex-end",
-          justifyContent: "space-between",
-          margin: "2rem 0rem",
-        }}
-      >
-        <div>
-          <Typography
-            variant="p"
-            gutterBottom
-            style={{
-              color: theme.palette.secondary.main,
-            }}
-          >
-            Promedio de Calificación
-          </Typography>
-          <div
-            style={{
-              color: theme.palette.primary.main,
-            }}
-          >
-            <Typography variant="h2">{averageRating.toFixed(1)} / 5</Typography>{" "}
-            <StarIcon rating={averageRating} size={30} /> {/* Display stars */}
+      {sortedReviews.length > 0 && (
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "flex-end",
+            justifyContent: "space-between",
+            mb: 3,
+          }}
+        >
+          <Box>
+            <Typography
+              variant="body1"
+              gutterBottom
+              sx={{ color: theme.palette.secondary.medium }}
+            >
+              Promedio de Calificación
+            </Typography>
+            <Box
+              sx={{
+                color: theme.palette.primary.main,
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              <Typography variant="h2">
+                {averageRating.toFixed(1)} / 5
+              </Typography>
+              <StarIcon rating={averageRating} size={30} />
+            </Box>
+          </Box>
+
+          {/* Sort Dropdown */}
+          <div className="flex items-center gap-2">
+            <Typography
+              variant="body2"
+              className="text-gray-600 hidden sm:block"
+            >
+              Ordenar por:
+            </Typography>
+            <IconButton
+              onClick={handleSortClick}
+              sx={{
+                border: `1px solid ${theme.palette.primary.main}`,
+                borderRadius: "30px",
+                padding: "8px",
+              }}
+            >
+              <ArrowDownWideNarrow
+                size={20}
+                color={theme.palette.primary.main}
+              />
+            </IconButton>
+
+            <Menu
+              anchorEl={anchorEl}
+              open={Boolean(anchorEl)}
+              onClose={() => setAnchorEl(null)}
+            >
+              {sortingOptions.map((option) => (
+                <MenuItem
+                  key={option.value}
+                  onClick={() => handleSortSelection(option.value)}
+                  sx={{
+                    fontSize: "0.875rem",
+                    padding: "12px 20px",
+                  }}
+                >
+                  {option.label}
+                </MenuItem>
+              ))}
+            </Menu>
           </div>
-        </div>
-        <FormControl>
-          <InputLabel>Ordenar por</InputLabel>
-          <Select
-            value={sortOption}
-            onChange={(e) => setSortOption(e.target.value)}
-            label="Ordenar por"
-            style={{
-              minWidth: 160,
-              borderRadius: "30rem",
-              backgroundColor: theme.palette.primary.white,
-            }}
-          >
-            <MenuItem value="fecha-reciente">Fecha Reciente</MenuItem>
-            <MenuItem value="fecha-antigua">Fecha más Antigua</MenuItem>
-            <MenuItem value="best-rating">Mejores Calificaciones</MenuItem>
-            <MenuItem value="worst-rating">Peores Calificaciones</MenuItem>
-          </Select>
-        </FormControl>
-      </div>{" "}
+        </Box>
+      )}
+
       {/* Reviews List */}
       <div
         className="space-y-4 mt-8"
@@ -242,6 +292,8 @@ const ReviewsContainer = ({
           flexDirection: "column",
           alignContent: "center",
           alignItems: "center",
+          marginBottom: "60px",
+          marginTop: "20px",
         }}
       >
         {sortedReviews.length > 0 ? (
@@ -260,16 +312,42 @@ const ReviewsContainer = ({
             />
           ))
         ) : (
-          <Typography
-            variant="h6"
-            style={{
-              textAlign: "center",
-              marginTop: "20px",
-              color: theme.palette.secondary.main,
-            }}
+          <Box
+            display="flex"
+            flexDirection="column"
+            justifyContent="center"
+            alignContent="center"
+            alignItems="center"
           >
-            No hay reseñas aún. ¡Sé el primero en escribir una!
-          </Typography>
+            <img
+              src="/assets/nothing-here.png"
+              alt="nothing-here"
+              style={{ width: "35%", marginRight: "1rem" }}
+            />
+            <Typography
+              variant="h6"
+              style={{
+                textAlign: "center",
+                marginBottom: "20px",
+                marginTop: "20px",
+                color: theme.palette.secondary.medium,
+              }}
+            >
+              No hay reseñas aún. ¡Sé el primero en escribir una!
+            </Typography>
+            <button
+              className="py-2 px-4"
+              style={{
+                background: theme.palette.primary.main,
+                color: theme.palette.primary.white,
+                borderRadius: "30rem",
+                marginBottom: "50px",
+              }}
+              onClick={() => setShowReviewForm(!showReviewForm)}
+            >
+              {showReviewForm ? "Cancelar" : "Escribir Reseña"}
+            </button>
+          </Box>
         )}
       </div>
     </div>

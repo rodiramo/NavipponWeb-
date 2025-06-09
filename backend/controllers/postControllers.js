@@ -202,10 +202,19 @@ const getPost = async (req, res, next) => {
 const getAllPosts = async (req, res, next) => {
   try {
     const filter = req.query.searchKeyword;
+    const sortBy = req.query.sortBy;  
     let where = {};
     if (filter) {
       where.title = { $regex: filter, $options: "i" };
     }
+
+    // Lógica de ordenamiento según sortBy
+    let sort = { updatedAt: -1 }; // Por defecto: más recientes
+    if (sortBy === "newest") sort = { createdAt: -1 };
+    else if (sortBy === "oldest") sort = { createdAt: 1 };
+    else if (sortBy === "most-popular") sort = { likesCount: -1 };
+    else if (sortBy === "least-popular") sort = { likesCount: 1 };
+
     let query = Post.find(where);
     const page = parseInt(req.query.page) || 1;
     const pageSize = parseInt(req.query.limit) || 10;
@@ -238,7 +247,7 @@ const getAllPosts = async (req, res, next) => {
           select: ["title"],
         },
       ])
-      .sort({ updatedAt: "desc" });
+      .sort(sort); 
 
     return res.json(result);
   } catch (error) {
@@ -246,4 +255,15 @@ const getAllPosts = async (req, res, next) => {
   }
 };
 
-export { createPost, updatePost, deletePost, getPost, getAllPosts };
+const getPostCount = async (req, res) => {
+  try {
+    const count = await Post.countDocuments();
+    console.log("Count of posts:", count);  
+    res.status(200).json({ count });
+  } catch (error) {
+    console.error("Error en getPostCount:", error);
+    res.status(500).json({ error: 'Error al obtener el contador de posts' });
+  }
+};
+
+export { createPost, updatePost, deletePost, getPost, getAllPosts, getPostCount };

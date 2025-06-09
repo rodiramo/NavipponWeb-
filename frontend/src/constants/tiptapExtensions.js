@@ -3,7 +3,9 @@ import ListItem from "@tiptap/extension-list-item";
 import TextStyle from "@tiptap/extension-text-style";
 import StarterKit from "@tiptap/starter-kit";
 import Dropcursor from "@tiptap/extension-dropcursor";
+import Placeholder from "@tiptap/extension-placeholder";
 import Image from "@tiptap/extension-image";
+import Underline from "@tiptap/extension-underline";
 import CodeBlockLowlight from "@tiptap/extension-code-block-lowlight";
 import { lowlight } from "lowlight";
 import css from "highlight.js/lib/languages/css";
@@ -22,16 +24,20 @@ export const extensions = [
   StarterKit.configure({
     bulletList: {
       keepMarks: true,
-      keepAttributes: false,  
+      keepAttributes: false,
     },
     orderedList: {
       keepMarks: true,
-      keepAttributes: false,  
+      keepAttributes: false,
     },
+  }),
+  Placeholder.configure({
+    placeholder: "Escribe aquí ...",
   }),
   CodeBlockLowlight.configure({
     lowlight,
   }),
+  Underline,
   Dropcursor,
   Image,
 ];

@@ -35,11 +35,10 @@ const Search = ({ className, onSearchKeyword }) => {
     >
       {/* Search Icon */}
       <FiSearch
-        className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6"
+        className="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6"
         style={{ color: theme.palette.primary.main, zIndex: 1000 }}
       />
 
-      {/* Search Input - Rounded with Background */}
       <InputBase
         placeholder="Buscar..."
         value={searchKeyword}
@@ -48,8 +47,8 @@ const Search = ({ className, onSearchKeyword }) => {
           flex: 1,
           padding: "12px 15px",
           paddingLeft: "3rem",
-          borderRadius: "50px", // Makes input rounded
-          backgroundColor: theme.palette.secondary.light, // Background color
+          borderRadius: "50px",
+          backgroundColor: theme.palette.secondary.light,
           color: theme.palette.text.primary,
           "&::placeholder": {
             color: theme.palette.secondary.dark,

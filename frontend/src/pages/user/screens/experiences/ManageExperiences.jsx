@@ -1,12 +1,16 @@
 import { images, stables } from "../../../../constants";
-import { deleteUserExperience, getUserExperiences } from "../../../../services/index/userExperiences"; 
+import {
+  deleteUserExperience,
+  getUserExperiences,
+} from "../../../../services/index/userExperiences";
 import { Link } from "react-router-dom";
 import { useDataTable } from "../../../../hooks/useDataTable";
 import DataTable from "../../components/DataTable";
-import useUser from "../../../../hooks/useUser";  
+import useUser from "../../../../hooks/useUser";
+import { textTransform } from "@mui/system";
 
 const ManageExperiences = () => {
-  const { user, jwt } = useUser();  
+  const { user, jwt } = useUser();
 
   const {
     currentPage,
@@ -65,7 +69,9 @@ const ManageExperiences = () => {
                 </a>
               </div>
               <div className="ml-3">
-                <p className="text-gray-900 whitespace-no-wrap">{experience.title}</p>
+                <p className="text-gray-900 whitespace-no-wrap">
+                  {experience.title}
+                </p>
               </div>
             </div>
           </td>
@@ -99,6 +105,7 @@ const ManageExperiences = () => {
             <button
               disabled={isLoadingDeleteData}
               type="button"
+              sx={{ textTransform: "none", borderRadius: "30rem" }}
               className="text-red-600 hover:text-red-900 disabled:opacity-70 disabled:cursor-not-allowed"
               onClick={() => {
                 deleteDataHandler({

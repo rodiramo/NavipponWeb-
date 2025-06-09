@@ -26,6 +26,7 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const { login, isLoginLoading, hasLoginError, isLogged } = useUser();
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
 
   useEffect(() => {
     if (isLogged) {
@@ -47,7 +48,7 @@ const LoginPage = () => {
 
   const submitHandler = (data) => {
     const { email, password } = data;
-    login({ email, password });
+    login({ email, password, rememberMe });
   };
 
   return (
@@ -57,10 +58,9 @@ const LoginPage = () => {
       backgroundColor={theme.palette.primary.white}
       flexDirection={isNonMobileScreens ? "row" : "column"}
     >
-      <HomeButton />
       {isNonMobileScreens ? (
         <Box
-          flexBasis="40%"
+          flexBasis="60%"
           position="relative"
           sx={{
             borderRadius: "0rem 200rem 200rem 0rem",
@@ -110,7 +110,7 @@ const LoginPage = () => {
         </Box>
       )}
       <Box
-        flexBasis={isNonMobileScreens ? "60%" : "100%"}
+        flexBasis={isNonMobileScreens ? "80%" : "100%"}
         backgroundColor={theme.palette.primary.white}
         p="2rem"
         display="flex"
@@ -120,12 +120,21 @@ const LoginPage = () => {
         height={isNonMobileScreens ? "auto" : "min-content"}
         mt={isNonMobileScreens ? 0 : "2rem"}
       >
+        <HomeButton />
         <Box width="100%" maxWidth="60%">
           <Typography variant="h4" mb={2} textAlign="center">
             Iniciar sesión
           </Typography>
 
-          <form onSubmit={handleSubmit(submitHandler)}>
+          <form
+            onSubmit={handleSubmit(submitHandler)}
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
             <TextField
               fullWidth
               margin="normal"
@@ -142,6 +151,7 @@ const LoginPage = () => {
               helperText={errors.email?.message}
               sx={{
                 borderRadius: "50px",
+                width: "450px",
                 "& fieldset": { borderRadius: "50px" },
               }}
             />
@@ -152,6 +162,7 @@ const LoginPage = () => {
               type={showPassword ? "text" : "password"}
               sx={{
                 borderRadius: "50px",
+                width: "450px",
                 "& fieldset": { borderRadius: "50px" },
               }}
               {...register("password", {
@@ -186,6 +197,8 @@ const LoginPage = () => {
               <FormControlLabel
                 control={
                   <Checkbox
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
                     sx={{
                       color: theme.palette.primary.main,
                       "&.Mui-checked": { color: theme.palette.primary.main },
@@ -194,8 +207,9 @@ const LoginPage = () => {
                 }
                 label="Mantenerse conectado"
               />
+
               <Link
-                to="/forget-password"
+                to="/forgot-password"
                 style={{ color: theme.palette.primary.main }}
               >
                 ¿Olvidaste tu contraseña?
@@ -206,7 +220,14 @@ const LoginPage = () => {
               fullWidth
               variant="contained"
               color="primary"
-              sx={{ mt: 3, borderRadius: "50px", padding: "10px" }}
+              sx={{
+                mt: 3,
+                fontSize: "1rem",
+                width: "200px",
+                borderRadius: "50px",
+                padding: "10px",
+                textTransform: "none",
+              }}
               disabled={!isValid || isLoginLoading}
             >
               Acceder
@@ -215,7 +236,9 @@ const LoginPage = () => {
               ¿No tienes cuenta?{" "}
               <Link
                 to="/register"
-                style={{ color: theme.palette.primary.main }}
+                style={{
+                  color: theme.palette.primary.main,
+                }}
               >
                 Registrarse
               </Link>

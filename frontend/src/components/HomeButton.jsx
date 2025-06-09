@@ -12,14 +12,18 @@ const HomeButton = () => {
         onClick={() => navigate("/")}
         sx={{
           position: "fixed",
-          top: 20,
-          left: 20,
+          bottom: 20,
+          right: 20,
+          padding: 2,
           backgroundColor: theme.palette.primary.main,
-          "&:hover": { backgroundColor: "rgba(0, 0, 0, 0.2)" },
+          "&:hover": {
+            backgroundColor: theme.palette.primary.light,
+            color: theme.palette.primary.main,
+          },
           color: "white",
         }}
       >
-        <FiHome fontSize="large" />
+        <FiHome fontSize={30} />
       </IconButton>
     </Tooltip>
   );

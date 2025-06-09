@@ -60,7 +60,7 @@ const createReview = async (req, res, next) => {
 
 const updateReview = async (req, res, next) => {
   try {
-    const { desc, rating, title } = req.body;
+    const { desc, rating, title, check } = req.body;
     const { reviewId } = req.params;
 
     if (!mongoose.Types.ObjectId.isValid(reviewId)) {
@@ -76,10 +76,14 @@ const updateReview = async (req, res, next) => {
     if (desc !== undefined) review.desc = desc;
     if (rating !== undefined) review.rating = rating;
     if (title !== undefined) review.title = title;
+    // Update the check field if provided:
+    if (typeof check !== "undefined") {
+      review.check = check;
+    }
 
     const updatedReview = await review.save();
 
-    // ⭐ Update Experience Rating
+    // Update the related Experience rating if needed
     await updateExperienceRating(review.experience);
 
     return res.json(updatedReview);
@@ -88,6 +92,7 @@ const updateReview = async (req, res, next) => {
     next(error);
   }
 };
+
 const deleteReview = async (req, res, next) => {
   try {
     const review = await Review.findById(req.params.reviewId);
@@ -143,19 +148,7 @@ const getAllReviews = async (req, res, next) => {
           path: "user",
           select: ["avatar", "name", "verified"],
         },
-        {
-          path: "parent",
-          populate: [
-            {
-              path: "user",
-              select: ["avatar", "name"],
-            },
-          ],
-        },
-        {
-          path: "replyOnUser",
-          select: ["avatar", "name"],
-        },
+
         {
           path: "experience",
           select: ["slug", "title"],
@@ -169,4 +162,21 @@ const getAllReviews = async (req, res, next) => {
   }
 };
 
-export { createReview, updateReview, deleteReview, getAllReviews };
+const getReviewCount = async (req, res) => {
+  try {
+    const count = await Review.countDocuments();
+    console.log("Count of reviews:", count);
+    res.status(200).json({ count });
+  } catch (error) {
+    console.error("Error en getReviewCount:", error);
+    res.status(500).json({ error: "Error al obtener el contador de reviews" });
+  }
+};
+
+export {
+  createReview,
+  updateReview,
+  deleteReview,
+  getAllReviews,
+  getReviewCount,
+};

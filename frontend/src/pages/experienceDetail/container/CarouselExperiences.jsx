@@ -32,11 +32,9 @@ const CarouselExperiences = ({
             badges.push("Mismo Presupuesto");
           if (exp.season?.some((s) => currentExperience.season?.includes(s)))
             badges.push("Misma Temporada");
-          if (
-            exp.location?.some((l) => currentExperience.location?.includes(l))
-          )
-            badges.push("Misma Ubicación");
-
+          if (exp.region === currentExperience.region) {
+            badges.push("Misma Región");
+          }
           return { ...exp, badges }; // 🔹 Store badges in experience object
         });
 
@@ -142,7 +140,6 @@ const CarouselExperiences = ({
             <Box
               sx={{
                 padding: "0.5rem 2rem 2rem 2rem",
-                backgroundColor: "white",
                 textAlign: "center",
               }}
             >
@@ -198,6 +195,8 @@ const CarouselExperiences = ({
                 sx={{
                   backgroundColor: theme.palette.secondary.medium,
                   borderRadius: "10rem",
+                  color: theme.palette.primary.white,
+                  textTransform: "none",
                   marginTop: "1rem",
                 }}
                 component={Link}

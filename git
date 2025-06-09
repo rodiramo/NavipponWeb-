@@ -1,0 +1,37 @@
+[33m29b55ab[m[33m ([m[1;36mHEAD -> [m[1;32mdev-eli[m[33m, [m[1;31morigin/dev-eli[m[33m)[m Aplicar diseño y filtros completos en Aside.jsx
+[33m6ccf41e[m[33m ([m[1;31morigin/master[m[33m, [m[1;31morigin/dev-rocio[m[33m, [m[1;32mmaster[m[33m)[m header
+[33m2384211[m updated package.json
+[33mf0d5066[m beginning style user profile
+[33m702440d[m style footer
+[33m4faa972[m comienzo estilo detalle experiencia
+[33m4e2dcd9[m explore page style
+[33mb8a7ac4[m about us style
+[33m9f6f8d4[m home page style
+[33mf077511[m small changes nav and stables
+[33m343b98f[m navbar style
+[33mdb8b2ed[m Login/Registro Estilos
+[33m951da92[m cambio rutas .js y imports
+[33m04fced1[m Bot - Comentarios
+[33m526aec1[m HomePage-Barra de Busqueda
+[33m53f647c[m Implementación de filtros funcionales y ajustes en la interfaz de usuario
+[33m215d9a6[m Filtros base
+[33maa3e1ff[m Filtros Frontend
+[33me22d861[m Corrección Favoritos en explora
+[33m7ea3a3d[m Actualización de la página de registro
+[33mdda8799[m Experiencias Relativas
+[33m858988f[m Favoritos
+[33m6cb0542[m Expericias
+[33ma183cca[m Itinerarios, ChatBot
+[33m83b5530[m Itinerarios nueva forma
+[33maef1051[m Itinerarios
+[33mcfa0985[m Favoritos, contador de favoritos
+[33mc84e696[m Favoritos
+[33mbb9fee7[m[33m ([m[1;32mrecovery-branch[m[33m)[m Incorporación de Contexto para JWT y obtener usuario
+[33m3b774b7[m Verificación de Articulos y Post
+[33m217287d[m Eliminacion de comentarios
+[33m6e33c66[m[33m ([m[1;32mrecuperacion[m[33m)[m Panel de Usuario
+[33mc9e5b4e[m Merge branch 'master' of https://github.com/EGuzman16/NavipponWeb-
+[33m18d06f2[m Experiencias y Reseñas
+[33m93c1798[m Update README.md
+[33m89255bf[m Update LICENSE.md
+[33m43be4cb[m Primer commit

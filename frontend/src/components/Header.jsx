@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { AiOutlineMenu, AiOutlineClose } from "react-icons/ai";
+import Notifications from "../components/Notifications";
 import {
   Bolt,
   Shield,
@@ -12,17 +13,17 @@ import {
 import { useSelector, useDispatch } from "react-redux";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
-import { IconButton, Menu, MenuItem, Typography } from "@mui/material";
+import { IconButton, Menu, MenuItem, Button, Tooltip } from "@mui/material";
 import { images, stables } from "../constants";
 import useUser from "../hooks/useUser";
 import { toggleMode } from "../themeSlice";
 
 const navItemsInfo = [
   { name: "Inicio", href: "/" },
-  { name: "Nosotros", href: "/about" },
   { name: "Explora", href: "/experience" },
   { name: "Blog", href: "/blog" },
-  { name: "Contacto", href: "/contacto" },
+  { name: "Nosotros", href: "/about" },
+  { name: "Contacto", href: "/contact" },
 ];
 
 const NavItem = ({ item, theme, location }) => (
@@ -32,9 +33,7 @@ const NavItem = ({ item, theme, location }) => (
       className="px-4 py-2 font-medium transition-colors duration-300"
       style={{
         color:
-          location.pathname === item.href
-            ? theme.palette.primary.main
-            : "white",
+          location.pathname === item.href ? theme.palette.primary.mid : "white",
       }}
     >
       {item.name}
@@ -91,18 +90,19 @@ const Header = () => {
         }}
       >
         {/* Logo */}
-        <Link to="/" className="flex items-center">
-          <img
-            src={mode === "dark" ? images.LogoWhite : images.LogoWhite}
-            alt="Logo"
-            className="h-16"
-          />
-          <h1 className="font-bold pl-2 text-xl md:text-2xl text-white">
-            Navippon
-          </h1>
-        </Link>
+        <Tooltip title="Volver al Inicio">
+          <Link to="/" className="flex items-center">
+            <img
+              src={mode === "dark" ? images.LogoWhite : images.LogoWhite}
+              alt="Logo"
+              className="h-16"
+            />
+            <h1 className="font-bold pl-2 text-xl md:text-2xl text-white">
+              Navippon
+            </h1>
+          </Link>
+        </Tooltip>
 
-        {/* Navigation (Hidden below 1000px, Visible at 1000px+) */}
         {/* Navigation (Hidden below 1024px, visible at 1024px and above) */}
         <nav className="hidden lg:flex flex-grow justify-center">
           <ul className="flex gap-6">
@@ -120,33 +120,40 @@ const Header = () => {
         {/* Right-Side Controls */}
         <div className="flex items-center gap-4 ml-auto">
           {/* Theme Toggle */}
-          <IconButton onClick={() => dispatch(toggleMode())}>
-            {mode === "dark" ? (
-              <Sun size={24} color="white" />
-            ) : (
-              <Moon size={24} color="white" />
-            )}
-          </IconButton>
+          <Tooltip title={mode === "dark" ? "Modo claro" : "Modo oscuro"}>
+            <IconButton onClick={() => dispatch(toggleMode())}>
+              {mode === "dark" ? (
+                <Sun size={24} color="white" />
+              ) : (
+                <Moon size={24} color="white" />
+              )}
+            </IconButton>
+          </Tooltip>
+
+          {/* Conditionally render Notifications if user is signed in */}
+          {!!user && <Notifications />}
 
           {/* User Profile */}
           {user ? (
             <div className="relative" ref={profileRef}>
-              <IconButton onClick={(e) => setProfileAnchor(e.currentTarget)}>
-                <img
-                  src={
-                    user.avatar
-                      ? `${stables.UPLOAD_FOLDER_BASE_URL}${user.avatar}`
-                      : images.DefaultAvatar
-                  }
-                  alt="Profile"
-                  className="rounded-full object-cover"
-                  style={{
-                    width: "45px",
-                    height: "45px",
-                    border: `2px solid ${theme.palette.primary.main}`,
-                  }}
-                />
-              </IconButton>
+              <Tooltip title={`Perfil de ${user.name || "Usuario"}`}>
+                <IconButton onClick={(e) => setProfileAnchor(e.currentTarget)}>
+                  <img
+                    src={
+                      user.avatar
+                        ? `${stables.UPLOAD_FOLDER_BASE_URL}${user.avatar}`
+                        : images.DefaultAvatar
+                    }
+                    alt="Profile"
+                    className="rounded-full object-cover"
+                    style={{
+                      width: "45px",
+                      height: "45px",
+                      border: `2px solid ${theme.palette.primary.main}`,
+                    }}
+                  />
+                </IconButton>
+              </Tooltip>
               <Menu
                 anchorEl={profileAnchor}
                 open={Boolean(profileAnchor)}
@@ -159,7 +166,7 @@ const Header = () => {
                       color: "white",
                       backdropFilter: "blur(10px) saturate(180%)",
                       WebkitBackdropFilter: "blur(10px) saturate(180%)",
-                      borderRadius: "0 0 1rem 1rem",
+                      borderRadius: " 1rem",
                       boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
                     },
                   },
@@ -171,55 +178,77 @@ const Header = () => {
                       className="mr-3"
                       color={theme.palette.primary.main}
                     />{" "}
-                    Admin Panel
+                    Panel de administración
                   </MenuItem>
                 )}
-                <MenuItem component={Link} to="/profile">
+                <MenuItem component={Link} to="/user/profile">
                   <UserRound
                     className="mr-3"
                     color={theme.palette.primary.main}
                   />{" "}
-                  Mi Perfil
+                  Perfil
                 </MenuItem>{" "}
-                <MenuItem component={Link} to="/user">
+                <MenuItem component={Link} to="/user/dashboard">
                   <Bolt className="mr-3" color={theme.palette.primary.main} />{" "}
-                  Configuración de Usuario
+                  Dashboard
                 </MenuItem>
-                <MenuItem component={Link} to="/trips">
+                <MenuItem component={Link} to="/user/itineraries/manage">
                   <Plane className="mr-3" color={theme.palette.primary.main} />{" "}
-                  Mis Viajes
+                  Mis viajes
                 </MenuItem>
                 <MenuItem onClick={logout}>
                   <LogOut className="mr-3" color={theme.palette.primary.main} />{" "}
-                  Cerrar Sesión
+                  Cerrar sesión
                 </MenuItem>
               </Menu>
             </div>
           ) : (
-            <button
+            <Button
               onClick={() => navigate("/login")}
-              className="px-5 py-2 rounded-full bg-primary text-white"
+              sx={{
+                backgroundColor: theme.palette.primary.light,
+                borderRadius: "30rem",
+                textTransform: "none",
+                padding: "0.5rem 1rem",
+                "&:hover": {
+                  backgroundColor: "rgba(45, 67, 120, 0.5)",
+                  color: theme.palette.primary.white,
+                  borderRadius: "30rem",
+                },
+              }}
             >
               Ingresar
-            </button>
+            </Button>
           )}
 
           {/* Burger Menu (Mobile Only) */}
           {isMobile && (
-            <IconButton onClick={() => setNavIsVisible((prev) => !prev)}>
-              {navIsVisible ? (
-                <AiOutlineClose size={24} color="white" />
-              ) : (
-                <AiOutlineMenu size={24} color="white" />
-              )}
-            </IconButton>
+            <Tooltip title="Menú">
+              <IconButton onClick={() => setNavIsVisible((prev) => !prev)}>
+                {navIsVisible ? (
+                  <AiOutlineClose size={24} color="white" />
+                ) : (
+                  <AiOutlineMenu size={24} color="white" />
+                )}
+              </IconButton>
+            </Tooltip>
           )}
         </div>
       </header>
 
       {/* Mobile Navigation */}
       {isMobile && navIsVisible && (
-        <nav className="absolute top-21 left-0 w-full backdrop-blur-lg p-6">
+        <nav
+          className="absolute top-15 left-0 w-full  p-6"
+          style={{
+            backgroundColor: "rgb(10 23 51 / 81%)",
+            color: "white",
+            backdropFilter: "blur(10px) saturate(180%)",
+            WebkitBackdropFilter: "blur(10px) saturate(180%)",
+            borderRadius: "0 0 1rem 1rem",
+            boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+          }}
+        >
           <ul className="flex flex-col gap-4 text-white text-center">
             {navItemsInfo.map((item) => (
               <NavItem

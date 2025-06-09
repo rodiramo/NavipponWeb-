@@ -126,4 +126,15 @@ const getAllComments = async (req, res, next) => {
   }
 };
 
-export { createComment, updateComment, deleteComment, getAllComments };
+const getCommentCount = async (req, res) => {
+  try {
+    const count = await Comment.countDocuments();
+    console.log("Count of comments:", count);  
+    res.status(200).json({ count });
+  } catch (error) {
+    console.error("Error en getCommentCount:", error);
+    res.status(500).json({ error: 'Error al obtener el contador de comentarios' });
+  }
+};
+
+export { createComment, updateComment, deleteComment, getAllComments, getCommentCount };

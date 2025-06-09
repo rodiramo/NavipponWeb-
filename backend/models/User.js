@@ -7,6 +7,7 @@ const { sign } = jwt;
 const UserSchema = new Schema(
   {
     avatar: { type: String, default: "" },
+    coverImg: { type: String, default: "" },
     username: {
       type: String,
       min: 2,
@@ -22,14 +23,19 @@ const UserSchema = new Schema(
       required: false,
       default: "",
     },
-    friends: {
-      type: Array,
-      default: [],
-    },
+    friends: [{ type: Schema.Types.ObjectId, ref: "User" }],
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     verified: { type: Boolean, default: false },
+    passwordResetToken: {
+      type: String,
+      default: undefined,
+    },
+    passwordResetExpires: {
+      type: Date,
+      default: undefined,
+    },
     verificationCode: { type: String, required: false },
     admin: { type: Boolean, default: false },
   },

@@ -3,14 +3,30 @@ import Experience from "../models/Experience.js";
 import Review from "../models/Review.js";
 import { fileRemover } from "../utils/fileRemover.js";
 import { v4 as uuidv4 } from "uuid";
+import cloudinary from "cloudinary";
 
 const createExperience = async (req, res, next) => {
   try {
-    const {
+    console.log("📥 Incoming Request Body:", req.body);
+    console.log("📸 Uploaded File:", req.file);
+
+    if (
+      !req.body.title ||
+      !req.body.caption ||
+      !req.body.body ||
+      !req.body.categories ||
+      !req.body.region
+    ) {
+      return res.status(400).json({
+        message:
+          "Faltan campos obligatorios: título, subtítulo, cuerpo, categorías, región",
+      });
+    }
+
+    let {
       title,
       caption,
       body,
-      photo,
       categories,
       generalTags,
       hotelTags,
@@ -23,37 +39,69 @@ const createExperience = async (req, res, next) => {
       email,
       website,
       schedule,
-      map,
+      map, // no longer used, can be ignored if not needed
       address,
+      location, // This should be a JSON string now
     } = req.body;
-    const experience = new Experience({
-      title: title || "sample title",
-      caption: caption || "sample caption",
+
+    try {
+      body = JSON.parse(body || "{}");
+      categories = JSON.parse(categories || "[]");
+      generalTags = JSON.parse(generalTags || "{}");
+      hotelTags = JSON.parse(hotelTags || "{}");
+      attractionTags = JSON.parse(attractionTags || "[]");
+      restaurantTags = JSON.parse(restaurantTags || "{}");
+    } catch (error) {
+      return res
+        .status(400)
+        .json({ message: "Invalid JSON format in request" });
+    }
+
+    // Parse location from the incoming request, if provided
+    let locationField = null;
+    if (location) {
+      try {
+        locationField = JSON.parse(location);
+      } catch (error) {
+        console.error("Error parsing location:", error);
+      }
+    }
+
+    // Handle Image Upload
+    let photo = "default-placeholder.jpg";
+    if (req.file) {
+      photo = req.file.filename;
+    }
+
+    const newExperience = new Experience({
+      title,
+      caption,
       slug: uuidv4(),
-      body: body || { type: "doc", content: [] },
-      photo: photo || "",
+      body,
+      photo,
       user: req.user._id,
       approved: false,
-      categories: categories || "Hoteles",
-      generalTags: generalTags || {},
-      hotelTags: hotelTags || {},
-      attractionTags: attractionTags || [],
-      restaurantTags: restaurantTags || {},
-      region: region || "Hokkaido",
-      prefecture: prefecture || "Hokkaido",
-      price: price !== undefined ? price : 0,
-      phone: phone || "",
-      email: email || "",
-      website: website || "",
-      schedule: schedule || "",
-      map: map || "",
-      address: address || "",
-      favoritesCount: 0,
+      categories,
+      generalTags,
+      hotelTags,
+      attractionTags,
+      restaurantTags,
+      region,
+      prefecture,
+      price: price || 0,
+      phone,
+      email,
+      website,
+      schedule,
+      map, // if still provided, or you can remove it
+      address,
+      location: locationField, // location from Autocomplete
     });
 
-    const createdExperience = await experience.save();
-    return res.json(createdExperience);
+    const createdExperience = await newExperience.save();
+    return res.status(201).json(createdExperience);
   } catch (error) {
+    console.error("❌ Error in createExperience:", error);
     next(error);
   }
 };
@@ -63,80 +111,82 @@ const updateExperience = async (req, res, next) => {
     const experience = await Experience.findOne({ slug: req.params.slug });
 
     if (!experience) {
-      const error = new Error("Experiencia no encontrada");
-      next(error);
-      return;
+      return res.status(404).json({ message: "Experiencia no encontrada" });
     }
 
-    const uploadSingle = upload.single("experiencePicture"); // Use a different variable name
+    const uploadSingle = upload.single("experiencePicture");
+
+    const extractCoordinates = (mapUrl) => {
+      const regex = /@(-?\d+\.\d+),(-?\d+\.\d+)/;
+      const match = mapUrl?.match(regex);
+      return match
+        ? {
+            type: "Point",
+            coordinates: [parseFloat(match[2]), parseFloat(match[1])],
+          }
+        : null;
+    };
 
     const handleUpdateExperienceData = async (data) => {
-      const {
-        title,
-        caption,
-        slug,
-        body,
-        generalTags,
-        hotelTags,
-        attractionTags,
-        restaurantTags,
-        categories,
-        approved,
-        region,
-        prefecture,
-        price,
-        phone,
-        email,
-        website,
-        schedule,
-        map,
-        address,
-      } = JSON.parse(data);
+      if (!data) {
+        console.error("❌ No data received in the request body");
+        return res
+          .status(400)
+          .json({ message: "Datos de actualización no proporcionados" });
+      }
 
-      experience.title = title || experience.title;
-      experience.caption = caption || experience.caption;
-      experience.slug = slug || experience.slug;
-      experience.body = body || experience.body;
-      experience.generalTags = generalTags || experience.generalTags;
-      experience.hotelTags = hotelTags || experience.hotelTags;
-      experience.attractionTags = attractionTags || experience.attractionTags;
-      experience.restaurantTags = restaurantTags || experience.restaurantTags;
-      experience.categories = categories || experience.categories;
-      experience.approved =
-        approved !== undefined ? approved : experience.approved;
-      experience.region = region || experience.region;
-      experience.prefecture = prefecture || experience.prefecture;
-      experience.price = price !== undefined ? price : experience.price;
-      experience.phone = phone || experience.phone;
-      experience.email = email || experience.email;
-      experience.website = website || experience.website;
-      experience.schedule = schedule || experience.schedule;
-      experience.map = map || experience.map;
-      experience.address = address || experience.address;
-      const updatedExperience = await experience.save();
-      return res.json(updatedExperience);
+      try {
+        const parsedData = JSON.parse(data);
+        console.log("📥 Parsed Data:", parsedData);
+
+        experience.title = parsedData.title || experience.title;
+        experience.caption = parsedData.caption || experience.caption;
+        experience.slug = parsedData.slug || experience.slug;
+        experience.body = parsedData.body || experience.body;
+        experience.generalTags =
+          parsedData.generalTags || experience.generalTags;
+        experience.hotelTags = parsedData.hotelTags || experience.hotelTags;
+        experience.attractionTags =
+          parsedData.attractionTags || experience.attractionTags;
+        experience.restaurantTags =
+          parsedData.restaurantTags || experience.restaurantTags;
+        experience.categories = parsedData.categories || experience.categories;
+        experience.approved =
+          parsedData.approved !== undefined
+            ? parsedData.approved
+            : experience.approved;
+        experience.region = parsedData.region || experience.region;
+        experience.prefecture = parsedData.prefecture || experience.prefecture;
+        experience.price =
+          parsedData.price !== undefined ? parsedData.price : experience.price;
+        experience.phone = parsedData.phone || experience.phone;
+        experience.email = parsedData.email || experience.email;
+        experience.website = parsedData.website || experience.website;
+        experience.schedule = parsedData.schedule || experience.schedule;
+        experience.map = parsedData.map || experience.map;
+        experience.address = parsedData.address || experience.address;
+
+        const updatedExperience = await experience.save();
+        return res.json(updatedExperience);
+      } catch (error) {
+        console.error("❌ JSON Parsing Error:", error.message);
+        return res
+          .status(400)
+          .json({ message: "Formato JSON inválido en la solicitud" });
+      }
     };
 
     uploadSingle(req, res, async function (err) {
       if (err) {
-        const error = new Error(
-          "Se produjo un error desconocido al cargar " + err.message
+        return next(
+          new Error("Se produjo un error desconocido al cargar " + err.message)
         );
-        next(error);
       } else {
         if (req.file) {
-          let filename;
-          filename = experience.photo;
-          if (filename) {
-            fileRemover(filename);
-          }
+          fileRemover(experience.photo);
           experience.photo = req.file.filename;
           handleUpdateExperienceData(req.body.document);
         } else {
-          let filename;
-          filename = experience.photo;
-          experience.photo = "";
-          fileRemover(filename);
           handleUpdateExperienceData(req.body.document);
         }
       }
@@ -218,7 +268,7 @@ const getExperience = async (req, res, next) => {
 
 const getAllExperiences = async (req, res, next) => {
   try {
-    const { searchKeyword, category, region, tags } = req.query;
+    const { searchKeyword, category, region, tags, sortBy } = req.query;
     let where = {};
 
     if (searchKeyword) {
@@ -238,6 +288,7 @@ const getAllExperiences = async (req, res, next) => {
         { "restaurantTags.restaurantServices": regex },
       ];
     }
+
     if (category) {
       where.categories = category;
     }
@@ -269,6 +320,22 @@ const getAllExperiences = async (req, res, next) => {
     );
 
     let query = Experience.find(where);
+
+    // ✅ Sorting Logic
+    if (sortBy) {
+      if (sortBy === "favorites") {
+        query = query.sort({ favoritesCount: -1 }); // Most Favorited
+      } else if (sortBy === "budgetHigh") {
+        query = query.sort({ budget: -1 }); // Most Expensive
+      } else if (sortBy === "budgetLow") {
+        query = query.sort({ budget: 1 }); // Least Expensive
+      } else if (sortBy === "ratings") {
+        query = query.sort({ rating: -1 }); // Highest Rated
+      }
+    } else {
+      query = query.sort({ updatedAt: "desc" }); // Default sorting by most recent
+    }
+
     const page = parseInt(req.query.page) || 1;
     const pageSize = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * pageSize;
@@ -295,8 +362,7 @@ const getAllExperiences = async (req, res, next) => {
           path: "user",
           select: ["avatar", "name", "verified"],
         },
-      ])
-      .sort({ updatedAt: "desc" });
+      ]);
 
     return res.json(result);
   } catch (error) {
@@ -316,6 +382,35 @@ const getExperienceById = async (req, res) => {
   }
 };
 
+const getExperienceCount = async (req, res) => {
+  try {
+    const count = await Experience.countDocuments();
+    console.log("Count of experiences:", count);
+    res.status(200).json({ count });
+  } catch (error) {
+    console.error("Error en getExperienceCount:", error);
+    res
+      .status(500)
+      .json({ error: "Error al obtener el contador de experiencias" });
+  }
+};
+
+const getTopExperiences = async (req, res) => {
+  try {
+    const topExperiences = await Experience.find()
+      .sort({ favoritesCount: -1 })
+      .limit(3)
+      .select("title favoritesCount");
+    console.log("Top experiences:", topExperiences);
+    res.status(200).json(topExperiences);
+  } catch (error) {
+    console.error("Error en getTopExperiences:", error);
+    res
+      .status(500)
+      .json({ error: "Error al obtener las experiencias más populares" });
+  }
+};
+
 export {
   createExperience,
   updateExperience,
@@ -323,4 +418,6 @@ export {
   getExperience,
   getAllExperiences,
   getExperienceById,
+  getExperienceCount,
+  getTopExperiences,
 };

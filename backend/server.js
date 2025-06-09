@@ -1,5 +1,4 @@
 import express from "express";
-const router = express.Router();
 import dotenv from "dotenv";
 import path from "path";
 import connectDB from "./config/db.js";
@@ -8,12 +7,13 @@ import {
   errorResponserHandler,
   invalidPathHandler,
 } from "./middleware/errorHandler.js";
-import upload from "./middleware/uploadPictureMiddleware.js"; // ✅ Import upload middleware
+import upload from "./middleware/uploadPictureMiddleware.js";
 
 // Routes
 import userRoutes from "./routes/userRoutes.js";
 import postRoutes from "./routes/postRoutes.js";
 import experienceRoutes from "./routes/experienceRoutes.js";
+import notificationRoutes from "./routes/notificationRoutes.js";
 import userExperienceRoutes from "./routes/userExperienceRoutes.js";
 import userPostRoutes from "./routes/userPostRoutes.js";
 import commentRoutes from "./routes/commentRoutes.js";
@@ -21,6 +21,7 @@ import reviewRoutes from "./routes/reviewRoutes.js";
 import postCategoriesRoutes from "./routes/postCategoriesRoutes.js";
 import favoriteRoutes from "./routes/favoriteRoutes.js";
 import itineraryRoutes from "./routes/itineraryRoutes.js";
+import emailRoutes from "./routes/emailRoutes.js";
 
 dotenv.config();
 connectDB();
@@ -38,22 +39,53 @@ app.use("/api/posts", postRoutes);
 app.use("/api/experiences", experienceRoutes);
 app.use("/api/user-experiences", userExperienceRoutes);
 app.use("/api/user-posts", userPostRoutes);
+app.use("/api/notifications", notificationRoutes);
 app.use("/api/comments", commentRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/post-categories", postCategoriesRoutes);
 app.use("/api/favorites", favoriteRoutes);
 app.use("/api/itineraries", itineraryRoutes);
+app.use("/api/email", emailRoutes);
 
 // 📌 Upload Image Route
-router.post("/upload", upload.single("image"), (req, res) => {
+app.post("/upload", upload.single("image"), (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: "No file uploaded" });
   }
-  res.json({ imageUrl: req.file.path }); // Return Cloudinary URL
+  res.json({ imageUrl: req.file.path });
 });
 
+const GOOGLE_API_KEY = process.env.REACT_APP_GOOGLE_API_KEY;
+
+app.get("/api/places", async (req, res) => {
+  const { lat, lng } = req.query;
+  try {
+    const response = await fetch(
+      `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=50&key=${GOOGLE_API_KEY}&language=es`
+    );
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    console.error("Error fetching places:", error.message);
+    res.status(500).json({ error: "Error fetching places" });
+  }
+});
+
+app.get("/api/place-details", async (req, res) => {
+  const { placeId } = req.query;
+  try {
+    const response = await fetch(
+      `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=name,formatted_address,formatted_phone_number,website,price_level,address_components&key=${GOOGLE_API_KEY}&language=es`
+    );
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    console.error("Error fetching place details:", error.message);
+    res.status(500).json({ error: "Error fetching place details" });
+  }
+});
 // 📌 Remove Image Route
-router.delete("/remove", async (req, res) => {
+app.delete("/remove", async (req, res) => {
   const { imageUrl } = req.body; // Cloudinary Image URL
 
   if (!imageUrl) {

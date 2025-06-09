@@ -4,15 +4,25 @@ import {
   registerUser,
   loginUser,
   userProfile,
+  getUserFriends,
   updateProfile,
   updateProfilePicture,
+  updateCoverImg,
   getAllUsers,
+  fixExistingUsers,
   deleteUser,
-  toggleFriend, // ✅ New function
+  userProfileById,
+  toggleFriend,
+  forgotPassword,
+  verifyResetToken,
+  resetPassword,
+  getUserCount,
 } from "../controllers/userControllers.js";
 import { adminGuard, authGuard } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
+
+router.get("/count", authGuard, getUserCount); 
 
 router.post("/register", registerUser);
 router.post("/login", loginUser);
@@ -24,10 +34,23 @@ router.put(
   upload.single("profilePicture"),
   updateProfilePicture
 );
-router.get("/", authGuard, adminGuard, getAllUsers);
-router.delete("/:userId", authGuard, adminGuard, deleteUser);
+router.put(
+  "/updateCoverImg",
+  authGuard,
+  upload.single("coverImg"),
+  updateCoverImg
+);
+router.post("/fix-existing-users", authGuard, adminGuard, fixExistingUsers);
 
-// ✅ Friend Request Routes
-router.post("/toggleFriend/:userId", authGuard, toggleFriend); // Add/remove friend
+router.get("/", authGuard, getAllUsers);
+router.delete("/:userId", authGuard, adminGuard, deleteUser);
+router.get("/:userId/friends", authGuard, getUserFriends);
+
+router.get("/profile/:userId", authGuard, userProfileById);
+router.post("/toggleFriend/:userId", authGuard, toggleFriend);
+
+router.post("/forgot-password", forgotPassword);
+router.get("/verify-reset-token/:token", verifyResetToken);
+router.post("/reset-password", resetPassword);
 
 export default router;

@@ -1,53 +1,92 @@
-import { useCallback, useContext, useState, useEffect } from 'react';
-import Context from '../context/UserContext';
-import { login as loginService, signup as signupService, getUserProfile } from '../services/index/users';
+import { useCallback, useContext, useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import Context from "../context/UserContext";
+import {
+  login as loginService,
+  signup as signupService,
+  getUserProfile,
+} from "../services/index/users";
 
 export default function useUser() {
   const { user, jwt, setUser, setJWT } = useContext(Context);
   const [state, setState] = useState({ loading: false, error: false });
+  const navigate = useNavigate();
+  const location = useLocation(); // Get current URL location
 
   useEffect(() => {
-    if (!jwt) return;
-    getUserProfile({ token: jwt }).then(setUser).catch(() => setUser(null));
-  }, [jwt, setUser]);
+    const token =
+      window.localStorage.getItem("jwt") ||
+      window.sessionStorage.getItem("jwt");
 
-  const login = useCallback(async ({ email, password }) => {
-    setState({ loading: true, error: false });
-    try {
-      const { token } = await loginService({ email, password });
-      window.sessionStorage.setItem('jwt', token);
+    if (token) {
       setJWT(token);
-      const userProfile = await getUserProfile({ token });
-      setUser(userProfile);
-      setState({ loading: false, error: false });
-    } catch (error) {
-      window.sessionStorage.removeItem('jwt');
-      setState({ loading: false, error: true });
-      console.error(error);
+      getUserProfile({ token })
+        .then(setUser)
+        .catch(() => setUser(null));
     }
-  }, [setJWT, setUser]);
+  }, [setUser, setJWT]);
 
-  const signup = useCallback(async ({ name, email, password }) => {
-    setState({ loading: true, error: false });
-    try {
-      const { token } = await signupService({ name, email, password });
-      window.sessionStorage.setItem('jwt', token);
-      setJWT(token);
-      const userProfile = await getUserProfile({ token });
-      setUser(userProfile);
-      setState({ loading: false, error: false });
-    } catch (error) {
-      window.sessionStorage.removeItem('jwt');
-      setState({ loading: false, error: true });
-      console.error(error);
-    }
-  }, [setJWT, setUser]);
+  const login = useCallback(
+    async ({ email, password, rememberMe }) => {
+      setState({ loading: true, error: false });
+      try {
+        const { token } = await loginService({ email, password });
+
+        if (rememberMe) {
+          window.localStorage.setItem("jwt", token);
+        } else {
+          window.sessionStorage.setItem("jwt", token);
+        }
+
+        setJWT(token);
+        const userProfile = await getUserProfile({ token });
+        setUser(userProfile);
+        setState({ loading: false, error: false });
+
+        // Only redirect after login, but not force redirect every time
+        const lastPage =
+          window.sessionStorage.getItem("lastPage") || "/user/dashboard";
+        window.sessionStorage.removeItem("lastPage");
+
+        navigate(lastPage);
+      } catch (error) {
+        window.sessionStorage.removeItem("jwt");
+        window.localStorage.removeItem("jwt");
+        setState({ loading: false, error: true });
+        console.error(error);
+      }
+    },
+    [setJWT, setUser, navigate]
+  );
+
+  const signup = useCallback(
+    async ({ name, email, password }) => {
+      setState({ loading: true, error: false });
+      try {
+        const { token } = await signupService({ name, email, password });
+        window.sessionStorage.setItem("jwt", token);
+        setJWT(token);
+        const userProfile = await getUserProfile({ token });
+        setUser(userProfile);
+        setState({ loading: false, error: false });
+
+        navigate("/user/dashboard");
+      } catch (error) {
+        window.sessionStorage.removeItem("jwt");
+        setState({ loading: false, error: true });
+        console.error(error);
+      }
+    },
+    [setJWT, setUser, navigate]
+  );
 
   const logout = useCallback(() => {
-    window.sessionStorage.removeItem('jwt');
+    window.sessionStorage.removeItem("jwt");
+    window.localStorage.removeItem("jwt");
     setJWT(null);
     setUser(null);
-  }, [setJWT, setUser]);
+    navigate("/"); // Redirect to home immediately
+  }, [setJWT, setUser, navigate]);
 
   return {
     user,
@@ -57,6 +96,6 @@ export default function useUser() {
     hasLoginError: state.error,
     login,
     signup,
-    logout
+    logout,
   };
 }

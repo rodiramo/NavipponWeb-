@@ -9,7 +9,6 @@ import CategoryCard from "./container/CategoryCard";
 import RegionCarousel from "./container/RegionCarousel";
 import Experiences from "./container/Experiences";
 import useUser from "../../hooks/useUser";
-import ChatBot from "../../components/ChatBot";
 const HomePage = () => {
   const { user, jwt: token } = useUser();
   const [reload, setReload] = useState(false);
@@ -24,8 +23,7 @@ const HomePage = () => {
 
   return (
     <MainLayout>
-      <Hero /> {/* Floating Chatbot Button */}
-      <ChatBot />
+      <Hero />
       <BgShape />
       <InfoPill />
       <CTA />

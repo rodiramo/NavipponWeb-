@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import Rating from "@mui/material/Rating";
-import { useTheme } from "@mui/material";
+import { useTheme, Typography } from "@mui/material";
 import Box from "@mui/material/Box";
 import StarIcon from "@mui/icons-material/Star";
 
@@ -79,46 +79,72 @@ const ReviewForm = ({
 
   return (
     <form onSubmit={submitHandler}>
-      <div className="flex flex-col items-end border border-primary rounded-lg p-4">
+      <div className="flex flex-col items-end border border-primary rounded-lg p-4 mt-10">
         {/* Rating Component */}
         <Box
           sx={{
             width: "100%",
             display: "flex",
+            flexDirection: "column",
             alignItems: "center",
-            justifyContent: "flex-start",
+            justifyContent: "start",
             marginBottom: "15px",
           }}
         >
-          <p>Agrega una valuación: </p>
-          <Rating
-            name="hover-feedback"
-            value={rating}
-            precision={0.5} // Allows half-star rating
-            getLabelText={getLabelText}
-            onChange={(event, newValue) => {
-              setRating(newValue); // Set rating on change
-            }}
-            onChangeActive={(event, newHover) => {
-              setHover(newHover); // Set hover value for label display
-            }}
-            icon={<StarIcon sx={{ color: theme.palette.secondary.main }} />} // Filled star color
-            emptyIcon={<StarIcon sx={{ color: "gray" }} />}
-          />
-          {rating !== null && (
-            <Box sx={{ ml: 2 }}>{labels[hover !== -1 ? hover : rating]}</Box>
-          )}
-          {errors.rating && (
-            <p style={{ color: "red", marginTop: "5px" }}>{errors.rating}</p>
-          )}
+          {" "}
+          <Typography
+            variant="h6"
+            textAlign="center"
+            color={theme.palette.secondary.medium}
+          >
+            Escribe tu Reseña{" "}
+          </Typography>{" "}
         </Box>
-
+        <Box
+          sx={{
+            width: "100%",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "start",
+            justifyContent: "start",
+            marginBottom: "15px",
+          }}
+        >
+          {" "}
+          <p style={{ marginBottom: "15px" }}>Agrega una valuación: </p>
+          <Box>
+            {" "}
+            <Rating
+              name="hover-feedback"
+              value={rating}
+              precision={0.5} // Allows half-star rating
+              getLabelText={getLabelText}
+              onChange={(event, newValue) => {
+                setRating(newValue); // Set rating on change
+              }}
+              onChangeActive={(event, newHover) => {
+                setHover(newHover); // Set hover value for label display
+              }}
+              icon={<StarIcon sx={{ color: theme.palette.secondary.main }} />} // Filled star color
+              emptyIcon={<StarIcon sx={{ color: "gray" }} />}
+            />
+            {rating !== null && (
+              <Box sx={{ color: theme.palette.primary.main }}>
+                {labels[hover !== -1 ? hover : rating]}
+              </Box>
+            )}
+            {errors.rating && (
+              <p style={{ color: "red", marginTop: "5px" }}>{errors.rating}</p>
+            )}
+          </Box>{" "}
+        </Box>
         {/* Title Input */}
         <div
           style={{
             width: "100%",
             display: "flex",
-            alignItems: "center",
+            flexDirection: "column",
+            alignItems: "start",
             justifyContent: "flex-start",
             marginBottom: "15px",
           }}
@@ -128,11 +154,12 @@ const ReviewForm = ({
             type="text"
             style={{
               backgroundColor: theme.palette.primary.white,
+              border: `1.5px solid ${theme.palette.secondary.lightBlue}`,
               padding: "1rem",
-              borderRadius: "30rem",
+              borderRadius: "16px",
             }}
             className="w-full focus:outline-none bg-transparent mb-2"
-            placeholder="Enter a title..."
+            placeholder="Escribe un título para tu reseña..."
             value={title}
             onChange={(e) => setTitle(e.target.value)}
           />
@@ -140,13 +167,13 @@ const ReviewForm = ({
             <p style={{ color: "red", marginTop: "5px" }}>{errors.title}</p>
           )}
         </div>
-
         {/* Description Textarea */}
         <div
           style={{
             width: "100%",
             display: "flex",
-            alignItems: "center",
+            flexDirection: "column",
+            alignItems: "start",
             justifyContent: "flex-start",
             marginBottom: "15px",
           }}
@@ -156,11 +183,12 @@ const ReviewForm = ({
             type="text"
             style={{
               backgroundColor: theme.palette.primary.white,
+              border: `1.5px solid ${theme.palette.secondary.lightBlue}`,
               padding: "1rem",
-              borderRadius: "30rem",
+              borderRadius: "16px",
             }}
             className="w-full focus:outline-none bg-transparent mb-2"
-            placeholder="Enter a description..."
+            placeholder="Describe tu opinión..."
             value={desc}
             onChange={(e) => setDesc(e.target.value)}
           ></textarea>
@@ -168,7 +196,6 @@ const ReviewForm = ({
             <p style={{ color: "red", marginTop: "5px" }}>{errors.desc}</p>
           )}
         </div>
-
         {/* Form Buttons */}
         <div className="flex flex-col-reverse gap-y-2 items-center gap-x-2 pt-2 min-[420px]:flex-row">
           {formCancelHandler && (
