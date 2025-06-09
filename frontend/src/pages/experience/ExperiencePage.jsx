@@ -164,7 +164,7 @@ const ExperiencePage = ({ filters: initialFilters }) => {
       {/* Header with integrated search */}
       <Header onSearchKeyword={handleSearch} />
 
-      <section className="mx-auto w-full px-4 sm:px-6 lg:px-2 py-8 mt-10">
+      <section className="mx-auto w-full px-4 sm:px-6 lg:px-2 py-8 m-3">
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 xl:grid-cols-5 gap-4 lg:gap-6">
           {/* Sidebar Filters */}

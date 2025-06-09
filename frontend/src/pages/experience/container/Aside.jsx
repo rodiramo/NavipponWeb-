@@ -676,7 +676,7 @@ const Aside = ({ onFilterChange, selectedFilter }) => {
           onClick={applyFilters}
           fullWidth
           sx={{
-            backgroundColor: theme.palette.secondary.main,
+            backgroundColor: theme.palette.secondary.medium,
             color: "white",
             borderRadius: "25px",
             py: 1.5,

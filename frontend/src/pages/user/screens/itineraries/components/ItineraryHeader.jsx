@@ -49,7 +49,7 @@ const ItineraryHeader = ({
   return (
     <Box
       sx={{
-        background: theme.palette.secondary.dark,
+        background: theme.palette.background.nav,
         position: "relative",
         overflow: "hidden",
       }}
@@ -238,6 +238,7 @@ const ItineraryHeader = ({
               sx={{
                 display: "flex",
                 gap: 2,
+
                 order: { xs: 3, lg: 2 },
               }}
             >
@@ -251,8 +252,7 @@ const ItineraryHeader = ({
                 label={`${travelDays} ${travelDays === 1 ? "Día" : "Días"}`}
                 sx={{
                   borderRadius: "30px",
-                  backgroundColor: "rgba(255,255,255,0.95)",
-                  color: theme.palette.secondary.dark,
+                  color: "white",
                   fontWeight: "bold",
                   fontSize: "0.875rem",
                   height: 40,
@@ -269,8 +269,7 @@ const ItineraryHeader = ({
                 label={`€${totalBudget.toLocaleString()}`}
                 sx={{
                   borderRadius: "30px",
-                  backgroundColor: "rgba(255,255,255,0.95)",
-                  color: theme.palette.secondary.dark,
+                  color: "white",
                   fontWeight: "bold",
                   fontSize: "0.875rem",
                   height: 40,

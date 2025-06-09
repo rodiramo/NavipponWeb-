@@ -133,7 +133,6 @@ const ManageItineraries = () => {
           borderRadius: "20px",
           overflow: "hidden",
           transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-          background: "linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%)",
           border: `1px solid ${theme.palette.divider}`,
           "&:hover": {
             boxShadow: `0 12px 40px ${theme.palette.primary.main}20`,
@@ -274,6 +273,7 @@ const ManageItineraries = () => {
                 textTransform: "none",
                 fontWeight: "600",
                 flex: 1,
+                color: theme.palette.primary.white,
                 background: `linear-gradient(135deg, ${theme.palette.secondary.medium})`,
                 "&:hover": {
                   background: `linear-gradient(135deg, ${theme.palette.primary.dark}, ${theme.palette.primary.main})`,
@@ -351,7 +351,7 @@ const ManageItineraries = () => {
           sx={{
             fontWeight: "bold",
             mb: 1,
-            background: `linear-gradient(135deg, ${theme.palette.text.primary}, ${theme.palette.primary.main})`,
+            background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.main})`,
             backgroundClip: "text",
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",

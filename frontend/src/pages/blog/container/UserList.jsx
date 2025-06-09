@@ -119,7 +119,7 @@ const UserList = ({ currentUser, token }) => {
           <Chip
             size="small"
             label={`${totalUsers} usuarios`}
-            color="secondary"
+            color={theme.palette.secondary.medium}
             variant="outlined"
             sx={{ fontSize: "0.75rem" }}
           />

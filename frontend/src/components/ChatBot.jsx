@@ -1,14 +1,13 @@
 import React, { useState } from "react";
-import { IoChatbubbleEllipsesOutline } from "react-icons/io5"; // Chat Icon
-import ChatWithBot from "../pages/user/screens/chat/ChatWithBot"; // Import the chatbot component
+import { IoChatbubbleEllipsesOutline } from "react-icons/io5";
+import ChatWithBot from "../pages/user/screens/chat/ChatWithBot";
 import "../css/ChatBot.css";
-import { useTheme } from "@mui/material"; // Import the theme context
+import { useTheme } from "@mui/material";
 
 const ChatBot = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const theme = useTheme(); // Get theme colors
+  const theme = useTheme();
 
-  // Function to toggle chatbot visibility
   const toggleChatbot = () => {
     setIsOpen((prev) => !prev);
   };
@@ -18,7 +17,7 @@ const ChatBot = () => {
       {/* Chatbot Toggle Button */}
       <button
         className="chatbot-button"
-        onClick={toggleChatbot} // Ensure function is passed correctly
+        onClick={toggleChatbot}
         aria-label="Abrir Chat"
         style={{
           backgroundColor: theme.palette.primary.main,
@@ -28,7 +27,6 @@ const ChatBot = () => {
         <IoChatbubbleEllipsesOutline size={30} />
       </button>
 
-      {/* Chatbot Component - Pass onClose function correctly */}
       {isOpen && <ChatWithBot onClose={toggleChatbot} />}
     </div>
   );

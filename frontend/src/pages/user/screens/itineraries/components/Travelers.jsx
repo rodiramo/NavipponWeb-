@@ -33,20 +33,17 @@ const Travelers = ({
   onAddTraveler,
   onUpdateTraveler,
   onRemoveTraveler,
-  creator, // Add creator prop
+  creator,
 }) => {
   const theme = useTheme();
 
-  // State for adding a new traveler
   const [openAddModal, setOpenAddModal] = useState(false);
   const [selectedFriendId, setSelectedFriendId] = useState("");
   const [selectedFriendRole, setSelectedFriendRole] = useState("viewer");
 
-  // State for the "profile card" popover
   const [anchorEl, setAnchorEl] = useState(null);
   const [popoverTraveler, setPopoverTraveler] = useState(null);
 
-  // Handlers for Add Traveler Modal
   const handleOpenAddModal = () => setOpenAddModal(true);
   const handleCloseAddModal = () => {
     setSelectedFriendId("");
@@ -61,13 +58,11 @@ const Travelers = ({
     }
   };
 
-  // "Profile card" popover open
   const handleAvatarClick = (event, traveler) => {
     setAnchorEl(event.currentTarget);
     setPopoverTraveler(traveler);
   };
 
-  // "Profile card" popover close
   const handlePopoverClose = () => {
     setAnchorEl(null);
     setPopoverTraveler(null);
@@ -139,21 +134,12 @@ const Travelers = ({
       {/* Modern Travelers Section */}
       <Box>
         {/* Section Header with Glass Effect */}
-        <Box
-          sx={{
-            background: `linear-gradient(135deg, ${theme.palette.background.paper}80, ${theme.palette.background.paper}40)`,
-            backdropFilter: "blur(20px)",
-
-            border: `1px solid ${theme.palette.divider}30`,
-            boxShadow: "0 8px 32px rgba(0,0,0,0.08)",
-          }}
-        >
+        <Box sx={{}}>
           <Box
             sx={{
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
-              mb: 2,
             }}
           ></Box>
 
@@ -761,7 +747,7 @@ const Travelers = ({
               py: 1.5,
               fontWeight: 700,
               flex: 1,
-              background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+              background: `linear-gradient(135deg, ${theme.palette.primary.main})`,
               boxShadow: `0 8px 24px ${theme.palette.primary.main}40`,
               transition: "all 0.3s ease",
               "&:hover": {

@@ -3,7 +3,7 @@ import Notification from "../models/Notification.js";
 
 export const getNotifications = async (req, res, next) => {
   try {
-    const userId = req.user._id; // assuming authentication middleware adds req.user
+    const userId = req.user._id;
     const notifications = await Notification.find({ recipient: userId }).sort({
       createdAt: -1,
     });

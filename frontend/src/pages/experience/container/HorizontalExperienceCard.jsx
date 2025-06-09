@@ -9,6 +9,7 @@ import {
   getUserFavorites,
 } from "../../../services/index/favorites";
 import { images, stables } from "../../../constants";
+import { Eye } from "lucide-react";
 import {
   IconButton,
   useTheme,
@@ -401,10 +402,10 @@ const HorizontalExperienceCard = ({
               component={Link}
               to={`/experience/${experience.slug}`}
               variant="contained"
-              startIcon={<Visibility />}
+              startIcon={<Eye size={16} />}
               sx={{
                 background: theme.palette.secondary.medium,
-                color: theme.palette.common.white,
+                color: theme.palette.primary.white,
                 textTransform: "none",
                 borderRadius: "25px",
                 paddingX: 3,
@@ -434,8 +435,7 @@ const HorizontalExperienceCard = ({
             >
               <AiFillHeart size={16} color={theme.palette.primary.main} />
               <Typography variant="caption">
-                {favoritesCount} persona{favoritesCount !== 1 ? "s" : ""} lo
-                guardaron
+                {favoritesCount} popularidad
               </Typography>
             </Box>
           </Box>
@@ -452,11 +452,11 @@ const HorizontalExperienceCard = ({
               sx={{
                 backgroundColor:
                   experience.price === 0
-                    ? theme.palette.success.light
+                    ? theme.palette.secondary.medium
                     : theme.palette.primary.white,
                 color:
                   experience.price === 0
-                    ? theme.palette.secondary.dark
+                    ? theme.palette.primary.white
                     : theme.palette.primary.main,
                 padding: "8px 16px",
                 borderRadius: "30rem",

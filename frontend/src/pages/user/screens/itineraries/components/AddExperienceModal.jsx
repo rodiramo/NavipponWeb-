@@ -406,7 +406,7 @@ const AddExperienceModal = ({
       <DialogTitle
         sx={{
           background: `linear-gradient(135deg, ${theme.palette.secondary.medium})`,
-          color: "white",
+          color: theme.palette.primary.white,
           p: 3,
           position: "relative",
           overflow: "hidden",

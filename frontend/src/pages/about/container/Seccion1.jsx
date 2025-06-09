@@ -9,7 +9,7 @@ const Seccion1 = () => {
 
   const logoSrc = isDarkMode
     ? "/assets/navippon-logo-white.png"
-    : "/assets/navippon-icon.png";
+    : "/assets/logoblack.png";
 
   return (
     <Box
@@ -154,7 +154,7 @@ const Seccion1 = () => {
             },
             height: {
               xs: "100%",
-              md: "auto",
+              md: "500px",
             },
             maxHeight: { md: "90vh" },
             objectFit: "cover",
@@ -162,11 +162,6 @@ const Seccion1 = () => {
               xs: "1rem",
               sm: "2rem",
               md: "20rem 0 0 20rem",
-            },
-            boxShadow: theme.shadows[4],
-            transition: "transform 0.3s ease-in-out",
-            "&:hover": {
-              transform: { md: "scale(1.02)" },
             },
           }}
         />

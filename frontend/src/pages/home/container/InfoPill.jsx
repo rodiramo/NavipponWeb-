@@ -34,11 +34,17 @@ const InfoPill = () => {
         {/* Header */}
         <div className="text-center ">
           {/* Title */}
-          <h3 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6">
-            <span className="bg-gradient-to-r bg-clip-text ">
-              ¿Cómo funciona?
+
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold bg-gradient-to-r mb-4">
+            ¿Cómo funciona {""}
+            <span
+              style={{ color: theme.palette.primary.main }}
+              className="bg-gradient-to-r  bg-clip-text text-transparent"
+            >
+              Navippon
             </span>
-          </h3>
+            ?
+          </h2>
 
           {/* Subtitle */}
           <p className="text-lg sm:text-xl 0 max-w-2xl mx-auto ">

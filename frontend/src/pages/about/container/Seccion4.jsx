@@ -47,6 +47,10 @@ const CommunitySection = () => {
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
+          marginLeft: {
+            xs: "0px",
+            md: "-100px",
+          },
           width: { xs: "100%", md: "50%" },
           order: { xs: 1, md: 1 },
           padding: {
@@ -65,7 +69,10 @@ const CommunitySection = () => {
               sm: "90%",
               md: "95%",
             },
-            height: "auto",
+            height: {
+              xs: "100%",
+              md: "500px",
+            },
             maxWidth: "100%",
             borderRadius: {
               xs: "1rem",
@@ -73,13 +80,6 @@ const CommunitySection = () => {
               md: "0rem 20rem 20rem 0rem",
             },
             objectFit: "cover",
-            boxShadow: theme.shadows[6],
-            transition:
-              "transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out",
-            "&:hover": {
-              transform: { md: "scale(1.02)" },
-              boxShadow: theme.shadows[12],
-            },
           }}
         />
       </Box>
@@ -120,18 +120,6 @@ const CommunitySection = () => {
             color: theme.palette.text.primary,
             lineHeight: 1.2,
             fontFamily: theme.typography.h1.fontFamily,
-            position: "relative",
-            "&::after": {
-              content: '""',
-              position: "absolute",
-              bottom: "-0.5rem",
-              left: { xs: "50%", md: 0 },
-              transform: { xs: "translateX(-50%)", md: "none" },
-              width: "60px",
-              height: "4px",
-              backgroundColor: theme.palette.primary.main,
-              borderRadius: "2px",
-            },
           }}
         >
           Nuestra comunidad
@@ -287,25 +275,6 @@ const CommunitySection = () => {
             "100%": {
               transform: "translateY(0px)",
             },
-          },
-        }}
-      />
-
-      {/* Connection Lines */}
-      <Box
-        sx={{
-          position: "absolute",
-          top: "30%",
-          left: "45%",
-          width: "2px",
-          height: "40%",
-          background: `linear-gradient(180deg, transparent, ${theme.palette.primary.main}30, transparent)`,
-          display: { xs: "none", lg: "block" },
-          animation: "fadeInOut 3s ease-in-out infinite",
-          "@keyframes fadeInOut": {
-            "0%": { opacity: 0 },
-            "50%": { opacity: 1 },
-            "100%": { opacity: 0 },
           },
         }}
       />

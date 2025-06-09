@@ -35,11 +35,10 @@ const Search = ({ className, onSearchKeyword }) => {
     >
       {/* Search Icon */}
       <FiSearch
-        className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6"
+        className="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6"
         style={{ color: theme.palette.primary.main, zIndex: 1000 }}
       />
 
-      {/* Search Input - Rounded with Background */}
       <InputBase
         placeholder="Buscar..."
         value={searchKeyword}
@@ -62,13 +61,13 @@ const Search = ({ className, onSearchKeyword }) => {
       <IconButton
         type="submit"
         sx={{
-          backgroundColor: theme.palette.primary.dark,
+          backgroundColor: theme.palette.primary.main,
           color: "white",
           fontSize: "1rem",
           padding: "0.8rem 1.5rem",
           borderRadius: "50px",
           "&:hover": {
-            backgroundColor: theme.palette.primary.mid,
+            backgroundColor: theme.palette.primary.dark,
           },
         }}
       >

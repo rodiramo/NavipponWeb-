@@ -13,7 +13,7 @@ const Header = ({ onSearchKeyword }) => {
         position: "relative",
         textAlign: "center",
         marginBottom: "-1.75rem",
-        paddingTop: { xs: "6rem", sm: "8rem", md: "9rem" },
+        paddingTop: { xs: "10rem", sm: "8rem", md: "9rem" },
         paddingBottom: { xs: 6, sm: 8, md: 5 },
         paddingX: { xs: 2, sm: 4, md: 6 },
         borderRadius: {
