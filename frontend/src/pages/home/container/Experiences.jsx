@@ -66,7 +66,7 @@ const Experiences = ({ user, token, onFavoriteToggle }) => {
           }}
         >
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full backdrop-blur-sm border border-white/20 shadow-sm mb-6">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full  mb-6">
             <span className="w-2 h-2 bg-gradient-to-r from-pink-500 to-blue-500 rounded-full animate-pulse"></span>
             <span className="text-sm font-medium ">
               Experiencias destacadas

@@ -748,7 +748,13 @@ const FavoritesDrawer = ({
             },
           }}
         >
-          <Box sx={{ position: "relative", zIndex: 1 }}>
+          <Box
+            sx={{
+              position: "relative",
+              zIndex: 1,
+              color: theme.palette.primary.white,
+            }}
+          >
             <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
               <Box
                 sx={{

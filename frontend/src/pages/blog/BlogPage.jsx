@@ -112,9 +112,6 @@ const BlogPage = () => {
       {/* Main Content */}
       <Box
         sx={{
-          background: `linear-gradient(180deg, 
-            ${theme.palette.background.default} 0%, 
-            ${theme.palette.grey[50]} 100%)`,
           minHeight: "100vh",
           py: { xs: 4, md: 6 },
         }}
@@ -130,9 +127,7 @@ const BlogPage = () => {
                   p: { xs: 3, md: 4 },
                   mb: 4,
                   borderRadius: 3,
-                  background: `linear-gradient(135deg, 
-                    ${theme.palette.background.paper} 0%, 
-                    ${theme.palette.grey[50]} 100%)`,
+
                   border: `1px solid ${theme.palette.divider}`,
                 }}
               >

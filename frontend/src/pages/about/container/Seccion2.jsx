@@ -129,18 +129,6 @@ const Seccion2 = () => {
             },
             lineHeight: 1.2,
             fontFamily: theme.typography.h1.fontFamily,
-            position: "relative",
-            "&::after": {
-              content: '""',
-              position: "absolute",
-              bottom: "-0.5rem",
-              left: { xs: "50%", md: 0 },
-              transform: { xs: "translateX(-50%)", md: "none" },
-              width: "60px",
-              height: "4px",
-              backgroundColor: theme.palette.primary.main,
-              borderRadius: "2px",
-            },
           }}
         >
           ¿Por qué Japón?
@@ -173,43 +161,6 @@ const Seccion2 = () => {
             ¡Japón te espera con maravillas inigualables!
           </span>
         </Typography>
-
-        {/* Feature Pills */}
-        <Box
-          sx={{
-            display: "flex",
-            flexWrap: "wrap",
-            gap: 1,
-            marginTop: 2,
-            justifyContent: { xs: "center", md: "flex-start" },
-          }}
-        >
-          {[
-            "Cultura Milenaria",
-            "Tecnología Avanzada",
-            "Gastronomía Única",
-          ].map((feature, index) => (
-            <Box
-              key={index}
-              sx={{
-                backgroundColor: theme.palette.primary.main,
-                color: "white",
-                padding: "0.5rem 1rem",
-                borderRadius: "20px",
-                fontSize: "0.875rem",
-                fontWeight: "bold",
-                boxShadow: theme.shadows[2],
-                transition: "transform 0.2s ease-in-out",
-                "&:hover": {
-                  transform: "translateY(-2px)",
-                  boxShadow: theme.shadows[4],
-                },
-              }}
-            >
-              {feature}
-            </Box>
-          ))}
-        </Box>
       </Box>
 
       {/* Decorative Elements */}

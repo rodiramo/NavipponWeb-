@@ -16,7 +16,14 @@ import ExperienceTypeSelect from "./tags/ExperienceTypeSelect";
 import PriceInput from "./tags/PriceInput";
 import RegionPrefectureSelect from "./tags/RegionPrefectureSelect";
 import ExperienceDetailSkeleton from "../../../experienceDetail/components/ExperienceDetailSkeleton";
-import { ImageUp, Trash2, Earth, ArrowLeft, ArrowRight } from "lucide-react";
+import {
+  ImageUp,
+  Trash2,
+  Earth,
+  ArrowLeft,
+  ArrowRight,
+  Image,
+} from "lucide-react";
 import {
   Button,
   TextField,
@@ -30,6 +37,7 @@ import {
   useTheme,
   Grid,
   Paper,
+  Chip,
 } from "@mui/material";
 import useUser from "../../../../hooks/useUser";
 import { stables } from "../../../../constants";
@@ -44,6 +52,18 @@ import {
   fetchPlaceDetails,
 } from "../../../../services/index/map";
 
+// Default image configuration
+const DEFAULT_IMAGES = {
+  Hoteles:
+    "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&h=300&fit=crop",
+  Restaurantes:
+    "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&h=300&fit=crop",
+  Atractivos:
+    "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=400&h=300&fit=crop",
+  general:
+    "https://images.unsplash.com/photo-1480796927426-f609979314bd?w=400&h=300&fit=crop",
+};
+
 const ExperienceForm = () => {
   const theme = useTheme();
   const { slug } = useParams();
@@ -55,6 +75,7 @@ const ExperienceForm = () => {
   const isEditing = Boolean(slug);
   const [initialPhoto, setInitialPhoto] = useState(null);
   const [photo, setPhoto] = useState(null);
+  const [useDefaultImage, setUseDefaultImage] = useState(false);
   const [body, setBody] = useState(null);
   const [categories, setCategories] = useState("");
   const [title, setTitle] = useState("");
@@ -108,7 +129,30 @@ const ExperienceForm = () => {
     typeTrip: [],
   });
 
-  // All your existing functions (handleTitleChange, handleFileChange, etc.)
+  // Get default image based on category
+  const getDefaultImage = () => {
+    return DEFAULT_IMAGES[categories] || DEFAULT_IMAGES.general;
+  };
+
+  // Check if we should show default image
+  const shouldShowDefaultImage = () => {
+    return !photo && !initialPhoto && useDefaultImage;
+  };
+
+  // Get current image to display
+  const getCurrentImageSrc = () => {
+    if (photo) {
+      return URL.createObjectURL(photo);
+    }
+    if (initialPhoto) {
+      return stables.UPLOAD_FOLDER_BASE_URL + data?.photo;
+    }
+    if (useDefaultImage) {
+      return getDefaultImage();
+    }
+    return null;
+  };
+
   const handleTitleChange = (e) => {
     const titleValue = e.target.value;
     let generatedSlug = titleValue.trim().replace(/\s+/g, "-").toLowerCase();
@@ -120,16 +164,23 @@ const ExperienceForm = () => {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     setPhoto(file);
+    setUseDefaultImage(false); // Disable default image when user uploads
   };
 
   const handleDeleteImage = () => {
     if (window.confirm("¿Quieres eliminar la foto de tu publicación?")) {
       setInitialPhoto(null);
       setPhoto(null);
+      setUseDefaultImage(false);
     }
   };
 
-  // Your existing query and mutation logic...
+  const handleUseDefaultImage = () => {
+    setPhoto(null);
+    setInitialPhoto(null);
+    setUseDefaultImage(true);
+  };
+
   const {
     data,
     isLoading: queryLoading,
@@ -263,7 +314,14 @@ const ExperienceForm = () => {
     }
 
     const formData = new FormData();
-    if (photo) formData.append("experiencePicture", photo);
+
+    // Handle image: either uploaded photo or default image URL
+    if (photo) {
+      formData.append("experiencePicture", photo);
+    } else if (useDefaultImage) {
+      formData.append("defaultImageUrl", getDefaultImage());
+      formData.append("useDefaultImage", "true");
+    }
 
     formData.append("title", title);
     formData.append("caption", caption);
@@ -322,6 +380,12 @@ const ExperienceForm = () => {
       address,
     };
 
+    // Add default image handling for updates too
+    if (useDefaultImage) {
+      experienceData.defaultImageUrl = getDefaultImage();
+      experienceData.useDefaultImage = true;
+    }
+
     formData.append("document", JSON.stringify(experienceData));
 
     mutation.mutate({
@@ -341,23 +405,42 @@ const ExperienceForm = () => {
               <Typography variant="h6" gutterBottom>
                 Imagen de la experiencia
               </Typography>
-              <Box display="flex" alignItems="center" gap="2rem">
+
+              {/* Image Display */}
+              <Box display="flex" alignItems="center" gap="2rem" sx={{ mb: 2 }}>
                 <label
                   htmlFor="experiencePicture"
                   style={{ cursor: "pointer" }}
                 >
-                  {photo ? (
-                    <img
-                      src={URL.createObjectURL(photo)}
-                      alt={title}
-                      style={{ width: "200px", borderRadius: "12px" }}
-                    />
-                  ) : initialPhoto ? (
-                    <img
-                      src={stables.UPLOAD_FOLDER_BASE_URL + data?.photo}
-                      alt={title}
-                      style={{ width: "200px", borderRadius: "12px" }}
-                    />
+                  {getCurrentImageSrc() ? (
+                    <Box sx={{ position: "relative" }}>
+                      <img
+                        src={getCurrentImageSrc()}
+                        alt={title || "Experiencia"}
+                        style={{
+                          width: "200px",
+                          height: "150px",
+                          objectFit: "cover",
+                          borderRadius: "12px",
+                          border: useDefaultImage
+                            ? `2px solid ${theme.palette.primary.main}`
+                            : "none",
+                        }}
+                      />
+                      {useDefaultImage && (
+                        <Chip
+                          label="Imagen por defecto"
+                          size="small"
+                          color="primary"
+                          sx={{
+                            position: "absolute",
+                            top: 8,
+                            left: 8,
+                            fontSize: "0.7rem",
+                          }}
+                        />
+                      )}
+                    </Box>
                   ) : (
                     <Box
                       sx={{
@@ -386,19 +469,56 @@ const ExperienceForm = () => {
                   style={{ display: "none" }}
                   id="experiencePicture"
                   onChange={handleFileChange}
+                  accept="image/*"
                 />
-                {(photo || initialPhoto) && (
+              </Box>
+
+              {/* Image Action Buttons */}
+              <Box display="flex" gap="1rem" flexWrap="wrap">
+                {(photo || initialPhoto || useDefaultImage) && (
                   <Button
                     onClick={handleDeleteImage}
                     variant="outlined"
                     color="error"
-                    sx={{ borderRadius: "30rem", textTransform: "none" }}
+                    size="small"
+                    sx={{ borderRadius: "20px", textTransform: "none" }}
                     startIcon={<Trash2 size={16} />}
                   >
-                    Borrar imagen
+                    Eliminar imagen
                   </Button>
                 )}
+
+                {!useDefaultImage && categories && (
+                  <Button
+                    onClick={handleUseDefaultImage}
+                    variant="outlined"
+                    color="primary"
+                    size="small"
+                    sx={{ borderRadius: "20px", textTransform: "none" }}
+                    startIcon={<Image size={16} />}
+                  >
+                    Usar imagen por defecto
+                  </Button>
+                )}
+
+                <Button
+                  component="label"
+                  htmlFor="experiencePicture"
+                  variant="contained"
+                  size="small"
+                  sx={{ borderRadius: "20px", textTransform: "none" }}
+                  startIcon={<ImageUp size={16} />}
+                >
+                  {photo || initialPhoto ? "Cambiar imagen" : "Subir imagen"}
+                </Button>
               </Box>
+
+              {/* Help Text */}
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                {useDefaultImage
+                  ? "Usando imagen por defecto basada en la categoría seleccionada"
+                  : "Sube una imagen o usa una imagen por defecto"}
+              </Typography>
             </Box>
 
             {/* Google Places Search */}
@@ -658,6 +778,31 @@ const ExperienceForm = () => {
               Revisar Experiencia
             </Typography>
             <Paper elevation={1} sx={{ p: 3, mb: 2 }}>
+              {/* Image Preview in Review */}
+              {getCurrentImageSrc() && (
+                <Box sx={{ mb: 3, textAlign: "center" }}>
+                  <img
+                    src={getCurrentImageSrc()}
+                    alt={title || "Experiencia"}
+                    style={{
+                      width: "300px",
+                      height: "200px",
+                      objectFit: "cover",
+                      borderRadius: "12px",
+                    }}
+                  />
+                  {useDefaultImage && (
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      sx={{ display: "block", mt: 1 }}
+                    >
+                      Imagen por defecto para {categories}
+                    </Typography>
+                  )}
+                </Box>
+              )}
+
               <Typography variant="h6" color="primary" gutterBottom>
                 {title || "Sin título"}
               </Typography>

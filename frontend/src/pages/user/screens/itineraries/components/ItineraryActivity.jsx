@@ -43,9 +43,19 @@ const ExperienceDetailsModal = ({ open, onClose, experience, category }) => {
   if (!experience) return null;
 
   const getCategoryIcon = (cat) => {
-    if (cat === "Hoteles") return <BedSingle size={20} />;
-    if (cat === "Atractivos") return <MdOutlineTempleBuddhist size={20} />;
-    if (cat === "Restaurantes") return <MdOutlineRamenDining size={20} />;
+    if (cat === "Hoteles")
+      return <BedSingle size={20} color={theme.palette.secondary.light} />;
+    if (cat === "Atractivos")
+      return (
+        <MdOutlineTempleBuddhist
+          size={20}
+          color={theme.palette.secondary.light}
+        />
+      );
+    if (cat === "Restaurantes")
+      return (
+        <MdOutlineRamenDining size={20} color={theme.palette.secondary.light} />
+      );
     return <Sparkles size={20} />;
   };
 
@@ -126,8 +136,8 @@ const ExperienceDetailsModal = ({ open, onClose, experience, category }) => {
               icon={getCategoryIcon(category)}
               label={category}
               sx={{
-                background: "rgba(255,255,255,0.9)",
-                color: getCategoryColor(category),
+                background: theme.palette.secondary.medium,
+                color: theme.palette.primary.white,
                 fontWeight: 600,
                 backdropFilter: "blur(10px)",
               }}

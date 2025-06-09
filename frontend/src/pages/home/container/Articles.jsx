@@ -51,7 +51,7 @@ const Articles = () => {
           }}
         >
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 backdrop-blur-sm border border-white/20 shadow-sm mb-6">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full  mb-6">
             <span
               className="w-2 h-2 bg-gradient-to-r  rounded-full animate-pulse"
               style={{ background: theme.palette.primary.main }}
@@ -192,7 +192,7 @@ const Articles = () => {
           </Link>
         </div>
 
-        {/* Featured Topics */}
+        {/* Featured Topics 
         <div
           className="mt-16 text-center transition-all duration-1000 delay-800"
           style={{
@@ -222,7 +222,7 @@ const Articles = () => {
               </span>
             ))}
           </div>
-        </div>
+        </div>*/}
       </div>
 
       {/* Add fadeInUp keyframes */}

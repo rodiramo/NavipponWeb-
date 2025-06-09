@@ -64,7 +64,7 @@ const Highlights = () => {
           {/* Text Section */}
           <div className="w-full lg:w-1/2 space-y-6 lg:space-y-8 p-8">
             {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full backdrop-blur-sm border border-white/20 shadow-sm">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border ">
               <span
                 className="w-2 h-2 bg-gradient-to-r rounded-full animate-pulse"
                 style={{ background: theme.palette.primary.main }}

@@ -340,43 +340,194 @@ export const updateTravelerRole = async (req, res, next) => {
     next(error);
   }
 };
-
 // Remove a traveler from an itinerary
 export const removeTraveler = async (req, res, next) => {
   try {
     const itineraryId = req.params.id;
     const { travelerId } = req.body; // travelerId: the user id to remove
+
+    // Validate inputs
+    if (!travelerId) {
+      return res.status(400).json({ message: "ID del viajero es requerido" });
+    }
+
     const itinerary = await Itinerary.findById(itineraryId);
     if (!itinerary) {
       return res.status(404).json({ message: "Itinerario no encontrado" });
     }
+
+    // Check if the user has permission to remove travelers
+    const isOwner =
+      itinerary.ownerId &&
+      itinerary.ownerId.toString() === req.user._id.toString();
+    const isAdmin = req.user.admin; // Assuming you have admin field
+
+    if (!isOwner && !isAdmin) {
+      return res
+        .status(403)
+        .json({ message: "No tienes permisos para eliminar viajeros" });
+    }
+
+    // Find the traveler before removing (to get their info for notification)
+    const travelerToRemove = itinerary.travelers.find(
+      (t) => t.userId.toString() === travelerId
+    );
+
+    if (!travelerToRemove) {
+      return res.status(400).json({
+        message: "El viajero no se encuentra en el itinerario",
+      });
+    }
+
     // Filter out the traveler
     const originalCount = itinerary.travelers.length;
     itinerary.travelers = itinerary.travelers.filter(
       (t) => t.userId.toString() !== travelerId
     );
+
+    // Double-check removal worked
     if (itinerary.travelers.length === originalCount) {
-      return res
-        .status(400)
-        .json({ message: "El viajero no se encuentra en el itinerario" });
+      return res.status(400).json({
+        message: "Error al eliminar el viajero del itinerario",
+      });
     }
+
     await itinerary.save();
 
-    // Optionally, send a notification to the traveler that they were removed (if desired)
-    (await createTravelerRemovedNotification) &&
-      createTravelerRemovedNotification(
-        req.user._id,
-        req.user.name,
-        itinerary._id,
-        itinerary.name,
-        travelerId
+    // Create notification safely with proper error handling
+    try {
+      await createTravelerRemovedNotificationSafely({
+        removedBy: req.user._id,
+        removedByName: req.user.name,
+        itineraryId: itinerary._id,
+        itineraryName: itinerary.name,
+        removedTravelerId: travelerId,
+        travelerToRemove: travelerToRemove,
+      });
+    } catch (notificationError) {
+      console.error(
+        "Error creating traveler removed notification:",
+        notificationError
       );
+      // Don't fail the whole operation just because notification failed
+    }
+
+    res.status(200).json({
+      message: "Viajero eliminado exitosamente",
+      itinerary: itinerary,
+    });
+  } catch (error) {
+    console.error("Error removing traveler:", error);
+    next(error);
+  }
+};
+
+// Helper function to safely create the notification
+const createTravelerRemovedNotificationSafely = async (data) => {
+  const {
+    removedBy,
+    removedByName,
+    itineraryId,
+    itineraryName,
+    removedTravelerId,
+    travelerToRemove,
+  } = data;
+
+  try {
+    // Validate that we have a recipient
+    if (!removedTravelerId) {
+      console.error(
+        "Cannot create notification: no recipient (removedTravelerId)"
+      );
+      return;
+    }
+
+    // Don't notify if user removed themselves
+    if (removedBy.toString() === removedTravelerId.toString()) {
+      console.log("User removed themselves, skipping notification");
+      return;
+    }
+
+    // Create the notification with required recipient field
+    const notificationData = {
+      recipient: removedTravelerId, // ✅ This is the required field
+      type: "traveler_removed",
+      message: `Has sido eliminado del itinerario "${itineraryName}" por ${removedByName}`,
+      itinerary: itineraryId,
+      user: removedBy,
+      read: false,
+      createdAt: new Date(),
+    };
+
+    // Validate notification data before creating
+    if (!notificationData.recipient) {
+      throw new Error("Recipient is required for notification");
+    }
+
+    const notification = await Notification.create(notificationData);
+    console.log(
+      `Notification created successfully for traveler removal: ${notification._id}`
+    );
+
+    return notification;
+  } catch (error) {
+    console.error("Error in createTravelerRemovedNotificationSafely:", error);
+    throw error;
+  }
+};
+
+// Alternative: If you want to use your existing function, fix the call like this:
+export const removeTravelerAlternative = async (req, res, next) => {
+  try {
+    const itineraryId = req.params.id;
+    const { travelerId } = req.body;
+
+    const itinerary = await Itinerary.findById(itineraryId);
+    if (!itinerary) {
+      return res.status(404).json({ message: "Itinerario no encontrado" });
+    }
+
+    // Filter out the traveler
+    const originalCount = itinerary.travelers.length;
+    itinerary.travelers = itinerary.travelers.filter(
+      (t) => t.userId.toString() !== travelerId
+    );
+
+    if (itinerary.travelers.length === originalCount) {
+      return res.status(400).json({
+        message: "El viajero no se encuentra en el itinerario",
+      });
+    }
+
+    await itinerary.save();
+
+    // ✅ FIXED: Proper notification creation
+    try {
+      // Check if the function exists and call it properly
+      if (typeof createTravelerRemovedNotification === "function") {
+        await createTravelerRemovedNotification(
+          req.user._id, // removedBy
+          req.user.name, // removedByName
+          itinerary._id, // itineraryId
+          itinerary.name, // itineraryName
+          travelerId // recipient (the removed traveler)
+        );
+      } else {
+        console.warn(
+          "createTravelerRemovedNotification function not available"
+        );
+      }
+    } catch (notificationError) {
+      console.error("Notification creation failed:", notificationError);
+      // Continue with success response even if notification fails
+    }
 
     res.status(200).json(itinerary);
   } catch (error) {
     next(error);
   }
 };
+
 export {
   createItinerary,
   getAllItineraries,

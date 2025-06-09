@@ -14,7 +14,7 @@ import {
 } from "@mui/material";
 import { images, stables } from "../../constants";
 import { useSelector, useDispatch } from "react-redux";
-import { FaPhone, FaEnvelope, FaMapMarkerAlt } from "react-icons/fa";
+import { Phone, MapPin, Mail } from "lucide-react";
 import { useTheme } from "@mui/material/styles";
 import MainLayout from "../../components/MainLayout";
 import { Send } from "lucide-react";
@@ -281,7 +281,7 @@ const ContactPage = () => {
 
                     <Box
                       display="flex"
-                      justifyContent="space-between"
+                      justifyContent="flex-end"
                       alignItems="center"
                       mt={4}
                       flexDirection={{ xs: "column", sm: "row" }}
@@ -292,7 +292,7 @@ const ContactPage = () => {
                         variant="contained"
                         size="large"
                         disabled={isSubmitting}
-                        startIcon={<Send />}
+                        endIcon={<Send size={16} />}
                         sx={{
                           borderRadius: "30px",
                           px: 4,
@@ -301,7 +301,7 @@ const ContactPage = () => {
                           justifyContent: "flex-end",
                           fontWeight: 600,
                           fontSize: "1.1rem",
-                          background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
+                          background: `linear-gradient(45deg, ${theme.palette.primary.main})`,
                           boxShadow: "0 8px 25px rgba(0,0,0,0.2)",
                           transition: "all 0.3s ease",
                           "&:hover": {
@@ -349,7 +349,7 @@ const ContactPage = () => {
                           color: theme.palette.primary.main,
                         }}
                       >
-                        <FaPhone />
+                        <Phone />
                       </Box>
                       <Box>
                         <Typography variant="body2" color="text.secondary">
@@ -370,14 +370,14 @@ const ContactPage = () => {
                           color: theme.palette.primary.main,
                         }}
                       >
-                        <FaEnvelope />
+                        <Mail />
                       </Box>
                       <Box>
                         <Typography variant="body2" color="text.secondary">
                           Email
                         </Typography>
                         <Typography variant="body1" fontWeight="600">
-                          info@tuapp.com
+                          infonavippon@gmail.com
                         </Typography>
                       </Box>
                     </Box>
@@ -391,7 +391,7 @@ const ContactPage = () => {
                           color: theme.palette.primary.main,
                         }}
                       >
-                        <FaMapMarkerAlt />
+                        <MapPin />
                       </Box>
                       <Box>
                         <Typography variant="body2" color="text.secondary">

@@ -58,7 +58,7 @@ const CategoryCard = () => {
       <div className="relative container mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-12 sm:mb-16 lg:mb-20">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full  backdrop-blur-sm border border-white/20 shadow-sm mb-6">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full  mb-6">
             <span className="w-2 h-2 bg-gradient-to-r from-pink-500 rounded-full animate-pulse"></span>
             <span className="text-sm font-medium ">Descubre Japón</span>
           </div>
