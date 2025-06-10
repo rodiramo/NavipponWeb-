@@ -1,12 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { stables } from "../constants";
 import { Avatar, Box, IconButton, Button, useTheme } from "@mui/material";
 import { HiOutlineCamera } from "react-icons/hi";
-import { EditOutlined, Close } from "@mui/icons-material";
 import CropEasy from "./crop/CropEasy";
 import { toast } from "react-hot-toast";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { updateProfilePicture } from "../services/index/users";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { userActions } from "../store/reducers/userReducers";
@@ -20,6 +19,13 @@ const ProfilePicture = ({ avatar }) => {
   const [openCrop, setOpenCrop] = useState(false);
   const [photo, setPhoto] = useState(null);
 
+
+  const [localAvatar, setLocalAvatar] = useState(avatar);
+
+  useEffect(() => {
+    setLocalAvatar(avatar);
+  }, [avatar]);
+
   const { mutate } = useMutation({
     mutationFn: ({ token, formData }) => {
       return updateProfilePicture({
@@ -28,17 +34,13 @@ const ProfilePicture = ({ avatar }) => {
       });
     },
     onSuccess: (data) => {
-      dispatch(userActions.setUserInfo(data)); // ✅ Update Redux Store
+      dispatch(userActions.setUserInfo(data));
       setOpenCrop(false);
       localStorage.setItem("account", JSON.stringify(data));
-
-      // ✅ Invalidate Queries to refresh all components using profile data
       queryClient.invalidateQueries(["profile"]);
-      queryClient.invalidateQueries(["friends"]); // If profile picture appears in friends list
-
+      queryClient.invalidateQueries(["friends"]);
       toast.success("La foto de perfil ha sido actualizada");
     },
-
     onError: (error) => {
       toast.error(error.message);
       console.log(error);
@@ -47,12 +49,7 @@ const ProfilePicture = ({ avatar }) => {
 
   const handleFileChange = (e) => {
     const file = e.target.files?.[0];
-
-    if (!file) {
-      console.warn("File selection was canceled."); // ✅ Log for debugging (optional)
-      return; // ✅ Exit function if no file is selected
-    }
-
+    if (!file) return;
     setPhoto({ url: URL.createObjectURL(file), file });
     setOpenCrop(true);
   };
@@ -62,7 +59,6 @@ const ProfilePicture = ({ avatar }) => {
       try {
         const formData = new FormData();
         formData.append("profilePicture", undefined);
-
         mutate({ token: jwt, formData: formData });
       } catch (error) {
         toast.error(error.message);
@@ -75,7 +71,14 @@ const ProfilePicture = ({ avatar }) => {
     <>
       {openCrop &&
         createPortal(
-          <CropEasy photo={photo} setOpenCrop={setOpenCrop} />,
+          <CropEasy
+            photo={photo}
+            setOpenCrop={setOpenCrop}
+            onAvatarChange={(newAvatar) => {
+              setLocalAvatar(newAvatar); 
+              queryClient.invalidateQueries(["profile"]);
+            }}
+          />,
           document.getElementById("portal")
         )}
 
@@ -93,7 +96,9 @@ const ProfilePicture = ({ avatar }) => {
         <Box sx={{ position: "relative", width: "120px", height: "120px" }}>
           <Avatar
             src={
-              stables.UPLOAD_FOLDER_BASE_URL + avatar || "/default-avatar.png"
+              localAvatar
+                ? stables.UPLOAD_FOLDER_BASE_URL + localAvatar
+                : "/default-avatar.png"
             }
             alt="profile"
             sx={{
@@ -104,7 +109,7 @@ const ProfilePicture = ({ avatar }) => {
             }}
           />
 
-          {/* Upload Button (Click to change profile picture) */}
+          {/* Upload Button */}
           <label htmlFor="profilePicture">
             <IconButton
               sx={{

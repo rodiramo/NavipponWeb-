@@ -220,7 +220,7 @@ const UserProfilePage = () => {
           <Avatar
             src={
               profile.avatar
-                ? `${stables.UPLOAD_FOLDER_BASE_URL}/${profile.avatar}`
+                ? `${stables.UPLOAD_FOLDER_BASE_URL}/${profile.avatar}?${Date.now()}`
                 : "/default-avatar.png"
             }
             alt={profile.name}
