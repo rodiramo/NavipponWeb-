@@ -59,7 +59,7 @@ const ExperienceDetailPage = () => {
     return categoryMap[category.toLowerCase()] || category; // Default to original if not found
   };
 
-  const { data, isLoading, isError } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({ 
     queryFn: () => getSingleExperience({ slug }),
     queryKey: ["experience", slug],
     onSuccess: async (data) => {
@@ -315,6 +315,7 @@ const ExperienceDetailPage = () => {
                       loggedInUserId={user?._id}
                       experienceSlug={slug}
                       jwt={jwt}
+                      onReviewChange={refetch}
                     />
                   </div>
                 </div>
@@ -327,4 +328,4 @@ const ExperienceDetailPage = () => {
   );
 };
 
-export default ExperienceDetailPage;
+export default ExperienceDetailPage; 

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import {
   useTheme,
@@ -27,6 +27,7 @@ const ReviewsContainer = ({
   loggedInUserId,
   reviews = [],
   experienceSlug,
+  onReviewChange,
 }) => {
   const queryClient = useQueryClient();
   const [sortOption, setSortOption] = useState("fecha-reciente");
@@ -36,6 +37,10 @@ const ReviewsContainer = ({
   const [allReviews, setAllReviews] = useState(reviews);
   const [affectedReview, setAffectedReview] = useState(null);
   const theme = useTheme();
+
+    useEffect(() => {
+    setAllReviews(reviews);
+  }, [reviews]);
 
   // Sorting options
   const sortingOptions = [
@@ -106,6 +111,7 @@ const ReviewsContainer = ({
       onSuccess: () => {
         toast.success("Tu reseña se ha enviado con éxito");
         queryClient.invalidateQueries(["experience", experienceSlug]);
+        if (onReviewChange) onReviewChange();
       },
       onError: (error) => {
         toast.error(error.message);
@@ -120,6 +126,7 @@ const ReviewsContainer = ({
     onSuccess: () => {
       toast.success("Tu reseña se ha actualizado correctamente");
       queryClient.invalidateQueries(["experience", experienceSlug]);
+      if (onReviewChange) onReviewChange();
     },
     onError: (error) => {
       toast.error(error.message);
@@ -134,6 +141,7 @@ const ReviewsContainer = ({
     onSuccess: () => {
       toast.success("Tu reseña se borró correctamente");
       queryClient.invalidateQueries(["experience", experienceSlug]);
+      if (onReviewChange) onReviewChange();
     },
     onError: (error) => {
       toast.error(error.message);
@@ -354,4 +362,4 @@ const ReviewsContainer = ({
   );
 };
 
-export default ReviewsContainer;
+export default ReviewsContainer; 
