@@ -139,6 +139,8 @@ const ExperiencePage = ({ filters: initialFilters }) => {
     refetch();
   };
 
+  // Find this useEffect in your Experience page and replace it:
+
   useEffect(() => {
     const updatedFilters = { ...filters };
 
@@ -150,9 +152,20 @@ const ExperiencePage = ({ filters: initialFilters }) => {
       delete updatedFilters.category;
     }
 
+    // Preserve existing search keyword if it exists
+    if (searchKeyword && !updatedFilters.search) {
+      updatedFilters.search = searchKeyword;
+    }
+
+    // Preserve page parameter
+    if (currentPage > 1) {
+      updatedFilters.page = currentPage;
+    }
+
+    console.log("Setting search params to:", updatedFilters);
     setSearchParams(updatedFilters);
     refetch();
-  }, [selectedFilter, filters, refetch]);
+  }, [selectedFilter, filters, searchKeyword, currentPage, refetch]); // Added searchKeyword and currentPage dependencies
 
   const totalPageCount = parseInt(data?.headers?.["x-totalpagecount"], 10);
   const selectedSortOption = sortingOptions.find(

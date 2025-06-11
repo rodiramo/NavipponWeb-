@@ -11,10 +11,39 @@ const Search = ({ className, onSearchKeyword }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    e.stopPropagation();
+    console.log("=== SEARCH FORM SUBMITTED ===");
+    console.log("Form submitted with keyword:", searchKeyword);
+    console.log("onSearchKeyword prop exists:", !!onSearchKeyword);
+
     if (searchKeyword.trim()) {
-      onSearchKeyword({ searchKeyword });
-      navigate(`/experience?search=${encodeURIComponent(searchKeyword)}`);
+      // Check if parent provided a search handler
+      if (onSearchKeyword && typeof onSearchKeyword === "function") {
+        console.log("Calling parent onSearchKeyword function");
+        try {
+          onSearchKeyword({ searchKeyword });
+          console.log("Parent function called successfully");
+        } catch (error) {
+          console.error("Error calling parent function:", error);
+        }
+      } else {
+        console.log("No parent handler, navigating directly");
+        const url = `/experience?page=1&search=${encodeURIComponent(
+          searchKeyword
+        )}`;
+        console.log("Direct navigation to:", url);
+        navigate(url);
+      }
+    } else {
+      console.log("No search keyword provided");
     }
+  };
+
+  const handleButtonClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log("Search button clicked directly");
+    handleSubmit(e);
   };
 
   return (
@@ -25,7 +54,7 @@ const Search = ({ className, onSearchKeyword }) => {
       sx={{
         backgroundColor: "rgba(255, 255, 255, 0.3)",
         backdropFilter: "blur(10px)",
-        borderRadius: "50px", // Fully rounded edges
+        borderRadius: "50px",
         border: `1.2px solid ${theme.palette.secondary.light}`,
         padding: "0.6rem",
         display: "flex",
@@ -43,6 +72,12 @@ const Search = ({ className, onSearchKeyword }) => {
         placeholder="Buscar..."
         value={searchKeyword}
         onChange={(e) => setSearchKeyword(e.target.value)}
+        onKeyPress={(e) => {
+          if (e.key === "Enter") {
+            console.log("Enter key pressed in input");
+            handleSubmit(e);
+          }
+        }}
         sx={{
           flex: 1,
           padding: "12px 15px",
@@ -60,6 +95,7 @@ const Search = ({ className, onSearchKeyword }) => {
       {/* Search Button */}
       <IconButton
         type="submit"
+        onClick={handleButtonClick}
         sx={{
           backgroundColor: theme.palette.primary.main,
           color: "white",
