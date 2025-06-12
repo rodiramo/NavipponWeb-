@@ -5,15 +5,16 @@ import { getAllExperiences } from "../../services/index/experiences";
 import HorizontalExperienceCardSkeleton from "./container/HorizontalExperienceCardSkeleton";
 import ErrorMessage from "../../components/ErrorMessage";
 import HorizontalExperienceCard from "./container/HorizontalExperienceCard";
+import ExperienceCard from "../../components/ExperienceCard"; // ✅ Add this import for grid view
 import MainLayout from "../../components/MainLayout";
 import Header from "./container/Hero";
 import Pagination from "../../components/Pagination";
-import { Typography, Button, useTheme, Box } from "@mui/material";
+import { Typography, Button, useTheme, Box, Grid } from "@mui/material"; // ✅ Add Grid import
 import { useSearchParams } from "react-router-dom";
 import MapAside from "../../components/MapAside";
 import useUser from "../../hooks/useUser";
 import Aside from "./container/Aside";
-import { ArrowDownNarrowWide } from "lucide-react";
+import { ArrowDownNarrowWide, Grid3X3, List } from "lucide-react"; // ✅ Add Grid3X3 and List icons
 import { Menu, MenuItem, IconButton } from "@mui/material";
 
 let isFirstRun = true;
@@ -23,6 +24,7 @@ const ExperiencePage = ({ filters: initialFilters }) => {
   const theme = useTheme();
   const { user, jwt } = useUser();
   const [sortBy, setSortBy] = useState("");
+  const [viewMode, setViewMode] = useState("list"); // ✅ Add view mode state
 
   const { primary, text } = theme.palette;
   const [selectedFilter, setSelectedFilter] = useState("todo");
@@ -139,8 +141,6 @@ const ExperiencePage = ({ filters: initialFilters }) => {
     refetch();
   };
 
-  // Find this useEffect in your Experience page and replace it:
-
   useEffect(() => {
     const updatedFilters = { ...filters };
 
@@ -152,12 +152,10 @@ const ExperiencePage = ({ filters: initialFilters }) => {
       delete updatedFilters.category;
     }
 
-    // Preserve existing search keyword if it exists
     if (searchKeyword && !updatedFilters.search) {
       updatedFilters.search = searchKeyword;
     }
 
-    // Preserve page parameter
     if (currentPage > 1) {
       updatedFilters.page = currentPage;
     }
@@ -165,7 +163,7 @@ const ExperiencePage = ({ filters: initialFilters }) => {
     console.log("Setting search params to:", updatedFilters);
     setSearchParams(updatedFilters);
     refetch();
-  }, [selectedFilter, filters, searchKeyword, currentPage, refetch]); // Added searchKeyword and currentPage dependencies
+  }, [selectedFilter, filters, searchKeyword, currentPage, refetch]);
 
   const totalPageCount = parseInt(data?.headers?.["x-totalpagecount"], 10);
   const selectedSortOption = sortingOptions.find(
@@ -238,8 +236,8 @@ const ExperiencePage = ({ filters: initialFilters }) => {
                 </div>
               )}
 
-              {/* Filter Tabs and Sort Row */}
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              {/* Filter Tabs, Sort and View Toggle Row */}
+              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                 {/* Category Filter Tabs */}
                 <div className="flex">
                   {filterTabs.map((tab, index) => (
@@ -287,55 +285,133 @@ const ExperiencePage = ({ filters: initialFilters }) => {
                   ))}
                 </div>
 
-                {/* Sort Dropdown */}
-                <div className="flex items-center gap-2">
-                  <Typography
-                    variant="body2"
-                    className="text-gray-600 hidden sm:block"
-                  >
-                    Ordenar por:
-                  </Typography>
-                  <IconButton
-                    onClick={handleSortClick}
-                    sx={{
-                      border: `1px solid ${theme.palette.primary.main}`,
-                      borderRadius: "30px",
-                      padding: "8px",
-                    }}
-                  >
-                    <ArrowDownNarrowWide
-                      size={20}
-                      color={theme.palette.primary.main}
-                    />
-                  </IconButton>
+                {/* Sort Dropdown and View Toggle */}
+                <div className="flex items-center gap-3">
+                  {/* Sort Dropdown */}
+                  <div className="flex items-center gap-2">
+                    <Typography
+                      variant="body2"
+                      className="text-gray-600 hidden sm:block"
+                    >
+                      Ordenar por:
+                    </Typography>
+                    <IconButton
+                      onClick={handleSortClick}
+                      sx={{
+                        border: `1px solid ${theme.palette.primary.main}`,
+                        borderRadius: "30px",
+                        padding: "8px",
+                      }}
+                    >
+                      <ArrowDownNarrowWide
+                        size={20}
+                        color={theme.palette.primary.main}
+                      />
+                    </IconButton>
 
-                  <Menu
-                    anchorEl={anchorEl}
-                    open={Boolean(anchorEl)}
-                    onClose={() => setAnchorEl(null)}
-                  >
-                    {sortingOptions.map((option) => (
-                      <MenuItem
-                        key={option.value}
-                        onClick={() => handleSortSelection(option.value)}
-                        sx={{
-                          fontSize: "0.875rem",
-                          padding: "12px 20px",
-                        }}
-                      >
-                        {option.label}
-                      </MenuItem>
-                    ))}
-                  </Menu>
+                    <Menu
+                      anchorEl={anchorEl}
+                      open={Boolean(anchorEl)}
+                      onClose={() => setAnchorEl(null)}
+                      PaperProps={{
+                        sx: {
+                          borderRadius: "12px",
+                          mt: 1,
+                          minWidth: "180px",
+                          boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)",
+                        },
+                      }}
+                    >
+                      {sortingOptions.map((option) => (
+                        <MenuItem
+                          key={option.value}
+                          onClick={() => handleSortSelection(option.value)}
+                          sx={{
+                            fontSize: "0.875rem",
+                            padding: "12px 20px",
+                            "&:hover": {
+                              backgroundColor: `${theme.palette.primary.main}10`,
+                            },
+                          }}
+                        >
+                          {option.label}
+                        </MenuItem>
+                      ))}
+                    </Menu>
+                  </div>
+
+                  {/* View Mode Toggle */}
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant={viewMode === "grid" ? "contained" : "outlined"}
+                      onClick={() => setViewMode("grid")}
+                      sx={{
+                        minWidth: "40px",
+                        borderRadius: "30px",
+                        border: `1px solid ${theme.palette.primary.main}`,
+                        ...(viewMode === "grid"
+                          ? {
+                              backgroundColor: theme.palette.primary.main,
+                              color: theme.palette.primary.contrastText,
+                              "&:hover": {
+                                backgroundColor: theme.palette.primary.dark,
+                              },
+                            }
+                          : {
+                              color: theme.palette.primary.main,
+                              backgroundColor: "transparent",
+                              "&:hover": {
+                                backgroundColor: `${theme.palette.primary.main}08`,
+                              },
+                            }),
+                      }}
+                    >
+                      <Grid3X3 size={24} />
+                    </Button>
+
+                    <Button
+                      variant={viewMode === "list" ? "contained" : "outlined"}
+                      onClick={() => setViewMode("list")}
+                      sx={{
+                        minWidth: "40px",
+
+                        borderRadius: "30px",
+                        border: `1px solid ${theme.palette.primary.main}`,
+                        ...(viewMode === "list"
+                          ? {
+                              backgroundColor: theme.palette.primary.main,
+                              color: theme.palette.primary.contrastText,
+                              "&:hover": {
+                                backgroundColor: theme.palette.primary.dark,
+                              },
+                            }
+                          : {
+                              color: theme.palette.primary.main,
+                              backgroundColor: "transparent",
+                              "&:hover": {
+                                backgroundColor: `${theme.palette.primary.main}08`,
+                              },
+                            }),
+                      }}
+                    >
+                      <List size={24} />
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
 
             {/* Experience Cards */}
-            <div className="space-y-2">
+            <div className={viewMode === "grid" ? "" : "space-y-2"}>
               {isLoading || isFetching ? (
-                <div className="space-y-6">
-                  {[...Array(3)].map((_, index) => (
+                <div
+                  className={
+                    viewMode === "grid"
+                      ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                      : "space-y-6"
+                  }
+                >
+                  {[...Array(viewMode === "grid" ? 6 : 3)].map((_, index) => (
                     <HorizontalExperienceCardSkeleton
                       key={index}
                       className="w-full"
@@ -372,18 +448,37 @@ const ExperiencePage = ({ filters: initialFilters }) => {
                   </Typography>
                 </div>
               ) : (
-                <div className="space-y-6">
-                  {data?.data.map((experience) => (
-                    <HorizontalExperienceCard
-                      key={experience._id}
-                      experience={experience}
-                      user={user}
-                      token={jwt}
-                      className="w-full"
-                      onFavoriteToggle={handleFavoriteToggle}
-                    />
-                  ))}
-                </div>
+                <>
+                  {/* Grid View */}
+                  {viewMode === "grid" ? (
+                    <Grid container spacing={3}>
+                      {data?.data.map((experience) => (
+                        <Grid item xs={12} sm={6} lg={4} key={experience._id}>
+                          <ExperienceCard
+                            experience={experience}
+                            user={user}
+                            token={jwt}
+                            onFavoriteToggle={handleFavoriteToggle}
+                          />
+                        </Grid>
+                      ))}
+                    </Grid>
+                  ) : (
+                    /* List View */
+                    <div className="space-y-6">
+                      {data?.data.map((experience) => (
+                        <HorizontalExperienceCard
+                          key={experience._id}
+                          experience={experience}
+                          user={user}
+                          token={jwt}
+                          className="w-full"
+                          onFavoriteToggle={handleFavoriteToggle}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </>
               )}
             </div>
 

@@ -764,14 +764,25 @@ const RegionDetail = () => {
               <Typography>Cargando experiencias...</Typography>
             </Box>
           ) : filteredExperiences.length === 0 ? (
-            <Box sx={{ textAlign: "center", py: 8 }}>
-              <Typography variant="h6" color="text.secondary">
-                No se encontraron experiencias
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <div className="mb-6">
+                <img
+                  src="/assets/no-results.png"
+                  alt="No results"
+                  className="w-64 h-auto mx-auto opacity-80"
+                />
+              </div>
+              <Typography
+                variant="h4"
+                className="font-bold mb-4"
+                sx={{ color: theme.palette.primary.main }}
+              >
+                No se encontraron resultados
               </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Intenta ajustar tus filtros de búsqueda
+              <Typography variant="body1" className="text-gray-600 max-w-md">
+                "Intenta ajustar los filtros o buscar otros términos."
               </Typography>
-            </Box>
+            </div>
           ) : (
             <Box>
               {viewMode === "grid" ? (
