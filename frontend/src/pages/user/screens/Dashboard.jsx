@@ -388,13 +388,6 @@ const ActivityWidget = ({
       text: `Creaste ${itineraries.length} itinerarios`,
       time: "Este mes",
     },
-    {
-      icon: <Calendar size={16} color={theme.palette.info.main} />,
-      text: upcomingTrip
-        ? `Próximo viaje: ${upcomingTrip.name}`
-        : "No hay viajes programados",
-      time: upcomingTrip ? "Próximamente" : "",
-    },
   ];
 
   return (
