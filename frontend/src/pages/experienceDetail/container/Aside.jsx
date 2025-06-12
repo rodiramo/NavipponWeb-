@@ -206,6 +206,9 @@ const Aside = ({ info }) => {
                 </Typography>
               ))}
             </Box>
+            <Box sx={{ mb: 4 }}>
+              <Typography> {info.body || "No especificada"}</Typography>
+            </Box>
 
             {/* Season and Price Info */}
 
@@ -229,7 +232,26 @@ const Aside = ({ info }) => {
                 </Typography>
               </Typography>
             </Box>
-
+            <Box
+              sx={{ display: "flex", alignItems: "center", gap: 1, flex: 1 }}
+            >
+              <Euro color={theme.palette.primary.main} size={20} />
+              <Typography
+                variant="body1"
+                sx={{ color: theme.palette.text.primary }}
+              >
+                Precio Aproximado:{" "}
+                <Typography
+                  component="span"
+                  sx={{
+                    fontWeight: 700,
+                    color: theme.palette.primary.main,
+                  }}
+                >
+                  {`${info.price}€` || "A consultar"}
+                </Typography>
+              </Typography>
+            </Box>
             <Divider sx={{ mt: 4, mb: 4, opacity: 0.3 }} />
 
             {/* Category-specific Tags */}

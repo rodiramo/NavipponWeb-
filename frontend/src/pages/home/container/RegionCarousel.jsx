@@ -127,7 +127,7 @@ const RegionCarousel = () => {
   const theme = useTheme();
 
   const handleRegionClick = (region) => {
-    navigate(`/experience?category=&region=${region}`);
+    navigate(`/region/${region}`);
   };
 
   const settings = {

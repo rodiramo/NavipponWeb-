@@ -11,6 +11,7 @@ import { themeSettings } from "./theme.js";
 import ArticleDetailPage from "./pages/articleDetail/ArticleDetailPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
+import RegionDetail from "./pages/regionDetail/RegionDetailPage"; // Adjust path as needed
 
 import HomePage from "./pages/home/HomePage";
 import RegisterPage from "./pages/register/RegisterPage";
@@ -90,7 +91,8 @@ function App() {
           <Route
             path="/reset-password/:token"
             element={<ResetPasswordPage />}
-          />
+          />{" "}
+          <Route path="/region/:regionName" element={<RegionDetail />} />
           <Route path="/blog/:slug" element={<ArticleDetailPage />} />
           <Route path="/blog" element={<BlogPage />} />
           <Route path="/about" element={<AboutPage />} />
