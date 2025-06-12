@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import Cropper from "react-easy-crop";
-
 import getCroppedImg from "./cropImage";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { updateProfilePicture } from "../../services/index/users";
@@ -9,7 +8,7 @@ import useUser from "../../hooks/useUser";
 import { userActions } from "../../store/reducers/userReducers";
 import { toast } from "react-hot-toast";
 
-const CropEasy = ({ photo, setOpenCrop }) => {
+const CropEasy = ({ photo, setOpenCrop, onAvatarChange }) => {
   const { user, jwt } = useUser();
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
@@ -28,7 +27,8 @@ const CropEasy = ({ photo, setOpenCrop }) => {
       dispatch(userActions.setUserInfo(data));
       setOpenCrop(false);
       localStorage.setItem("account", JSON.stringify(data));
-      queryClient.invalidateQueries(["profile"]);
+      queryClient.invalidateQueries(["userProfile", user._id]);
+      if (onAvatarChange) onAvatarChange(data.avatar); 
       toast.success("El perfil de usuario se ha actualizado");
     },
     onError: (error) => {
