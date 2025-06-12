@@ -7,6 +7,7 @@ import {
   createItineraryLeaveNotification,
   createTravelerRemovedNotification,
 } from "../services/notificationService.js";
+import asyncHandler from "express-async-handler";
 
 const createItinerary = async (req, res, next) => {
   try {
@@ -528,10 +529,352 @@ export const removeTravelerAlternative = async (req, res, next) => {
   }
 };
 
+const addExperienceToItinerary = asyncHandler(async (req, res) => {
+  const { experienceId, boardDate } = req.body; // boardDate is optional, defaults to first board
+  const itineraryId = req.params.id;
+  const userId = req.user._id;
+
+  try {
+    // Find the itinerary
+    const itinerary = await Itinerary.findById(itineraryId);
+
+    if (!itinerary) {
+      res.status(404);
+      throw new Error("Itinerary not found");
+    }
+
+    // Check if user has permission to modify this itinerary
+    const isOwner = itinerary.user.toString() === userId.toString();
+    const isEditor = itinerary.travelers.some(
+      (traveler) =>
+        traveler.userId.toString() === userId.toString() &&
+        traveler.role === "editor"
+    );
+
+    if (!isOwner && !isEditor) {
+      res.status(403);
+      throw new Error("Not authorized to modify this itinerary");
+    }
+
+    // Check if experience exists
+    const experience = await Experience.findById(experienceId);
+    if (!experience) {
+      res.status(404);
+      throw new Error("Experience not found");
+    }
+
+    // Check if a favorite already exists for this experience and user
+    let favorite = await Favorite.findOne({
+      user: userId,
+      experienceId: experienceId,
+    });
+
+    // If no favorite exists, create one
+    if (!favorite) {
+      favorite = await Favorite.create({
+        user: userId,
+        experienceId: experienceId,
+      });
+    }
+
+    // Determine which board to add to
+    let targetBoard;
+    if (boardDate) {
+      targetBoard = itinerary.boards.find((board) => board.date === boardDate);
+      if (!targetBoard) {
+        res.status(404);
+        throw new Error("Board with specified date not found");
+      }
+    } else {
+      // Use the first board if no date specified
+      targetBoard = itinerary.boards[0];
+      if (!targetBoard) {
+        res.status(400);
+        throw new Error("No boards found in itinerary");
+      }
+    }
+
+    // Check if favorite is already in the board
+    const favoriteExists = targetBoard.favorites.some(
+      (fav) => fav.toString() === favorite._id.toString()
+    );
+
+    if (favoriteExists) {
+      res.status(400);
+      throw new Error("Experience already exists in this itinerary board");
+    }
+
+    // Add favorite to the board
+    targetBoard.favorites.push(favorite._id);
+    await itinerary.save();
+
+    // Populate the itinerary for response
+    await itinerary.populate({
+      path: "boards.favorites",
+      populate: {
+        path: "experienceId",
+        select: "title photo slug price",
+      },
+    });
+
+    res.status(200).json({
+      message: "Experience added to itinerary successfully",
+      itinerary,
+      boardDate: targetBoard.date,
+      favoriteId: favorite._id,
+    });
+  } catch (error) {
+    res.status(400);
+    throw new Error(error.message);
+  }
+});
+
+const removeExperienceFromItinerary = asyncHandler(async (req, res) => {
+  const { id: itineraryId, experienceId } = req.params;
+  const { boardDate } = req.query; // Optional query parameter
+  const userId = req.user._id;
+
+  try {
+    // Find the itinerary
+    const itinerary = await Itinerary.findById(itineraryId);
+
+    if (!itinerary) {
+      res.status(404);
+      throw new Error("Itinerary not found");
+    }
+
+    // Check if user has permission to modify this itinerary
+    const isOwner = itinerary.user.toString() === userId.toString();
+    const isEditor = itinerary.travelers.some(
+      (traveler) =>
+        traveler.userId.toString() === userId.toString() &&
+        traveler.role === "editor"
+    );
+
+    if (!isOwner && !isEditor) {
+      res.status(403);
+      throw new Error("Not authorized to modify this itinerary");
+    }
+
+    // Find the favorite for this experience and user
+    const favorite = await Favorite.findOne({
+      user: userId,
+      experienceId: experienceId,
+    });
+
+    if (!favorite) {
+      res.status(404);
+      throw new Error("Favorite not found");
+    }
+
+    let removedFromBoards = 0;
+
+    // Remove from specific board if boardDate provided, otherwise remove from all boards
+    if (boardDate) {
+      const targetBoard = itinerary.boards.find(
+        (board) => board.date === boardDate
+      );
+      if (!targetBoard) {
+        res.status(404);
+        throw new Error("Board with specified date not found");
+      }
+
+      const favoriteIndex = targetBoard.favorites.findIndex(
+        (fav) => fav.toString() === favorite._id.toString()
+      );
+
+      if (favoriteIndex !== -1) {
+        targetBoard.favorites.splice(favoriteIndex, 1);
+        removedFromBoards = 1;
+      }
+    } else {
+      // Remove from all boards
+      itinerary.boards.forEach((board) => {
+        const favoriteIndex = board.favorites.findIndex(
+          (fav) => fav.toString() === favorite._id.toString()
+        );
+        if (favoriteIndex !== -1) {
+          board.favorites.splice(favoriteIndex, 1);
+          removedFromBoards++;
+        }
+      });
+    }
+
+    if (removedFromBoards === 0) {
+      res.status(404);
+      throw new Error("Experience not found in specified itinerary board(s)");
+    }
+
+    await itinerary.save();
+
+    res.status(200).json({
+      message: "Experience removed from itinerary successfully",
+      removedFromBoards,
+      boardDate: boardDate || "all boards",
+    });
+  } catch (error) {
+    res.status(400);
+    throw new Error(error.message);
+  }
+});
+
+// @desc    Check if experience exists in itinerary
+// @route   GET /api/itineraries/:id/experiences/:experienceId/check
+// @access  Private
+const checkExperienceInItinerary = asyncHandler(async (req, res) => {
+  const { id: itineraryId, experienceId } = req.params;
+  const userId = req.user._id;
+
+  try {
+    // Find the itinerary and populate favorites with their experience details
+    const itinerary = await Itinerary.findById(itineraryId).populate({
+      path: "boards.favorites",
+      populate: {
+        path: "experienceId",
+        select: "_id",
+      },
+    });
+
+    if (!itinerary) {
+      res.status(404);
+      throw new Error("Itinerary not found");
+    }
+
+    // Check if user has access to this itinerary
+    const isOwner = itinerary.user.toString() === userId.toString();
+    const isTraveler = itinerary.travelers.some(
+      (traveler) => traveler.userId.toString() === userId.toString()
+    );
+
+    if (!isOwner && !isTraveler) {
+      res.status(403);
+      throw new Error("Not authorized to access this itinerary");
+    }
+
+    let exists = false;
+    let boards = [];
+    let favoriteId = null;
+
+    // Check each board for the experience
+    itinerary.boards.forEach((board) => {
+      board.favorites.forEach((favorite) => {
+        // Check if this favorite's experience matches our target experience
+        if (
+          favorite.experienceId &&
+          favorite.experienceId._id.toString() === experienceId.toString()
+        ) {
+          exists = true;
+          boards.push(board.date);
+          favoriteId = favorite._id;
+        }
+      });
+    });
+
+    console.log(
+      `Check result for experience ${experienceId} in itinerary ${itineraryId}:`,
+      {
+        exists,
+        boards,
+        totalBoards: itinerary.boards.length,
+      }
+    );
+
+    res.status(200).json({
+      exists,
+      boards,
+      itineraryId,
+      experienceId,
+      favoriteId,
+    });
+  } catch (error) {
+    console.error("Error in checkExperienceInItinerary:", error);
+    res.status(400);
+    throw new Error(error.message);
+  }
+});
+
+// @desc    Get all experiences in itinerary (from all boards)
+// @route   GET /api/itineraries/:id/experiences
+// @access  Private
+const getItineraryExperiences = asyncHandler(async (req, res) => {
+  const itineraryId = req.params.id;
+  const userId = req.user._id;
+
+  try {
+    // Find the itinerary and populate favorites with experience details
+    const itinerary = await Itinerary.findById(itineraryId).populate({
+      path: "boards.favorites",
+      populate: {
+        path: "experienceId",
+        select:
+          "title description photo price categories region prefecture slug ratings numReviews",
+      },
+    });
+
+    if (!itinerary) {
+      res.status(404);
+      throw new Error("Itinerary not found");
+    }
+
+    // Check if user has access to this itinerary
+    const isOwner = itinerary.user.toString() === userId.toString();
+    const isTraveler = itinerary.travelers.some(
+      (traveler) => traveler.userId.toString() === userId.toString()
+    );
+
+    if (!isOwner && !isTraveler) {
+      res.status(403);
+      throw new Error("Not authorized to access this itinerary");
+    }
+
+    // Collect all unique experiences from all boards
+    const experienceMap = new Map();
+    const boardExperiences = [];
+
+    itinerary.boards.forEach((board) => {
+      const boardData = {
+        date: board.date,
+        dailyBudget: board.dailyBudget,
+        experiences: [],
+      };
+
+      board.favorites.forEach((favorite) => {
+        if (favorite.experienceId) {
+          const experience = favorite.experienceId;
+          experienceMap.set(experience._id.toString(), experience);
+          boardData.experiences.push({
+            favoriteId: favorite._id,
+            experience: experience,
+          });
+        }
+      });
+
+      boardExperiences.push(boardData);
+    });
+
+    const allExperiences = Array.from(experienceMap.values());
+
+    res.status(200).json({
+      boards: boardExperiences,
+      allExperiences,
+      totalExperiences: allExperiences.length,
+      itineraryId,
+      itineraryName: itinerary.name,
+    });
+  } catch (error) {
+    res.status(400);
+    throw new Error(error.message);
+  }
+});
+
 export {
   createItinerary,
   getAllItineraries,
   getItinerary,
+  addExperienceToItinerary,
+  removeExperienceFromItinerary,
+  checkExperienceInItinerary,
+  getItineraryExperiences,
   getItineraryForEdit,
   updateItinerary,
   deleteItinerary,

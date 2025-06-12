@@ -203,7 +203,6 @@ const Hero = () => {
             mb: 3,
             animation: "fadeInUp 1s ease-out 0.7s both",
             letterSpacing: "-0.02em",
-            textShadow: "0 2px 20px rgba(0,0,0,0.8)",
           }}
         >
           Navega Japón
@@ -211,7 +210,7 @@ const Hero = () => {
             component="span"
             sx={{
               display: "block",
-              background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.light})`,
+              background: `white`,
               backgroundClip: "text",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
@@ -223,7 +222,6 @@ const Hero = () => {
               },
               fontWeight: 700,
               mt: 1,
-              textShadow: "0 2px 20px rgba(0,0,0,0.8)",
             }}
           >
             a tu manera
@@ -246,7 +244,6 @@ const Hero = () => {
             backgroundColor: "rgba(17, 1, 1, 0.1)",
             border: "1px solid rgba(255, 255, 255, 0.2)",
             borderRadius: "1rem",
-            boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3)",
             transition: "all 0.3s ease",
           }}
         >

@@ -8,8 +8,14 @@ import {
   getFavoritesCount as getFavoritesCountService,
   getUserFavorites,
 } from "../../../services/index/favorites";
+// Add itinerary service imports
+import {
+  getUserItineraries,
+  addExperienceToItinerary,
+  checkExperienceInItinerary,
+} from "../../../services/index/itinerary";
 import { images, stables } from "../../../constants";
-import { Eye } from "lucide-react";
+import { Eye, Plus, BookOpen, Check } from "lucide-react";
 import {
   IconButton,
   useTheme,
@@ -20,6 +26,10 @@ import {
   Card,
   CardContent,
   Divider,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
 } from "@mui/material";
 import StarRating from "../../../components/Stars";
 import {
@@ -36,10 +46,16 @@ const HorizontalExperienceCard = ({
   token,
   className,
   onFavoriteToggle,
+  onItineraryAdd, // New callback for itinerary updates
 }) => {
   const [isFavorite, setIsFavorite] = useState(false);
   const [favoritesCount, setFavoritesCount] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
+  const [userItineraries, setUserItineraries] = useState([]);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [experienceInItineraries, setExperienceInItineraries] = useState(
+    new Map()
+  ); // Map of itineraryId -> boards[]
   const theme = useTheme();
 
   useEffect(() => {
@@ -69,7 +85,38 @@ const HorizontalExperienceCard = ({
         }
       };
 
+      const fetchUserItineraries = async () => {
+        try {
+          const itineraries = await getUserItineraries(user._id, token);
+          setUserItineraries(itineraries);
+
+          // Check which itineraries already contain this experience
+          const inItineraries = new Map();
+          for (const itinerary of itineraries) {
+            try {
+              const checkResult = await checkExperienceInItinerary({
+                itineraryId: itinerary._id,
+                experienceId: experience._id,
+                token,
+              });
+              if (checkResult.exists) {
+                inItineraries.set(itinerary._id, checkResult.boards || []);
+              }
+            } catch (error) {
+              console.error(
+                `Error checking experience in itinerary ${itinerary._id}:`,
+                error
+              );
+            }
+          }
+          setExperienceInItineraries(inItineraries);
+        } catch (error) {
+          console.error("Error fetching user itineraries:", error);
+        }
+      };
+
       fetchFavorites();
+      fetchUserItineraries();
     }
   }, [user, token, experience._id]);
 
@@ -102,7 +149,7 @@ const HorizontalExperienceCard = ({
         toast.success("Se agregó a favoritos");
       }
 
-      onFavoriteToggle();
+      onFavoriteToggle && onFavoriteToggle();
     } catch (error) {
       if (error.response && error.response.status === 400) {
         toast.error("La experiencia ya está en tus favoritos");
@@ -110,6 +157,64 @@ const HorizontalExperienceCard = ({
         toast.error("Error al actualizar favoritos");
       }
       console.error("Error updating favorites:", error);
+    }
+  };
+
+  const handleItineraryMenuOpen = (event) => {
+    if (!user || !token) {
+      toast.error("Debes iniciar sesión para agregar a itinerario");
+      return;
+    }
+
+    if (userItineraries.length === 0) {
+      toast.error("No tienes itinerarios creados. Crea uno primero.");
+      return;
+    }
+
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleItineraryMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleAddToItinerary = async (itinerary) => {
+    try {
+      // Add to first board (earliest date) by default
+      const boardDate =
+        itinerary.boards && itinerary.boards.length > 0
+          ? itinerary.boards[0].date
+          : null;
+
+      await addExperienceToItinerary({
+        itineraryId: itinerary._id,
+        experienceId: experience._id,
+        boardDate, // Optional - will use first board if not specified
+        token,
+      });
+
+      // Update the state to show this itinerary now contains the experience
+      setExperienceInItineraries((prev) => {
+        const newMap = new Map(prev);
+        const existingBoards = newMap.get(itinerary._id) || [];
+        newMap.set(
+          itinerary._id,
+          [...existingBoards, boardDate].filter(Boolean)
+        );
+        return newMap;
+      });
+
+      toast.success(`Experiencia agregada a "${itinerary.name}"`);
+      onItineraryAdd && onItineraryAdd(itinerary._id, experience._id);
+    } catch (error) {
+      if (error.response && error.response.status === 400) {
+        toast.error("La experiencia ya está en este itinerario");
+      } else {
+        toast.error("Error al agregar a itinerario");
+      }
+      console.error("Error adding to itinerary:", error);
+    } finally {
+      handleItineraryMenuClose();
     }
   };
 
@@ -141,6 +246,7 @@ const HorizontalExperienceCard = ({
   };
 
   const categoryColors = getCategoryColor(experience.categories);
+  const hasItineraries = user && token && userItineraries.length > 0;
 
   return (
     <Card
@@ -387,7 +493,7 @@ const HorizontalExperienceCard = ({
             position: "relative",
           }}
         >
-          {/* Left side - View Details Button and Favorites Info */}
+          {/* Left side - Buttons and Favorites Info */}
           <Box
             sx={{
               display: "flex",
@@ -397,46 +503,69 @@ const HorizontalExperienceCard = ({
               flex: 1,
             }}
           >
-            {/* View Details Button */}
-            <Button
-              component={Link}
-              to={`/experience/${experience.slug}`}
-              variant="contained"
-              startIcon={<Eye size={16} />}
-              sx={{
-                background: theme.palette.secondary.medium,
-                color: theme.palette.primary.white,
-                textTransform: "none",
-                borderRadius: "25px",
-                paddingX: 3,
-                paddingY: 1.5,
-                fontWeight: 600,
-                boxShadow: "none",
-                fontSize: "0.875rem",
-                "&:hover": {
-                  boxShadow: "none",
-                  background: theme.palette.secondary.light,
-                  color: theme.palette.secondary.dark,
-                },
-                transition: "all 0.3s ease",
-              }}
-            >
-              Ver Detalles
-            </Button>
-
-            {/* Favorites Info */}
+            {/* Buttons Row */}
             <Box
               sx={{
                 display: "flex",
-                alignItems: "center",
-                gap: 1,
-                color: theme.palette.text.secondary,
+                gap: 2,
+                flexWrap: "wrap",
               }}
             >
-              <AiFillHeart size={16} color={theme.palette.primary.main} />
-              <Typography variant="caption">
-                {favoritesCount} popularidad
-              </Typography>
+              {/* View Details Button */}
+              <Button
+                component={Link}
+                to={`/experience/${experience.slug}`}
+                variant="contained"
+                startIcon={<Eye size={16} />}
+                sx={{
+                  background: theme.palette.secondary.medium,
+                  color: theme.palette.primary.white,
+                  textTransform: "none",
+                  borderRadius: "25px",
+                  paddingX: 3,
+                  paddingY: 1.5,
+                  fontWeight: 600,
+                  boxShadow: "none",
+                  fontSize: "0.875rem",
+                  "&:hover": {
+                    boxShadow: "none",
+                    background: theme.palette.secondary.light,
+                    color: theme.palette.secondary.dark,
+                  },
+                  transition: "all 0.3s ease",
+                }}
+              >
+                Ver Detalles
+              </Button>
+
+              {/* Add to Itinerary Button */}
+              {hasItineraries && (
+                <Button
+                  onClick={handleItineraryMenuOpen}
+                  startIcon={<Plus size={16} />}
+                  sx={{
+                    backgroundColor: theme.palette.primary.light,
+                    color: theme.palette.primary.main,
+                    borderRadius: "25px",
+                    textTransform: "none",
+                    fontWeight: 600,
+                    fontSize: "0.875rem",
+                    paddingX: 3,
+                    paddingY: 1.5,
+                    border: `1px solid ${theme.palette.primary.main}30`,
+                    boxShadow: "none",
+                    transition: "all 0.3s ease",
+                    "&:hover": {
+                      backgroundColor: theme.palette.primary.main,
+                      color: theme.palette.primary.white,
+                      transform: "translateY(-1px)",
+                      boxShadow: "none",
+                    },
+                  }}
+                >
+                  Agregar a itinerario
+                </Button>
+              )}
             </Box>
           </Box>
 
@@ -474,6 +603,74 @@ const HorizontalExperienceCard = ({
             </Box>
           </Box>
         </Box>
+
+        {/* Itinerary Menu */}
+        <Menu
+          anchorEl={anchorEl}
+          open={Boolean(anchorEl)}
+          onClose={handleItineraryMenuClose}
+          PaperProps={{
+            sx: {
+              borderRadius: "12px",
+              mt: 1,
+              minWidth: "200px",
+              boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)",
+            },
+          }}
+        >
+          {userItineraries.map((itinerary) => {
+            const boardsWithExperience =
+              experienceInItineraries.get(itinerary._id) || [];
+            const isInItinerary = boardsWithExperience.length > 0;
+            const boardsText = isInItinerary
+              ? `En ${boardsWithExperience.length} día${
+                  boardsWithExperience.length > 1 ? "s" : ""
+                }`
+              : `${itinerary.travelDays || 0} días de viaje`;
+
+            return (
+              <MenuItem
+                key={itinerary._id}
+                onClick={() =>
+                  !isInItinerary && handleAddToItinerary(itinerary)
+                }
+                disabled={isInItinerary}
+                sx={{
+                  py: 1.5,
+                  px: 2,
+                  "&:hover": {
+                    backgroundColor: !isInItinerary
+                      ? theme.palette.primary.light
+                      : "transparent",
+                  },
+                  opacity: isInItinerary ? 0.6 : 1,
+                }}
+              >
+                <ListItemIcon>
+                  {isInItinerary ? (
+                    <Check size={20} color={theme.palette.success.main} />
+                  ) : (
+                    <BookOpen size={20} color={theme.palette.primary.main} />
+                  )}
+                </ListItemIcon>
+                <ListItemText
+                  primary={itinerary.name}
+                  secondary={boardsText}
+                  primaryTypographyProps={{
+                    fontWeight: 500,
+                    fontSize: "0.9rem",
+                  }}
+                  secondaryTypographyProps={{
+                    fontSize: "0.75rem",
+                    color: isInItinerary
+                      ? theme.palette.success.main
+                      : theme.palette.text.secondary,
+                  }}
+                />
+              </MenuItem>
+            );
+          })}
+        </Menu>
       </CardContent>
     </Card>
   );
