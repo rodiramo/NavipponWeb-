@@ -68,9 +68,18 @@ const UserList = ({ currentUser, token }) => {
       const updatedUser = await toggleFriend({ userId, token });
       dispatch(setFriends(updatedUser.friends));
 
+      // Find the user name from your users list
+      const user = users.find((u) => u._id === userId);
+      const userName = user?.name || "Usuario";
+
       const isFriend = updatedUser.friends.includes(userId);
       toast.success(
-        isFriend ? "Usuario agregado a amigos" : "Usuario eliminado de amigos"
+        isFriend
+          ? `Ahora eres amigo de ${userName}`
+          : `Has dejado de seguir a ${userName}`,
+        {
+          duration: 3000,
+        }
       );
     } catch (error) {
       toast.error("Error al actualizar amigos");
@@ -83,7 +92,6 @@ const UserList = ({ currentUser, token }) => {
       });
     }
   };
-
   const handleClearSearch = () => {
     setSearchTerm("");
   };
