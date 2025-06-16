@@ -1,4 +1,3 @@
-// Improved ItineraryHeader.jsx - Better styling and layout
 import React from "react";
 import {
   Box,
@@ -17,13 +16,14 @@ import {
   Save,
   Edit,
   CalendarDays,
-  Wallet,
+  HandCoins,
   MessagesSquare,
   ArrowLeft,
   Users,
   Crown,
 } from "lucide-react";
 import Travelers from "./Travelers";
+import DateDisplay from "./DateDisplay";
 
 const ItineraryHeader = ({
   name,
@@ -43,8 +43,42 @@ const ItineraryHeader = ({
   onRemoveTraveler,
   onNotesClick,
   onBackClick,
+  userRole = "viewer", // Add userRole prop
+  currentUserId,
+  startDate,
+  boards,
+  onEditDates,
+  canEditDates,
 }) => {
   const theme = useTheme();
+  const endDate =
+    startDate && boards?.length > 0
+      ? new Date(
+          new Date(startDate).setDate(
+            new Date(startDate).getDate() + boards.length - 1
+          )
+        )
+      : null;
+  // Check if user can edit (owners and editors)
+  const canEdit = userRole === "owner" || userRole === "editor";
+  // Check if user can manage travelers (only owners)
+  const canManageTravelers = userRole === "owner";
+
+  const handleNameClick = () => {
+    if (canEdit) {
+      setIsEditingName(true);
+    }
+  };
+
+  const handleEditClick = () => {
+    if (canEdit) {
+      if (isEditingName) {
+        handleSaveName();
+      } else {
+        setIsEditingName(true);
+      }
+    }
+  };
 
   return (
     <Box
@@ -94,7 +128,7 @@ const ItineraryHeader = ({
               <Box
                 sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}
               >
-                {isEditingName ? (
+                {isEditingName && canEdit ? (
                   <TextField
                     value={name}
                     onChange={(e) => setName(e.target.value)}
@@ -147,51 +181,52 @@ const ItineraryHeader = ({
                     sx={{
                       fontWeight: "bold",
                       color: "white",
-                      cursor: "pointer",
+                      cursor: canEdit ? "pointer" : "default",
                       fontSize: { xs: "1.75rem", md: "2.5rem" },
                       lineHeight: 1.2,
-                      "&:hover": {
-                        opacity: 0.8,
-                      },
+                      "&:hover": canEdit
+                        ? {
+                            opacity: 0.8,
+                          }
+                        : {},
                     }}
-                    onClick={() => setIsEditingName(true)}
+                    onClick={handleNameClick}
                   >
                     {name || "Nuevo Itinerario"}
                   </Typography>
                 )}
 
-                <Tooltip title={isEditingName ? "Guardar" : "Editar nombre"}>
-                  <IconButton
-                    onClick={
-                      isEditingName
-                        ? handleSaveName
-                        : () => setIsEditingName(true)
-                    }
-                    sx={{
-                      position: "relative",
-                      zIndex: 1,
-                      width: 48,
-                      height: 48,
-                      color: isEditingName
-                        ? theme.palette.success.dark
-                        : "white",
-                      background: isEditingName
-                        ? `linear-gradient(135deg, ${theme.palette.success.light})`
-                        : "rgba(255,255,255,0.15)",
-                      backdropFilter: "blur(20px)",
-                      border: "1px solid rgba(255,255,255,0.2)",
-                      transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                      "&:hover": {
-                        color: isEditingName ? "white" : "white",
+                {/* Only show edit button for users who can edit */}
+                {canEdit && (
+                  <Tooltip title={isEditingName ? "Guardar" : "Editar nombre"}>
+                    <IconButton
+                      onClick={handleEditClick}
+                      sx={{
+                        position: "relative",
+                        zIndex: 1,
+                        width: 48,
+                        height: 48,
+                        color: isEditingName
+                          ? theme.palette.success.dark
+                          : "white",
                         background: isEditingName
-                          ? `linear-gradient(135deg, ${theme.palette.success.main})`
-                          : "rgba(255,255,255,0.25)",
-                      },
-                    }}
-                  >
-                    {isEditingName ? <Save size={22} /> : <Edit size={22} />}
-                  </IconButton>
-                </Tooltip>
+                          ? `linear-gradient(135deg, ${theme.palette.success.light})`
+                          : "rgba(255,255,255,0.15)",
+                        backdropFilter: "blur(20px)",
+                        border: "1px solid rgba(255,255,255,0.2)",
+                        transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                        "&:hover": {
+                          color: isEditingName ? "white" : "white",
+                          background: isEditingName
+                            ? `linear-gradient(135deg, ${theme.palette.success.main})`
+                            : "rgba(255,255,255,0.25)",
+                        },
+                      }}
+                    >
+                      {isEditingName ? <Save size={22} /> : <Edit size={22} />}
+                    </IconButton>
+                  </Tooltip>
+                )}
               </Box>
 
               {/* Creator and Role Info */}
@@ -218,18 +253,21 @@ const ItineraryHeader = ({
                   </Box>
                 )}
 
-                {isInvited && (
-                  <Chip
-                    label={`Tu rol: ${myRole}`}
-                    size="small"
-                    sx={{
-                      backgroundColor: "rgba(255,255,255,0.2)",
-                      color: "white",
-                      fontWeight: 500,
-                      backdropFilter: "blur(10px)",
-                    }}
-                  />
-                )}
+                <Chip
+                  label={`Tu rol: ${myRole}`}
+                  size="small"
+                  sx={{
+                    backgroundColor:
+                      userRole === "owner"
+                        ? theme.palette.primary.main
+                        : userRole === "editor"
+                          ? theme.palette.primary.main
+                          : "rgba(255,255,255,0.2)",
+                    color: "white",
+                    fontWeight: 500,
+                    backdropFilter: "blur(10px)",
+                  }}
+                />
               </Box>
             </Box>
 
@@ -238,41 +276,47 @@ const ItineraryHeader = ({
               sx={{
                 display: "flex",
                 gap: 2,
-
                 order: { xs: 3, lg: 2 },
               }}
             >
+              <DateDisplay
+                startDate={startDate}
+                endDate={endDate}
+                onEditClick={onEditDates}
+                canEdit={canEditDates}
+                boardCount={boards?.length || 0}
+              />
               <Chip
                 icon={
-                  <CalendarDays
-                    size={18}
-                    color={theme.palette.secondary.medium}
-                  />
+                  <CalendarDays size={18} color={theme.palette.primary.dark} />
                 }
                 label={`${travelDays} ${travelDays === 1 ? "Día" : "Días"}`}
                 sx={{
                   borderRadius: "30px",
-                  color: "white",
+                  color: theme.palette.primary.dark,
                   fontWeight: "bold",
                   fontSize: "0.875rem",
                   height: 40,
+                  backgroundColor: theme.palette.primary.light,
                   backdropFilter: "blur(10px)",
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
                   "& .MuiChip-icon": {
-                    color: theme.palette.secondary.main,
+                    color: theme.palette.primary.dark,
                   },
                 }}
               />
 
               <Chip
-                icon={<Wallet size={18} color={theme.palette.success.main} />}
-                label={`€${totalBudget.toLocaleString()}`}
+                icon={
+                  <HandCoins size={18} color={theme.palette.success.dark} />
+                }
+                label={`¥ ${totalBudget.toLocaleString()}`}
                 sx={{
                   borderRadius: "30px",
-                  color: "white",
+                  color: theme.palette.success.dark,
                   fontWeight: "bold",
                   fontSize: "0.875rem",
                   height: 40,
+                  backgroundColor: theme.palette.success.lightest,
                   backdropFilter: "blur(10px)",
                   boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
                   "& .MuiChip-icon": {
@@ -296,13 +340,20 @@ const ItineraryHeader = ({
                 <Travelers
                   travelers={travelers}
                   friendsList={friendsList}
-                  onAddTraveler={onAddTraveler}
-                  onUpdateTraveler={onUpdateTraveler}
-                  onRemoveTraveler={onRemoveTraveler}
+                  onAddTraveler={canManageTravelers ? onAddTraveler : undefined}
+                  onUpdateTraveler={
+                    canManageTravelers ? onUpdateTraveler : undefined
+                  }
+                  onRemoveTraveler={
+                    canManageTravelers ? onRemoveTraveler : undefined
+                  }
+                  creator={creator}
+                  userRole={userRole} // Pass userRole
+                  currentUserId={currentUserId} // Pass currentUserId
                 />
               </Box>
 
-              {/* Notes Button */}
+              {/* Notes Button - Available to all users */}
               <Tooltip title="Notas del viaje">
                 <IconButton
                   onClick={onNotesClick}

@@ -1,3 +1,4 @@
+import React from "react";
 import { images } from "../constants";
 import { IoHomeOutline, IoMailOutline, IoLogoWhatsapp } from "react-icons/io5";
 import { FaInstagram } from "react-icons/fa";
@@ -5,15 +6,23 @@ import { SlSocialYoutube } from "react-icons/sl";
 import { FaXTwitter } from "react-icons/fa6";
 import { useTheme } from "@mui/material";
 import { PiTiktokLogoBold } from "react-icons/pi";
+import { BookOpen, MessageCircle, FileQuestion } from "lucide-react";
 
-const Footer = () => {
+const Footer = ({ onShowGuide = null }) => {
   const theme = useTheme();
 
-  const linkStyle = {
-    position: "relative",
+  // Unified link style for all footer links
+  const unifiedLinkStyle = {
+    color: "rgba(255, 255, 255, 0.8)",
+    fontSize: "15px",
+    fontWeight: "500",
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+    textDecoration: "none",
     transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
     cursor: "pointer",
-    textDecoration: "none",
+    padding: "4px 0",
   };
 
   const socialIconStyle = {
@@ -29,13 +38,14 @@ const Footer = () => {
     justifyContent: "center",
   };
 
+  // Unified hover handler for all links
   const handleLinkHover = (e, isEntering) => {
     if (isEntering) {
-      e.target.style.color = theme.palette.primary.main;
-      e.target.style.transform = "translateX(8px)";
+      e.currentTarget.style.color = theme.palette.primary.main;
+      e.currentTarget.style.transform = "translateX(8px)";
     } else {
-      e.target.style.color = "rgba(255, 255, 255, 0.8)";
-      e.target.style.transform = "translateX(0)";
+      e.currentTarget.style.color = "rgba(255, 255, 255, 0.8)";
+      e.currentTarget.style.transform = "translateX(0)";
     }
   };
 
@@ -58,6 +68,21 @@ const Footer = () => {
     }
   };
 
+  // Unified Link Component
+  const FooterLink = ({ href, children, onClick, external = false }) => (
+    <a
+      href={href}
+      onClick={onClick}
+      target={external ? "_blank" : undefined}
+      rel={external ? "noopener noreferrer" : undefined}
+      style={unifiedLinkStyle}
+      onMouseEnter={(e) => handleLinkHover(e, true)}
+      onMouseLeave={(e) => handleLinkHover(e, false)}
+    >
+      {children}
+    </a>
+  );
+
   return (
     <div
       className="py-16 px-6 relative overflow-hidden"
@@ -79,7 +104,7 @@ const Footer = () => {
       />
 
       <div className="container mx-auto relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-12 lg:gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-12 lg:gap-8">
           {/* Logo Column */}
           <div className="flex flex-col items-center lg:items-start space-y-6">
             <div className="relative group">
@@ -104,61 +129,72 @@ const Footer = () => {
               Mapa del sitio
             </h5>
             <nav className="space-y-4">
-              {[
-                { href: "/", label: "Inicio" },
-                { href: "/experience", label: "Explora" },
-                { href: "/about", label: "Nosotros" },
-                { href: "/contact", label: "Contáctanos" },
-              ].map((link, index) => (
-                <div key={index} className="block">
-                  <a
-                    href={link.href}
-                    style={{
-                      ...linkStyle,
-                      color: "rgba(255, 255, 255, 0.8)",
-                      fontSize: "15px",
-                      fontWeight: "500",
-                    }}
-                    onMouseEnter={(e) => handleLinkHover(e, true)}
-                    onMouseLeave={(e) => handleLinkHover(e, false)}
-                  >
-                    {link.label}
-                  </a>
-                </div>
-              ))}
+              <FooterLink href="/">Inicio</FooterLink>
+              <FooterLink href="/experience">Explora</FooterLink>
+              <FooterLink href="/itinerarios">Mis Itinerarios</FooterLink>
+              <FooterLink href="/about">Nosotros</FooterLink>
+              <FooterLink href="/contact">Contáctanos</FooterLink>
             </nav>
           </div>
 
-          {/* Contact Column */}
+          {/* Contact Column - Now with clickable links */}
           <div className="space-y-6">
             <h5 className="text-xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
               Contacto
             </h5>
             <div className="space-y-4">
-              {[
-                { Icon: IoHomeOutline, text: "Av. La Paz 1536" },
-                { Icon: IoMailOutline, text: "infonavippon@navippon.com" },
-                { Icon: IoLogoWhatsapp, text: "+34-1234-4567" },
-              ].map((item, index) => (
-                <div key={index} className="flex items-center space-x-4 group">
-                  <div
-                    className="p-2 rounded-lg transition-all duration-300"
-                    style={{
-                      backgroundColor: "rgba(255, 255, 255, 0.05)",
-                      border: "1px solid rgba(255, 255, 255, 0.1)",
-                    }}
-                  >
-                    <item.Icon
-                      className="text-lg"
-                      style={{ color: theme.palette.primary.main }}
-                    />
-                  </div>
-                  <span className="text-gray-300 text-sm font-medium group-hover:text-white transition-colors duration-300">
-                    {item.text}
-                  </span>
-                </div>
-              ))}
+              {/* Address - Opens Google Maps */}
+              <FooterLink
+                href="https://maps.google.com/?q=Av.+La+Paz+1536"
+                external={true}
+              >
+                <IoHomeOutline className="text-lg" />
+                Av. La Paz 1536
+              </FooterLink>
+
+              {/* Email - Opens email client */}
+              <FooterLink href="mailto:infonavippon@gmail.com">
+                <IoMailOutline className="text-lg" />
+                infonavippon@gmail.com
+              </FooterLink>
+
+              {/* Phone - Opens phone dialer */}
+              <FooterLink href="tel:+34-1234-4567">
+                <IoLogoWhatsapp className="text-lg" />
+                +34-1234-4567
+              </FooterLink>
             </div>
+          </div>
+
+          {/* Help Center Column */}
+          <div className="space-y-6">
+            <h5 className="text-xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+              Centro de Ayuda
+            </h5>
+            <nav className="space-y-4">
+              <FooterLink
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (onShowGuide) {
+                    onShowGuide();
+                  }
+                }}
+              >
+                <BookOpen size={16} />
+                Guía de Inicio
+              </FooterLink>
+
+              <FooterLink href="/faq">
+                <FileQuestion size={16} />
+                Preguntas Frecuentes
+              </FooterLink>
+
+              <FooterLink href="mailto:infonavippon@gmail.com">
+                <MessageCircle size={16} />
+                Contactar Soporte
+              </FooterLink>
+            </nav>
           </div>
 
           {/* Social Media Column */}
@@ -168,14 +204,33 @@ const Footer = () => {
             </h5>
             <div className="flex flex-wrap gap-4 justify-center lg:justify-start">
               {[
-                { Icon: FaInstagram, href: "/" },
-                { Icon: FaXTwitter, href: "/" },
-                { Icon: PiTiktokLogoBold, href: "/" },
-                { Icon: SlSocialYoutube, href: "/" },
+                {
+                  Icon: FaInstagram,
+                  href: "https://instagram.com/navippon",
+                  label: "Instagram",
+                },
+                {
+                  Icon: FaXTwitter,
+                  href: "https://twitter.com/navippon",
+                  label: "Twitter",
+                },
+                {
+                  Icon: PiTiktokLogoBold,
+                  href: "https://tiktok.com/@navippon",
+                  label: "TikTok",
+                },
+                {
+                  Icon: SlSocialYoutube,
+                  href: "https://youtube.com/@navippon",
+                  label: "YouTube",
+                },
               ].map((social, index) => (
                 <a
                   key={index}
                   href={social.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={social.label}
                   style={{
                     ...socialIconStyle,
                     boxShadow: "0 4px 15px rgba(0, 0, 0, 0.1)",
@@ -188,34 +243,10 @@ const Footer = () => {
               ))}
             </div>
 
-            {/* Newsletter Signup */}
-            <div className="pt-4">
-              <p className="text-sm text-gray-400 mb-3">
-                Mantente al día con nuestras novedades
-              </p>
-              <div className="flex space-x-2">
-                <input
-                  type="email"
-                  placeholder="tu@email.com"
-                  className="flex-1 px-4 py-2 rounded-lg text-sm border-0 outline-none"
-                  style={{
-                    backgroundColor: "rgba(255, 255, 255, 0.1)",
-                    backdropFilter: "blur(10px)",
-                    color: "white",
-                    border: "1px solid rgba(255, 255, 255, 0.2)",
-                  }}
-                />
-                <button
-                  className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 hover:scale-105"
-                  style={{
-                    backgroundColor: theme.palette.primary.main,
-                    color: "white",
-                    border: "none",
-                  }}
-                >
-                  Suscribir
-                </button>
-              </div>
+            {/* Additional Help Links */}
+            <div className="pt-4 space-y-3 border-t border-gray-700/30">
+              <FooterLink href="/privacy">Política de Privacidad</FooterLink>
+              <FooterLink href="/terms">Términos de Uso</FooterLink>
             </div>
           </div>
         </div>
@@ -227,18 +258,8 @@ const Footer = () => {
               © 2025 Navippon. Todos los derechos reservados.
             </p>
             <div className="flex space-x-6 text-sm">
-              <a
-                href="/privacy"
-                className="text-gray-400 hover:text-white transition-colors duration-300"
-              >
-                Política de Privacidad
-              </a>
-              <a
-                href="/terms"
-                className="text-gray-400 hover:text-white transition-colors duration-300"
-              >
-                Términos de Uso
-              </a>
+              <FooterLink href="/sitemap">Mapa del Sitio</FooterLink>
+              <FooterLink href="/accessibility">Accesibilidad</FooterLink>
             </div>
           </div>
         </div>

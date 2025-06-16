@@ -229,7 +229,7 @@ const ManageFavorites = () => {
             sx={{
               backgroundColor: theme.palette.primary.main,
               color: "white",
-              borderRadius: "25px",
+              borderRadius: "50px",
               px: 4,
               py: 2,
               fontSize: "1.1rem",
@@ -238,13 +238,13 @@ const ManageFavorites = () => {
               boxShadow: theme.shadows[4],
               "&:hover": {
                 backgroundColor: theme.palette.primary.dark,
-                transform: "translateY(-2px)",
+
                 boxShadow: theme.shadows[8],
               },
               transition: "all 0.2s ease-in-out",
             }}
           >
-            Explorar Experiencias
+            Explorar experiencias
           </Button>
         </Box>
       </Fade>

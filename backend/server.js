@@ -22,12 +22,23 @@ import postCategoriesRoutes from "./routes/postCategoriesRoutes.js";
 import favoriteRoutes from "./routes/favoriteRoutes.js";
 import itineraryRoutes from "./routes/itineraryRoutes.js";
 import emailRoutes from "./routes/emailRoutes.js";
+import importRoutes from "./routes/importRoutes.js";
+
+// Add with your other routes
 
 dotenv.config();
 connectDB();
 const app = express();
 app.use(express.json());
-app.use(cors());
+app.use(
+  cors({
+    origin: ["http://localhost:3000", "http://localhost:3001"],
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "x-access-token"],
+    optionsSuccessStatus: 200,
+  })
+);
 app.use(express.urlencoded({ extended: true }));
 
 app.get("/", (req, res) => {
@@ -46,6 +57,7 @@ app.use("/api/post-categories", postCategoriesRoutes);
 app.use("/api/favorites", favoriteRoutes);
 app.use("/api/itineraries", itineraryRoutes);
 app.use("/api/email", emailRoutes);
+app.use("/api/import", importRoutes);
 
 // 📌 Upload Image Route
 app.post("/upload", upload.single("image"), (req, res) => {
@@ -57,11 +69,12 @@ app.post("/upload", upload.single("image"), (req, res) => {
 
 const GOOGLE_API_KEY = process.env.REACT_APP_GOOGLE_API_KEY;
 
+// In your app.js, update these routes:
 app.get("/api/places", async (req, res) => {
   const { lat, lng } = req.query;
   try {
     const response = await fetch(
-      `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=50&key=${GOOGLE_API_KEY}&language=es`
+      `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=50&key=${GOOGLE_API_KEY}&language=es&region=jp`
     );
     const data = await response.json();
     res.json(data);
@@ -75,7 +88,7 @@ app.get("/api/place-details", async (req, res) => {
   const { placeId } = req.query;
   try {
     const response = await fetch(
-      `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=name,formatted_address,formatted_phone_number,website,price_level,address_components&key=${GOOGLE_API_KEY}&language=es`
+      `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=name,formatted_address,formatted_phone_number,website,price_level,address_components,editorial_summary&key=${GOOGLE_API_KEY}&language=es&region=jp`
     );
     const data = await response.json();
     res.json(data);

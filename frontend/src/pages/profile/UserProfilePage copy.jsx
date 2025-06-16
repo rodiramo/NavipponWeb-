@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import BreadcrumbBack from "../../components/BreadcrumbBack";
 import useUser from "../../hooks/useUser";
 import { images, stables } from "../../constants";
-import BreadcrumbBack from "../../components/BreadcrumbBack";
 // Use the updated function that fetches a user profile by ID
 import {
   getUserProfileById,
@@ -12,7 +12,6 @@ import {
   sendFriendRequest,
 } from "../../services/index/users";
 import MainLayout from "../../components/MainLayout";
-import ArticleCard from "../../components/ArticleCard";
 import {
   Avatar,
   Typography,
@@ -244,6 +243,7 @@ const UserProfilePage = () => {
     return (
       <MainLayout>
         <Box textAlign="center" mt={4}>
+          <BreadcrumbBack />{" "}
           <Typography color="error" variant="h6">
             {error}
           </Typography>
@@ -274,6 +274,7 @@ const UserProfilePage = () => {
   if (!profile)
     return (
       <MainLayout>
+        <BreadcrumbBack />{" "}
         <Box textAlign="center" mt={4}>
           <Typography variant="h6">
             No se encontró el perfil del usuario.
@@ -317,13 +318,12 @@ const UserProfilePage = () => {
           <Box
             textAlign="center"
             p={6}
-            m={3}
             sx={{
-              background: "rgba(255,255,255,0.1)",
-              backdropFilter: "blur(20px)",
+              background:
+                "linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)",
+              backdropFilter: "blur(10px)",
               borderRadius: "20px",
               border: "1px solid rgba(255,255,255,0.2)",
-              boxShadow: "0 8px 32px rgba(0,0,0,0.1)",
             }}
           >
             <Typography
@@ -345,28 +345,123 @@ const UserProfilePage = () => {
     }
 
     return (
-      <Grid container spacing={3} p={3}>
+      <Grid container spacing={3}>
         {posts.map((post, index) => (
           <Grid item xs={12} sm={6} md={4} key={post._id}>
             <Zoom in timeout={400 + index * 100}>
-              <Box>
-                <ArticleCard
-                  post={{
-                    ...post,
-                    slug: post.slug || post._id,
-                    photo: post.image,
-                    caption: post.description,
-                    user: {
-                      _id: profile._id,
-                      name: profile.name,
-                      avatar: profile.avatar,
-                    },
-                  }}
-                  currentUser={currentUser}
-                  token={token}
-                  className="h-full"
-                />
-              </Box>
+              <Card
+                sx={{
+                  height: "100%",
+                  borderRadius: "20px",
+                  overflow: "hidden",
+                  background:
+                    "linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.7) 100%)",
+                  backdropFilter: "blur(20px)",
+                  border: "1px solid rgba(255,255,255,0.3)",
+                  boxShadow: "0 8px 32px rgba(0,0,0,0.1)",
+                  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                  "&:hover": {
+                    transform: "translateY(-8px) scale(1.02)",
+                    boxShadow: "0 20px 40px rgba(0,0,0,0.15)",
+                  },
+                }}
+              >
+                {post.image && (
+                  <CardMedia
+                    component="img"
+                    height="220"
+                    image={`${stables.UPLOAD_FOLDER_BASE_URL}/${post.image}`}
+                    alt={post.title}
+                    sx={{
+                      transition: "transform 0.5s ease",
+                      "&:hover": {
+                        transform: "scale(1.05)",
+                      },
+                    }}
+                  />
+                )}
+                <CardContent sx={{ p: 3 }}>
+                  <Typography
+                    variant="h6"
+                    gutterBottom
+                    sx={{
+                      fontWeight: 600,
+                      fontSize: "1.1rem",
+                      lineHeight: 1.3,
+                      color: theme.palette.text.primary,
+                    }}
+                  >
+                    {post.title}
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{
+                      mb: 2,
+                      lineHeight: 1.5,
+                      fontWeight: 300,
+                    }}
+                  >
+                    {post.description?.length > 100
+                      ? `${post.description.substring(0, 100)}...`
+                      : post.description}
+                  </Typography>
+                  <Box
+                    display="flex"
+                    justifyContent="space-between"
+                    alignItems="center"
+                    mt={2}
+                  >
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      sx={{ fontWeight: 500 }}
+                    >
+                      {formatDate(post.createdAt)}
+                    </Typography>
+                    <Box display="flex" gap={2}>
+                      <Box
+                        display="flex"
+                        alignItems="center"
+                        gap={0.5}
+                        sx={{
+                          background: "rgba(255,82,82,0.1)",
+                          px: 1,
+                          py: 0.5,
+                          borderRadius: "12px",
+                        }}
+                      >
+                        <Favorite fontSize="small" color="error" />
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            fontWeight: 600,
+                            color: theme.palette.error.main,
+                          }}
+                        >
+                          {post.likesCount || 0}
+                        </Typography>
+                      </Box>
+                      <Box
+                        display="flex"
+                        alignItems="center"
+                        gap={0.5}
+                        sx={{
+                          background: "rgba(158,158,158,0.1)",
+                          px: 1,
+                          py: 0.5,
+                          borderRadius: "12px",
+                        }}
+                      >
+                        <Comment fontSize="small" color="action" />
+                        <Typography variant="caption" sx={{ fontWeight: 600 }}>
+                          {post.commentsCount || 0}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Box>
+                </CardContent>
+              </Card>
             </Zoom>
           </Grid>
         ))}
@@ -390,11 +485,11 @@ const UserProfilePage = () => {
             textAlign="center"
             p={6}
             sx={{
-              background: "rgba(255,255,255,0.1)",
-              backdropFilter: "blur(20px)",
+              background:
+                "linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)",
+              backdropFilter: "blur(10px)",
               borderRadius: "20px",
               border: "1px solid rgba(255,255,255,0.2)",
-              boxShadow: "0 8px 32px rgba(0,0,0,0.1)",
             }}
           >
             <Typography
@@ -420,333 +515,157 @@ const UserProfilePage = () => {
         {trips.map((trip, index) => (
           <Grid item xs={12} sm={6} md={4} key={trip._id}>
             <Zoom in timeout={400 + index * 100}>
-              <Box
+              <Card
                 sx={{
-                  position: "relative",
                   height: "100%",
-                  borderRadius: "16px",
-                  background: "rgba(255,255,255,0.1)",
-                  backdropFilter: "blur(20px)",
-                  border: "1px solid rgba(255,255,255,0.2)",
-                  boxShadow: "0 8px 32px rgba(0,0,0,0.1)",
+                  borderRadius: "20px",
                   overflow: "hidden",
-                  transition: "all 0.5s cubic-bezier(0.4, 0, 0.2, 1)",
-                  cursor: "pointer",
+                  background:
+                    "linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.7) 100%)",
+                  backdropFilter: "blur(20px)",
+                  border: "1px solid rgba(255,255,255,0.3)",
+                  boxShadow: "0 8px 32px rgba(0,0,0,0.1)",
+                  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
                   "&:hover": {
                     transform: "translateY(-8px) scale(1.02)",
-                    boxShadow: "0 20px 40px rgba(0,0,0,0.2)",
-                    "& .trip-image": {
-                      transform: "scale(1.1)",
-                    },
-                    "& .image-overlay": {
-                      opacity: 1,
-                    },
-                    "& .view-trip-btn": {
-                      opacity: 1,
-                      transform: "translateY(0)",
-                    },
-                    "& .card-shine": {
-                      opacity: 0.5,
-                      transform: "translateX(100%)",
-                    },
+                    boxShadow: "0 20px 40px rgba(0,0,0,0.15)",
                   },
                 }}
               >
-                {/* Image Section */}
-                <Box
-                  sx={{
-                    position: "relative",
-                    overflow: "hidden",
-                    borderRadius: "16px 16px 0 0",
-                  }}
-                >
-                  {trip.coverImage && (
-                    <Box
-                      component="img"
-                      className="trip-image"
-                      src={`${stables.UPLOAD_FOLDER_BASE_URL}/${trip.coverImage}`}
-                      alt={trip.title}
-                      sx={{
-                        width: "100%",
-                        height: "240px",
-                        objectFit: "cover",
-                        transition: "transform 0.7s ease",
-                      }}
-                    />
-                  )}
-
-                  {/* Image Overlay */}
-                  <Box
-                    className="image-overlay"
+                {trip.coverImage && (
+                  <CardMedia
+                    component="img"
+                    height="220"
+                    image={`${stables.UPLOAD_FOLDER_BASE_URL}/${trip.coverImage}`}
+                    alt={trip.title}
                     sx={{
-                      position: "absolute",
-                      inset: 0,
-                      background:
-                        "linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 50%, transparent 100%)",
-                      opacity: 0,
-                      transition: "opacity 0.5s ease",
-                    }}
-                  />
-
-                  {/* View Trip Button */}
-                  <Box
-                    className="view-trip-btn"
-                    sx={{
-                      position: "absolute",
-                      top: "50%",
-                      left: "50%",
-                      transform: "translate(-50%, -50%) translateY(16px)",
-                      opacity: 0,
-                      transition: "all 0.5s ease",
-                      background: "rgba(0,0,0,0.5)",
-                      backdropFilter: "blur(12px)",
-                      border: "1px solid rgba(255,255,255,0.3)",
-                      borderRadius: "25px",
-                      px: 3,
-                      py: 1.5,
-                      color: "white",
-                      fontWeight: 600,
-                      fontSize: "0.9rem",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 1,
+                      transition: "transform 0.5s ease",
                       "&:hover": {
-                        transform: "translate(-50%, -50%) scale(1.05)",
+                        transform: "scale(1.05)",
                       },
                     }}
-                  >
-                    <FmdGoodOutlined sx={{ fontSize: "1rem" }} />
-                    Ver viaje
-                  </Box>
-
-                  {/* Top Badges */}
+                  />
+                )}
+                <CardContent sx={{ p: 3 }}>
                   <Box
-                    sx={{
-                      position: "absolute",
-                      top: 12,
-                      left: 12,
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: 1,
-                    }}
+                    display="flex"
+                    justifyContent="space-between"
+                    alignItems="flex-start"
+                    mb={1}
                   >
-                    {/* Privacy Badge */}
-                    <Chip
-                      icon={
-                        trip.privacy === "public" ? (
-                          <Public sx={{ fontSize: "0.8rem !important" }} />
-                        ) : trip.privacy === "friends" ? (
-                          <Group sx={{ fontSize: "0.8rem !important" }} />
-                        ) : (
-                          <Lock sx={{ fontSize: "0.8rem !important" }} />
-                        )
-                      }
-                      label={
-                        trip.privacy === "public"
-                          ? "Público"
-                          : trip.privacy === "friends"
-                            ? "Amigos"
-                            : "Privado"
-                      }
+                    <Typography
+                      variant="h6"
+                      gutterBottom
+                      sx={{
+                        flex: 1,
+                        fontWeight: 600,
+                        fontSize: "1.1rem",
+                        lineHeight: 1.3,
+                      }}
+                    >
+                      {trip.title}
+                    </Typography>
+                    <IconButton
                       size="small"
                       sx={{
-                        backgroundColor:
+                        background:
                           trip.privacy === "public"
-                            ? "rgba(76,175,80,0.2)"
+                            ? "rgba(76,175,80,0.1)"
                             : trip.privacy === "friends"
-                              ? "rgba(33,150,243,0.2)"
-                              : "rgba(158,158,158,0.2)",
+                              ? "rgba(33,150,243,0.1)"
+                              : "rgba(158,158,158,0.1)",
                         color:
                           trip.privacy === "public"
                             ? theme.palette.success.main
                             : trip.privacy === "friends"
                               ? theme.palette.primary.main
                               : theme.palette.grey[600],
-                        backdropFilter: "blur(10px)",
-                        border: "1px solid rgba(255,255,255,0.2)",
-                        fontSize: "0.7rem",
-                        fontWeight: 600,
-                        "& .MuiChip-icon": {
-                          color:
+                        "&:hover": {
+                          background:
                             trip.privacy === "public"
-                              ? theme.palette.success.main
+                              ? "rgba(76,175,80,0.2)"
                               : trip.privacy === "friends"
-                                ? theme.palette.primary.main
-                                : theme.palette.grey[600],
+                                ? "rgba(33,150,243,0.2)"
+                                : "rgba(158,158,158,0.2)",
                         },
-                      }}
-                    />
-                  </Box>
-
-                  {/* Duration Badge */}
-                  <Box sx={{ position: "absolute", top: 12, right: 12 }}>
-                    <Chip
-                      icon={
-                        <CalendarToday sx={{ fontSize: "0.8rem !important" }} />
-                      }
-                      label={`${Math.ceil((new Date(trip.endDate) - new Date(trip.startDate)) / (1000 * 60 * 60 * 24))} días`}
-                      size="small"
-                      sx={{
-                        backgroundColor: "rgba(255,255,255,0.2)",
-                        color: "white",
-                        backdropFilter: "blur(10px)",
-                        border: "1px solid rgba(255,255,255,0.3)",
-                        fontSize: "0.7rem",
-                        fontWeight: 600,
-                        "& .MuiChip-icon": {
-                          color: "white",
-                        },
-                      }}
-                    />
-                  </Box>
-                </Box>
-
-                {/* Content Section */}
-                <Box sx={{ p: 3 }}>
-                  {/* Title and Destination */}
-                  <Typography
-                    variant="h6"
-                    gutterBottom
-                    sx={{
-                      fontWeight: 600,
-                      fontSize: "1.1rem",
-                      lineHeight: 1.3,
-                      background: `linear-gradient(45deg, ${theme.palette.text.primary} 30%, ${theme.palette.primary.main} 90%)`,
-                      backgroundClip: "text",
-                      WebkitBackgroundClip: "text",
-                      WebkitTextFillColor: "transparent",
-                      mb: 1,
-                    }}
-                  >
-                    {trip.title}
-                  </Typography>
-
-                  {/* Destination */}
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 1,
-                      mb: 2,
-                    }}
-                  >
-                    <FmdGoodOutlined
-                      sx={{
-                        fontSize: "0.9rem",
-                        color: theme.palette.primary.main,
-                      }}
-                    />
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        fontWeight: 500,
-                        color: theme.palette.primary.main,
                       }}
                     >
-                      {trip.destination}
-                    </Typography>
+                      {trip.privacy === "public" ? (
+                        <Public fontSize="small" />
+                      ) : trip.privacy === "friends" ? (
+                        <Group fontSize="small" />
+                      ) : (
+                        <Lock fontSize="small" />
+                      )}
+                    </IconButton>
                   </Box>
-
-                  {/* Description */}
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    gutterBottom
+                    sx={{
+                      fontWeight: 500,
+                      color: theme.palette.primary.main,
+                    }}
+                  >
+                    📍 {trip.destination}
+                  </Typography>
                   <Typography
                     variant="body2"
                     color="text.secondary"
                     sx={{
-                      mb: 3,
-                      lineHeight: 1.6,
+                      mb: 2,
+                      lineHeight: 1.5,
                       fontWeight: 300,
-                      display: "-webkit-box",
-                      WebkitLineClamp: 3,
-                      WebkitBoxOrient: "vertical",
-                      overflow: "hidden",
                     }}
                   >
-                    {trip.description}
+                    {trip.description?.length > 100
+                      ? `${trip.description.substring(0, 100)}...`
+                      : trip.description}
                   </Typography>
-
-                  {/* Date Range */}
                   <Box
+                    mt={2}
                     sx={{
                       background: "rgba(0,0,0,0.03)",
                       px: 2,
-                      py: 1.5,
+                      py: 1,
                       borderRadius: "12px",
-                      border: "1px solid rgba(255,255,255,0.1)",
-                      mb: 2,
                     }}
                   >
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      <CalendarToday
-                        sx={{ fontSize: "0.9rem", color: "text.secondary" }}
-                      />
-                      <Typography
-                        variant="caption"
-                        color="text.secondary"
-                        sx={{ fontWeight: 500 }}
-                      >
-                        {formatDate(trip.startDate)} -{" "}
-                        {formatDate(trip.endDate)}
-                      </Typography>
-                    </Box>
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      sx={{ fontWeight: 500 }}
+                    >
+                      🗓️ {formatDate(trip.startDate)} -{" "}
+                      {formatDate(trip.endDate)}
+                    </Typography>
                   </Box>
-
-                  {/* Tags */}
                   {trip.tags && trip.tags.length > 0 && (
-                    <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-                      {trip.tags.slice(0, 3).map((tag, tagIndex) => (
+                    <Box mt={2} display="flex" gap={0.5} flexWrap="wrap">
+                      {trip.tags.slice(0, 3).map((tag, index) => (
                         <Chip
-                          key={tagIndex}
+                          key={index}
                           label={tag}
                           size="small"
+                          variant="outlined"
                           sx={{
-                            backgroundColor: "rgba(255,255,255,0.1)",
-                            color: theme.palette.text.secondary,
-                            border: "1px solid rgba(255,255,255,0.2)",
                             borderRadius: "12px",
-                            fontSize: "0.7rem",
+                            fontSize: "0.75rem",
                             fontWeight: 500,
-                            transition: "all 0.3s ease",
+                            background: "rgba(255,255,255,0.5)",
+                            backdropFilter: "blur(10px)",
+                            border: "1px solid rgba(255,255,255,0.3)",
                             "&:hover": {
-                              backgroundColor: "rgba(255,255,255,0.2)",
-                              transform: "scale(1.05)",
+                              background: "rgba(255,255,255,0.7)",
                             },
                           }}
                         />
                       ))}
-                      {trip.tags.length > 3 && (
-                        <Chip
-                          label={`+${trip.tags.length - 3}`}
-                          size="small"
-                          sx={{
-                            backgroundColor: "rgba(255,255,255,0.1)",
-                            color: theme.palette.text.secondary,
-                            border: "1px solid rgba(255,255,255,0.2)",
-                            borderRadius: "12px",
-                            fontSize: "0.7rem",
-                            fontWeight: 500,
-                          }}
-                        />
-                      )}
                     </Box>
                   )}
-                </Box>
-
-                {/* Card Shine Effect */}
-                <Box
-                  className="card-shine"
-                  sx={{
-                    position: "absolute",
-                    inset: 0,
-                    opacity: 0,
-                    background:
-                      "linear-gradient(to right, transparent, rgba(255,255,255,0.3), transparent)",
-                    transform: "translateX(-100%) skewX(-12deg)",
-                    transition: "all 1s ease",
-                    pointerEvents: "none",
-                    borderRadius: "16px",
-                  }}
-                />
-              </Box>
+                </CardContent>
+              </Card>
             </Zoom>
           </Grid>
         ))}
@@ -959,7 +878,6 @@ const UserProfilePage = () => {
     <MainLayout>
       <Box id="body" width="100%" mx="auto">
         <BreadcrumbBack />
-        {/* Cover Image Section */}
         <Fade in timeout={800}>
           <Box
             sx={{
@@ -1025,31 +943,30 @@ const UserProfilePage = () => {
             }}
           >
             {/* Profile Picture */}
-            <Zoom in timeout={1200}>
-              <Avatar
-                src={
-                  profile.avatar
-                    ? `${stables.UPLOAD_FOLDER_BASE_URL}/${profile.avatar}?${Date.now()}`
-                    : "/default-avatar.png"
-                }
-                alt={profile.name}
-                sx={{
-                  width: 160,
-                  height: 160,
-                  border: `5px solid white`,
-                  boxShadow: "0px 15px 35px rgba(0, 0, 0, 0.2)",
-                  mb: 3,
-                  background:
-                    "linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.7) 100%)",
-                  backdropFilter: "blur(20px)",
-                  transition: "all 0.3s ease",
-                }}
-              />
-            </Zoom>
+
+            <Avatar
+              src={
+                profile.avatar
+                  ? `${stables.UPLOAD_FOLDER_BASE_URL}/${profile.avatar}?${Date.now()}`
+                  : "/default-avatar.png"
+              }
+              alt={profile.name}
+              sx={{
+                width: 160,
+                height: 160,
+                border: `5px solid white`,
+                boxShadow: "0px 15px 35px rgba(0, 0, 0, 0.2)",
+                mb: 3,
+                background:
+                  "linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.7) 100%)",
+                backdropFilter: "blur(20px)",
+                transition: "all 0.3s ease",
+              }}
+            />
 
             {/* User Name and Handle */}
             <Fade in timeout={1400}>
-              <Box textAlign="center" mb={2}>
+              <Box textAlign="center">
                 <Typography
                   variant="h6"
                   sx={{
@@ -1073,7 +990,7 @@ const UserProfilePage = () => {
                     variant="h3"
                     sx={{
                       fontWeight: 700,
-                      background: `linear-gradient(45deg, ${theme.palette.primary.main} 30%, ${theme.palette.secondary.medium})`,
+                      background: `linear-gradient(45deg, ${theme.palette.primary.main} )`,
                       backgroundClip: "text",
                       WebkitBackgroundClip: "text",
                       WebkitTextFillColor: "transparent",
@@ -1107,6 +1024,7 @@ const UserProfilePage = () => {
                     fontSize: "1.1rem",
                     lineHeight: 1.6,
                     fontWeight: 300,
+                    px: 2,
                   }}
                 >
                   {profile.bio}
@@ -1121,6 +1039,7 @@ const UserProfilePage = () => {
                   variant="body2"
                   sx={{
                     color: "text.secondary",
+                    mb: 2,
                     fontWeight: 300,
                     letterSpacing: "0.3px",
                   }}
@@ -1136,11 +1055,14 @@ const UserProfilePage = () => {
                 <Box
                   display="flex"
                   alignItems="center"
+                  gap={1}
                   sx={{
+                    background: "rgba(255,255,255,0.15)",
                     backdropFilter: "blur(20px)",
-                    mb: 3,
-                    mt: 2,
+                    px: 3,
+                    py: 1.5,
                     borderRadius: "25px",
+                    border: "1px solid rgba(255,255,255,0.2)",
                   }}
                 >
                   <FmdGoodOutlined
@@ -1162,12 +1084,12 @@ const UserProfilePage = () => {
               </Fade>
             )}
 
-            {/* Action Buttons - Only for other profiles */}
             {!isOwnProfile && (
               <Fade in timeout={2200}>
                 <Box
                   display="flex"
                   gap={2}
+                  mt={2}
                   flexWrap="wrap"
                   justifyContent="center"
                 >

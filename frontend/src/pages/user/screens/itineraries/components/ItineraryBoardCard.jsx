@@ -17,6 +17,7 @@ const BoardCard = ({
   onRemoveBoard,
   onAddExperience,
   onRemoveFavorite,
+  userRole = "viewer",
   isDragDisabled = false,
 }) => {
   const theme = useTheme();
@@ -31,7 +32,7 @@ const BoardCard = ({
     isDragging: isBoardDragging,
   } = useSortable({
     id: `board-${board.id}`,
-    disabled: isDragDisabled,
+    disabled: isDragDisabled || userRole === "viewer",
   });
 
   const { setNodeRef: setDropRef, isOver } = useDroppable({
@@ -110,23 +111,24 @@ const BoardCard = ({
             flexShrink: 0, // Prevent shrinking
           }}
         >
-          {/* Drag handle */}
-          <Box
-            {...boardAttributes}
-            {...boardListeners}
-            sx={{
-              cursor: isBoardDragging ? "grabbing" : "grab",
-              display: "flex",
-              alignItems: "center",
-              p: 0.5,
-              borderRadius: 1,
-              "&:hover": {
-                backgroundColor: theme.palette.grey[100],
-              },
-            }}
-          >
-            <GripVertical size={20} color={theme.palette.grey[600]} />
-          </Box>
+          {userRole !== "viewer" && (
+            <Box
+              {...boardAttributes}
+              {...boardListeners}
+              sx={{
+                cursor: isBoardDragging ? "grabbing" : "grab",
+                display: "flex",
+                alignItems: "center",
+                p: 0.5,
+                borderRadius: 1,
+                "&:hover": {
+                  backgroundColor: theme.palette.grey[100],
+                },
+              }}
+            >
+              <GripVertical size={20} color={theme.palette.grey[600]} />
+            </Box>
+          )}
 
           {/* Board info */}
           <Box sx={{ flex: 1 }}>
@@ -151,21 +153,26 @@ const BoardCard = ({
                   </Typography>
                 )}
               </Box>
-              <IconButton
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onRemoveBoard(boardIndex);
-                }}
-                size="small"
-                sx={{ pointerEvents: "auto" }}
-              >
-                <Trash2 size={18} color="red" />
-              </IconButton>
+              {userRole !== "viewer" && (
+                <IconButton
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onRemoveBoard(boardIndex);
+                  }}
+                  size="small"
+                  sx={{ pointerEvents: "auto" }}
+                >
+                  <Trash2 size={18} color="red" />
+                </IconButton>
+              )}
             </Box>
 
             <Box display="flex" alignItems="center" mt={1} gap={1}>
               <Coins size={18} color={theme.palette.secondary.medium} />
-              <Typography variant="body2">{board.dailyBudget || 0}€</Typography>
+              <Typography variant="body2">
+                {" "}
+                Presupuesto del día: ¥ {board.dailyBudget || 0}
+              </Typography>
             </Box>
           </Box>
         </Box>
@@ -249,6 +256,7 @@ const BoardCard = ({
                         fav={fav}
                         boardIndex={boardIndex}
                         favIndex={favIndex}
+                        userRole={userRole}
                         onRemove={onRemoveFavorite}
                         sortableId={
                           fav.uniqueId || `${boardIndex}-${favIndex}-${fav._id}`
@@ -308,28 +316,29 @@ const BoardCard = ({
           >
             <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
               {/* Add Experience Button */}
-              <Button
-                variant="contained"
-                startIcon={<Plus size={18} />}
-                onClick={() => onAddExperience?.(boardIndex)}
-                sx={{
-                  borderRadius: 30,
-                  textTransform: "none",
-                  fontWeight: 600,
-                  background: `linear-gradient(135deg, ${theme.palette.primary.main})`,
-                  color: "white",
-                  py: 1.5,
-                  boxShadow: `0 4px 16px ${theme.palette.primary.main}40`,
-                  transition: "all 0.3s ease",
-                  "&:hover": {
-                    background: `linear-gradient(135deg, ${theme.palette.primary.dark})`,
-
-                    boxShadow: `0 8px 24px ${theme.palette.primary.main}50`,
-                  },
-                }}
-              >
-                Añadir Experiencia
-              </Button>
+              {userRole !== "viewer" && (
+                <Button
+                  variant="contained"
+                  startIcon={<Plus size={18} />}
+                  onClick={() => onAddExperience?.(boardIndex)}
+                  sx={{
+                    borderRadius: 30,
+                    textTransform: "none",
+                    fontWeight: 600,
+                    background: `linear-gradient(135deg, ${theme.palette.primary.main})`,
+                    color: "white",
+                    py: 1.5,
+                    boxShadow: `0 4px 16px ${theme.palette.primary.main}40`,
+                    transition: "all 0.3s ease",
+                    "&:hover": {
+                      background: `linear-gradient(135deg, ${theme.palette.primary.dark})`,
+                      boxShadow: `0 8px 24px ${theme.palette.primary.main}50`,
+                    },
+                  }}
+                >
+                  Añadir Experiencia
+                </Button>
+              )}
 
               <Button
                 variant="outlined"

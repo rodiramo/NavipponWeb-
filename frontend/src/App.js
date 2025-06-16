@@ -12,16 +12,27 @@ import ArticleDetailPage from "./pages/articleDetail/ArticleDetailPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import RegionDetail from "./pages/regionDetail/RegionDetailPage"; // Adjust path as needed
+// In your routes/AppRouter.js or similar
+//footer routes to terms, privacy, and guide
 
+import FAQPage from "./pages/terms/FAQPage";
+import HelpCenterPage from "./pages/terms/HelpCenterPage";
+import TermsPage from "./pages/terms/TermsPage";
+import PrivacyPage from "./pages/terms/PrivacyPage";
+import AccessibilityPage from "./pages/terms/AccessibilityPage";
+import SiteMapPage from "./pages/terms/SiteMapPage.jsx";
+
+// Add this route (protected by admin auth)
 import HomePage from "./pages/home/HomePage";
 import RegisterPage from "./pages/register/RegisterPage";
 import LoginPage from "./pages/login/LoginPage";
 import ContactPage from "./pages/contact/ContactPage";
-import ManageEmails from "./pages/admin/screens/emailweb/ManageEmails";
 import EmailDetail from "./pages/admin/screens/emailweb/EmailDetail";
 
 /** admin screens */
 import AdminLayout from "./pages/admin/AdminLayout";
+import AdminImport from "./pages/admin/screens/import/AdminImport.jsx";
+import ManageEmails from "./pages/admin/screens/emailweb/ManageEmails.jsx";
 import Admin from "./pages/admin/screens/Admin";
 import Categories from "./pages/admin/screens/categories/Categories";
 import EditCategories from "./pages/admin/screens/categories/EditCategories";
@@ -29,13 +40,12 @@ import Users from "./pages/admin/screens/users/Users";
 import ManagePosts from "./pages/admin/screens/posts/ManagePosts";
 import ManageExperiences from "./pages/admin/screens/experiences/ManageExperiences";
 import ExperienceForm from "./pages/admin/screens/experiences/ExperienceForm.jsx";
-
+import Comments from "./pages/admin/screens/comments/Comments";
+import Reviews from "./pages/admin/screens/reviews/Reviews";
 /** blog */
 import BlogPage from "./pages/blog/BlogPage";
 import PostFormPage from "./pages/user/screens/posts/PostFormPage.jsx";
 
-import Comments from "./pages/admin/screens/comments/Comments";
-import Reviews from "./pages/admin/screens/reviews/Reviews";
 import AboutPage from "./pages/about/AboutPage";
 
 /** experience */
@@ -88,6 +98,12 @@ function App() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/login" element={<LoginPage />} />{" "}
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/faq" element={<FAQPage />} />{" "}
+          <Route path="/accessibility" element={<AccessibilityPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />{" "}
+          <Route path="/terms" element={<TermsPage />} />
+          <Route path="/help" element={<HelpCenterPage />} />
+          <Route path="/sitemap" element={<SiteMapPage />} />
           <Route
             path="/reset-password/:token"
             element={<ResetPasswordPage />}
@@ -106,6 +122,7 @@ function App() {
           {/* Admin Routes */}
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<Admin />} />
+            <Route path="import" element={<AdminImport />} />{" "}
             <Route path="comments" element={<Comments />} />
             <Route path="reviews" element={<Reviews />} />
             <Route path="posts/manage" element={<ManagePosts />} />

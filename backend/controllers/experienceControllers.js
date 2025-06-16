@@ -410,6 +410,56 @@ const getTopExperiences = async (req, res) => {
       .json({ error: "Error al obtener las experiencias más populares" });
   }
 };
+export const getAllExperiencesForModal = async (req, res, next) => {
+  try {
+    const { searchKeyword, category, region } = req.query;
+    let where = {};
+
+    // Apply basic filters if provided
+    if (searchKeyword) {
+      const regex = new RegExp(searchKeyword, "i");
+      where.$or = [
+        { title: regex },
+        { caption: regex },
+        { prefecture: regex },
+        { categories: regex },
+      ];
+    }
+
+    if (category && category !== "All") {
+      where.categories = category;
+    }
+
+    if (region) {
+      where.region = region;
+    }
+
+    console.log("🔍 Fetching ALL experiences for modal with filters:", where);
+
+    // Get ALL experiences without pagination (for modal use)
+    const result = await Experience.find(where)
+      .sort({ updatedAt: "desc" })
+      .select("title categories prefecture price photo ratings description") // Only select needed fields
+      .populate([
+        {
+          path: "user",
+          select: ["avatar", "name", "verified"],
+        },
+      ]);
+
+    console.log(
+      "✅ Modal: Found experiences by category:",
+      result.reduce((acc, exp) => {
+        acc[exp.categories] = (acc[exp.categories] || 0) + 1;
+        return acc;
+      }, {})
+    );
+
+    return res.json(result);
+  } catch (error) {
+    next(error);
+  }
+};
 
 export {
   createExperience,

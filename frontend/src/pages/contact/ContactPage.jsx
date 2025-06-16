@@ -356,7 +356,7 @@ const ContactPage = () => {
                           Teléfono
                         </Typography>
                         <Typography variant="body1" fontWeight="600">
-                          +34 900 123 456
+                          +34-1234-4567
                         </Typography>
                       </Box>
                     </Box>
@@ -398,7 +398,7 @@ const ContactPage = () => {
                           Ubicación
                         </Typography>
                         <Typography variant="body1" fontWeight="600">
-                          Madrid, España
+                          Av. La Paz 1536
                         </Typography>
                       </Box>
                     </Box>

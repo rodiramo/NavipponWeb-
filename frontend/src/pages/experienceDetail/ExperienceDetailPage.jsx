@@ -59,7 +59,7 @@ const ExperienceDetailPage = () => {
     return categoryMap[category.toLowerCase()] || category; // Default to original if not found
   };
 
-  const { data, isLoading, isError, refetch } = useQuery({ 
+  const { data, isLoading, isError, refetch } = useQuery({
     queryFn: () => getSingleExperience({ slug }),
     queryKey: ["experience", slug],
     onSuccess: async (data) => {
@@ -180,7 +180,9 @@ const ExperienceDetailPage = () => {
           <Hero
             imageUrl={
               data?.photo
-                ? stables.UPLOAD_FOLDER_BASE_URL + data?.photo
+                ? data.photo.startsWith("http")
+                  ? data.photo
+                  : stables.UPLOAD_FOLDER_BASE_URL + data.photo
                 : images.sampleExperienceImage
             }
             imageAlt={data?.title}
@@ -328,4 +330,4 @@ const ExperienceDetailPage = () => {
   );
 };
 
-export default ExperienceDetailPage; 
+export default ExperienceDetailPage;

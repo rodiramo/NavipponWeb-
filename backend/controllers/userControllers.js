@@ -577,7 +577,9 @@ export const verifyResetToken = async (req, res, next) => {
     next(error);
   }
 };
-
+export const addItemToChecklist = async (req, res, next) => {
+  const { token, data } = req.body;
+};
 // NEW CONTROLLER 3: Reset Password
 export const resetPassword = async (req, res, next) => {
   try {
@@ -614,6 +616,513 @@ export const resetPassword = async (req, res, next) => {
     });
   } catch (error) {
     console.error("Reset password error:", error);
+    next(error);
+  }
+};
+// Add these controller functions to your existing users controller file
+
+// Get user's posts
+export const getUserPosts = async (req, res, next) => {
+  try {
+    const { userId } = req.params;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 12;
+    const skip = (page - 1) * limit;
+
+    // Check if user exists
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    }
+
+    // Get posts with pagination
+    const posts = await Post.find({ user: userId })
+      .populate("user", "_id name avatar")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    // Get total count for pagination
+    const totalPosts = await Post.countDocuments({ user: userId });
+    const totalPages = Math.ceil(totalPosts / limit);
+
+    // Add engagement counts to each post
+    const postsWithCounts = await Promise.all(
+      posts.map(async (post) => {
+        const commentsCount = await Comment.countDocuments({ post: post._id });
+        const likesCount = post.likes ? post.likes.length : 0;
+
+        return {
+          ...post,
+          commentsCount,
+          likesCount,
+        };
+      })
+    );
+
+    res.status(200).json({
+      posts: postsWithCounts,
+      currentPage: page,
+      totalPages,
+      totalPosts,
+      hasMore: page < totalPages,
+    });
+  } catch (error) {
+    console.error("Error fetching user posts:", error);
+    next(error);
+  }
+};
+
+// Get user's trips
+export const getUserTrips = async (req, res, next) => {
+  try {
+    const { userId } = req.params;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 12;
+    const includePrivate = req.query.includePrivate === "true";
+    const skip = (page - 1) * limit;
+
+    // Check if user exists
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    }
+
+    // Build query based on privacy settings
+    let query = { user: userId };
+
+    // If not including private trips and not the owner, filter by privacy
+    if (!includePrivate || req.user._id.toString() !== userId) {
+      if (req.user._id.toString() === userId) {
+        // Owner can see all their trips
+        // No additional filter needed
+      } else if (user.friends.includes(req.user._id)) {
+        // Friends can see public and friends-only trips
+        query.privacy = { $in: ["public", "friends"] };
+      } else {
+        // Non-friends can only see public trips
+        query.privacy = "public";
+      }
+    }
+
+    // For this example, I'll assume you have a Trip model
+    // If you don't have one yet, you'll need to create it
+    const Trip = (await import("../models/Trip.js")).default;
+
+    const trips = await Trip.find(query)
+      .populate("user", "_id name avatar")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    const totalTrips = await Trip.countDocuments(query);
+    const totalPages = Math.ceil(totalTrips / limit);
+
+    res.status(200).json({
+      trips,
+      currentPage: page,
+      totalPages,
+      totalTrips,
+      hasMore: page < totalPages,
+    });
+  } catch (error) {
+    console.error("Error fetching user trips:", error);
+    // If Trip model doesn't exist, return empty array
+    if (error.message.includes("Cannot resolve module")) {
+      return res.status(200).json({
+        trips: [],
+        currentPage: 1,
+        totalPages: 0,
+        totalTrips: 0,
+        hasMore: false,
+      });
+    }
+    next(error);
+  }
+};
+
+// Send friend request
+export const sendFriendRequest = async (req, res, next) => {
+  try {
+    const { userId } = req.params; // User to send request to
+    const senderId = req.user._id; // Current user sending the request
+
+    if (senderId.toString() === userId) {
+      return res
+        .status(400)
+        .json({ message: "No puedes enviarte una solicitud a ti mismo" });
+    }
+
+    const recipient = await User.findById(userId);
+    if (!recipient) {
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    }
+
+    const sender = await User.findById(senderId);
+
+    // Check if they're already friends
+    if (sender.friends.includes(userId)) {
+      return res.status(400).json({ message: "Ya son amigos" });
+    }
+
+    // Check if request already sent
+    if (
+      sender.sentFriendRequests &&
+      sender.sentFriendRequests.includes(userId)
+    ) {
+      return res.status(400).json({ message: "Solicitud ya enviada" });
+    }
+
+    // Add to sent requests for sender
+    if (!sender.sentFriendRequests) sender.sentFriendRequests = [];
+    sender.sentFriendRequests.push(userId);
+
+    // Add to received requests for recipient
+    if (!recipient.receivedFriendRequests)
+      recipient.receivedFriendRequests = [];
+    recipient.receivedFriendRequests.push(senderId);
+
+    await sender.save();
+    await recipient.save();
+
+    // Create notification for recipient
+    try {
+      await createFriendAddedNotification(senderId, sender.name, userId);
+    } catch (notificationError) {
+      console.error("Error creating notification:", notificationError);
+    }
+
+    res.status(200).json({
+      message: "Solicitud de amistad enviada",
+      requestSent: true,
+    });
+  } catch (error) {
+    console.error("Error sending friend request:", error);
+    next(error);
+  }
+};
+
+// Accept friend request
+export const acceptFriendRequest = async (req, res, next) => {
+  try {
+    const { requestId } = req.params; // ID of the user who sent the request
+    const currentUserId = req.user._id;
+
+    const requester = await User.findById(requestId);
+    const currentUser = await User.findById(currentUserId);
+
+    if (!requester) {
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    }
+
+    // Check if request exists
+    if (
+      !currentUser.receivedFriendRequests ||
+      !currentUser.receivedFriendRequests.includes(requestId)
+    ) {
+      return res
+        .status(400)
+        .json({ message: "Solicitud de amistad no encontrada" });
+    }
+
+    // Add to friends lists
+    if (!currentUser.friends) currentUser.friends = [];
+    if (!requester.friends) requester.friends = [];
+
+    currentUser.friends.push(requestId);
+    requester.friends.push(currentUserId);
+
+    // Remove from request arrays
+    currentUser.receivedFriendRequests =
+      currentUser.receivedFriendRequests.filter(
+        (id) => id.toString() !== requestId
+      );
+    requester.sentFriendRequests = requester.sentFriendRequests.filter(
+      (id) => id.toString() !== currentUserId.toString()
+    );
+
+    await currentUser.save();
+    await requester.save();
+
+    res.status(200).json({
+      message: "Solicitud de amistad aceptada",
+      newFriend: {
+        _id: requester._id,
+        name: requester.name,
+        avatar: requester.avatar,
+      },
+    });
+  } catch (error) {
+    console.error("Error accepting friend request:", error);
+    next(error);
+  }
+};
+
+// Get friend requests
+export const getFriendRequests = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user._id)
+      .populate("receivedFriendRequests", "_id name avatar")
+      .populate("sentFriendRequests", "_id name avatar");
+
+    if (!user) {
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    }
+
+    res.status(200).json({
+      received: user.receivedFriendRequests || [],
+      sent: user.sentFriendRequests || [],
+    });
+  } catch (error) {
+    console.error("Error fetching friend requests:", error);
+    next(error);
+  }
+};
+
+// Get user favorites (posts, trips, etc.)
+export const getUserFavorites = async (req, res, next) => {
+  try {
+    const { userId } = req.params;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 12;
+    const skip = (page - 1) * limit;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    }
+
+    // Assuming user has a favorites array with post IDs
+    if (!user.favorites || user.favorites.length === 0) {
+      return res.status(200).json({
+        favorites: [],
+        currentPage: page,
+        totalPages: 0,
+        totalFavorites: 0,
+        hasMore: false,
+      });
+    }
+
+    const favorites = await Post.find({ _id: { $in: user.favorites } })
+      .populate("user", "_id name avatar")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    const totalFavorites = user.favorites.length;
+    const totalPages = Math.ceil(totalFavorites / limit);
+
+    // Add engagement counts
+    const favoritesWithCounts = await Promise.all(
+      favorites.map(async (post) => {
+        const commentsCount = await Comment.countDocuments({ post: post._id });
+        const likesCount = post.likes ? post.likes.length : 0;
+
+        return {
+          ...post,
+          commentsCount,
+          likesCount,
+        };
+      })
+    );
+
+    res.status(200).json({
+      favorites: favoritesWithCounts,
+      currentPage: page,
+      totalPages,
+      totalFavorites,
+      hasMore: page < totalPages,
+    });
+  } catch (error) {
+    console.error("Error fetching user favorites:", error);
+    next(error);
+  }
+};
+export const updateUserCounts = async (userId) => {
+  try {
+    const user = await User.findById(userId);
+    if (!user) return;
+
+    const postsCount = await Post.countDocuments({ user: userId });
+
+    let tripsCount = 0;
+    try {
+      const Itinerary = (await import("../models/Itinerary.js")).default;
+      tripsCount = await Itinerary.countDocuments({ user: userId });
+    } catch (error) {
+      // Itinerary model doesn't exist yet
+    }
+
+    user.publicationsCount = postsCount;
+    user.tripsCount = tripsCount;
+    await user.save();
+
+    return { postsCount, tripsCount };
+  } catch (error) {
+    console.error("Error updating user counts:", error);
+  }
+};
+
+// Get enhanced user profile with privacy filtering
+export const getEnhancedUserProfile = async (req, res, next) => {
+  try {
+    const { userId } = req.params;
+    const requestingUser = req.user;
+
+    const user = await User.findById(userId)
+      .populate("friends", "_id name avatar")
+      .select("-password -passwordResetToken -passwordResetExpires");
+
+    if (!user) {
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    }
+
+    // Check relationship status
+    const isOwnProfile = requestingUser._id.toString() === userId;
+    const isFriend = user.friends.some(
+      (friend) => friend._id.toString() === requestingUser._id.toString()
+    );
+    const friendRequestSent =
+      user.receivedFriendRequests?.includes(requestingUser._id) || false;
+
+    // Filter sensitive information based on privacy settings
+    const profileData = {
+      _id: user._id,
+      name: user.name,
+      avatar: user.avatar,
+      coverImg: user.coverImg,
+      bio: user.bio,
+      city: user.city,
+      country: user.country,
+      joinedDate: user.joinedDate,
+      verified: user.verified,
+      tripsCount: user.tripsCount || 0,
+      publicationsCount: user.publicationsCount || 0,
+      friends: user.friends,
+
+      // Relationship status
+      isOwnProfile,
+      isFriend,
+      friendRequestSent,
+
+      // Conditional fields based on privacy
+      email: isOwnProfile || user.showEmail ? user.email : null,
+      dateOfBirth:
+        isOwnProfile || isFriend || user.showDateOfBirth
+          ? user.dateOfBirth
+          : null,
+      website: user.website,
+      occupation: user.occupation,
+      education: user.education,
+
+      // Travel preferences (only for friends or own profile)
+      travelStyle: isOwnProfile || isFriend ? user.travelStyle : null,
+      budget: isOwnProfile || isFriend ? user.budget : null,
+      languages: isOwnProfile || isFriend ? user.languages : null,
+      interests: user.interests,
+    };
+
+    // Update user counts if it's their own profile
+    if (isOwnProfile) {
+      updateUserCounts(userId);
+    }
+
+    res.status(200).json(profileData);
+  } catch (error) {
+    console.error("Error fetching enhanced user profile:", error);
+    next(error);
+  }
+};
+
+// Toggle favorite post
+export const toggleFavoritePost = async (req, res, next) => {
+  try {
+    const { postId } = req.params;
+    const user = await User.findById(req.user._id);
+
+    if (!user.favorites) user.favorites = [];
+
+    const isFavorited = user.favorites.includes(postId);
+
+    if (isFavorited) {
+      user.favorites = user.favorites.filter((id) => id.toString() !== postId);
+    } else {
+      user.favorites.push(postId);
+    }
+
+    await user.save();
+
+    res.status(200).json({
+      favorited: !isFavorited,
+      favoritesCount: user.favorites.length,
+    });
+  } catch (error) {
+    console.error("Error toggling favorite:", error);
+    next(error);
+  }
+};
+
+// Reject friend request
+export const rejectFriendRequest = async (req, res, next) => {
+  try {
+    const { requestId } = req.params;
+    const currentUser = await User.findById(req.user._id);
+    const requester = await User.findById(requestId);
+
+    if (!requester) {
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    }
+
+    // Remove from received requests
+    currentUser.receivedFriendRequests =
+      currentUser.receivedFriendRequests?.filter(
+        (id) => id.toString() !== requestId
+      ) || [];
+
+    // Remove from sent requests
+    requester.sentFriendRequests =
+      requester.sentFriendRequests?.filter(
+        (id) => id.toString() !== currentUser._id.toString()
+      ) || [];
+
+    await currentUser.save();
+    await requester.save();
+
+    res.status(200).json({ message: "Solicitud de amistad rechazada" });
+  } catch (error) {
+    console.error("Error rejecting friend request:", error);
+    next(error);
+  }
+};
+
+// Remove friend
+export const removeFriend = async (req, res, next) => {
+  try {
+    const { friendId } = req.params;
+    const currentUser = await User.findById(req.user._id);
+    const friend = await User.findById(friendId);
+
+    if (!friend) {
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    }
+
+    // Remove from both friends lists
+    currentUser.friends = currentUser.friends.filter(
+      (id) => id.toString() !== friendId
+    );
+    friend.friends = friend.friends.filter(
+      (id) => id.toString() !== currentUser._id.toString()
+    );
+
+    await currentUser.save();
+    await friend.save();
+
+    res.status(200).json({ message: "Amigo eliminado" });
+  } catch (error) {
+    console.error("Error removing friend:", error);
     next(error);
   }
 };

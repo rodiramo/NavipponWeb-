@@ -99,20 +99,35 @@ const ExperienceDetailsModal = ({ open, onClose, experience, category }) => {
           sx={{
             position: "absolute",
             inset: 0,
-            backgroundImage: `url(${
-              experience.photo
-                ? stables.UPLOAD_FOLDER_BASE_URL + experience.photo
-                : images.sampleFavoriteImage
-            })`,
+            backgroundImage: `url(${(() => {
+              const photo = experience?.photo;
+
+              // If has photo, handle URL type
+              if (photo) {
+                return photo.startsWith("http")
+                  ? photo
+                  : `${stables.UPLOAD_FOLDER_BASE_URL}${photo}`;
+              }
+
+              // Category-based fallback
+              switch (experience?.categories) {
+                case "Hoteles":
+                  return images.sampleHotelImage;
+                case "Restaurantes":
+                  return images.sampleRestaurantImage;
+                case "Atractivos":
+                  return images.sampleAttractionImage;
+                default:
+                  return images.sampleFavoriteImage;
+              }
+            })()})`,
             backgroundSize: "cover",
             backgroundPosition: "center",
             "&::before": {
               content: '""',
               position: "absolute",
               inset: 0,
-              background: `linear-gradient(135deg, ${getCategoryColor(
-                category
-              )}60, ${getCategoryColor(category)}40)`,
+              background: `linear-gradient(135deg, ${getCategoryColor(category)}60, ${getCategoryColor(category)}40)`,
               backdropFilter: "blur(2px)",
             },
           }}
@@ -185,29 +200,33 @@ const ExperienceDetailsModal = ({ open, onClose, experience, category }) => {
                 {experience.prefecture || "Ubicación desconocida"}
               </Typography>
             </Box>
-            {experience.price && (
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1,
-                  background: theme.palette.primary.light,
-                  px: 1,
-                  py: 1,
-                  borderRadius: 30,
-                }}
-              >
-                <Euro size={16} color={theme.palette.primary.main} />
+            {experience.price !== null && experience.price !== undefined ? (
+              <Box>
                 <Typography
-                  variant="p"
+                  variant="h6"
                   sx={{
-                    fontWeight: 600,
-                    color: theme.palette.primary.main,
+                    fontWeight: 700,
+                    color:
+                      experience.price === 0
+                        ? theme.palette.success.main
+                        : theme.palette.primary.main,
+                    fontSize: "1.25rem",
                   }}
                 >
-                  {experience.price}
+                  ¥ {experience.price}
                 </Typography>
               </Box>
+            ) : (
+              <Typography
+                variant="body2"
+                sx={{
+                  color: theme.palette.text.secondary,
+                  background: `${theme.palette.warning.main}15`,
+                  fontStyle: "italic",
+                }}
+              >
+                Precio a consultar
+              </Typography>
             )}
           </Box>
         </Box>
@@ -368,8 +387,26 @@ const ExperienceDetailsModal = ({ open, onClose, experience, category }) => {
     </Dialog>
   );
 };
+const PermissionWrapper = ({
+  allowedRoles,
+  userRole,
+  children,
+  fallback = null,
+}) => {
+  if (!allowedRoles.includes(userRole)) {
+    return fallback;
+  }
+  return children;
+};
 
-const ActivityCard = ({ fav, boardIndex, favIndex, onRemove, sortableId }) => {
+const ActivityCard = ({
+  fav,
+  boardIndex,
+  favIndex,
+  onRemove,
+  sortableId,
+  userRole,
+}) => {
   const theme = useTheme();
   const [detailsOpen, setDetailsOpen] = useState(false);
 
@@ -495,11 +532,29 @@ const ActivityCard = ({ fav, boardIndex, favIndex, onRemove, sortableId }) => {
               }}
             >
               <img
-                src={
-                  fav?.experienceId?.photo
-                    ? stables.UPLOAD_FOLDER_BASE_URL + fav.experienceId.photo
-                    : images.sampleFavoriteImage
-                }
+                src={(() => {
+                  const experience = fav?.experienceId;
+                  const photo = experience?.photo;
+
+                  // If has photo, handle URL type
+                  if (photo) {
+                    return photo.startsWith("http")
+                      ? photo
+                      : `${stables.UPLOAD_FOLDER_BASE_URL}${photo}`;
+                  }
+
+                  // Category-based fallback
+                  switch (experience?.categories) {
+                    case "Hoteles":
+                      return images.sampleHotelImage;
+                    case "Restaurantes":
+                      return images.sampleRestaurantImage;
+                    case "Atractivos":
+                      return images.sampleAttractionImage;
+                    default:
+                      return images.sampleFavoriteImage;
+                  }
+                })()}
                 alt={fav?.experienceId?.title || "Experience"}
                 style={{
                   width: "100%",
@@ -596,7 +651,6 @@ const ActivityCard = ({ fav, boardIndex, favIndex, onRemove, sortableId }) => {
                       border: `1px solid ${theme.palette.secondary.medium}30`,
                     }}
                   >
-                    <Euro size={16} color={theme.palette.secondary.medium} />
                     <Typography
                       variant="subtitle2"
                       sx={{
@@ -604,7 +658,7 @@ const ActivityCard = ({ fav, boardIndex, favIndex, onRemove, sortableId }) => {
                         fontWeight: 700,
                       }}
                     >
-                      {fav?.experienceId?.price}
+                      ¥ {fav?.experienceId?.price}
                     </Typography>
                   </Box>
                 )}
@@ -613,35 +667,36 @@ const ActivityCard = ({ fav, boardIndex, favIndex, onRemove, sortableId }) => {
         </Box>
 
         {/* Enhanced Remove Button */}
-        <IconButton
-          onClick={(e) => {
-            e.stopPropagation();
-            onRemove(boardIndex, favIndex);
-          }}
-          sx={{
-            position: "absolute",
-            top: 12,
-            right: 12,
-            width: 36,
-            height: 36,
-            background: "rgba(255,255,255,0.95)",
-            backdropFilter: "blur(10px)",
-            border: `1px solid ${theme.palette.error.main}30`,
-            color: theme.palette.error.main,
-            transition: "all 0.3s ease",
-            "&:hover": {
-              background: theme.palette.error.main,
-              color: "white",
-              transform: "scale(1.1)",
-              boxShadow: `0 4px 16px ${theme.palette.error.main}40`,
-            },
-            pointerEvents: "auto",
-            zIndex: 10,
-          }}
-        >
-          <Trash2 size={18} />
-        </IconButton>
-
+        {userRole !== "viewer" && (
+          <IconButton
+            onClick={(e) => {
+              e.stopPropagation();
+              onRemove(boardIndex, favIndex);
+            }}
+            sx={{
+              position: "absolute",
+              top: 12,
+              right: 12,
+              width: 36,
+              height: 36,
+              background: "rgba(255,255,255,0.95)",
+              backdropFilter: "blur(10px)",
+              border: `1px solid ${theme.palette.error.main}30`,
+              color: theme.palette.error.main,
+              transition: "all 0.3s ease",
+              "&:hover": {
+                background: theme.palette.error.main,
+                color: "white",
+                transform: "scale(1.1)",
+                boxShadow: `0 4px 16px ${theme.palette.error.main}40`,
+              },
+              pointerEvents: "auto",
+              zIndex: 10,
+            }}
+          >
+            <Trash2 size={18} />
+          </IconButton>
+        )}
         {/* Enhanced Drag Indicator */}
         <Box
           sx={{

@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getAllUsers, toggleFriend } from "../../../services/index/users";
 import { setFriends } from "../../../store/reducers/authSlice";
+import { useNavigate } from "react-router-dom";
+import { Eye } from "lucide-react";
 import {
   Avatar,
   IconButton,
@@ -31,6 +33,7 @@ import {
 const UserList = ({ currentUser, token }) => {
   const dispatch = useDispatch();
   const theme = useTheme();
+  const navigate = useNavigate();
 
   const friends = useSelector((state) =>
     Array.isArray(state.auth.user?.friends) ? state.auth.user.friends : []
@@ -295,6 +298,31 @@ const UserList = ({ currentUser, token }) => {
                           {friends.includes(user._id) ? "Amigo" : "Usuario"}
                         </Typography>
                       </Box>
+                      {/* Friend Toggle Button */}
+
+                      <Button
+                        size="small"
+                        startIcon={<Eye />}
+                        variant="outlined"
+                        onClick={() => navigate(`/profile/${user._id}`)}
+                        sx={{
+                          borderRadius: "30px",
+                          textTransform: "none",
+                          fontSize: "0.8rem",
+                          fontWeight: "500",
+                          minWidth: "80px",
+                          height: "32px",
+                          borderColor: theme.palette.primary.main,
+                          color: theme.palette.primary.main,
+                          "&:hover": {
+                            backgroundColor: theme.palette.primary.main,
+                            color: "white",
+                            borderColor: theme.palette.primary.main,
+                          },
+                        }}
+                      >
+                        Ver perfil
+                      </Button>
 
                       {/* Friend Toggle Button */}
                       <Tooltip

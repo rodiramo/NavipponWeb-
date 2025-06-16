@@ -207,7 +207,7 @@ const Aside = ({ info }) => {
               ))}
             </Box>
             <Box sx={{ mb: 4 }}>
-              <Typography> {info.body || "No especificada"}</Typography>
+              <Typography> {info.body || info.caption}</Typography>
             </Box>
 
             {/* Season and Price Info */}
@@ -248,7 +248,7 @@ const Aside = ({ info }) => {
                     color: theme.palette.primary.main,
                   }}
                 >
-                  {`${info.price}€` || "A consultar"}
+                  {`¥ ${info.price}` || "A consultar"}
                 </Typography>
               </Typography>
             </Box>

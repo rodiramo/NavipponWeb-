@@ -155,7 +155,7 @@ const Notes = ({
             </Box>
             <Box>
               <Typography variant="h5" fontWeight={800}>
-                Notas del Equipo
+                Notas del equipo
               </Typography>
               <Typography variant="body2" sx={{ opacity: 0.9 }}>
                 Colabora y organiza tareas juntos

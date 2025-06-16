@@ -92,7 +92,9 @@ const ManageExperiences = () => {
           position: "relative",
           backgroundImage: `url(${
             experience?.photo
-              ? stables.UPLOAD_FOLDER_BASE_URL + experience?.photo
+              ? experience.photo.startsWith("http")
+                ? experience.photo
+                : stables.UPLOAD_FOLDER_BASE_URL + experience.photo
               : images.sampleExperienceImage
           })`,
           backgroundSize: "cover",

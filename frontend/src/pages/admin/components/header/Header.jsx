@@ -23,7 +23,8 @@ import {
   Divider,
   Typography,
   Tooltip,
-} from "@mui/material";
+} from "@mui/material"; // In your admin sidebar/navigation
+
 import NavItem from "./NavItem";
 import NavItemCollapse from "./NavItemCollapse";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -192,8 +193,21 @@ const Header = ({ isMenuOpen, setIsMenuOpen }) => {
                   isMenuOpen={isMenuOpen}
                 />
               </span>
-            </Tooltip>
-
+            </Tooltip>{" "}
+            <Tooltip title={!isMenuOpen ? "Importar" : ""} placement="right">
+              <span>
+                {" "}
+                <NavItem
+                  title="Importar"
+                  link="/admin/import"
+                  name="import"
+                  activeNavName={activeNavName}
+                  setActiveNavName={setActiveNavName}
+                  icon={<SquareKanban size={24} />}
+                  isMenuOpen={isMenuOpen}
+                />
+              </span>
+            </Tooltip>{" "}
             <Tooltip
               title={!isMenuOpen ? "Experiencias" : ""}
               placement="right"
@@ -210,7 +224,6 @@ const Header = ({ isMenuOpen, setIsMenuOpen }) => {
                 />
               </span>
             </Tooltip>
-
             <Tooltip
               title={!isMenuOpen ? "Publicaciones" : ""}
               placement="right"
@@ -227,7 +240,6 @@ const Header = ({ isMenuOpen, setIsMenuOpen }) => {
                 />
               </span>
             </Tooltip>
-
             <Tooltip title={!isMenuOpen ? "Comentarios" : ""} placement="right">
               <span>
                 {" "}
@@ -242,7 +254,6 @@ const Header = ({ isMenuOpen, setIsMenuOpen }) => {
                 />
               </span>
             </Tooltip>
-
             <Tooltip title={!isMenuOpen ? "Reseñas" : ""} placement="right">
               <span>
                 {" "}
@@ -257,7 +268,6 @@ const Header = ({ isMenuOpen, setIsMenuOpen }) => {
                 />
               </span>{" "}
             </Tooltip>
-
             <Tooltip title={!isMenuOpen ? "Usuarios" : ""} placement="right">
               <span>
                 {" "}

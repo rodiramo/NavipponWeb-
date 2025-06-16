@@ -11,29 +11,18 @@ import {
   MenuItem,
   ListItemIcon,
   ListItemText,
+  Card,
+  CardContent,
 } from "@mui/material";
 import StarRating from "../components/Stars";
 import { useTheme } from "@mui/material";
-import {
-  Landmark,
-  Coins,
-  Calendar,
-  MapPin,
-  Clock,
-  Users,
-  Star,
-  Eye,
-  Plus,
-  BookOpen,
-  Check,
-} from "lucide-react";
+import { MapPin, Star, Eye, Plus, BookOpen, Check, People } from "lucide-react";
 import {
   addFavorite as addFavoriteService,
   removeFavorite as removeFavoriteService,
   getFavoritesCount as getFavoritesCountService,
   getUserFavorites,
 } from "../services/index/favorites";
-// Add these itinerary service imports
 import {
   getUserItineraries,
   addExperienceToItinerary,
@@ -47,7 +36,7 @@ const ExperienceCard = ({
   token,
   className,
   onFavoriteToggle,
-  onItineraryAdd, // New callback for itinerary updates
+  onItineraryAdd,
 }) => {
   const [isFavorite, setIsFavorite] = useState(false);
   const [favoritesCount, setFavoritesCount] = useState(0);
@@ -55,7 +44,7 @@ const ExperienceCard = ({
   const [anchorEl, setAnchorEl] = useState(null);
   const [experienceInItineraries, setExperienceInItineraries] = useState(
     new Map()
-  ); // Map of itineraryId -> boards[]
+  );
   const theme = useTheme();
 
   useEffect(() => {
@@ -90,7 +79,6 @@ const ExperienceCard = ({
           const itineraries = await getUserItineraries(user._id, token);
           setUserItineraries(itineraries);
 
-          // Check which itineraries already contain this experience
           const inItineraries = new Map();
           for (const itinerary of itineraries) {
             try {
@@ -177,7 +165,6 @@ const ExperienceCard = ({
 
   const handleAddToItinerary = async (itinerary) => {
     try {
-      // Add to first board (earliest date) by default
       const boardDate =
         itinerary.boards && itinerary.boards.length > 0
           ? itinerary.boards[0].date
@@ -186,11 +173,10 @@ const ExperienceCard = ({
       await addExperienceToItinerary({
         itineraryId: itinerary._id,
         experienceId: experience._id,
-        boardDate, // Optional - will use first board if not specified
+        boardDate,
         token,
       });
 
-      // Update the state to show this itinerary now contains the experience
       setExperienceInItineraries((prev) => {
         const newMap = new Map(prev);
         const existingBoards = newMap.get(itinerary._id) || [];
@@ -215,41 +201,101 @@ const ExperienceCard = ({
     }
   };
 
-  // Format price
-  const formatPrice = (price) => {
-    if (!price) return "Consultar precio";
-    return new Intl.NumberFormat("es-ES", {
-      style: "currency",
-      currency: "EUR",
-      maximumFractionDigits: 0,
-    }).format(price);
+  const getCategoryColor = (category) => {
+    const colors = {
+      Atractivos: {
+        bg: theme.palette.secondary.light,
+        text: theme.palette.secondary.dark,
+      },
+      Hoteles: {
+        bg: theme.palette.success.light,
+        text: theme.palette.success.dark,
+      },
+      Restaurantes: {
+        bg: theme.palette.primary.light,
+        text: theme.palette.primary.dark,
+      },
+    };
+    return (
+      colors[category] || { bg: theme.palette.primary.main, text: "white" }
+    );
   };
 
+  const categoryColors = getCategoryColor(experience.categories);
   const hasItineraries = user && token && userItineraries.length > 0;
 
   return (
-    <Box
-      className={`group/card rounded-2xl overflow-hidden transition-all duration-300 ${className}`}
+    <Card
+      className={className}
       sx={{
-        background:
-          "linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.9) 100%)",
-        backdropFilter: "blur(20px)",
-        border: "1px solid rgba(255, 255, 255, 0.2)",
+        borderRadius: "24px",
+        overflow: "hidden",
+        // Apply styling from horizontal card
+        background: `linear-gradient(135deg, 
+          ${theme.palette.background.paper} 0%, 
+          ${theme.palette.primary.main}03 100%)`,
+        border: `2px solid ${theme.palette.primary.main}08`,
+        boxShadow: "none",
+        transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
         position: "relative",
-        boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)",
+        "&:hover": {
+          transform: "translateY(-4px)",
+          boxShadow: `0 12px 40px ${theme.palette.primary.main}15`,
+          border: `2px solid ${theme.palette.primary.main}12`,
+        },
+        "&::before": {
+          content: '""',
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: `linear-gradient(135deg, 
+            ${theme.palette.primary.main}02 0%, 
+            ${theme.palette.secondary.main}02 100%)`,
+          opacity: 0,
+          transition: "opacity 0.3s ease",
+          zIndex: 0,
+        },
+        "&:hover::before": {
+          opacity: 1,
+        },
       }}
     >
       {/* Image Container */}
-      <Box className="relative overflow-hidden">
+      <Box sx={{ position: "relative", overflow: "hidden" }}>
         <Link to={`/experience/${experience.slug}`}>
-          <img
-            src={
-              experience.photo
-                ? `${stables.UPLOAD_FOLDER_BASE_URL}${experience.photo}`
-                : images.sampleExperienceImage
-            }
+          <Box
+            component="img"
+            src={(() => {
+              const photo = experience?.photo;
+              if (photo) {
+                return photo.startsWith("http")
+                  ? photo
+                  : `${stables.UPLOAD_FOLDER_BASE_URL}${photo}`;
+              }
+              switch (experience?.categories) {
+                case "Hoteles":
+                  return images.sampleHotelImage;
+                case "Restaurantes":
+                  return images.sampleRestaurantImage;
+                case "Atractivos":
+                  return images.sampleAttractionImage;
+                default:
+                  return images.sampleExperienceImage;
+              }
+            })()}
             alt={experience.title}
-            className="w-full object-cover object-center h-56 "
+            sx={{
+              width: "100%",
+              objectFit: "cover",
+              objectPosition: "center",
+              height: "224px",
+              transition: "transform 0.4s ease",
+              "&:hover": {
+                transform: "scale(1.05)",
+              },
+            }}
           />
         </Link>
 
@@ -265,77 +311,62 @@ const ExperienceCard = ({
           <Chip
             label={experience.categories}
             sx={{
-              backgroundColor: theme.palette.primary.main,
-              color: theme.palette.primary.white,
+              backgroundColor: categoryColors.bg,
+              color: categoryColors.text,
               fontSize: "0.75rem",
               fontWeight: 600,
               height: "28px",
-              backdropFilter: "blur(10px)",
-              border: "1px solid rgba(255, 255, 255, 0.2)",
-              boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+              "& .MuiChip-label": {
+                paddingX: 1.5,
+              },
             }}
-          />{" "}
-          {/* Tags Row */}
-          <Box display="flex" flexWrap="wrap" gap={1} mt={1}>
-            {experience.generalTags?.budget && (
-              <Chip
-                icon={<Coins size={14} />}
-                label={experience.generalTags.budget}
-                size="small"
-                sx={{
-                  backgroundColor: `${theme.palette.secondary.light}`,
-                  color: theme.palette.secondary.dark,
-                  fontSize: "0.7rem",
-                  height: "24px",
-                  fontWeight: 500,
-                  border: `1px solid ${theme.palette.secondary.main}30`,
-                }}
-              />
-            )}
-            {experience.generalTags?.season && (
-              <Chip
-                icon={<Calendar size={14} />}
-                label={experience.generalTags.season}
-                size="small"
-                sx={{
-                  backgroundColor: `${theme.palette.neutral.light}`,
-                  color: theme.palette.neutral.dark,
-                  fontSize: "0.7rem",
-                  height: "24px",
-                  fontWeight: 500,
-                  border: `1px solid ${theme.palette.neutral.main}30`,
-                }}
-              />
-            )}
-          </Box>
+          />
         </Box>
 
         {/* Favorite Button */}
-        <button
+        <Box
+          component="button"
           onClick={handleFavoriteClick}
-          className="absolute top-3 right-3 group/heart w-11 h-11 rounded-full backdrop-blur-md flex items-center justify-center transition-all duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-white/50"
-          style={{
-            backgroundColor: "rgba(255, 255, 255, 0.9)",
-            border: "1px solid rgba(255, 255, 255, 0.2)",
-            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+          sx={{
+            position: "absolute",
+            top: 12,
+            right: 12,
+            width: 44,
+            height: 44,
+            borderRadius: "50%",
+            backgroundColor: `${theme.palette.primary.white}`,
+            backdropFilter: "blur(10px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            transition: "all 0.3s ease",
+            border: `2px solid ${theme.palette.primary.main}20`,
+            cursor: "pointer",
+            "&:hover": {
+              transform: "scale(1.1)",
+              backgroundColor: theme.palette.background.paper,
+              border: `2px solid ${theme.palette.primary.main}40`,
+            },
+            "&:focus": {
+              outline: "none",
+              ring: `2px solid ${theme.palette.primary.main}50`,
+            },
           }}
         >
           {isFavorite ? (
             <AiFillHeart
               style={{ color: theme.palette.primary.main, fontSize: "1.25rem" }}
-              className="transition-transform duration-300 group-hover/heart:scale-125"
             />
           ) : (
             <AiOutlineHeart
               style={{ color: theme.palette.primary.main, fontSize: "1.25rem" }}
-              className="transition-transform duration-300 group-hover/heart:scale-125"
             />
           )}
-        </button>
+        </Box>
       </Box>
 
       {/* Content */}
-      <Box className="p-6">
+      <CardContent sx={{ p: 3, position: "relative", zIndex: 1 }}>
         {/* Title and Region */}
         <Link
           to={`/experience/${experience.slug}`}
@@ -366,17 +397,19 @@ const ExperienceCard = ({
               display: "flex",
               alignItems: "center",
               gap: 0.5,
-              borderRadius: 30,
-              px: 1,
-              py: 0.5,
+              backgroundColor: `${theme.palette.primary.main}20`,
+              padding: "4px 10px",
               width: "fit-content",
+              color: theme.palette.primary.main,
+              borderRadius: "20px",
               mb: 2,
-              background: theme.palette.primary.light,
-              color: theme.palette.primary.dark,
             }}
           >
             <MapPin size={14} />
-            <Typography variant="body2" sx={{ fontSize: "0.875rem" }}>
+            <Typography
+              variant="body2"
+              sx={{ fontSize: "0.875rem", fontWeight: 500 }}
+            >
               {experience.prefecture}, {experience.region}
             </Typography>
           </Box>
@@ -427,27 +460,33 @@ const ExperienceCard = ({
           {experience.caption || experience.description}
         </Typography>
 
-        {/* Price and Button Row */}
+        {/* Price and Button Row - Responsive Layout */}
         <Box
           display="flex"
-          alignItems="center"
-          justifyContent="space-between"
+          alignItems={{ xs: "stretch", sm: "center" }}
+          justifyContent={{ xs: "center", sm: "space-between" }}
+          flexDirection={{ xs: "column", sm: "row" }}
           gap={2}
           mb={hasItineraries ? 2 : 0}
         >
-          {/* Price Display */}
-          <Box>
-            {experience.price ? (
+          {/* Price Section */}
+          <Box sx={{ textAlign: { xs: "center", sm: "left" } }}>
+            {experience.price !== null && experience.price !== undefined ? (
               <Box>
                 <Typography
                   variant="h6"
                   sx={{
                     fontWeight: 700,
-                    color: theme.palette.primary.main,
+                    color:
+                      experience.price === 0
+                        ? theme.palette.success.main
+                        : theme.palette.primary.main,
                     fontSize: "1.25rem",
                   }}
                 >
-                  {formatPrice(experience.price)}
+                  {experience.price === 0
+                    ? "Gratis"
+                    : `¥${experience.price.toLocaleString()}`}
                 </Typography>
                 <Typography
                   variant="caption"
@@ -467,7 +506,7 @@ const ExperienceCard = ({
                   fontStyle: "italic",
                 }}
               >
-                Precio a consultar
+                A consultar
               </Typography>
             )}
           </Box>
@@ -476,29 +515,36 @@ const ExperienceCard = ({
           <Button
             component={Link}
             to={`/experience/${experience.slug}`}
-            className="group/btn relative overflow-hidden"
             sx={{
-              backgroundColor: theme.palette.secondary.medium,
+              background: theme.palette.secondary.medium,
               color: theme.palette.primary.white,
-              borderRadius: "25px",
+              borderRadius: "50px",
               textTransform: "none",
               fontWeight: 600,
               fontSize: "0.875rem",
               py: 1.25,
               px: 3,
-              minWidth: "auto",
-              boxShadow: `0 4px 12px ${theme.palette.secondary.main}30`,
+              m: { xs: "auto", sm: "0" },
+
+              width: { xs: "fit-content", sm: "fit-content" },
+              boxShadow: "none",
               transition: "all 0.3s ease",
               "&:hover": {
-                backgroundColor: theme.palette.secondary.dark,
-                boxShadow: `0 6px 20px ${theme.palette.secondary.main}40`,
+                background: theme.palette.secondary.light,
+                color: theme.palette.secondary.dark,
                 transform: "translateY(-1px)",
+                boxShadow: "none",
               },
             }}
           >
-            <Box display="flex" alignItems="center" gap={1}>
-              <Eye size={16} />
-              <span>Ver más</span>
+            <Box
+              display="flex"
+              alignItems="center"
+              gap={1}
+              justifyContent="center"
+            >
+              <Eye size={24} />
+              <span>Ver detalles</span>
             </Box>
           </Button>
         </Box>
@@ -508,23 +554,24 @@ const ExperienceCard = ({
           <Box display="flex" justifyContent="center" mb={2}>
             <Button
               onClick={handleItineraryMenuOpen}
-              className="group/itinerary-btn"
               sx={{
                 backgroundColor: theme.palette.primary.light,
-                color: theme.palette.primary.main,
-                borderRadius: "25px",
+                color: theme.palette.primary.dark,
+                borderRadius: "50px",
                 textTransform: "none",
                 fontWeight: 600,
                 fontSize: "0.875rem",
-                py: 1,
+                py: 1.25,
                 px: 3,
                 minWidth: "auto",
                 border: `1px solid ${theme.palette.primary.main}30`,
+                boxShadow: "none",
                 transition: "all 0.3s ease",
                 "&:hover": {
                   backgroundColor: theme.palette.primary.main,
                   color: theme.palette.primary.white,
                   transform: "translateY(-1px)",
+                  boxShadow: "none",
                 },
               }}
             >
@@ -603,28 +650,8 @@ const ExperienceCard = ({
             );
           })}
         </Menu>
-
-        {/* Favorites Count */}
-        {favoritesCount > 0 && (
-          <Box
-            display="flex"
-            alignItems="center"
-            justifyContent="center"
-            gap={0.5}
-            mt={2}
-            sx={{
-              color: theme.palette.text.secondary,
-              fontSize: "0.75rem",
-            }}
-          >
-            <AiFillHeart size={12} color={theme.palette.primary.main} />
-            <Typography variant="caption">
-              {favoritesCount} personas lo han marcado como favorito
-            </Typography>
-          </Box>
-        )}
-      </Box>
-    </Box>
+      </CardContent>
+    </Card>
   );
 };
 

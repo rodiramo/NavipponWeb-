@@ -236,7 +236,8 @@ const RegionDetail = () => {
 
     // Fetch experiences for this region
     fetchRegionExperiences();
-  }, [regionName]);
+    fetchWeatherData();
+  }, [regionName, region]);
 
   useEffect(() => {
     // Filter experiences based on search and category
@@ -529,6 +530,8 @@ const RegionDetail = () => {
           </Grid>
 
           <Grid item xs={12} md={4}>
+            {/* Weather Card */}
+            <WeatherCard />{" "}
             <Card
               elevation={0}
               sx={{ p: 3, border: `1px solid ${theme.palette.primary.main}15` }}

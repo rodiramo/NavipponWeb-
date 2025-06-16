@@ -261,8 +261,8 @@ const ExperiencePage = ({ filters: initialFilters }) => {
                           index === 0
                             ? "30px 0px 0px 30px"
                             : index === filterTabs.length - 1
-                            ? "0px 30px 30px 0px"
-                            : 0,
+                              ? "0px 30px 30px 0px"
+                              : 0,
                         textTransform: "none",
                         fontSize: "0.875rem",
                         fontWeight: 500,
@@ -289,10 +289,7 @@ const ExperiencePage = ({ filters: initialFilters }) => {
                 <div className="flex items-center gap-3">
                   {/* Sort Dropdown */}
                   <div className="flex items-center gap-2">
-                    <Typography
-                      variant="body2"
-                      className="text-gray-600 hidden sm:block"
-                    >
+                    <Typography variant="body2" className=" hidden sm:block">
                       Ordenar por:
                     </Typography>
                     <IconButton
@@ -407,7 +404,7 @@ const ExperiencePage = ({ filters: initialFilters }) => {
                 <div
                   className={
                     viewMode === "grid"
-                      ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                      ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-2"
                       : "space-y-6"
                   }
                 >
@@ -453,7 +450,15 @@ const ExperiencePage = ({ filters: initialFilters }) => {
                   {viewMode === "grid" ? (
                     <Grid container spacing={3}>
                       {data?.data.map((experience) => (
-                        <Grid item xs={12} sm={6} lg={4} key={experience._id}>
+                        <Grid
+                          item
+                          xs={12} // 1 column on mobile (0px+)
+                          sm={6} // 2 columns on small screens (600px+)
+                          md={6} // 2 columns on medium screens (900px+)
+                          lg={6} // 2 columns on large screens (1200px+)
+                          xl={4}
+                          key={experience._id}
+                        >
                           <ExperienceCard
                             experience={experience}
                             user={user}

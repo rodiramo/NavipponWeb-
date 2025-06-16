@@ -218,13 +218,6 @@ const HorizontalExperienceCard = ({
     }
   };
 
-  const formatPrice = (price) => {
-    if (price === 0) return "Gratis";
-    // Convert Japanese Yen to Euros (approximate rate: 1 EUR = 160 JPY)
-    const priceInEuros = (price / 160).toFixed(0);
-    return `€${parseInt(priceInEuros).toLocaleString()}`;
-  };
-
   const getCategoryColor = (category) => {
     const colors = {
       Atractivos: {
@@ -255,16 +248,17 @@ const HorizontalExperienceCard = ({
       onMouseLeave={() => setIsHovered(false)}
       sx={{
         display: "flex",
+        justifyContent: "center",
         flexDirection: { xs: "column", md: "row" },
         minHeight: { xs: "auto", md: "280px" },
         borderRadius: "24px",
         overflow: "hidden",
+        alignItems: "center",
         background: `linear-gradient(135deg, 
           ${theme.palette.background.paper} 0%, 
           ${theme.palette.primary.main}03 100%)`,
         border: `2px solid ${theme.palette.primary.main}08`,
         boxShadow: "none",
-        transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
         position: "relative",
         "&::before": {
           content: '""',
@@ -287,9 +281,10 @@ const HorizontalExperienceCard = ({
         sx={{
           position: "relative",
           width: { xs: "100%", md: "400px" },
-          height: { xs: "240px", md: "280px" },
+          height: { xs: "240px", md: "335px" },
           flexShrink: 0,
           display: "flex",
+          justifyContent: "center",
           alignItems: "center",
           overflow: "hidden",
         }}
@@ -298,8 +293,10 @@ const HorizontalExperienceCard = ({
         <Box
           component="img"
           src={
-            experience.photo
-              ? `${stables.UPLOAD_FOLDER_BASE_URL}${experience.photo}`
+            experience?.photo
+              ? experience.photo.startsWith("http")
+                ? experience.photo
+                : stables.UPLOAD_FOLDER_BASE_URL + experience.photo
               : images.sampleExperienceImage
           }
           alt={experience.title}
@@ -595,11 +592,8 @@ const HorizontalExperienceCard = ({
                 alignItems: "center",
               }}
             >
-              {experience.price === 0 ? (
-                <> Gratis</>
-              ) : (
-                <>{formatPrice(experience.price)}</>
-              )}
+              ¥{" "}
+              {experience.price === 0 ? <> Gratis</> : <>{experience.price}</>}
             </Box>
           </Box>
         </Box>
