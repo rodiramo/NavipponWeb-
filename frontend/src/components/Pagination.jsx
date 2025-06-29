@@ -52,7 +52,7 @@ const Pagination = ({
         {paginationRange.map((pageNumber) => {
           if (pageNumber === DOTS) {
             return (
-              <button className="cursor-default w-full px-4 py-2 text-base bg-white border">
+              <button className="cursor-default w-full px-4 py-2 text-base ">
                 &#8230;
               </button>
             );

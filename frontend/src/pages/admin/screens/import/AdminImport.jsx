@@ -251,23 +251,19 @@ const AdminImport = () => {
           color: theme.palette.primary.main,
         }}
       >
-        🌟 Importar Experiencias
+        Importar Experiencias
       </Typography>
 
       {/* Stats Section */}
       {stats && (
-        <Grid container spacing={3} sx={{ mb: 4 }}>
-          <Grid item xs={12} md={3}>
+        <Grid container spacing={2} sx={{ mb: 4 }}>
+          <Grid item xs={6} md={3}>
             <Card
               sx={{
-                backgroundColor: theme.palette.background.default,
-                border: `1px solid ${theme.palette.neutral.light}`,
+                border: `1px solid ${theme.palette.primary.main}`,
                 borderRadius: 2,
+                boxShadow: "none",
                 transition: "all 0.2s ease-in-out",
-                "&:hover": {
-                  boxShadow: theme.shadows[4],
-                  transform: "translateY(-2px)",
-                },
               }}
             >
               <CardContent sx={{ textAlign: "center" }}>
@@ -286,24 +282,19 @@ const AdminImport = () => {
               </CardContent>
             </Card>
           </Grid>
-          <Grid item xs={12} md={3}>
+          <Grid item xs={6} md={3}>
             <Card
               sx={{
-                backgroundColor: theme.palette.background.default,
-                border: `1px solid ${theme.palette.neutral.light}`,
+                border: `1px solid ${theme.palette.primary.main}`,
                 borderRadius: 2,
+                boxShadow: "none",
                 transition: "all 0.2s ease-in-out",
-                "&:hover": {
-                  boxShadow: theme.shadows[4],
-                  transform: "translateY(-2px)",
-                },
               }}
             >
               <CardContent sx={{ textAlign: "center" }}>
                 <Typography
                   variant="h4"
                   sx={{
-                    color: theme.palette.success.main,
                     fontWeight: "bold",
                   }}
                 >
@@ -313,24 +304,19 @@ const AdminImport = () => {
               </CardContent>
             </Card>
           </Grid>
-          <Grid item xs={12} md={3}>
+          <Grid item xs={6} md={3}>
             <Card
               sx={{
-                backgroundColor: theme.palette.background.default,
-                border: `1px solid ${theme.palette.neutral.light}`,
+                border: `1px solid ${theme.palette.primary.main}`,
                 borderRadius: 2,
+                boxShadow: "none",
                 transition: "all 0.2s ease-in-out",
-                "&:hover": {
-                  boxShadow: theme.shadows[4],
-                  transform: "translateY(-2px)",
-                },
               }}
             >
               <CardContent sx={{ textAlign: "center" }}>
                 <Typography
                   variant="h4"
                   sx={{
-                    color: theme.palette.warning.main,
                     fontWeight: "bold",
                   }}
                 >
@@ -340,24 +326,19 @@ const AdminImport = () => {
               </CardContent>
             </Card>
           </Grid>
-          <Grid item xs={12} md={3}>
+          <Grid item xs={6} md={3}>
             <Card
               sx={{
-                backgroundColor: theme.palette.background.default,
-                border: `1px solid ${theme.palette.neutral.light}`,
+                border: `1px solid ${theme.palette.primary.main}`,
                 borderRadius: 2,
+                boxShadow: "none",
                 transition: "all 0.2s ease-in-out",
-                "&:hover": {
-                  boxShadow: theme.shadows[4],
-                  transform: "translateY(-2px)",
-                },
               }}
             >
               <CardContent sx={{ textAlign: "center" }}>
                 <Typography
                   variant="h4"
                   sx={{
-                    color: theme.palette.error.main,
                     fontWeight: "bold",
                   }}
                 >
@@ -389,7 +370,7 @@ const AdminImport = () => {
             fontWeight: "bold",
           }}
         >
-          🔍 Buscar e Importar
+          Buscar e importar
         </Typography>
 
         <Grid container spacing={3}>
@@ -403,12 +384,12 @@ const AdminImport = () => {
               >
                 <MenuItem value="google">
                   <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                    🟢 Google Places
+                    Google Places
                   </Box>
                 </MenuItem>
                 <MenuItem value="osm">
                   <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                    🗺️ OpenStreetMap
+                    OpenStreetMap
                   </Box>
                 </MenuItem>
               </Select>
@@ -458,8 +439,15 @@ const AdminImport = () => {
             />
           </Grid>
 
-          <Grid item xs={12} md={2}>
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+          <Grid item xs={6} md={2}>
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "flex-end",
+                gap: 1,
+              }}
+            >
               <Button
                 variant="contained"
                 onClick={handleSearch}
@@ -470,10 +458,7 @@ const AdminImport = () => {
                 fullWidth
                 sx={{
                   textTransform: "none",
-                  borderRadius: 2,
-                  "&:hover": {
-                    transform: "translateY(-1px)",
-                  },
+                  borderRadius: 20,
                   transition: "all 0.2s ease-in-out",
                 }}
               >
@@ -489,10 +474,7 @@ const AdminImport = () => {
                 fullWidth
                 sx={{
                   textTransform: "none",
-                  borderRadius: 2,
-                  "&:hover": {
-                    transform: "translateY(-1px)",
-                  },
+                  borderRadius: 30,
                   transition: "all 0.2s ease-in-out",
                 }}
               >
@@ -664,14 +646,14 @@ const AdminImport = () => {
         <Alert severity="info" sx={{ mt: 3 }}>
           <Box>
             <Typography variant="body2" gutterBottom>
-              🎯 Usa el buscador para encontrar experiencias desde:
+              Usa el buscador para encontrar experiencias desde:
             </Typography>
             <Typography variant="body2">
-              • <strong>🟢 Google Places:</strong> Datos detallados con fotos,
+              • <strong> Google Places:</strong> Datos detallados con fotos,
               reseñas y horarios (requiere API key)
             </Typography>
             <Typography variant="body2">
-              • <strong>🗺️ OpenStreetMap:</strong> Datos comunitarios gratuitos,
+              • <strong>OpenStreetMap:</strong> Datos comunitarios gratuitos,
               ideal para lugares locales
             </Typography>
           </Box>

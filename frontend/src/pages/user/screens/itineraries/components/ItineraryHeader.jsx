@@ -11,6 +11,9 @@ import {
   Avatar,
   AvatarGroup,
   Tooltip,
+  Switch,
+  FormControlLabel,
+  Paper,
 } from "@mui/material";
 import {
   Save,
@@ -21,6 +24,10 @@ import {
   ArrowLeft,
   Users,
   Crown,
+  Lock,
+  Globe,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import Travelers from "./Travelers";
 import DateDisplay from "./DateDisplay";
@@ -43,12 +50,15 @@ const ItineraryHeader = ({
   onRemoveTraveler,
   onNotesClick,
   onBackClick,
-  userRole = "viewer", // Add userRole prop
+  userRole = "viewer",
   currentUserId,
   startDate,
   boards,
   onEditDates,
   canEditDates,
+  // NEW PROPS FOR PRIVACY
+  isPrivate = false,
+  onPrivacyToggle,
 }) => {
   const theme = useTheme();
   const endDate =
@@ -59,10 +69,13 @@ const ItineraryHeader = ({
           )
         )
       : null;
+
   // Check if user can edit (owners and editors)
   const canEdit = userRole === "owner" || userRole === "editor";
   // Check if user can manage travelers (only owners)
   const canManageTravelers = userRole === "owner";
+  // Only owners can change privacy settings
+  const canChangePrivacy = userRole === "owner";
 
   const handleNameClick = () => {
     if (canEdit) {
@@ -77,6 +90,12 @@ const ItineraryHeader = ({
       } else {
         setIsEditingName(true);
       }
+    }
+  };
+
+  const handlePrivacyChange = (event) => {
+    if (canChangePrivacy && onPrivacyToggle) {
+      onPrivacyToggle(event.target.checked);
     }
   };
 
@@ -268,62 +287,162 @@ const ItineraryHeader = ({
                     backdropFilter: "blur(10px)",
                   }}
                 />
+
+                {/* NEW: Privacy Status Chip */}
+                <Chip
+                  icon={isPrivate ? <Lock size={16} /> : <Globe size={16} />}
+                  label={isPrivate ? "Privado" : "Público"}
+                  size="small"
+                  sx={{
+                    backgroundColor: isPrivate
+                      ? "rgba(255, 152, 0, 0.8)" // Orange for private
+                      : "rgba(76, 175, 80, 0.8)", // Green for public
+                    color: "white",
+                    fontWeight: 500,
+                    backdropFilter: "blur(10px)",
+                    "& .MuiChip-icon": {
+                      color: "white",
+                    },
+                  }}
+                />
               </Box>
             </Box>
 
-            {/* Center Section - Stats */}
+            {/* Center Section - Stats and Privacy Toggle */}
             <Box
               sx={{
                 display: "flex",
+                flexDirection: "column",
                 gap: 2,
                 order: { xs: 3, lg: 2 },
+                alignItems: { xs: "flex-start", lg: "center" },
               }}
             >
-              <DateDisplay
-                startDate={startDate}
-                endDate={endDate}
-                onEditClick={onEditDates}
-                canEdit={canEditDates}
-                boardCount={boards?.length || 0}
-              />
-              <Chip
-                icon={
-                  <CalendarDays size={18} color={theme.palette.primary.dark} />
-                }
-                label={`${travelDays} ${travelDays === 1 ? "Día" : "Días"}`}
+              {/* Stats Row */}
+              <Box
                 sx={{
-                  borderRadius: "30px",
-                  color: theme.palette.primary.dark,
-                  fontWeight: "bold",
-                  fontSize: "0.875rem",
-                  height: 40,
-                  backgroundColor: theme.palette.primary.light,
-                  backdropFilter: "blur(10px)",
-                  "& .MuiChip-icon": {
+                  display: "flex",
+                  gap: 2,
+                }}
+              >
+                <DateDisplay
+                  startDate={startDate}
+                  endDate={endDate}
+                  onEditClick={onEditDates}
+                  canEdit={canEditDates}
+                  boardCount={boards?.length || 0}
+                />
+                <Chip
+                  icon={
+                    <CalendarDays
+                      size={18}
+                      color={theme.palette.primary.dark}
+                    />
+                  }
+                  label={`${travelDays} ${travelDays === 1 ? "Día" : "Días"}`}
+                  sx={{
+                    borderRadius: "30px",
                     color: theme.palette.primary.dark,
-                  },
-                }}
-              />
+                    fontWeight: "bold",
+                    fontSize: "0.875rem",
+                    height: 40,
+                    backgroundColor: theme.palette.primary.light,
+                    backdropFilter: "blur(10px)",
+                    "& .MuiChip-icon": {
+                      color: theme.palette.primary.dark,
+                    },
+                  }}
+                />
 
-              <Chip
-                icon={
-                  <HandCoins size={18} color={theme.palette.success.dark} />
-                }
-                label={`¥ ${totalBudget.toLocaleString()}`}
-                sx={{
-                  borderRadius: "30px",
-                  color: theme.palette.success.dark,
-                  fontWeight: "bold",
-                  fontSize: "0.875rem",
-                  height: 40,
-                  backgroundColor: theme.palette.success.lightest,
-                  backdropFilter: "blur(10px)",
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                  "& .MuiChip-icon": {
-                    color: theme.palette.secondary.main,
-                  },
-                }}
-              />
+                <Chip
+                  icon={
+                    <HandCoins size={18} color={theme.palette.success.dark} />
+                  }
+                  label={`¥ ${totalBudget.toLocaleString()}`}
+                  sx={{
+                    borderRadius: "30px",
+                    color: theme.palette.success.dark,
+                    fontWeight: "bold",
+                    fontSize: "0.875rem",
+                    height: 40,
+                    backgroundColor: theme.palette.success.lightest,
+                    backdropFilter: "blur(10px)",
+                    boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                    "& .MuiChip-icon": {
+                      color: theme.palette.secondary.main,
+                    },
+                  }}
+                />
+              </Box>
+
+              {/* NEW: Privacy Toggle - Only visible to owners */}
+              {canChangePrivacy && (
+                <Paper
+                  elevation={0}
+                  sx={{
+                    backgroundColor: "rgba(255,255,255,0.15)",
+                    backdropFilter: "blur(20px)",
+                    borderRadius: "25px",
+                    border: "1px solid rgba(255,255,255,0.2)",
+                    px: 2,
+                    py: 0.5,
+                  }}
+                >
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={isPrivate}
+                        onChange={handlePrivacyChange}
+                        size="small"
+                        sx={{
+                          "& .MuiSwitch-switchBase": {
+                            color: "white",
+                            "&.Mui-checked": {
+                              color: theme.palette.warning.main,
+                              "& + .MuiSwitch-track": {
+                                backgroundColor: theme.palette.warning.main,
+                                opacity: 0.8,
+                              },
+                            },
+                          },
+                          "& .MuiSwitch-track": {
+                            backgroundColor: theme.palette.success.main,
+                            opacity: 0.6,
+                          },
+                        }}
+                      />
+                    }
+                    label={
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                      >
+                        {isPrivate ? (
+                          <Lock size={16} color="white" />
+                        ) : (
+                          <Globe size={16} color="white" />
+                        )}
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            color: "white",
+                            fontWeight: 500,
+                            fontSize: "0.875rem",
+                          }}
+                        >
+                          {isPrivate ? "Privado" : "Público"}
+                        </Typography>
+                      </Box>
+                    }
+                    labelPlacement="start"
+                    sx={{
+                      margin: 0,
+                      "& .MuiFormControlLabel-label": {
+                        fontSize: "0.875rem",
+                      },
+                    }}
+                  />
+                </Paper>
+              )}
             </Box>
 
             {/* Right Section - Actions */}
@@ -348,8 +467,8 @@ const ItineraryHeader = ({
                     canManageTravelers ? onRemoveTraveler : undefined
                   }
                   creator={creator}
-                  userRole={userRole} // Pass userRole
-                  currentUserId={currentUserId} // Pass currentUserId
+                  userRole={userRole}
+                  currentUserId={currentUserId}
                 />
               </Box>
 

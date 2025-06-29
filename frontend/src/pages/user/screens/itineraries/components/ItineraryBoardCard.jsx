@@ -76,7 +76,7 @@ const BoardCard = ({
         borderRadius: 5,
         boxShadow: 2,
         backgroundColor: theme.palette.primary.white,
-        height: "calc(75vh)",
+        height: "calc(100vh)",
         minWidth: "350px !important",
         maxWidth: "350px",
         display: "flex",

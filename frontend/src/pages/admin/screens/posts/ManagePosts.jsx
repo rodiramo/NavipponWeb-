@@ -20,6 +20,7 @@ import {
   Image as ImageIcon,
   CheckCircle,
   XCircle,
+  Eye,
   Edit,
 } from "lucide-react";
 import {
@@ -126,10 +127,9 @@ const ManagePosts = () => {
             variant="filled"
             sx={{
               backgroundColor: post.approved
-                ? theme.palette.success.main
-                : theme.palette.warning.main,
-              color: "white",
-              fontWeight: "bold",
+                ? theme.palette.success.light
+                : theme.palette.warning.light,
+              color: "black",
             }}
           />
         </Box>
@@ -191,8 +191,8 @@ const ManagePosts = () => {
                     label={cat.title}
                     variant="outlined"
                     sx={{
-                      borderColor: theme.palette.secondary.main,
-                      color: theme.palette.secondary.main,
+                      borderColor: theme.palette.secondary.medium,
+                      color: theme.palette.secondary.medium,
                       fontSize: "0.75rem",
                     }}
                   />
@@ -249,7 +249,11 @@ const ManagePosts = () => {
           }}
         >
           {/* Approval Toggle */}
-          <Tooltip title={post.approved ? "Desaprobar post" : "Aprobar post"}>
+          <Tooltip
+            title={
+              post.approved ? "Desaprobar publicación" : "Aprobar publicación"
+            }
+          >
             <IconButton
               onClick={() => toggleApproval(post)}
               disabled={isLoadingDeleteData}
@@ -275,7 +279,25 @@ const ManagePosts = () => {
               )}
             </IconButton>
           </Tooltip>
-
+          <Button
+            startIcon={<Eye size={16} />}
+            component={Link}
+            to={`/blog/${post?.slug}`}
+            sx={{
+              textTransform: "none",
+              borderRadius: 30,
+              color: theme.palette.secondary.medium,
+              borderColor: theme.palette.secondary.medium,
+              "&:hover": {
+                backgroundColor: theme.palette.secondary.light,
+                borderColor: theme.palette.secondary.dark,
+              },
+            }}
+            variant="outlined"
+            size="small"
+          >
+            Ver detalles
+          </Button>
           {/* Edit Button */}
           <Button
             startIcon={<Edit size={16} />}
@@ -356,7 +378,6 @@ const ManagePosts = () => {
         headers={postsData?.headers}
       >
         {isMobile ? (
-          // Mobile Card Layout
           <Box sx={{ width: "100%" }}>
             {updatedPosts.map((post) => (
               <PostCard key={post._id} post={post} />
@@ -578,6 +599,25 @@ const ManagePosts = () => {
                 }}
               >
                 <Stack direction="row" spacing={1}>
+                  <Button
+                    startIcon={<Eye size={16} />}
+                    component={Link}
+                    to={`/blog/${post?.slug}`}
+                    sx={{
+                      textTransform: "none",
+                      borderRadius: 30,
+                      color: theme.palette.secondary.medium,
+                      borderColor: theme.palette.secondary.medium,
+                      "&:hover": {
+                        backgroundColor: theme.palette.secondary.light,
+                        borderColor: theme.palette.secondary.dark,
+                      },
+                    }}
+                    variant="outlined"
+                    size="small"
+                  >
+                    Ver detalles
+                  </Button>
                   <Button
                     startIcon={<Edit size={16} />}
                     component={Link}

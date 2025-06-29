@@ -423,7 +423,7 @@ const ManagePosts = () => {
   return (
     <Box
       sx={{
-        backgroundColor: theme.palette.background.bg,
+        backgroundColor: theme.palette.background.default,
         minHeight: "100vh",
         p: 3,
       }}
@@ -438,19 +438,7 @@ const ManagePosts = () => {
             gap: 2,
             mb: 2,
           }}
-        >
-          <Typography
-            variant="h4"
-            sx={{
-              color: theme.palette.primary.main,
-              fontWeight: "bold",
-              fontSize: { xs: "1.75rem", sm: "2.125rem" },
-              fontFamily: theme.typography.h1?.fontFamily,
-            }}
-          >
-            Administrar publicaciones
-          </Typography>
-        </Box>
+        ></Box>
 
         <Button
           variant="contained"
@@ -478,7 +466,9 @@ const ManagePosts = () => {
       </Box>
 
       <DataTable
-        searchInputPlaceHolder="Título del post..."
+        pageTitle=""
+        dataListName="Administrar  publicaciones"
+        searchInputPlaceHolder="Título de publicación..."
         searchKeywordOnSubmitHandler={submitSearchKeywordHandler}
         searchKeywordOnChangeHandler={searchKeywordHandler}
         searchKeyword={searchKeyword}

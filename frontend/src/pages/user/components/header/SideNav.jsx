@@ -83,7 +83,7 @@ const SideNav = () => {
           style={{
             width: "50px",
             height: "50px",
-            borderRadius: "50%",
+            borderRadius: "30rem",
             objectFit: "cover",
           }}
         />

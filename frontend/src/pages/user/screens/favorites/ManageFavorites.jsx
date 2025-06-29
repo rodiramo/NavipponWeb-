@@ -485,6 +485,8 @@ const ManageFavorites = () => {
       </Box>
 
       <DataTable
+        pageTitle=""
+        dataListName="Administrar favoritos"
         searchInputPlaceHolder="Buscar en favoritos..."
         searchKeywordOnSubmitHandler={submitSearchKeywordHandler}
         searchKeywordOnChangeHandler={searchKeywordHandler}
@@ -638,13 +640,12 @@ const ManageFavorites = () => {
                     to={`/experience/${favorite.experienceId.slug}`}
                     startIcon={<Eye size={16} />}
                     sx={{
-                      color: theme.palette.primary.main,
+                      color: theme.palette.secondary.medium,
                       textTransform: "none",
                       borderRadius: "30rem",
-                      borderColor: theme.palette.primary.main,
+                      borderColor: theme.palette.secondary.medium,
                       "&:hover": {
-                        backgroundColor: theme.palette.primary.light,
-                        borderColor: theme.palette.primary.dark,
+                        borderColor: theme.palette.secondary.medium,
                         transform: "translateY(-1px)",
                       },
                       transition: "all 0.2s ease-in-out",
@@ -652,7 +653,7 @@ const ManageFavorites = () => {
                     variant="outlined"
                     size="small"
                   >
-                    Ver
+                    Ver detalles
                   </Button>
 
                   <Tooltip title="Quitar de favoritos">

@@ -156,7 +156,6 @@ const Users = () => {
       <Box
         sx={{
           p: 4,
-          backgroundColor: theme.palette.background.default,
           minHeight: "100vh",
         }}
       >
@@ -182,14 +181,10 @@ const Users = () => {
     <Card
       sx={{
         mb: 2,
-        backgroundColor: theme.palette.background.default,
-        border: `1px solid ${theme.palette.neutral.light}`,
+        boxShadow: "none",
+        border: `1px solid ${theme.palette.secondary.light}`,
         borderRadius: 2,
         transition: "all 0.2s ease-in-out",
-        "&:hover": {
-          boxShadow: theme.shadows[4],
-          transform: "translateY(-2px)",
-        },
       }}
     >
       <CardContent sx={{ p: 3 }}>
@@ -317,7 +312,8 @@ const Users = () => {
               onChange={(e) => handleAdminToggle(e, userItem)}
               disabled={isLoadingUpdateUser}
               sx={{
-                backgroundColor: theme.palette.background.default,
+                borderRadius: 30,
+                height: 30,
                 "& .MuiOutlinedInput-notchedOutline": {
                   borderColor: theme.palette.primary.main,
                 },
@@ -338,6 +334,9 @@ const Users = () => {
             sx={{
               color: theme.palette.error.main,
               borderColor: theme.palette.error.main,
+              gap: 1,
+              textTransform: "none",
+              borderRadius: 30,
               "&:hover": {
                 backgroundColor: theme.palette.error.lightest,
                 borderColor: theme.palette.error.dark,
@@ -391,7 +390,6 @@ const Users = () => {
             <tr
               key={userItem._id}
               style={{
-                backgroundColor: theme.palette.background.default,
                 transition: "all 0.2s ease-in-out",
               }}
               className="hover:shadow-lg"
@@ -538,7 +536,6 @@ const Users = () => {
                     sx={{
                       borderRadius: 30,
 
-                      backgroundColor: theme.palette.background.default,
                       "& .MuiOutlinedInput-notchedOutline": {
                         borderColor: theme.palette.primary.main,
                       },
@@ -585,7 +582,6 @@ const Users = () => {
                     "&:hover": {
                       backgroundColor: theme.palette.error.lightest,
                       borderColor: theme.palette.error.dark,
-                      transform: "translateY(-1px)",
                     },
                     transition: "all 0.2s ease-in-out",
                     borderRadius: 30,

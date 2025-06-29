@@ -52,7 +52,8 @@ import {
   Star,
   Person,
 } from "@mui/icons-material";
-import { Eye } from "lucide-react";
+import FriendToggle from "./component/FriendToggle";
+import { Eye, ScrollText, Info } from "lucide-react";
 const UserProfilePage = () => {
   const { userId } = useParams();
   const navigate = useNavigate();
@@ -73,6 +74,40 @@ const UserProfilePage = () => {
 
   // Cover image state
   const [coverImage, setCoverImage] = useState("/assets/bg-home1.jpg");
+
+  const handleToggleFriend = async () => {
+    if (!profile?._id || !currentUser?._id || !token) {
+      toast.error("Error: información de usuario no disponible");
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/users/${profile._id}/toggle-friend`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setIsFriend(!isFriend);
+        console.log("Friend status toggled:", data);
+
+        toast.success(
+          !isFriend
+            ? `Ahora eres amigo de ${profile.name}`
+            : `Ya no eres amigo de ${profile.name}`
+        );
+      } else {
+        throw new Error("Error en la respuesta del servidor");
+      }
+    } catch (error) {
+      console.error("Error toggling friend:", error);
+      toast.error("Error al actualizar el estado de amistad");
+    }
+  };
 
   useEffect(() => {
     if (token && userId) {
@@ -151,26 +186,6 @@ const UserProfilePage = () => {
 
   const handleTabChange = (event, newValue) => {
     setCurrentTab(newValue);
-  };
-
-  const handleToggleFriend = async () => {
-    try {
-      const response = await fetch(`/api/users/${profile._id}/toggle-friend`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setIsFriend(!isFriend);
-        console.log("Friend status toggled:", data);
-      }
-    } catch (error) {
-      console.error("Error toggling friend:", error);
-    }
   };
 
   const handleSendMessage = () => {
@@ -428,13 +443,6 @@ const UserProfilePage = () => {
                     </Typography>
                   </Box>
 
-                  <Box display="flex" alignItems="center" gap={1} mb={1}>
-                    <FmdGoodOutlined fontSize="small" color="primary" />
-                    <Typography variant="body2" color="primary">
-                      {trip.destination}
-                    </Typography>
-                  </Box>
-
                   <Typography
                     variant="body2"
                     color="text.secondary"
@@ -609,12 +617,9 @@ const UserProfilePage = () => {
     );
   };
 
-  // Mock skills for demonstration - you can replace with actual profile skills
-  const skills = ["React", "JavaScript", "Node.js", "MongoDB", "Express"];
-
   return (
     <MainLayout>
-      <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Container maxWidth="95%" sx={{ pb: 10 }}>
         <BreadcrumbBack />
 
         {/* Header Card */}
@@ -629,7 +634,7 @@ const UserProfilePage = () => {
           {/* Gradient Header */}
           <Box
             sx={{
-              height: "200px",
+              height: "400px",
               background: `linear-gradient(135deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.2) 100%), url(${coverImage})`,
               backgroundSize: "cover",
               backgroundPosition: "center",
@@ -640,7 +645,7 @@ const UserProfilePage = () => {
             }}
           />
           {/* Profile Content */}
-          <Box sx={{ px: 3, pb: 3, position: "relative", mt: -5 }}>
+          <Box sx={{ px: 7, pb: 3, position: "relative", mt: -5 }}>
             {/* Profile Picture */}
             <Avatar
               src={
@@ -658,7 +663,7 @@ const UserProfilePage = () => {
               }}
             />
 
-            <Grid container spacing={3} alignItems="flex-start">
+            <Grid container spacing={7} alignItems="flex-start">
               <Grid item xs={12} md={8}>
                 {/* Name and Title */}
                 <Box mb={2}>
@@ -702,68 +707,17 @@ const UserProfilePage = () => {
 
                 {/* Action Buttons for other profiles */}
                 {!isOwnProfile && (
-                  <Box display="flex" gap={2} mb={3}>
-                    <Button
-                      variant={isFriend ? "contained" : "outlined"}
-                      startIcon={isFriend ? <Group /> : <PersonAdd />}
-                      onClick={handleToggleFriend}
-                      sx={{
-                        borderRadius: "12px",
-                        textTransform: "none",
-                        fontWeight: 600,
-                        bgcolor: isFriend ? "success.main" : "transparent",
-                        color: isFriend ? "white" : "primary.main",
-                        borderColor: "primary.main",
-                        "&:hover": {
-                          bgcolor: isFriend ? "success.dark" : "primary.light",
-                          color: isFriend ? "white" : "white",
-                        },
-                      }}
-                    >
-                      {isFriend ? "Amigos" : "Seguir"}
-                    </Button>
-
-                    <Button
-                      variant="outlined"
-                      startIcon={<Message />}
-                      onClick={handleSendMessage}
-                      sx={{
-                        borderRadius: "12px",
-                        textTransform: "none",
-                        fontWeight: 600,
-                      }}
-                    >
-                      Mensaje
-                    </Button>
+                  <Box sx={{ mb: 3 }}>
+                    {/* NEW: Replace the button with FriendToggle component */}
+                    <FriendToggle
+                      profile={profile}
+                      currentUser={currentUser}
+                      token={token}
+                      isFriend={isFriend}
+                      setIsFriend={setIsFriend}
+                    />
                   </Box>
                 )}
-
-                {/* Skills Section */}
-                <Box>
-                  <Box display="flex" alignItems="center" gap={1} mb={2}>
-                    <Star color="primary" />
-                    <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                      Habilidades
-                    </Typography>
-                  </Box>
-                  <Box display="flex" flexWrap="wrap" gap={1}>
-                    {skills.map((skill, index) => (
-                      <Chip
-                        key={index}
-                        label={skill}
-                        variant="outlined"
-                        sx={{
-                          borderRadius: "8px",
-                          fontWeight: 500,
-                          "&:hover": {
-                            backgroundColor: "primary.light",
-                            color: "white",
-                          },
-                        }}
-                      />
-                    ))}
-                  </Box>
-                </Box>
               </Grid>
 
               {/* Stats Section */}
@@ -779,38 +733,23 @@ const UserProfilePage = () => {
                   <Typography
                     variant="h6"
                     sx={{ fontWeight: 600, mb: 2, color: "text.primary" }}
-                  >
-                    Estadísticas
-                  </Typography>
+                  ></Typography>
 
                   <Grid container spacing={2}>
                     <Grid item xs={4}>
-                      <Typography
-                        variant="h4"
-                        sx={{ fontWeight: 700, color: "primary.main" }}
-                      >
+                      <Typography variant="h4" sx={{ fontWeight: 700 }}>
                         {profile.tripsCount || 0}
                       </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        Viajes
-                      </Typography>
+                      <Typography variant="body2">Viajes</Typography>
                     </Grid>
                     <Grid item xs={4}>
-                      <Typography
-                        variant="h4"
-                        sx={{ fontWeight: 700, color: "secondary.main" }}
-                      >
+                      <Typography variant="h4" sx={{ fontWeight: 700 }}>
                         {profile.friends?.length || 0}
                       </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        Amigos
-                      </Typography>
+                      <Typography variant="body2">Amigos</Typography>
                     </Grid>
                     <Grid item xs={4}>
-                      <Typography
-                        variant="h4"
-                        sx={{ fontWeight: 700, color: "success.main" }}
-                      >
+                      <Typography variant="h4" sx={{ fontWeight: 700 }}>
                         {profile.publicationsCount || 0}
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
@@ -853,14 +792,11 @@ const UserProfilePage = () => {
                     justifyContent: "center",
                   }}
                 >
-                  <Comment color="primary" />
+                  <ScrollText color={theme.palette.primary.main} />
                 </Box>
                 <Box>
                   <Typography variant="h6" sx={{ fontWeight: 600 }}>
                     Ver Publicaciones
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Explora las últimas publicaciones
                   </Typography>
                 </Box>
               </Box>
@@ -898,10 +834,7 @@ const UserProfilePage = () => {
                 </Box>
                 <Box>
                   <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                    Explorar Viajes
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Descubre aventuras increíbles
+                    Ver viajes
                   </Typography>
                 </Box>
               </Box>
@@ -929,20 +862,17 @@ const UserProfilePage = () => {
                     width: 48,
                     height: 48,
                     borderRadius: "12px",
-                    backgroundColor: "success.light",
+                    backgroundColor: "primary.light",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                   }}
                 >
-                  <Person color="success" />
+                  <Info color={theme.palette.primary.main} />
                 </Box>
                 <Box>
                   <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                    Más Información
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Conoce mejor a esta persona
+                    Más información
                   </Typography>
                 </Box>
               </Box>

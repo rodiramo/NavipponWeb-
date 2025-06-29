@@ -86,20 +86,6 @@ const loginUser = async (req, res, next) => {
     }
 
     if (await user.comparePassword(password)) {
-      // 🔔 Send security notification for login
-      try {
-        const userAgent = req.headers["user-agent"] || "Unknown device";
-        const ip = req.ip || req.connection.remoteAddress || "Unknown location";
-
-        await createSecurityNotification(user._id, "Inicio de sesión exitoso");
-        console.log("✅ Login security notification sent");
-      } catch (notificationError) {
-        console.error(
-          "❌ Error sending login notification:",
-          notificationError
-        );
-      }
-
       return res.status(201).json({
         _id: user._id,
         avatar: user.avatar,

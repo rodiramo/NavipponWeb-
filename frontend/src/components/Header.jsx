@@ -121,12 +121,24 @@ const Header = () => {
         <div className="flex items-center gap-4 ml-auto">
           {/* Theme Toggle */}
           <Tooltip title={mode === "dark" ? "Modo claro" : "Modo oscuro"}>
-            <IconButton onClick={() => dispatch(toggleMode())}>
-              {mode === "dark" ? (
-                <Sun size={24} color="white" />
-              ) : (
-                <Moon size={24} color="white" />
-              )}
+            <IconButton
+              onClick={() => dispatch(toggleMode())}
+              sx={{
+                background: `${theme.palette.primary.main}20`,
+                color: "white",
+                transition: "all 0.3s ease",
+                "&:hover": {
+                  backgroundColor: theme.palette.primary.main,
+                  color: theme.palette.primary.contrastText,
+                  transform: "rotate(180deg)",
+                  boxShadow: theme.shadows[4],
+                },
+                "&:active": {
+                  transform: "rotate(180deg) scale(0.95)",
+                },
+              }}
+            >
+              {mode === "dark" ? <Sun size={24} /> : <Moon size={24} />}
             </IconButton>
           </Tooltip>
 

@@ -159,10 +159,9 @@ const Comments = () => {
             variant="filled"
             sx={{
               backgroundColor: comment?.check
-                ? theme.palette.success.main
-                : theme.palette.warning.main,
-              color: "white",
-              fontWeight: "bold",
+                ? theme.palette.success.light
+                : theme.palette.warning.light,
+              color: "black",
             }}
           />
         </Box>
@@ -345,6 +344,9 @@ const Comments = () => {
                 deleteDataHandler({ slug: comment?._id, token: jwt })
               }
               sx={{
+                textTransform: "none",
+                borderRadius: 30,
+                gap: 1,
                 color: theme.palette.error.main,
                 borderColor: theme.palette.error.main,
                 "&:hover": {
@@ -615,7 +617,7 @@ const Comments = () => {
                   borderBottom: `1px solid ${theme.palette.neutral.light}`,
                 }}
               >
-                <Stack direction="column" spacing={1} alignItems="center">
+                <Stack direction="column" spacing={1} alignItems="flex-start">
                   <Tooltip
                     title={
                       comment?.check
@@ -656,12 +658,6 @@ const Comments = () => {
                       )}
                     </IconButton>
                   </Tooltip>
-                  <Chip
-                    size="small"
-                    label={comment?.check ? "Aprobado" : "Pendiente"}
-                    color={comment?.check ? "success" : "warning"}
-                    variant="outlined"
-                  />
                 </Stack>
               </td>
 
@@ -683,6 +679,7 @@ const Comments = () => {
                     borderColor: theme.palette.error.main,
                     textTransform: "none",
                     borderRadius: 30,
+                    gap: 1,
                     "&:hover": {
                       backgroundColor: theme.palette.error.lightest,
                       borderColor: theme.palette.error.dark,

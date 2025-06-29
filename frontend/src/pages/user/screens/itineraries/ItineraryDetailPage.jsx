@@ -71,6 +71,7 @@ const ItineraryDetailPage = () => {
   );
 
   // Existing State
+  const [isPrivate, setIsPrivate] = useState(false);
   const [isEditingDates, setIsEditingDates] = useState(false);
   const [friendsList, setFriendsList] = useState([]);
   const [name, setName] = useState("");
@@ -161,48 +162,6 @@ const ItineraryDetailPage = () => {
 
     detectFavoritesAPI();
   }, [user?._id, jwt, allExperiences]);
-
-  const handleUpdateItineraryDates = async (newStartDate) => {
-    if (!hasPermission("edit")) {
-      toast.error("No tienes permisos para cambiar las fechas");
-      return;
-    }
-
-    try {
-      // Update all board dates based on the new start date
-      const updatedBoards = boards.map((board, index) => {
-        const newDate = new Date(newStartDate);
-        newDate.setDate(newDate.getDate() + index);
-
-        return {
-          ...board,
-          date: newDate.toISOString().split("T")[0], // Format as YYYY-MM-DD
-        };
-      });
-
-      setBoards(updatedBoards);
-      setStartDate(newStartDate);
-
-      // Save changes to backend
-      await saveBoardChanges(updatedBoards);
-      await updateItinerary(
-        id,
-        {
-          date: newStartDate.toISOString(),
-          boards: updatedBoards,
-        },
-        jwt
-      );
-
-      toast.success("Fechas del itinerario actualizadas");
-      setIsEditingDates(false);
-    } catch (error) {
-      console.error("Error updating itinerary dates:", error);
-      toast.error("Error al actualizar las fechas");
-      // Revert changes on error
-      fetchItinerary();
-    }
-  };
 
   // NEW: Test different API patterns to find the working one
   const testAPIPatterns = async () => {
@@ -326,7 +285,37 @@ const ItineraryDetailPage = () => {
       }
     }
   };
+  // Add this handler function to your ItineraryDetailPage component
+  const handlePrivacyToggle = async (newPrivateStatus) => {
+    if (userRole !== "owner") {
+      toast.error(
+        "Solo el propietario puede cambiar la privacidad del itinerario"
+      );
+      return;
+    }
 
+    const previousStatus = isPrivate;
+
+    // Update UI immediately for better UX
+    setIsPrivate(newPrivateStatus);
+
+    try {
+      // Save to backend
+      await updateItinerary(id, { isPrivate: newPrivateStatus }, jwt);
+
+      toast.success(
+        newPrivateStatus
+          ? "Itinerario marcado como privado"
+          : "Itinerario marcado como público"
+      );
+    } catch (error) {
+      console.error("Error updating privacy:", error);
+      toast.error("Error al cambiar la privacidad del itinerario");
+
+      // Revert the change if it failed
+      setIsPrivate(previousStatus);
+    }
+  };
   const handleAddExperienceToBoard = async (
     experience,
     targetBoardIndex = null
@@ -684,6 +673,7 @@ const ItineraryDetailPage = () => {
   };
 
   // Enhanced saveBoardChanges that handles local favorites
+  // 1. Enhanced saveBoardChanges function
   const saveBoardChanges = async (boardsToSave) => {
     const cleanBoards = boardsToSave.map((board, index) => {
       const cleanBoard = {
@@ -709,7 +699,7 @@ const ItineraryDetailPage = () => {
         cleanBoard.favorites = board.favorites
           .filter((fav) => fav && fav._id)
           .filter((fav) => !fav._id.toString().startsWith("temp-"))
-          .filter((fav) => !fav._id.toString().startsWith("local-")) // Exclude local favorites
+          .filter((fav) => !fav._id.toString().startsWith("local-"))
           .map((fav) => fav._id);
 
         cleanBoard.dailyBudget = board.favorites.reduce(
@@ -721,14 +711,195 @@ const ItineraryDetailPage = () => {
       return cleanBoard;
     });
 
-    console.log(
-      "Sending clean boards (excluding local favorites):",
-      JSON.stringify(cleanBoards, null, 2)
+    // Calculate the total budget from the clean boards
+    const calculatedTotalBudget = cleanBoards.reduce(
+      (sum, board) => sum + (board.dailyBudget || 0),
+      0
     );
-    await updateItinerary(id, { boards: cleanBoards }, jwt);
+
+    console.log("Sending clean boards:", JSON.stringify(cleanBoards, null, 2));
+    console.log("Calculated total budget:", calculatedTotalBudget);
+
+    // Include totalBudget in the update
+    await updateItinerary(
+      id,
+      {
+        boards: cleanBoards,
+        totalBudget: calculatedTotalBudget,
+      },
+      jwt
+    );
   };
 
-  // 1. Update the fetchItinerary function to properly set userRole:
+  // 2. NEWWWW Enhanced updateTotalBudget function that also saves to DB
+  const updateTotalBudget = async (boardsArray, shouldSave = false) => {
+    if (!Array.isArray(boardsArray)) return;
+
+    const total = boardsArray.reduce(
+      (sum, board) => sum + (board?.dailyBudget || 0),
+      0
+    );
+
+    setTotalBudget(total);
+
+    // Optionally save to database immediately
+    if (shouldSave) {
+      try {
+        await updateItinerary(id, { totalBudget: total }, jwt);
+        console.log("Total budget saved to database:", total);
+      } catch (error) {
+        console.error("Error saving total budget:", error);
+      }
+    }
+
+    return total;
+  };
+
+  // 3. NEW Enhanced handleAddBoard function
+  const handleAddBoard = async () => {
+    if (!hasPermission("edit")) {
+      toast.error("No tienes permisos para añadir días");
+      return;
+    }
+
+    const newBoard = {
+      id: `board-${Date.now()}`,
+      date: new Date(Date.now() + boards.length * 24 * 60 * 60 * 1000)
+        .toISOString()
+        .split("T")[0],
+      favorites: [],
+      dailyBudget: 0,
+    };
+
+    const updatedBoards = [...boards, newBoard];
+    setBoards(updatedBoards);
+    setTravelDays(updatedBoards.length);
+
+    // Calculate total budget
+    const newTotalBudget = await updateTotalBudget(updatedBoards);
+
+    try {
+      await saveBoardChanges(updatedBoards);
+      // Also update travel days - totalBudget is now included in saveBoardChanges
+      await updateItinerary(id, { travelDays: updatedBoards.length }, jwt);
+      toast.success("Nuevo día añadido");
+    } catch (error) {
+      console.error("Error adding new board", error);
+      toast.error("Error al añadir nuevo día");
+      setBoards(boards);
+      setTravelDays(boards.length);
+      updateTotalBudget(boards);
+    }
+  };
+
+  // 4. NEW Enhanced handleRemoveBoard function
+  const handleRemoveBoard = async (index) => {
+    if (!hasPermission("edit")) {
+      toast.error("No tienes permisos para eliminar días");
+      return;
+    }
+
+    const updatedBoards = boards.filter((_, i) => i !== index);
+    setBoards(updatedBoards);
+    setTravelDays(updatedBoards.length);
+
+    // Calculate total budget
+    const newTotalBudget = await updateTotalBudget(updatedBoards);
+
+    try {
+      await saveBoardChanges(updatedBoards);
+      // Also update travel days - totalBudget is now included in saveBoardChanges
+      await updateItinerary(id, { travelDays: updatedBoards.length }, jwt);
+      toast.success("Día eliminado");
+    } catch (error) {
+      console.error("Error removing board", error);
+      toast.error("Error al eliminar día");
+      setBoards(boards);
+      setTravelDays(boards.length);
+      updateTotalBudget(boards);
+    }
+  };
+  // FIXED: NEWWWWWW Enhanced handleUpdateItineraryDates with proper date handling
+  const handleUpdateItineraryDates = async (newStartDate) => {
+    if (!hasPermission("edit")) {
+      toast.error("No tienes permisos para cambiar las fechas");
+      return;
+    }
+
+    try {
+      console.log("🗓️ Original newStartDate:", newStartDate);
+      console.log("🗓️ newStartDate type:", typeof newStartDate);
+      console.log("🗓️ newStartDate ISO:", newStartDate.toISOString());
+
+      // FIXED: Create a clean date object and avoid timezone issues
+      const baseDate = new Date(newStartDate);
+      console.log("🗓️ Base date created:", baseDate);
+
+      // FIXED: Format the start date properly for local timezone
+      const startDateString = formatDateForLocal(baseDate);
+      console.log("🗓️ Start date string:", startDateString);
+
+      // FIXED: Update all board dates based on the new start date
+      const updatedBoards = boards.map((board, index) => {
+        // Create a new date for each board day (don't mutate the original)
+        const boardDate = new Date(baseDate);
+        boardDate.setDate(boardDate.getDate() + index);
+
+        const boardDateString = formatDateForLocal(boardDate);
+
+        console.log(`🗓️ Board ${index + 1} date: ${boardDateString}`);
+
+        return {
+          ...board,
+          date: boardDateString, // Use local formatted date
+        };
+      });
+
+      console.log("🗓️ Updated boards with new dates:", updatedBoards);
+
+      // Update local state first
+      setBoards(updatedBoards);
+      setStartDate(baseDate);
+
+      // Calculate total budget
+      const newTotalBudget = updatedBoards.reduce(
+        (sum, board) => sum + (board?.dailyBudget || 0),
+        0
+      );
+
+      // FIXED: Save to backend with proper date formatting
+      const updatePayload = {
+        date: baseDate.toISOString(), // Keep ISO for backend
+        boards: updatedBoards.map((board) => ({
+          ...board,
+          date: board.date, // This is now properly formatted
+        })),
+        totalBudget: newTotalBudget,
+      };
+
+      console.log("🗓️ Sending update payload:", updatePayload);
+
+      await updateItinerary(id, updatePayload, jwt);
+
+      toast.success("Fechas del itinerario actualizadas");
+      setIsEditingDates(false);
+    } catch (error) {
+      console.error("❌ Error updating itinerary dates:", error);
+      toast.error("Error al actualizar las fechas");
+      // Revert changes on error
+      fetchItinerary();
+    }
+  };
+
+  // NEWWW HELPER: Format date for local timezone (avoids timezone offset issues)
+  const formatDateForLocal = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
+  // NEWWW FIXED: Enhanced fetchItinerary to handle dates properly
   const fetchItinerary = useCallback(async () => {
     if (!user || !user._id) return;
 
@@ -738,25 +909,35 @@ const ItineraryDetailPage = () => {
       setTravelDays(data.travelDays || 0);
       setTotalBudget(data.totalBudget || 0);
 
+      // Add this line to set the privacy status
+      setIsPrivate(data.isPrivate || false);
+
       const boardsWithIds = (data.boards || []).map((board, index) => ({
         ...board,
         id: board.id || board._id || `board-${index}`,
+        date: board.date
+          ? board.date.split("T")[0]
+          : formatDateForLocal(
+              new Date(Date.now() + index * 24 * 60 * 60 * 1000)
+            ),
       }));
-      setBoards(boardsWithIds);
 
+      setBoards(boardsWithIds);
       setTravelers(data.travelers || []);
       setNotes(data.notes || []);
-      setStartDate(data.date ? new Date(data.date) : null);
+
+      const parsedStartDate = data.date
+        ? new Date(data.date + "T00:00:00")
+        : null;
+      setStartDate(parsedStartDate);
+
       setCreator(data.user || null);
 
-      // FIXED: Determine user's role from travelers array
-      let role = "viewer"; // Default role
-
-      // Check if user is the creator/owner
+      // Determine user's role from travelers array
+      let role = "viewer";
       if (String(data.user?._id) === String(user._id)) {
         role = "owner";
       } else {
-        // Check travelers array for user's role
         const traveler = data.travelers?.find(
           (t) => String(t.userId?._id || t.userId) === String(user._id)
         );
@@ -765,13 +946,9 @@ const ItineraryDetailPage = () => {
         }
       }
 
-      setUserRole(role); // SET THE USER ROLE HERE
-
-      // Set editable based on role
+      setUserRole(role);
       const editable = role === "owner" || role === "editor";
       setIsEditable(editable);
-
-      // Set myRole for display purposes
       setMyRole(
         role === "owner"
           ? "Propietario"
@@ -784,6 +961,7 @@ const ItineraryDetailPage = () => {
       toast.error("Error loading itinerary");
     }
   }, [id, jwt, user?._id]);
+
   // Effects
   useEffect(() => {
     if (id && jwt && user?._id) {
@@ -820,7 +998,7 @@ const ItineraryDetailPage = () => {
         removeExperience: false,
         dragDrop: false,
         manageTravelers: false,
-        addNotes: true,
+        addNotes: false,
       },
       editor: {
         view: true,
@@ -933,15 +1111,6 @@ const ItineraryDetailPage = () => {
     } else {
       toast.error("Primero crea al menos un día en tu itinerario");
     }
-  };
-
-  const updateTotalBudget = (boardsArray) => {
-    if (!Array.isArray(boardsArray)) return;
-    const total = boardsArray.reduce(
-      (sum, board) => sum + (board?.dailyBudget || 0),
-      0
-    );
-    setTotalBudget(total);
   };
 
   const handleSaveName = async () => {
@@ -1072,62 +1241,6 @@ const ItineraryDetailPage = () => {
           setActiveData({ favorite, type: "activity", boardIndex, favIndex });
         }
       }
-    }
-  };
-
-  const handleAddBoard = async () => {
-    if (!hasPermission("edit")) {
-      toast.error("No tienes permisos para añadir días");
-      return;
-    }
-
-    const newBoard = {
-      id: `board-${Date.now()}`,
-      date: new Date(Date.now() + boards.length * 24 * 60 * 60 * 1000)
-        .toISOString()
-        .split("T")[0],
-      favorites: [],
-      dailyBudget: 0,
-    };
-
-    const updatedBoards = [...boards, newBoard];
-    setBoards(updatedBoards);
-    setTravelDays(updatedBoards.length);
-    updateTotalBudget(updatedBoards);
-
-    try {
-      await saveBoardChanges(updatedBoards);
-      await updateItinerary(id, { travelDays: updatedBoards.length }, jwt);
-      toast.success("Nuevo día añadido");
-    } catch (error) {
-      console.error("Error adding new board", error);
-      toast.error("Error al añadir nuevo día");
-      setBoards(boards);
-      setTravelDays(boards.length);
-      updateTotalBudget(boards);
-    }
-  };
-
-  const handleRemoveBoard = async (index) => {
-    if (!hasPermission("edit")) {
-      toast.error("No tienes permisos para eliminar días");
-      return;
-    }
-    const updatedBoards = boards.filter((_, i) => i !== index);
-    setBoards(updatedBoards);
-    setTravelDays(updatedBoards.length);
-    updateTotalBudget(updatedBoards);
-
-    try {
-      await saveBoardChanges(updatedBoards);
-      await updateItinerary(id, { travelDays: updatedBoards.length }, jwt);
-      toast.success("Día eliminado");
-    } catch (error) {
-      console.error("Error removing board", error);
-      toast.error("Error al eliminar día");
-      setBoards(boards);
-      setTravelDays(boards.length);
-      updateTotalBudget(boards);
     }
   };
 
@@ -1454,6 +1567,7 @@ const ItineraryDetailPage = () => {
               onEditDates={() => setIsEditingDates(true)}
               canEditDates={hasPermission("edit")}
               onBackClick={() => navigate(-1)}
+              onNotesClick={() => setNotesModalOpen(true)} // Add this if missing
               onAddTraveler={
                 hasPermission("manageTravelers") ? handleAddTraveler : undefined
               }
@@ -1467,6 +1581,11 @@ const ItineraryDetailPage = () => {
                   ? handleRemoveTraveler
                   : undefined
               }
+              userRole={userRole}
+              currentUserId={user?._id}
+              // NEW PROPS FOR PRIVACY
+              isPrivate={isPrivate}
+              onPrivacyToggle={handlePrivacyToggle}
             />
 
             <SortableContext
@@ -1583,15 +1702,17 @@ const ItineraryDetailPage = () => {
         />
       )}
 
-      <NotesModal
-        open={notesModalOpen}
-        onClose={() => setNotesModalOpen(false)}
-        notes={notes}
-        newNote={newNote}
-        setNewNote={hasPermission("addNotes") ? setNewNote : () => {}}
-        onAddNote={hasPermission("addNotes") ? handleAddNote : undefined}
-        readOnly={!hasPermission("addNotes")} // Pass read-only flag
-      />
+      {hasPermission("viewNotes") && (
+        <NotesModal
+          open={notesModalOpen}
+          onClose={() => setNotesModalOpen(false)}
+          notes={notes}
+          newNote={newNote}
+          setNewNote={hasPermission("addNotes") ? setNewNote : () => {}}
+          onAddNote={hasPermission("addNotes") ? handleAddNote : undefined}
+          readOnly={!hasPermission("addNotes")}
+        />
+      )}
     </Box>
   );
 };

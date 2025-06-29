@@ -24,7 +24,7 @@ const PriceInput = ({ price, setPrice }) => {
         decimalsLimit={2}
         decimalSeparator="."
         groupSeparator=","
-        prefix="€ "
+        prefix="¥ "
         onValueChange={(value) => setPrice(value)}
         allowNegativeValue={false}
         style={{

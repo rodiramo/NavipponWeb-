@@ -11,7 +11,22 @@ import {
   Box,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import { FiBell, FiTrash2, FiX } from "react-icons/fi";
+import { FiBell } from "react-icons/fi";
+import {
+  Users,
+  UserPlus,
+  Plane,
+  MapPin,
+  Heart,
+  Share,
+  MessageCircle,
+  MessageSquare,
+  Shield,
+  Lock,
+  Sparkles,
+  Bell,
+  Trash2,
+} from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useTheme } from "@mui/material";
 import useUser from "../hooks/useUser";
@@ -111,26 +126,34 @@ const Notifications = () => {
   const unreadCount = notifications?.filter((n) => !n.read).length || 0;
 
   // 🎨 Get notification icon based on type
-  const getNotificationIcon = (type) => {
+  const getNotificationIcon = (type, color) => {
+    const iconProps = {
+      size: 16,
+      color: color || theme.palette.text.secondary,
+    };
+
     switch (type) {
       case "friend_request":
+        return <UserPlus {...iconProps} />;
       case "friend_added":
-        return "👥";
+        return <Users {...iconProps} />;
       case "itinerary_invite":
+        return <MapPin {...iconProps} />;
       case "itinerary_update":
-        return "✈️";
+        return <Plane {...iconProps} />;
       case "post_like":
+        return <Heart {...iconProps} />;
       case "post_shared":
-        return "❤️";
+        return <Share {...iconProps} />;
       case "comment":
       case "reply":
-        return "💬";
+        return <MessageCircle {...iconProps} />;
       case "account_security":
-        return "🔒";
+        return <Shield {...iconProps} />;
       case "system_welcome":
-        return "🎉";
+        return <Sparkles {...iconProps} />;
       default:
-        return "🔔";
+        return <Bell {...iconProps} />;
     }
   };
 
@@ -177,23 +200,9 @@ const Notifications = () => {
               color: "white",
               fontWeight: "bold",
               fontSize: "0.75rem",
-              minWidth: "20px",
+              minWidth: "30px",
+              top: "-2px",
               height: "20px",
-              animation: unreadCount > 0 ? "pulse 2s infinite" : "none",
-              "@keyframes pulse": {
-                "0%": {
-                  transform: "scale(1)",
-                  opacity: 1,
-                },
-                "50%": {
-                  transform: "scale(1.1)",
-                  opacity: 0.8,
-                },
-                "100%": {
-                  transform: "scale(1)",
-                  opacity: 1,
-                },
-              },
             },
           }}
         >
@@ -218,12 +227,12 @@ const Notifications = () => {
         transformOrigin={{ vertical: "top", horizontal: "right" }}
         PaperProps={{
           sx: {
-            maxWidth: 380,
-            minWidth: 320,
+            width: 360, // Fixed width instead of min/max
             maxHeight: 450,
             borderRadius: "12px",
             boxShadow: "0 8px 32px rgba(0,0,0,0.12)",
             border: `1px solid ${theme.palette.divider}`,
+            overflow: "hidden", // Prevent any overflow
           },
         }}
       >
@@ -233,13 +242,25 @@ const Notifications = () => {
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            px: 3,
+            px: 2,
             py: 2,
             borderBottom: `1px solid ${theme.palette.divider}`,
             backgroundColor: theme.palette.background.default,
+            width: "100%",
+            boxSizing: "border-box",
           }}
         >
-          <Typography variant="h6" sx={{ fontWeight: 600 }}>
+          <Typography
+            variant="h6"
+            sx={{
+              fontWeight: 600,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+              flex: 1,
+              mr: 1,
+            }}
+          >
             Notificaciones
             {unreadCount > 0 && (
               <Typography
@@ -251,7 +272,7 @@ const Notifications = () => {
                   fontWeight: 600,
                 }}
               >
-                ({unreadCount} nuevas)
+                ({unreadCount})
               </Typography>
             )}
           </Typography>
@@ -264,13 +285,15 @@ const Notifications = () => {
                 textTransform: "none",
                 fontSize: "0.75rem",
                 minWidth: "auto",
+                borderRadius: "50px",
                 padding: "4px 8px",
+                flexShrink: 0,
                 "&:hover": {
                   backgroundColor: `${theme.palette.error.main}15`,
                 },
               }}
             >
-              Limpiar todo
+              Limpiar
             </Button>
           )}
         </Box>
@@ -295,7 +318,14 @@ const Notifications = () => {
 
         {/* Notifications List */}
         {!isLoading && !error && notifications && notifications.length > 0 ? (
-          <Box sx={{ maxHeight: 350, overflowY: "auto" }}>
+          <Box
+            sx={{
+              maxHeight: 350,
+              overflowY: "auto",
+              overflowX: "hidden", // Explicitly prevent horizontal scroll
+              width: "100%",
+            }}
+          >
             {notifications.map((notification, index) => (
               <MenuItem
                 key={notification._id}
@@ -303,9 +333,9 @@ const Notifications = () => {
                 sx={{
                   display: "flex",
                   alignItems: "flex-start",
-                  gap: 1.5,
+                  gap: 1,
                   py: 2,
-                  px: 3,
+                  px: 2,
                   backgroundColor: notification.read
                     ? "transparent"
                     : `${getNotificationColor(notification.type)}08`,
@@ -319,21 +349,38 @@ const Notifications = () => {
                     index < notifications.length - 1
                       ? `1px solid ${theme.palette.divider}`
                       : "none",
+                  width: "100%",
+                  boxSizing: "border-box",
+                  overflow: "hidden", // Prevent item overflow
                 }}
               >
                 {/* Notification Icon */}
                 <Box
                   sx={{
-                    fontSize: "1.2rem",
                     flexShrink: 0,
                     mt: 0.5,
+                    width: "20px",
+                    height: "20px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                   }}
                 >
-                  {getNotificationIcon(notification.type)}
+                  {getNotificationIcon(
+                    notification.type,
+                    getNotificationColor(notification.type)
+                  )}
                 </Box>
 
                 {/* Notification Content */}
-                <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+                <Box
+                  sx={{
+                    flexGrow: 1,
+                    minWidth: 0, // Important for text wrapping
+                    overflow: "hidden",
+                    width: "calc(100% - 60px)", // Account for icon and delete button
+                  }}
+                >
                   <Typography
                     variant="body2"
                     sx={{
@@ -342,8 +389,16 @@ const Notifications = () => {
                         ? "text.secondary"
                         : "text.primary",
                       wordBreak: "break-word",
+                      wordWrap: "break-word",
+                      overflowWrap: "break-word",
+                      hyphens: "auto",
                       lineHeight: 1.4,
                       mb: 0.5,
+                      width: "100%",
+                      overflow: "hidden",
+                      display: "-webkit-box",
+                      WebkitLineClamp: 3, // Limit to 3 lines
+                      WebkitBoxOrient: "vertical",
                     }}
                   >
                     {notification.message}
@@ -353,6 +408,10 @@ const Notifications = () => {
                     sx={{
                       color: "text.secondary",
                       display: "block",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                      width: "100%",
                     }}
                   >
                     {new Date(notification.createdAt).toLocaleString("es-ES", {
@@ -379,9 +438,10 @@ const Notifications = () => {
                     flexShrink: 0,
                     width: 28,
                     height: 28,
+                    ml: 0.5,
                   }}
                 >
-                  <FiTrash2 size={12} />
+                  <Trash2 size={12} />
                 </IconButton>
               </MenuItem>
             ))}
@@ -398,17 +458,26 @@ const Notifications = () => {
                 alignItems: "center",
                 flexDirection: "column",
                 gap: 1,
+                textAlign: "center",
               }}
             >
-              <FiBell
+              <Bell
                 size={32}
                 color={theme.palette.primary.main}
-                style={{ opacity: 0.3 }}
+                style={{ opacity: 0.9 }}
               />
               <Typography variant="body2" color="text.secondary">
                 No hay notificaciones
               </Typography>
-              <Typography variant="caption" color="text.secondary">
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{
+                  textAlign: "center",
+                  px: 2,
+                  wordBreak: "break-word",
+                }}
+              >
                 Te notificaremos cuando algo importante suceda
               </Typography>
             </MenuItem>
@@ -433,6 +502,7 @@ const Notifications = () => {
                 "&:hover": {
                   backgroundColor: `${theme.palette.primary.main}10`,
                 },
+                textAlign: "center",
               }}
             >
               Ver todas las notificaciones
