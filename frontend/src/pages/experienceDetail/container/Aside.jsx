@@ -20,6 +20,7 @@ import {
   MapPin,
   Euro,
 } from "lucide-react";
+import ScheduleDisplay from "./ScheduleDisplay";
 import { generalTags, attractionTags, hotelTags, restaurantTags } from "./tags";
 import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
 
@@ -59,6 +60,277 @@ const getGoogleIcon = (category) => {
     scaledSize: new window.google.maps.Size(32, 32),
     anchor: new window.google.maps.Point(16, 32),
   };
+};
+
+// Rich Text Renderer Component
+const RichTextRenderer = ({ content, theme }) => {
+  // Function to apply text marks (bold, italic, etc.)
+  const applyMarks = (text, marks = []) => {
+    if (!marks || marks.length === 0) {
+      return text;
+    }
+
+    let styledText = text;
+    let Component = React.Fragment;
+    let props = {};
+
+    marks.forEach((mark) => {
+      switch (mark.type) {
+        case "bold":
+          const BoldWrapper = ({ children }) => (
+            <Typography component="strong" sx={{ fontWeight: 700 }}>
+              {children}
+            </Typography>
+          );
+          Component = BoldWrapper;
+          break;
+        case "italic":
+          const ItalicWrapper = ({ children }) => (
+            <Typography component="em" sx={{ fontStyle: "italic" }}>
+              {children}
+            </Typography>
+          );
+          Component = ItalicWrapper;
+          break;
+        case "underline":
+          const UnderlineWrapper = ({ children }) => (
+            <Typography component="u" sx={{ textDecoration: "underline" }}>
+              {children}
+            </Typography>
+          );
+          Component = UnderlineWrapper;
+          break;
+        case "code":
+          const CodeWrapper = ({ children }) => (
+            <Typography
+              component="code"
+              sx={{
+                fontFamily: "monospace",
+                backgroundColor: theme.palette.grey[100],
+                padding: "2px 4px",
+                borderRadius: "4px",
+                fontSize: "0.9em",
+              }}
+            >
+              {children}
+            </Typography>
+          );
+          Component = CodeWrapper;
+          break;
+        case "link":
+          const LinkWrapper = ({ children }) => (
+            <Typography
+              component="a"
+              href={mark.attrs?.href || "#"}
+              target={mark.attrs?.target || "_blank"}
+              rel="noopener noreferrer"
+              sx={{
+                color: theme.palette.primary.main,
+                textDecoration: "none",
+                "&:hover": {
+                  textDecoration: "underline",
+                },
+              }}
+            >
+              {children}
+            </Typography>
+          );
+          Component = LinkWrapper;
+          break;
+        default:
+          break;
+      }
+    });
+
+    return <Component {...props}>{styledText}</Component>;
+  };
+
+  // Function to render individual content nodes
+  const renderNode = (node, index) => {
+    if (!node || !node.type) {
+      return null;
+    }
+
+    switch (node.type) {
+      case "doc":
+        return (
+          <Box key={index}>
+            {node.content?.map((child, childIndex) =>
+              renderNode(child, childIndex)
+            )}
+          </Box>
+        );
+
+      case "paragraph":
+        return (
+          <Typography
+            key={index}
+            variant="body1"
+            component="p"
+            sx={{
+              mb: 2,
+              color: theme.palette.text.primary,
+              lineHeight: 1.7,
+              "&:last-child": { mb: 0 },
+            }}
+          >
+            {node.content?.map((child, childIndex) =>
+              renderNode(child, `${index}-${childIndex}`)
+            )}
+          </Typography>
+        );
+
+      case "heading":
+        const level = node.attrs?.level || 1;
+        const headingVariants = {
+          1: "h4",
+          2: "h5",
+          3: "h6",
+          4: "subtitle1",
+          5: "subtitle2",
+          6: "body1",
+        };
+
+        return (
+          <Typography
+            key={index}
+            variant={headingVariants[level] || "h6"}
+            component={`h${Math.min(level, 6)}`}
+            sx={{
+              mb: 2,
+              mt: level <= 2 ? 3 : 2,
+              fontWeight: 600,
+              color: theme.palette.text.primary,
+              "&:first-of-type": { mt: 0 },
+            }}
+          >
+            {node.content?.map((child, childIndex) =>
+              renderNode(child, `${index}-${childIndex}`)
+            )}
+          </Typography>
+        );
+
+      case "bulletList":
+        return (
+          <Box
+            key={index}
+            component="ul"
+            sx={{
+              mb: 2,
+              pl: 3,
+              "& li": {
+                mb: 0.5,
+                color: theme.palette.text.primary,
+              },
+            }}
+          >
+            {node.content?.map((child, childIndex) =>
+              renderNode(child, `${index}-${childIndex}`)
+            )}
+          </Box>
+        );
+
+      case "orderedList":
+        return (
+          <Box
+            key={index}
+            component="ol"
+            sx={{
+              mb: 2,
+              pl: 3,
+              "& li": {
+                mb: 0.5,
+                color: theme.palette.text.primary,
+              },
+            }}
+          >
+            {node.content?.map((child, childIndex) =>
+              renderNode(child, `${index}-${childIndex}`)
+            )}
+          </Box>
+        );
+
+      case "listItem":
+        return (
+          <Box key={index} component="li">
+            {node.content?.map((child, childIndex) =>
+              renderNode(child, `${index}-${childIndex}`)
+            )}
+          </Box>
+        );
+
+      case "blockquote":
+        return (
+          <Box
+            key={index}
+            component="blockquote"
+            sx={{
+              mb: 2,
+              pl: 3,
+              borderLeft: `4px solid ${theme.palette.primary.main}`,
+              backgroundColor: `${theme.palette.primary.main}08`,
+              py: 2,
+              pr: 2,
+              fontStyle: "italic",
+              borderRadius: "0 4px 4px 0",
+            }}
+          >
+            {node.content?.map((child, childIndex) =>
+              renderNode(child, `${index}-${childIndex}`)
+            )}
+          </Box>
+        );
+
+      case "hardBreak":
+        return <br key={index} />;
+
+      case "text":
+        return (
+          <React.Fragment key={index}>
+            {applyMarks(node.text || "", node.marks)}
+          </React.Fragment>
+        );
+
+      default:
+        // Handle unknown node types gracefully
+        if (node.content && Array.isArray(node.content)) {
+          return (
+            <Box key={index}>
+              {node.content.map((child, childIndex) =>
+                renderNode(child, `${index}-${childIndex}`)
+              )}
+            </Box>
+          );
+        }
+
+        if (node.text) {
+          return (
+            <Typography key={index} component="span">
+              {node.text}
+            </Typography>
+          );
+        }
+
+        return null;
+    }
+  };
+
+  // Main render function
+  if (!content) {
+    return null;
+  }
+
+  if (Array.isArray(content)) {
+    return <Box>{content.map((node, index) => renderNode(node, index))}</Box>;
+  }
+
+  if (content.content && Array.isArray(content.content)) {
+    return (
+      <Box>{content.content.map((node, index) => renderNode(node, index))}</Box>
+    );
+  }
+
+  return renderNode(content, 0);
 };
 
 const Aside = ({ info }) => {
@@ -191,27 +463,34 @@ const Aside = ({ info }) => {
           }}
         >
           <CardContent sx={{ p: 4 }}>
+            {/* Render body content with rich text renderer */}
             <Box sx={{ mb: 4 }}>
-              {info.body?.content?.map((block, index) => (
+              {info.body ? (
+                <RichTextRenderer content={info.body} theme={theme} />
+              ) : info.caption ? (
                 <Typography
-                  key={index}
                   variant="body1"
                   sx={{
-                    mb: 2,
+                    color: theme.palette.text.primary,
+                    lineHeight: 1.7,
+                  }}
+                >
+                  {info.caption}
+                </Typography>
+              ) : (
+                <Typography
+                  variant="body1"
+                  sx={{
                     color: theme.palette.text.secondary,
                     lineHeight: 1.7,
                   }}
                 >
-                  {block.content?.map((textObj) => textObj.text).join(" ")}
+                  No hay descripción disponible.
                 </Typography>
-              ))}
-            </Box>
-            <Box sx={{ mb: 4 }}>
-              <Typography> {info.body || info.caption}</Typography>
+              )}
             </Box>
 
             {/* Season and Price Info */}
-
             <Box
               sx={{ display: "flex", alignItems: "center", gap: 1, flex: 1 }}
             >
@@ -512,11 +791,9 @@ const Aside = ({ info }) => {
               {info.address && (
                 <ContactItem icon={<Map size={18} />} text={info.address} />
               )}
-
               {info.phone && (
                 <ContactItem icon={<Phone size={18} />} text={info.phone} />
               )}
-
               {info.email && (
                 <ContactItem
                   icon={<Mail size={18} />}
@@ -525,7 +802,6 @@ const Aside = ({ info }) => {
                   href={`mailto:${info.email}`}
                 />
               )}
-
               {info.website && (
                 <ContactItem
                   icon={<Globe size={18} />}
@@ -533,6 +809,9 @@ const Aside = ({ info }) => {
                   isLink={true}
                   href={info.website}
                 />
+              )}{" "}
+              {info.schedule && (
+                <ScheduleDisplay schedule={info.schedule} theme={theme} />
               )}
             </Box>
           </CardContent>

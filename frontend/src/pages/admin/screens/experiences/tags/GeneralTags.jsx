@@ -99,19 +99,12 @@ const GeneralTags = ({
 }) => {
   const theme = useTheme();
 
-  // Debug: Log the props being received
   useEffect(() => {
-    console.log("🔍 GeneralTags Debug Info:");
-    console.log("selectedGeneralTags:", selectedGeneralTags);
-    console.log("initialData:", initialData);
-
     // If we have initial data but selectedGeneralTags is empty, populate it
     if (
       initialData &&
       (!selectedGeneralTags || Object.keys(selectedGeneralTags).length === 0)
     ) {
-      console.log("🔄 Populating selectedGeneralTags from initialData");
-
       const mappedTags = {};
 
       // Handle the specific database format where tags are stored as arrays
@@ -287,42 +280,8 @@ const GeneralTags = ({
               );
             })}
           </Box>
-
-          {/* Debug info - remove in production */}
-          {process.env.NODE_ENV === "development" && (
-            <Typography
-              variant="caption"
-              sx={{
-                color: theme.palette.text.secondary,
-                mt: 0.5,
-                display: "block",
-                fontFamily: "monospace",
-              }}
-            >
-              Debug: {tagType} = "{safeTags[tagType] || "none"}"
-            </Typography>
-          )}
         </Box>
       ))}
-
-      {/* Usage example for saving back to database */}
-      {process.env.NODE_ENV === "development" && (
-        <Box sx={{ mt: 2, p: 2, backgroundColor: "#f5f5f5", borderRadius: 1 }}>
-          <Typography
-            variant="caption"
-            sx={{ fontFamily: "monospace", display: "block" }}
-          >
-            💡 To save back to database, use:
-            convertTagsToDbFormat(selectedGeneralTags)
-          </Typography>
-          <Typography
-            variant="caption"
-            sx={{ fontFamily: "monospace", display: "block", mt: 1 }}
-          >
-            Result: {JSON.stringify(convertTagsToDbFormat(safeTags), null, 2)}
-          </Typography>
-        </Box>
-      )}
     </Box>
   );
 };

@@ -40,7 +40,445 @@ import ErrorMessage from "../../components/ErrorMessage";
 import ArticleDetailSkeleton from "./components/ArticleDetailSkeleton";
 import BreadcrumbBack from "../../components/BreadcrumbBack";
 import useUser from "../../hooks/useUser";
-import Editor from "../../components/editor/Editor";
+
+// Rich Text Renderer Component
+const RichTextRenderer = ({ content, theme }) => {
+  // Function to apply text marks (bold, italic, etc.)
+  const applyMarks = (text, marks = []) => {
+    if (!marks || marks.length === 0) {
+      return text;
+    }
+
+    let styledText = text;
+    let Component = React.Fragment;
+    let props = {};
+
+    marks.forEach((mark) => {
+      switch (mark.type) {
+        case "bold":
+          const BoldWrapper = ({ children }) => (
+            <Typography component="strong" sx={{ fontWeight: 700 }}>
+              {children}
+            </Typography>
+          );
+          Component = BoldWrapper;
+          break;
+        case "italic":
+          const ItalicWrapper = ({ children }) => (
+            <Typography component="em" sx={{ fontStyle: "italic" }}>
+              {children}
+            </Typography>
+          );
+          Component = ItalicWrapper;
+          break;
+        case "underline":
+          const UnderlineWrapper = ({ children }) => (
+            <Typography component="u" sx={{ textDecoration: "underline" }}>
+              {children}
+            </Typography>
+          );
+          Component = UnderlineWrapper;
+          break;
+        case "code":
+          const CodeWrapper = ({ children }) => (
+            <Typography
+              component="code"
+              sx={{
+                fontFamily: "monospace",
+                backgroundColor: theme.palette.grey[100],
+                padding: "2px 4px",
+                borderRadius: "4px",
+                fontSize: "0.9em",
+              }}
+            >
+              {children}
+            </Typography>
+          );
+          Component = CodeWrapper;
+          break;
+        case "link":
+          const LinkWrapper = ({ children }) => (
+            <Typography
+              component="a"
+              href={mark.attrs?.href || "#"}
+              target={mark.attrs?.target || "_blank"}
+              rel="noopener noreferrer"
+              sx={{
+                color: theme.palette.primary.main,
+                textDecoration: "none",
+                "&:hover": {
+                  textDecoration: "underline",
+                },
+              }}
+            >
+              {children}
+            </Typography>
+          );
+          Component = LinkWrapper;
+          break;
+        default:
+          break;
+      }
+    });
+
+    return <Component {...props}>{styledText}</Component>;
+  };
+
+  // Function to render individual content nodes
+  const renderNode = (node, index) => {
+    if (!node || !node.type) {
+      return null;
+    }
+
+    switch (node.type) {
+      case "doc":
+        return (
+          <Box key={index}>
+            {node.content?.map((child, childIndex) =>
+              renderNode(child, childIndex)
+            )}
+          </Box>
+        );
+
+      case "paragraph":
+        return (
+          <Typography
+            key={index}
+            variant="body1"
+            component="p"
+            sx={{
+              mb: 2.5,
+              color: theme.palette.text.primary,
+              lineHeight: 1.8,
+              fontSize: { xs: "1rem", sm: "1.1rem" },
+              "&:last-child": { mb: 0 },
+              "&:first-of-type": {
+                "&::first-letter": {
+                  fontSize: { xs: "3rem", sm: "4rem" },
+                  fontWeight: 700,
+                  lineHeight: 1,
+                  float: "left",
+                  marginRight: "8px",
+                  marginTop: "4px",
+                  color: theme.palette.primary.main,
+                },
+              },
+            }}
+          >
+            {node.content?.map((child, childIndex) =>
+              renderNode(child, `${index}-${childIndex}`)
+            )}
+          </Typography>
+        );
+
+      case "heading":
+        const level = node.attrs?.level || 1;
+        const headingVariants = {
+          1: "h3",
+          2: "h4",
+          3: "h5",
+          4: "h6",
+          5: "subtitle1",
+          6: "subtitle2",
+        };
+
+        return (
+          <Typography
+            key={index}
+            variant={headingVariants[level] || "h6"}
+            component={`h${Math.min(level + 2, 6)}`}
+            sx={{
+              mb: 2.5,
+              mt: level <= 2 ? 4 : 3,
+              fontWeight: 700,
+              color: theme.palette.primary.main,
+              "&:first-of-type": { mt: 0 },
+            }}
+          >
+            {node.content?.map((child, childIndex) =>
+              renderNode(child, `${index}-${childIndex}`)
+            )}
+          </Typography>
+        );
+
+      case "bulletList":
+        return (
+          <Box
+            key={index}
+            component="ul"
+            sx={{
+              mb: 3,
+              pl: 4,
+              "& li": {
+                mb: 1,
+                color: theme.palette.text.primary,
+                lineHeight: 1.7,
+              },
+            }}
+          >
+            {node.content?.map((child, childIndex) =>
+              renderNode(child, `${index}-${childIndex}`)
+            )}
+          </Box>
+        );
+
+      case "orderedList":
+        return (
+          <Box
+            key={index}
+            component="ol"
+            sx={{
+              mb: 3,
+              pl: 4,
+              "& li": {
+                mb: 1,
+                color: theme.palette.text.primary,
+                lineHeight: 1.7,
+              },
+            }}
+          >
+            {node.content?.map((child, childIndex) =>
+              renderNode(child, `${index}-${childIndex}`)
+            )}
+          </Box>
+        );
+
+      case "listItem":
+        return (
+          <Box key={index} component="li">
+            {node.content?.map((child, childIndex) =>
+              renderNode(child, `${index}-${childIndex}`)
+            )}
+          </Box>
+        );
+
+      case "blockquote":
+        return (
+          <Box
+            key={index}
+            component="blockquote"
+            sx={{
+              mb: 3,
+              pl: 4,
+              pr: 3,
+              py: 3,
+              borderLeft: `4px solid ${theme.palette.primary.main}`,
+              backgroundColor: `${theme.palette.primary.main}08`,
+              fontStyle: "italic",
+              borderRadius: "0 8px 8px 0",
+              fontSize: { xs: "1.1rem", sm: "1.2rem" },
+              lineHeight: 1.6,
+            }}
+          >
+            {node.content?.map((child, childIndex) =>
+              renderNode(child, `${index}-${childIndex}`)
+            )}
+          </Box>
+        );
+
+      case "codeBlock":
+        return (
+          <Box
+            key={index}
+            component="pre"
+            sx={{
+              mb: 3,
+              p: 3,
+              backgroundColor: theme.palette.grey[100],
+              borderRadius: 2,
+              overflow: "auto",
+              fontFamily: "monospace",
+              fontSize: "0.9em",
+              border: `1px solid ${theme.palette.grey[300]}`,
+              lineHeight: 1.5,
+            }}
+          >
+            <code>
+              {node.content?.map((child, childIndex) =>
+                renderNode(child, `${index}-${childIndex}`)
+              )}
+            </code>
+          </Box>
+        );
+
+      case "horizontalRule":
+        return (
+          <Divider
+            key={index}
+            sx={{
+              my: 4,
+              borderColor: theme.palette.grey[300],
+            }}
+          />
+        );
+
+      case "hardBreak":
+        return <br key={index} />;
+
+      case "text":
+        return (
+          <React.Fragment key={index}>
+            {applyMarks(node.text || "", node.marks)}
+          </React.Fragment>
+        );
+
+      case "image":
+        return (
+          <Box
+            key={index}
+            sx={{
+              mb: 4,
+              textAlign: node.attrs?.align || "center",
+            }}
+          >
+            <Box
+              component="img"
+              src={node.attrs?.src}
+              alt={node.attrs?.alt || ""}
+              title={node.attrs?.title}
+              sx={{
+                maxWidth: "100%",
+                height: "auto",
+                borderRadius: 2,
+                boxShadow: theme.shadows[3],
+              }}
+            />
+            {node.attrs?.title && (
+              <Typography
+                variant="caption"
+                sx={{
+                  display: "block",
+                  mt: 2,
+                  color: theme.palette.text.secondary,
+                  fontStyle: "italic",
+                  textAlign: "center",
+                }}
+              >
+                {node.attrs.title}
+              </Typography>
+            )}
+          </Box>
+        );
+
+      default:
+        // Handle unknown node types gracefully
+        if (node.content && Array.isArray(node.content)) {
+          return (
+            <Box key={index}>
+              {node.content.map((child, childIndex) =>
+                renderNode(child, `${index}-${childIndex}`)
+              )}
+            </Box>
+          );
+        }
+
+        if (node.text) {
+          return (
+            <Typography key={index} component="span">
+              {node.text}
+            </Typography>
+          );
+        }
+
+        return null;
+    }
+  };
+
+  // Main render function
+  if (!content) {
+    return (
+      <Typography
+        variant="body1"
+        sx={{
+          color: theme.palette.text.secondary,
+          fontStyle: "italic",
+          textAlign: "center",
+          py: 4,
+        }}
+      >
+        No hay contenido disponible.
+      </Typography>
+    );
+  }
+
+  // Handle string content (HTML or plain text)
+  if (typeof content === "string") {
+    // If it looks like HTML, render it safely
+    if (content.includes("<") && content.includes(">")) {
+      return (
+        <Typography
+          variant="body1"
+          component="div"
+          sx={{
+            lineHeight: 1.8,
+            fontSize: { xs: "1rem", sm: "1.1rem" },
+            color: theme.palette.text.primary,
+            "& p": { mb: 2 },
+            "& h1, & h2, & h3, & h4, & h5, & h6": {
+              color: theme.palette.primary.main,
+              fontWeight: 700,
+              mt: 3,
+              mb: 2,
+            },
+            "& ul, & ol": { pl: 3, mb: 2 },
+            "& blockquote": {
+              pl: 3,
+              borderLeft: `4px solid ${theme.palette.primary.main}`,
+              backgroundColor: `${theme.palette.primary.main}08`,
+              py: 2,
+              pr: 2,
+              fontStyle: "italic",
+              borderRadius: "0 4px 4px 0",
+            },
+            "& code": {
+              backgroundColor: theme.palette.grey[100],
+              padding: "2px 4px",
+              borderRadius: "4px",
+              fontSize: "0.9em",
+              fontFamily: "monospace",
+            },
+            "& pre": {
+              backgroundColor: theme.palette.grey[100],
+              padding: 2,
+              borderRadius: 1,
+              overflow: "auto",
+              fontSize: "0.9em",
+            },
+          }}
+          dangerouslySetInnerHTML={{ __html: content }}
+        />
+      );
+    } else {
+      // Plain text
+      return (
+        <Typography
+          variant="body1"
+          sx={{
+            lineHeight: 1.8,
+            fontSize: { xs: "1rem", sm: "1.1rem" },
+            color: theme.palette.text.primary,
+            whiteSpace: "pre-wrap",
+          }}
+        >
+          {content}
+        </Typography>
+      );
+    }
+  }
+
+  // Handle structured content
+  if (Array.isArray(content)) {
+    return <Box>{content.map((node, index) => renderNode(node, index))}</Box>;
+  }
+
+  if (content.content && Array.isArray(content.content)) {
+    return (
+      <Box>{content.content.map((node, index) => renderNode(node, index))}</Box>
+    );
+  }
+
+  return renderNode(content, 0);
+};
 
 const ArticleDetailPage = (token) => {
   const { slug } = useParams();
@@ -63,18 +501,33 @@ const ArticleDetailPage = (token) => {
     queryKey: ["blog", slug],
     onSuccess: (data) => {
       try {
-        if (data?.body && typeof data.body === "string") {
-          setBody(JSON.parse(data.body));
+        // Handle different body formats
+        if (data?.body) {
+          if (typeof data.body === "string") {
+            try {
+              // Try to parse as JSON first
+              const parsedBody = JSON.parse(data.body);
+              setBody(parsedBody);
+            } catch (parseError) {
+              // If JSON parsing fails, treat as HTML/plain text
+              setBody(data.body);
+            }
+          } else {
+            // Body is already an object
+            setBody(data.body);
+          }
         } else {
-          setBody(data?.body || "<p>Contenido no disponible.</p>");
+          setBody(null);
         }
+
         console.log("✅ Post Data:", data);
+        console.log("✅ Body:", data?.body);
         console.log("✅ Tags:", data?.tags);
 
         setTags(data?.tags || []);
       } catch (error) {
-        console.error("❌ Error parsing post body:", error.message);
-        setBody("<p>Contenido no disponible.</p>");
+        console.error("❌ Error processing post body:", error.message);
+        setBody(null);
       }
     },
   });
@@ -342,9 +795,6 @@ const ArticleDetailPage = (token) => {
           </Stack>
         )}
       </Paper>
-
-      {/* Suggested Posts */}
-      {/* Removed from here - moved to bottom of main content */}
     </>
   );
 
@@ -455,7 +905,7 @@ const ArticleDetailPage = (token) => {
                       display: "flex",
                       flexDirection: "column",
                       gap: 1,
-                      opacity: { xs: 1, md: 0.8 }, // Always visible on mobile, subtle on desktop
+                      opacity: { xs: 1, md: 0.8 },
                       transition: "opacity 0.3s ease-in-out",
                     }}
                   >
@@ -525,7 +975,7 @@ const ArticleDetailPage = (token) => {
                   </Box>
                 )}
 
-                {/* Post Content */}
+                {/* Post Content - Using Rich Text Renderer */}
                 <Box
                   sx={{
                     mb: 4,
@@ -536,7 +986,10 @@ const ArticleDetailPage = (token) => {
                   }}
                 >
                   {!isLoading && !isError && (
-                    <Editor content={data?.body} editable={false} />
+                    <RichTextRenderer
+                      content={body || data?.body}
+                      theme={theme}
+                    />
                   )}
                 </Box>
 

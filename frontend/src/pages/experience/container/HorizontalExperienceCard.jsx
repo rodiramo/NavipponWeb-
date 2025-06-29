@@ -15,7 +15,7 @@ import {
   checkExperienceInItinerary,
 } from "../../../services/index/itinerary";
 import { images, stables } from "../../../constants";
-import { Eye, Plus, BookOpen, Check } from "lucide-react";
+import { Eye, Plus, BookOpen, Check, Image as ImageIcon } from "lucide-react";
 import {
   IconButton,
   useTheme,
@@ -40,6 +40,69 @@ import {
   People,
 } from "@mui/icons-material";
 
+// Sample Image Indicator Component for Cards
+const CardImageWithSampleIndicator = ({
+  src,
+  alt,
+  isSample = false,
+  category = "",
+  style = {},
+  theme,
+  sx = {},
+}) => {
+  // Corner indicator for cards (subtle and clean)
+  const CornerIndicator = () => (
+    <Box
+      sx={{
+        position: "absolute",
+        top: 8,
+        right: 8,
+        zIndex: 3, // Higher z-index to appear above category badge
+      }}
+    ></Box>
+  );
+
+  // If not a sample image, render normally
+  if (!isSample) {
+    return (
+      <Box
+        component="img"
+        src={src}
+        alt={alt}
+        sx={{
+          width: "100%",
+          height: "100%",
+          borderRadius: "24px",
+          objectFit: "cover",
+          transition: "transform 0.4s ease",
+          ...sx,
+        }}
+      />
+    );
+  }
+
+  // For sample images, add the indicator
+  return (
+    <Box sx={{ position: "relative", width: "100%", height: "100%" }}>
+      <Box
+        component="img"
+        src={src}
+        alt={alt}
+        sx={{
+          width: "100%",
+          height: "100%",
+          borderRadius: "24px",
+          objectFit: "cover",
+          transition: "transform 0.4s ease",
+          filter: "brightness(0.96)", // Slightly dim sample images
+          ...sx,
+        }}
+      />
+      <CornerIndicator />
+    </Box>
+  );
+};
+
 const HorizontalExperienceCard = ({
   experience,
   user,
@@ -57,6 +120,19 @@ const HorizontalExperienceCard = ({
     new Map()
   ); // Map of itineraryId -> boards[]
   const theme = useTheme();
+
+  // Helper function to check if image is a sample/default image
+  const isDefaultImage = (photoUrl) => {
+    return photoUrl && photoUrl.startsWith("https://images.unsplash.com");
+  };
+
+  // Get the full image URL
+  const getImageUrl = () => {
+    if (!experience?.photo) return images.sampleExperienceImage;
+    return experience.photo.startsWith("http")
+      ? experience.photo
+      : stables.UPLOAD_FOLDER_BASE_URL + experience.photo;
+  };
 
   useEffect(() => {
     const fetchFavoritesCount = async () => {
@@ -276,7 +352,7 @@ const HorizontalExperienceCard = ({
         },
       }}
     >
-      {/* Image Section */}
+      {/* Enhanced Image Section with Sample Indicator */}
       <Box
         sx={{
           position: "relative",
@@ -289,27 +365,16 @@ const HorizontalExperienceCard = ({
           overflow: "hidden",
         }}
       >
-        {/* Main Image */}
-        <Box
-          component="img"
-          src={
-            experience?.photo
-              ? experience.photo.startsWith("http")
-                ? experience.photo
-                : stables.UPLOAD_FOLDER_BASE_URL + experience.photo
-              : images.sampleExperienceImage
-          }
+        {/* Enhanced Image with Sample Indicator */}
+        <CardImageWithSampleIndicator
+          src={getImageUrl()}
           alt={experience.title}
-          sx={{
-            width: "100%",
-            height: "100%",
-            borderRadius: "24px",
-            objectFit: "cover",
-            transition: "transform 0.4s ease",
-          }}
+          isSample={isDefaultImage(experience?.photo)}
+          category={experience.categories}
+          theme={theme}
         />
 
-        {/* Category Badge */}
+        {/* Category Badge - positioned to not conflict with sample indicator */}
         <Chip
           label={experience.categories}
           sx={{
@@ -321,14 +386,48 @@ const HorizontalExperienceCard = ({
             fontSize: "0.75rem",
             fontWeight: 600,
             height: "28px",
+            zIndex: 2, // Ensure it's below the sample indicator
             "& .MuiChip-label": {
               paddingX: 1.5,
             },
           }}
         />
+
+        {/* Optional: Additional info for sample images */}
+        {isDefaultImage(experience?.photo) && (
+          <Box
+            sx={{
+              position: "absolute",
+              bottom: 12,
+              left: 12,
+              width: "fit-content",
+              right: 12,
+              background: theme.palette.secondary.light,
+              backdropFilter: "blur(4px)",
+              borderRadius: "30px",
+              padding: "4px 8px",
+              display: "flex",
+              alignItems: "center",
+              gap: 0.5,
+              border: `1px solid ${theme.palette.secondary.dark}30`,
+            }}
+          >
+            <ImageIcon size={12} color={theme.palette.secondary.dark} />
+            <Typography
+              variant="caption"
+              sx={{
+                color: theme.palette.secondary.dark,
+                fontWeight: 500,
+                fontSize: "0.7rem",
+              }}
+            >
+              Imagen de muestra
+            </Typography>
+          </Box>
+        )}
       </Box>
 
-      {/* Content Section */}
+      {/* Content Section - Unchanged */}
       <CardContent
         sx={{
           flex: 1,
@@ -372,8 +471,6 @@ const HorizontalExperienceCard = ({
 
         {/* Header Content */}
         <Box sx={{ paddingRight: 6 }}>
-          {" "}
-          {/* Add padding to avoid overlap with favorite button */}
           {/* Title */}
           <Typography
             variant="h5"
@@ -479,7 +576,7 @@ const HorizontalExperienceCard = ({
 
         <Divider sx={{ marginY: 2, opacity: 0.5 }} />
 
-        {/* Action Section */}
+        {/* Action Section - Unchanged */}
         <Box
           sx={{
             display: "flex",
@@ -598,7 +695,7 @@ const HorizontalExperienceCard = ({
           </Box>
         </Box>
 
-        {/* Itinerary Menu */}
+        {/* Itinerary Menu - Unchanged */}
         <Menu
           anchorEl={anchorEl}
           open={Boolean(anchorEl)}

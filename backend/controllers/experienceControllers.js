@@ -42,6 +42,8 @@ const createExperience = async (req, res, next) => {
       map, // no longer used, can be ignored if not needed
       address,
       location, // This should be a JSON string now
+      defaultImageUrl, // For default images
+      useDefaultImage, // Flag to indicate using default image
     } = req.body;
 
     try {
@@ -67,10 +69,21 @@ const createExperience = async (req, res, next) => {
       }
     }
 
-    // Handle Image Upload
-    let photo = "default-placeholder.jpg";
+    // Handle Image Upload - Enhanced to support default images
+    let photo = null;
+
     if (req.file) {
+      // User uploaded a custom image
       photo = req.file.filename;
+      console.log("✅ Using uploaded image:", photo);
+    } else if (useDefaultImage === "true" && defaultImageUrl) {
+      // User chose to use default image
+      photo = defaultImageUrl;
+      console.log("✅ Using default image URL:", photo);
+    } else {
+      // Fallback to a placeholder
+      photo = "default-placeholder.jpg";
+      console.log("⚠️ Using fallback placeholder image");
     }
 
     const newExperience = new Experience({
@@ -99,6 +112,7 @@ const createExperience = async (req, res, next) => {
     });
 
     const createdExperience = await newExperience.save();
+    console.log("✅ Experience created successfully:", createdExperience._id);
     return res.status(201).json(createdExperience);
   } catch (error) {
     console.error("❌ Error in createExperience:", error);
@@ -166,7 +180,24 @@ const updateExperience = async (req, res, next) => {
         experience.map = parsedData.map || experience.map;
         experience.address = parsedData.address || experience.address;
 
+        // Handle default image for updates
+        if (parsedData.useDefaultImage === true && parsedData.defaultImageUrl) {
+          console.log(
+            "✅ Updating to use default image:",
+            parsedData.defaultImageUrl
+          );
+          // Remove old uploaded file if it exists and is not a URL
+          if (experience.photo && !experience.photo.startsWith("http")) {
+            fileRemover(experience.photo);
+          }
+          experience.photo = parsedData.defaultImageUrl;
+        }
+
         const updatedExperience = await experience.save();
+        console.log(
+          "✅ Experience updated successfully:",
+          updatedExperience._id
+        );
         return res.json(updatedExperience);
       } catch (error) {
         console.error("❌ JSON Parsing Error:", error.message);
@@ -183,10 +214,13 @@ const updateExperience = async (req, res, next) => {
         );
       } else {
         if (req.file) {
+          // User uploaded a new custom image
+          console.log("✅ New file uploaded:", req.file.filename);
           fileRemover(experience.photo);
           experience.photo = req.file.filename;
           handleUpdateExperienceData(req.body.document);
         } else {
+          // No new file uploaded, just update other data
           handleUpdateExperienceData(req.body.document);
         }
       }
@@ -410,6 +444,7 @@ const getTopExperiences = async (req, res) => {
       .json({ error: "Error al obtener las experiencias más populares" });
   }
 };
+
 export const getAllExperiencesForModal = async (req, res, next) => {
   try {
     const { searchKeyword, category, region } = req.query;

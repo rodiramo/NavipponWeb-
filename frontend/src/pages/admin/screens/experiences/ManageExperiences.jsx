@@ -21,6 +21,8 @@ import {
   Map,
   TrendingUp,
   Activity,
+  Plus,
+  PlusCircle,
 } from "lucide-react";
 import useUser from "../../../../hooks/useUser";
 import {
@@ -41,6 +43,7 @@ import {
   Paper,
   Divider,
   LinearProgress,
+  Fab,
 } from "@mui/material";
 
 const ManageExperiences = () => {
@@ -200,6 +203,8 @@ const ManageExperiences = () => {
       totalExperiences: experiencesToAnalyze.length,
     };
   }, [allExperiencesData, allExperiencesError, updatedExperiences]);
+
+  // Header with Create Button Component
 
   // Overview Statistics Component
   const OverviewSection = () => {
@@ -403,25 +408,13 @@ const ManageExperiences = () => {
 
     return (
       <Box sx={{ mb: 4 }}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3 }}>
-          <BarChart3 size={28} color={theme.palette.primary.main} />
-          <Box>
-            <Typography variant="h5" fontWeight="700" color="text.primary">
-              Resumen de Experiencias
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Distribución por categorías, ubicaciones y etiquetas
-            </Typography>
-          </Box>
-        </Box>
-
         <Grid container spacing={3}>
           {/* Total Experiences Summary */}
           <Grid item xs={12}>
             <Paper
               elevation={0}
               sx={{
-                p: 3,
+                p: 1,
                 borderRadius: "16px",
               }}
             >
@@ -470,10 +463,6 @@ const ManageExperiences = () => {
                       </Typography>
                     </>
                   )}
-                </Box>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <Activity size={32} color={theme.palette.primary.main} />
-                  <TrendingUp size={24} color={theme.palette.success.main} />
                 </Box>
               </Box>
             </Paper>
@@ -662,7 +651,7 @@ const ManageExperiences = () => {
             alignItems: "center",
           }}
         >
-          {/* Edit Button */}{" "}
+          {/* View Button */}
           <Button
             startIcon={<Eye size={16} />}
             component={Link}
@@ -682,6 +671,7 @@ const ManageExperiences = () => {
           >
             Ver detalles
           </Button>
+          {/* Edit Button */}
           <Button
             startIcon={<Edit size={16} />}
             component={Link}
@@ -731,17 +721,71 @@ const ManageExperiences = () => {
       sx={{
         minHeight: "100vh",
         p: { xs: 2, md: 3 },
+        position: "relative",
       }}
     >
+      {/* Header with Create Button */}
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: isMobile ? "column" : "row",
+          justifyContent: "space-between",
+          alignItems: isMobile ? "stretch" : "center",
+          gap: 2,
+          mb: 3,
+          p: 1,
+        }}
+      >
+        <Box>
+          <Typography
+            variant="h4"
+            fontWeight="700"
+            color="primary.main"
+            sx={{ mb: 1 }}
+          >
+            Administrar Experiencias
+          </Typography>
+          <Typography variant="body1" color="text.secondary">
+            Gestiona todas las experiencias de la plataforma
+          </Typography>
+        </Box>
+
+        {/* Create Experience Button */}
+        <Button
+          component={Link}
+          to="/admin/experiences/manage/create"
+          variant="contained"
+          startIcon={<Plus size={20} />}
+          sx={{
+            backgroundColor: theme.palette.primary.main,
+            color: "white",
+            px: isMobile ? 2 : 3,
+            py: 1.5,
+            borderRadius: "30px",
+            textTransform: "none",
+            fontWeight: 600,
+            fontSize: isMobile ? "0.9rem" : "1rem",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+            "&:hover": {
+              backgroundColor: theme.palette.primary.dark,
+              transform: "translateY(-2px)",
+              boxShadow: "0 6px 16px rgba(0,0,0,0.2)",
+            },
+            transition: "all 0.3s ease",
+          }}
+        >
+          {isMobile ? "Nueva Experiencia" : "Crear Nueva Experiencia"}
+        </Button>
+      </Box>
+
       {/* Overview Statistics Section */}
-      {/* Show overview section if we have data OR if we're loading all experiences */}
       {((!isLoading && updatedExperiences.length > 0) ||
         isLoadingAllExperiences ||
         allExperiencesData) && <OverviewSection />}
 
       <DataTable
         pageTitle=""
-        dataListName="Administrar experiencias"
+        dataListName="Lista de experiencias"
         searchInputPlaceHolder="Título experiencia..."
         searchKeywordOnSubmitHandler={submitSearchKeywordHandler}
         searchKeywordOnChangeHandler={searchKeywordHandler}
@@ -984,6 +1028,29 @@ const ManageExperiences = () => {
           ))
         )}
       </DataTable>
+
+      {/* Floating Action Button for Mobile (Alternative option) */}
+      {isMobile && (
+        <Fab
+          component={Link}
+          to="/admin/experiences/manage/create"
+          sx={{
+            position: "fixed",
+            bottom: 24,
+            right: 24,
+            backgroundColor: theme.palette.primary.main,
+            color: "white",
+            zIndex: 1000,
+            "&:hover": {
+              backgroundColor: theme.palette.primary.dark,
+              transform: "scale(1.1)",
+            },
+            transition: "all 0.3s ease",
+          }}
+        >
+          <PlusCircle size={24} />
+        </Fab>
+      )}
     </Box>
   );
 };

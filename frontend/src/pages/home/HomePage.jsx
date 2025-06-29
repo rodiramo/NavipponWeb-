@@ -75,7 +75,7 @@ const HomePage = () => {
       <CTA />
       <CategoryCard />
       <RegionCarousel />
-
+      <Experiences />
       <Articles />
 
       {/* Onboarding Guide Modal */}

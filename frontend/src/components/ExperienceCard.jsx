@@ -16,7 +16,16 @@ import {
 } from "@mui/material";
 import StarRating from "../components/Stars";
 import { useTheme } from "@mui/material";
-import { MapPin, Star, Eye, Plus, BookOpen, Check, People } from "lucide-react";
+import {
+  MapPin,
+  Star,
+  Eye,
+  Plus,
+  BookOpen,
+  Check,
+  People,
+  Image as ImageIcon,
+} from "lucide-react";
 import {
   addFavorite as addFavoriteService,
   removeFavorite as removeFavoriteService,
@@ -29,6 +38,92 @@ import {
   checkExperienceInItinerary,
 } from "../services/index/itinerary";
 import { images, stables } from "../constants";
+
+// Sample Image Indicator Component for Experience Cards
+const ExperienceCardImageWithSampleIndicator = ({
+  src,
+  alt,
+  isSample = false,
+  category = "",
+  theme,
+  sx = {},
+}) => {
+  // Bottom corner indicator (to avoid conflict with category and favorite button)
+  const BottomCornerIndicator = () => (
+    <Box
+      sx={{
+        position: "absolute",
+        bottom: 8,
+        left: 8,
+        zIndex: 3,
+      }}
+    ></Box>
+  );
+
+  // Subtle overlay for additional context
+  const SubtleOverlay = () => (
+    <Box
+      sx={{
+        position: "absolute",
+        bottom: 0,
+        left: 0,
+        right: 0,
+        background:
+          "linear-gradient(to top, rgba(255, 152, 0, 0.1) 0%, transparent 60%)",
+        height: "60px",
+        zIndex: 1,
+        borderRadius: "0 0 0 0",
+      }}
+    />
+  );
+
+  // If not a sample image, render normally
+  if (!isSample) {
+    return (
+      <Box
+        component="img"
+        src={src}
+        alt={alt}
+        sx={{
+          width: "100%",
+          objectFit: "cover",
+          objectPosition: "center",
+          height: "224px",
+          transition: "transform 0.4s ease",
+          "&:hover": {
+            transform: "scale(1.05)",
+          },
+          ...sx,
+        }}
+      />
+    );
+  }
+
+  // For sample images, add indicators
+  return (
+    <Box sx={{ position: "relative", width: "100%", height: "224px" }}>
+      <Box
+        component="img"
+        src={src}
+        alt={alt}
+        sx={{
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          objectPosition: "center",
+          transition: "transform 0.4s ease",
+          filter: "brightness(0.96)", // Slightly dim sample images
+          "&:hover": {
+            transform: "scale(1.05)",
+          },
+          ...sx,
+        }}
+      />
+      <SubtleOverlay />
+      <BottomCornerIndicator />
+    </Box>
+  );
+};
 
 const ExperienceCard = ({
   experience,
@@ -46,6 +141,55 @@ const ExperienceCard = ({
     new Map()
   );
   const theme = useTheme();
+
+  // Helper function to check if image is a sample/default image
+  const isDefaultImage = (photoUrl) => {
+    // Check for Unsplash URLs (default images from form)
+    if (photoUrl && photoUrl.startsWith("https://images.unsplash.com")) {
+      return true;
+    }
+    // Check for fallback sample images
+    const sampleImages = [
+      images.sampleHotelImage,
+      images.sampleRestaurantImage,
+      images.sampleAttractionImage,
+      images.sampleExperienceImage,
+    ];
+    return sampleImages.includes(photoUrl);
+  };
+
+  // Get the full image URL and determine if it's a sample
+  const getImageInfo = () => {
+    const photo = experience?.photo;
+    let imageUrl;
+    let isSample = false;
+
+    if (photo) {
+      imageUrl = photo.startsWith("http")
+        ? photo
+        : `${stables.UPLOAD_FOLDER_BASE_URL}${photo}`;
+      isSample = isDefaultImage(imageUrl);
+    } else {
+      // Fallback to category-specific sample images
+      switch (experience?.categories) {
+        case "Hoteles":
+          imageUrl = images.sampleHotelImage;
+          break;
+        case "Restaurantes":
+          imageUrl = images.sampleRestaurantImage;
+          break;
+        case "Atractivos":
+          imageUrl = images.sampleAttractionImage;
+          break;
+        default:
+          imageUrl = images.sampleExperienceImage;
+          break;
+      }
+      isSample = true; // Fallback images are always samples
+    }
+
+    return { imageUrl, isSample };
+  };
 
   useEffect(() => {
     const fetchFavoritesCount = async () => {
@@ -223,6 +367,7 @@ const ExperienceCard = ({
 
   const categoryColors = getCategoryColor(experience.categories);
   const hasItineraries = user && token && userItineraries.length > 0;
+  const { imageUrl, isSample } = getImageInfo();
 
   return (
     <Card
@@ -230,7 +375,6 @@ const ExperienceCard = ({
       sx={{
         borderRadius: "24px",
         overflow: "hidden",
-        // Apply styling from horizontal card
         background: `linear-gradient(135deg, 
           ${theme.palette.background.paper} 0%, 
           ${theme.palette.primary.main}03 100%)`,
@@ -262,44 +406,19 @@ const ExperienceCard = ({
         },
       }}
     >
-      {/* Image Container */}
+      {/* Enhanced Image Container with Sample Indicator */}
       <Box sx={{ position: "relative", overflow: "hidden" }}>
         <Link to={`/experience/${experience.slug}`}>
-          <Box
-            component="img"
-            src={(() => {
-              const photo = experience?.photo;
-              if (photo) {
-                return photo.startsWith("http")
-                  ? photo
-                  : `${stables.UPLOAD_FOLDER_BASE_URL}${photo}`;
-              }
-              switch (experience?.categories) {
-                case "Hoteles":
-                  return images.sampleHotelImage;
-                case "Restaurantes":
-                  return images.sampleRestaurantImage;
-                case "Atractivos":
-                  return images.sampleAttractionImage;
-                default:
-                  return images.sampleExperienceImage;
-              }
-            })()}
+          <ExperienceCardImageWithSampleIndicator
+            src={imageUrl}
             alt={experience.title}
-            sx={{
-              width: "100%",
-              objectFit: "cover",
-              objectPosition: "center",
-              height: "224px",
-              transition: "transform 0.4s ease",
-              "&:hover": {
-                transform: "scale(1.05)",
-              },
-            }}
+            isSample={isSample}
+            category={experience.categories}
+            theme={theme}
           />
         </Link>
 
-        {/* Category Badge */}
+        {/* Category Badge - Top Left */}
         <Box
           sx={{
             position: "absolute",
@@ -323,7 +442,7 @@ const ExperienceCard = ({
           />
         </Box>
 
-        {/* Favorite Button */}
+        {/* Favorite Button - Top Right */}
         <Box
           component="button"
           onClick={handleFavoriteClick}
@@ -342,6 +461,7 @@ const ExperienceCard = ({
             transition: "all 0.3s ease",
             border: `2px solid ${theme.palette.primary.main}20`,
             cursor: "pointer",
+            zIndex: 2,
             "&:hover": {
               transform: "scale(1.1)",
               backgroundColor: theme.palette.background.paper,
@@ -363,9 +483,47 @@ const ExperienceCard = ({
             />
           )}
         </Box>
+
+        {/* Sample Image Info - Top Center (only for sample images) */}
+        {isSample && (
+          <Box
+            sx={{
+              position: "absolute",
+              top: 12,
+              left: "50%",
+              transform: "translateX(-50%)",
+              zIndex: 1,
+            }}
+          >
+            <Box
+              sx={{
+                background: theme.palette.secondary.light,
+                backdropFilter: "blur(4px)",
+                borderRadius: "30px",
+                padding: "4px 8px",
+                display: "flex",
+                alignItems: "center",
+                gap: 0.5,
+                border: `1px solid ${theme.palette.secondary.dark}30`,
+              }}
+            >
+              <ImageIcon size={12} color={theme.palette.secondary.dark} />
+              <Typography
+                variant="caption"
+                sx={{
+                  color: theme.palette.secondary.dark,
+                  fontWeight: 500,
+                  fontSize: "0.7rem",
+                }}
+              >
+                Imagen de muestra
+              </Typography>
+            </Box>
+          </Box>
+        )}
       </Box>
 
-      {/* Content */}
+      {/* Content - Unchanged from original */}
       <CardContent sx={{ p: 3, position: "relative", zIndex: 1 }}>
         {/* Title and Region */}
         <Link
@@ -525,7 +683,6 @@ const ExperienceCard = ({
               py: 1.25,
               px: 3,
               m: { xs: "auto", sm: "0" },
-
               width: { xs: "fit-content", sm: "fit-content" },
               boxShadow: "none",
               transition: "all 0.3s ease",
@@ -583,7 +740,7 @@ const ExperienceCard = ({
           </Box>
         )}
 
-        {/* Itinerary Menu */}
+        {/* Itinerary Menu - Unchanged */}
         <Menu
           anchorEl={anchorEl}
           open={Boolean(anchorEl)}

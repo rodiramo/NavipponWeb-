@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import PhoneInput from "react-phone-input-2";
@@ -23,6 +23,7 @@ import {
   ArrowLeft,
   ArrowRight,
   Image,
+  Clock,
 } from "lucide-react";
 import {
   Button,
@@ -38,6 +39,9 @@ import {
   Grid,
   Paper,
   Chip,
+  useMediaQuery,
+  Container,
+  Stack,
 } from "@mui/material";
 import useUser from "../../../../hooks/useUser";
 import { stables } from "../../../../constants";
@@ -52,20 +56,32 @@ import {
   fetchPlaceDetails,
 } from "../../../../services/index/map";
 
-// Default image configuration
+// Enhanced default image configuration with high-quality Unsplash images
 const DEFAULT_IMAGES = {
   Hoteles:
-    "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&h=300&fit=crop",
+    "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&h=600&fit=crop&auto=format&q=80",
   Restaurantes:
-    "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&h=300&fit=crop",
+    "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&h=600&fit=crop&auto=format&q=80",
   Atractivos:
-    "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=400&h=300&fit=crop",
+    "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=800&h=600&fit=crop&auto=format&q=80",
   general:
-    "https://images.unsplash.com/photo-1480796927426-f609979314bd?w=400&h=300&fit=crop",
+    "https://images.unsplash.com/photo-1480796927426-f609979314bd?w=800&h=600&fit=crop&auto=format&q=80",
+};
+
+// Default schedule templates for different categories
+const DEFAULT_SCHEDULES = {
+  Hoteles:
+    "lunes: 24 horas martes: 24 horas miércoles: 24 horas jueves: 24 horas viernes: 24 horas sábado: 24 horas domingo: 24 horas",
+  Restaurantes:
+    "lunes: 11:00–22:00 martes: 11:00–22:00 miércoles: 11:00–22:00 jueves: 11:00–22:00 viernes: 11:00–23:00 sábado: 11:00–23:00 domingo: 11:00–21:00",
+  Atractivos:
+    "lunes: 9:00–17:00 martes: 9:00–17:00 miércoles: 9:00–17:00 jueves: 9:00–17:00 viernes: 9:00–17:00 sábado: 9:00–18:00 domingo: 9:00–18:00",
 };
 
 const ExperienceForm = () => {
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
   const { slug } = useParams();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -105,8 +121,9 @@ const ExperienceForm = () => {
     "Detalles Básicos",
     "Contenido",
     "Ubicación",
-    "Contacto",
     "Categorías",
+    "Contacto",
+    "Imagen",
     "Revisión",
   ];
 
@@ -134,6 +151,11 @@ const ExperienceForm = () => {
     return DEFAULT_IMAGES[categories] || DEFAULT_IMAGES.general;
   };
 
+  // Get default schedule based on category
+  const getDefaultSchedule = () => {
+    return DEFAULT_SCHEDULES[categories] || DEFAULT_SCHEDULES.Atractivos;
+  };
+
   // Check if we should show default image
   const shouldShowDefaultImage = () => {
     return !photo && !initialPhoto && useDefaultImage;
@@ -152,6 +174,15 @@ const ExperienceForm = () => {
     }
     return null;
   };
+
+  // Auto-update default image when category changes
+  useEffect(() => {
+    if (useDefaultImage && categories) {
+      // Force re-render to show new default image
+      setUseDefaultImage(false);
+      setTimeout(() => setUseDefaultImage(true), 10);
+    }
+  }, [categories]);
 
   const handleTitleChange = (e) => {
     const titleValue = e.target.value;
@@ -179,6 +210,16 @@ const ExperienceForm = () => {
     setPhoto(null);
     setInitialPhoto(null);
     setUseDefaultImage(true);
+  };
+
+  // Handle using default schedule template
+  const handleUseDefaultSchedule = () => {
+    if (categories) {
+      setSchedule(getDefaultSchedule());
+      toast.success(`Horario por defecto aplicado para ${categories}`);
+    } else {
+      toast.error("Primero selecciona una categoría");
+    }
   };
 
   const {
@@ -400,133 +441,23 @@ const ExperienceForm = () => {
     switch (step) {
       case 0: // Detalles Básicos
         return (
-          <Box sx={{ space: 3 }}>
-            <Box sx={{ mb: 3 }}>
-              <Typography variant="h6" gutterBottom>
-                Imagen de la experiencia
-              </Typography>
-
-              {/* Image Display */}
-              <Box display="flex" alignItems="center" gap="2rem" sx={{ mb: 2 }}>
-                <label
-                  htmlFor="experiencePicture"
-                  style={{ cursor: "pointer" }}
-                >
-                  {getCurrentImageSrc() ? (
-                    <Box sx={{ position: "relative" }}>
-                      <img
-                        src={getCurrentImageSrc()}
-                        alt={title || "Experiencia"}
-                        style={{
-                          width: "200px",
-                          height: "150px",
-                          objectFit: "cover",
-                          borderRadius: "12px",
-                          border: useDefaultImage
-                            ? `2px solid ${theme.palette.primary.main}`
-                            : "none",
-                        }}
-                      />
-                      {useDefaultImage && (
-                        <Chip
-                          label="Imagen por defecto"
-                          size="small"
-                          color="primary"
-                          sx={{
-                            position: "absolute",
-                            top: 8,
-                            left: 8,
-                            fontSize: "0.7rem",
-                          }}
-                        />
-                      )}
-                    </Box>
-                  ) : (
-                    <Box
-                      sx={{
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        width: "200px",
-                        height: "150px",
-                        border: `2px dashed ${theme.palette.primary.main}`,
-                        borderRadius: "12px",
-                        backgroundColor: theme.palette.background.paper,
-                        cursor: "pointer",
-                        "&:hover": {
-                          backgroundColor: theme.palette.action.hover,
-                        },
-                      }}
-                    >
-                      <ImageUp size={40} color={theme.palette.primary.main} />
-                      <Typography>Subir imagen</Typography>
-                    </Box>
-                  )}
-                </label>
-                <input
-                  type="file"
-                  style={{ display: "none" }}
-                  id="experiencePicture"
-                  onChange={handleFileChange}
-                  accept="image/*"
-                />
-              </Box>
-
-              {/* Image Action Buttons */}
-              <Box display="flex" gap="1rem" flexWrap="wrap">
-                {(photo || initialPhoto || useDefaultImage) && (
-                  <Button
-                    onClick={handleDeleteImage}
-                    variant="outlined"
-                    color="error"
-                    size="small"
-                    sx={{ borderRadius: "20px", textTransform: "none" }}
-                    startIcon={<Trash2 size={16} />}
-                  >
-                    Eliminar imagen
-                  </Button>
-                )}
-
-                {!useDefaultImage && categories && (
-                  <Button
-                    onClick={handleUseDefaultImage}
-                    variant="outlined"
-                    color="primary"
-                    size="small"
-                    sx={{ borderRadius: "20px", textTransform: "none" }}
-                    startIcon={<Image size={16} />}
-                  >
-                    Usar imagen por defecto
-                  </Button>
-                )}
-
-                <Button
-                  component="label"
-                  htmlFor="experiencePicture"
-                  variant="contained"
-                  size="small"
-                  sx={{ borderRadius: "20px", textTransform: "none" }}
-                  startIcon={<ImageUp size={16} />}
-                >
-                  {photo || initialPhoto ? "Cambiar imagen" : "Subir imagen"}
-                </Button>
-              </Box>
-
-              {/* Help Text */}
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                {useDefaultImage
-                  ? "Usando imagen por defecto basada en la categoría seleccionada"
-                  : "Sube una imagen o usa una imagen por defecto"}
-              </Typography>
-            </Box>
-
+          <Stack spacing={3}>
             {/* Google Places Search */}
-            <Box sx={{ mb: 3 }}>
-              <Typography variant="h6" gutterBottom>
-                <Earth style={{ verticalAlign: "middle", marginRight: 8 }} />
-                Buscar lugar
-              </Typography>
+            <Box>
+              <Stack
+                direction="row"
+                spacing={1}
+                alignItems="center"
+                sx={{ mb: 1 }}
+              >
+                <Earth size={20} color={theme.palette.primary.main} />
+                <Typography
+                  variant={isMobile ? "h6" : "h5"}
+                  fontWeight="medium"
+                >
+                  Buscar lugar
+                </Typography>
+              </Stack>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                 Ingresa el nombre o dirección para cargar información
                 automáticamente
@@ -550,9 +481,11 @@ const ExperienceForm = () => {
                 <TextField
                   fullWidth
                   placeholder="Busca la experiencia con Google..."
+                  size={isMobile ? "medium" : "large"}
                   sx={{
                     "& .MuiOutlinedInput-root": {
-                      borderRadius: "10px",
+                      borderRadius: "12px",
+                      fontSize: isMobile ? "14px" : "16px",
                     },
                   }}
                 />
@@ -560,8 +493,12 @@ const ExperienceForm = () => {
             </Box>
 
             {/* Title */}
-            <Box sx={{ mb: 3 }}>
-              <Typography variant="h6" gutterBottom>
+            <Box>
+              <Typography
+                variant={isMobile ? "h6" : "h5"}
+                fontWeight="medium"
+                gutterBottom
+              >
                 Título*
               </Typography>
               <TextField
@@ -570,17 +507,23 @@ const ExperienceForm = () => {
                 fullWidth
                 required
                 placeholder="Título de la experiencia..."
+                size={isMobile ? "medium" : "large"}
                 sx={{
                   "& .MuiOutlinedInput-root": {
-                    borderRadius: "10px",
+                    borderRadius: "12px",
+                    fontSize: isMobile ? "14px" : "16px",
                   },
                 }}
               />
             </Box>
 
             {/* Caption */}
-            <Box sx={{ mb: 3 }}>
-              <Typography variant="h6" gutterBottom>
+            <Box>
+              <Typography
+                variant={isMobile ? "h6" : "h5"}
+                fontWeight="medium"
+                gutterBottom
+              >
                 Descripción breve*
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
@@ -592,42 +535,61 @@ const ExperienceForm = () => {
                 fullWidth
                 required
                 multiline
-                rows={4}
+                rows={isMobile ? 3 : 4}
                 placeholder="Escribe la descripción aquí..."
+                size={isMobile ? "medium" : "large"}
                 sx={{
                   "& .MuiOutlinedInput-root": {
-                    borderRadius: "10px",
+                    borderRadius: "12px",
+                    fontSize: isMobile ? "14px" : "16px",
                   },
                 }}
               />
             </Box>
-          </Box>
+          </Stack>
         );
 
       case 1: // Contenido
         return (
-          <Box sx={{ space: 3 }}>
-            <Typography variant="h6" gutterBottom>
+          <Stack spacing={3}>
+            <Typography
+              variant={isMobile ? "h6" : "h5"}
+              fontWeight="medium"
+              gutterBottom
+            >
               Contenido detallado*
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
               Describe completamente la experiencia, qué incluye, horarios, etc.
             </Typography>
-            <Editor
-              content={body}
-              editable={true}
-              onDataChange={(data) => setBody(data)}
-            />
-            <Box sx={{ mt: 3 }}>
+            <Box
+              sx={{
+                "& .ql-editor": {
+                  minHeight: isMobile ? "200px" : "300px",
+                  fontSize: isMobile ? "14px" : "16px",
+                },
+              }}
+            >
+              <Editor
+                content={body}
+                editable={true}
+                onDataChange={(data) => setBody(data)}
+              />
+            </Box>
+            <Box>
               <PriceInput price={price} setPrice={setPrice} />
             </Box>
-          </Box>
+          </Stack>
         );
 
       case 2: // Ubicación
         return (
-          <Box sx={{ space: 3 }}>
-            <Typography variant="h6" gutterBottom>
+          <Stack spacing={3}>
+            <Typography
+              variant={isMobile ? "h6" : "h5"}
+              fontWeight="medium"
+              gutterBottom
+            >
               Ubicación*
             </Typography>
             <RegionPrefectureSelect
@@ -636,17 +598,62 @@ const ExperienceForm = () => {
               prefecture={prefecture}
               setPrefecture={setPrefecture}
             />
-          </Box>
+          </Stack>
         );
 
-      case 3: // Contacto
+      case 3: // Categorías
         return (
-          <Card elevation={2} sx={{ p: 3 }}>
-            <Typography variant="h6" gutterBottom>
+          <Stack spacing={3}>
+            <ExperienceTypeSelect
+              categories={categories}
+              setCategories={setCategories}
+              isExperienceDataLoaded={!isLoading}
+            />
+
+            <GeneralTags
+              selectedGeneralTags={selectedGeneralTags}
+              setSelectedGeneralTags={setSelectedGeneralTags}
+            />
+
+            {categories === "Atractivos" && (
+              <AtractionTags
+                selectedAttractionTags={selectedAttractionTags}
+                setSelectedAttractionTags={setSelectedAttractionTags}
+              />
+            )}
+            {categories === "Restaurantes" && (
+              <RestaurantTags
+                selectedRestaurantTags={selectedRestaurantTags}
+                setSelectedRestaurantTags={setSelectedRestaurantTags}
+              />
+            )}
+            {categories === "Hoteles" && (
+              <HotelTags
+                selectedHotelTags={selectedHotelTags}
+                setSelectedHotelTags={setSelectedHotelTags}
+              />
+            )}
+          </Stack>
+        );
+
+      case 4: // Contacto
+        return (
+          <Card
+            elevation={isMobile ? 1 : 2}
+            sx={{
+              p: isMobile ? 2 : 3,
+              borderRadius: "16px",
+            }}
+          >
+            <Typography
+              variant={isMobile ? "h6" : "h5"}
+              fontWeight="medium"
+              gutterBottom
+            >
               Información de contacto
             </Typography>
-            <Grid container spacing={3}>
-              <Grid item xs={12} md={6}>
+            <Grid container spacing={isMobile ? 2 : 3}>
+              <Grid item xs={12} sm={6}>
                 <Typography variant="subtitle1" sx={{ mb: 1 }}>
                   Teléfono
                 </Typography>
@@ -656,16 +663,16 @@ const ExperienceForm = () => {
                   onChange={(phone) => setPhone(phone)}
                   inputStyle={{
                     width: "100%",
-                    height: "56px",
-                    borderRadius: "10px",
+                    height: isMobile ? "48px" : "56px",
+                    borderRadius: "12px",
                     border: `1.5px solid ${theme.palette.divider}`,
-                    fontSize: "16px",
+                    fontSize: isMobile ? "14px" : "16px",
                     paddingLeft: "48px",
                   }}
                   placeholder="Teléfono"
                 />
               </Grid>
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12} sm={6}>
                 <Typography variant="subtitle1" sx={{ mb: 1 }}>
                   Correo electrónico
                 </Typography>
@@ -674,9 +681,11 @@ const ExperienceForm = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   fullWidth
                   placeholder="correo@ejemplo.com"
+                  size={isMobile ? "medium" : "large"}
                   sx={{
                     "& .MuiOutlinedInput-root": {
-                      borderRadius: "10px",
+                      borderRadius: "12px",
+                      fontSize: isMobile ? "14px" : "16px",
                     },
                   }}
                 />
@@ -690,9 +699,11 @@ const ExperienceForm = () => {
                   onChange={(e) => setAddress(e.target.value)}
                   fullWidth
                   placeholder="Dirección completa"
+                  size={isMobile ? "medium" : "large"}
                   sx={{
                     "& .MuiOutlinedInput-root": {
-                      borderRadius: "10px",
+                      borderRadius: "12px",
+                      fontSize: isMobile ? "14px" : "16px",
                     },
                   }}
                 />
@@ -706,6 +717,7 @@ const ExperienceForm = () => {
                   onChange={(e) => setWebsite(e.target.value)}
                   fullWidth
                   placeholder="https://ejemplo.com"
+                  size={isMobile ? "medium" : "large"}
                   onBlur={(e) => {
                     let value = e.target.value.trim();
                     if (
@@ -719,65 +731,265 @@ const ExperienceForm = () => {
                   }}
                   sx={{
                     "& .MuiOutlinedInput-root": {
-                      borderRadius: "10px",
+                      borderRadius: "12px",
+                      fontSize: isMobile ? "14px" : "16px",
                     },
                   }}
                 />
+              </Grid>
+
+              {/* Schedule Field */}
+              <Grid item xs={12}>
+                <Box>
+                  <Stack
+                    direction="row"
+                    spacing={1}
+                    alignItems="center"
+                    sx={{ mb: 1 }}
+                  >
+                    <Clock size={20} color={theme.palette.primary.main} />
+                    <Typography variant="subtitle1">
+                      Horarios de atención
+                    </Typography>
+                  </Stack>
+
+                  <TextField
+                    value={schedule}
+                    onChange={(e) => setSchedule(e.target.value)}
+                    fullWidth
+                    multiline
+                    rows={isMobile ? 2 : 3}
+                    placeholder="Ejemplo: lunes: 9:00–17:00 martes: 9:00–17:00 miércoles: Cerrado..."
+                    size={isMobile ? "medium" : "large"}
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: "12px",
+                        fontSize: isMobile ? "14px" : "16px",
+                      },
+                    }}
+                  />
+
+                  {/* Schedule Helper Buttons */}
+                  <Stack
+                    direction={isMobile ? "column" : "row"}
+                    spacing={1}
+                    sx={{ mt: 2 }}
+                  >
+                    {categories && (
+                      <Button
+                        onClick={handleUseDefaultSchedule}
+                        variant="outlined"
+                        size="small"
+                        startIcon={<Clock size={16} />}
+                        sx={{
+                          borderRadius: "20px",
+                          textTransform: "none",
+                          fontSize: isMobile ? "0.75rem" : "0.8rem",
+                          flexShrink: 0,
+                        }}
+                      >
+                        Usar horario típico de {categories}
+                      </Button>
+                    )}
+
+                    <Button
+                      onClick={() => setSchedule("")}
+                      variant="text"
+                      size="small"
+                      sx={{
+                        borderRadius: "20px",
+                        textTransform: "none",
+                        fontSize: isMobile ? "0.75rem" : "0.8rem",
+                        flexShrink: 0,
+                      }}
+                    >
+                      Limpiar
+                    </Button>
+                  </Stack>
+
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ mt: 1, fontSize: isMobile ? "0.75rem" : "0.875rem" }}
+                  >
+                    Describe los horarios de funcionamiento. Ejemplo: "lunes:
+                    9:00–17:00 martes: Cerrado"
+                  </Typography>
+                </Box>
               </Grid>
             </Grid>
           </Card>
         );
 
-      case 4: // Categorías
+      case 5: // Imagen
         return (
-          <Box sx={{ space: 3 }}>
-            <ExperienceTypeSelect
-              categories={categories}
-              setCategories={setCategories}
-              isExperienceDataLoaded={!isLoading}
-            />
+          <Stack spacing={3}>
+            <Typography
+              variant={isMobile ? "h6" : "h5"}
+              fontWeight="medium"
+              gutterBottom
+            >
+              Imagen de la experiencia
+            </Typography>
 
-            <Box sx={{ mt: 3 }}>
-              <GeneralTags
-                selectedGeneralTags={selectedGeneralTags}
-                setSelectedGeneralTags={setSelectedGeneralTags}
+            {/* Image Display */}
+            <Box>
+              <label
+                htmlFor="experiencePicture"
+                style={{ cursor: "pointer", width: "100%" }}
+              >
+                {getCurrentImageSrc() ? (
+                  <Box sx={{ position: "relative" }}>
+                    <img
+                      src={getCurrentImageSrc()}
+                      alt={title || "Experiencia"}
+                      style={{
+                        width: "100%",
+                        height: isMobile ? "200px" : "300px",
+                        objectFit: "cover",
+                        borderRadius: "16px",
+                        border: useDefaultImage
+                          ? `2px solid ${theme.palette.primary.main}`
+                          : "none",
+                      }}
+                    />
+                    {useDefaultImage && (
+                      <Chip
+                        label={`${categories || "Imagen"} por defecto`}
+                        size="small"
+                        color="primary"
+                        sx={{
+                          position: "absolute",
+                          top: 8,
+                          left: 8,
+                          fontSize: isMobile ? "0.6rem" : "0.7rem",
+                        }}
+                      />
+                    )}
+                  </Box>
+                ) : (
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      width: "100%",
+                      height: isMobile ? "200px" : "300px",
+                      border: `2px dashed ${theme.palette.primary.main}`,
+                      borderRadius: "16px",
+                      backgroundColor: theme.palette.background.paper,
+                      cursor: "pointer",
+                      "&:hover": {
+                        backgroundColor: theme.palette.action.hover,
+                      },
+                    }}
+                  >
+                    <ImageUp
+                      size={isMobile ? 32 : 40}
+                      color={theme.palette.primary.main}
+                    />
+                    <Typography variant={isMobile ? "body2" : "body1"}>
+                      Subir imagen
+                    </Typography>
+                  </Box>
+                )}
+              </label>
+              <input
+                type="file"
+                style={{ display: "none" }}
+                id="experiencePicture"
+                onChange={handleFileChange}
+                accept="image/*"
               />
             </Box>
 
-            {categories === "Atractivos" && (
-              <Box sx={{ mt: 3 }}>
-                <AtractionTags
-                  selectedAttractionTags={selectedAttractionTags}
-                  setSelectedAttractionTags={setSelectedAttractionTags}
-                />
-              </Box>
-            )}
-            {categories === "Restaurantes" && (
-              <Box sx={{ mt: 3 }}>
-                <RestaurantTags
-                  selectedRestaurantTags={selectedRestaurantTags}
-                  setSelectedRestaurantTags={setSelectedRestaurantTags}
-                />
-              </Box>
-            )}
-            {categories === "Hoteles" && (
-              <Box sx={{ mt: 3 }}>
-                <HotelTags
-                  selectedHotelTags={selectedHotelTags}
-                  setSelectedHotelTags={setSelectedHotelTags}
-                />
-              </Box>
-            )}
-          </Box>
+            {/* Image Action Buttons */}
+            <Stack
+              direction={isMobile ? "column" : "row"}
+              spacing={1}
+              sx={{ flexWrap: "wrap" }}
+            >
+              {(photo || initialPhoto || useDefaultImage) && (
+                <Button
+                  onClick={handleDeleteImage}
+                  variant="outlined"
+                  color="error"
+                  size={isMobile ? "medium" : "small"}
+                  sx={{
+                    borderRadius: "20px",
+                    textTransform: "none",
+                    fontSize: isMobile ? "0.8rem" : "0.875rem",
+                  }}
+                  startIcon={<Trash2 size={16} />}
+                >
+                  Eliminar imagen
+                </Button>
+              )}
+
+              {!useDefaultImage && categories && (
+                <Button
+                  onClick={handleUseDefaultImage}
+                  variant="outlined"
+                  color="primary"
+                  size={isMobile ? "medium" : "small"}
+                  sx={{
+                    borderRadius: "20px",
+                    textTransform: "none",
+                    fontSize: isMobile ? "0.8rem" : "0.875rem",
+                  }}
+                  startIcon={<Image size={16} />}
+                >
+                  Usar imagen por defecto ({categories})
+                </Button>
+              )}
+
+              <Button
+                component="label"
+                htmlFor="experiencePicture"
+                variant="contained"
+                size={isMobile ? "medium" : "small"}
+                sx={{
+                  borderRadius: "20px",
+                  textTransform: "none",
+                  fontSize: isMobile ? "0.8rem" : "0.875rem",
+                }}
+                startIcon={<ImageUp size={16} />}
+              >
+                {photo || initialPhoto ? "Cambiar imagen" : "Subir imagen"}
+              </Button>
+            </Stack>
+
+            {/* Help Text */}
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              sx={{ fontSize: isMobile ? "0.75rem" : "0.875rem" }}
+            >
+              {useDefaultImage
+                ? `Usando imagen por defecto para ${categories}`
+                : "Sube una imagen personalizada o usa una imagen por defecto"}
+            </Typography>
+          </Stack>
         );
 
-      case 5: // Revisión
+      case 6: // Revisión
         return (
-          <Box sx={{ space: 3 }}>
-            <Typography variant="h6" gutterBottom>
+          <Stack spacing={3}>
+            <Typography
+              variant={isMobile ? "h6" : "h5"}
+              fontWeight="medium"
+              gutterBottom
+            >
               Revisar Experiencia
             </Typography>
-            <Paper elevation={1} sx={{ p: 3, mb: 2 }}>
+            <Paper
+              elevation={isMobile ? 1 : 2}
+              sx={{
+                p: isMobile ? 2 : 3,
+                borderRadius: "16px",
+              }}
+            >
               {/* Image Preview in Review */}
               {getCurrentImageSrc() && (
                 <Box sx={{ mb: 3, textAlign: "center" }}>
@@ -785,8 +997,9 @@ const ExperienceForm = () => {
                     src={getCurrentImageSrc()}
                     alt={title || "Experiencia"}
                     style={{
-                      width: "300px",
-                      height: "200px",
+                      width: "100%",
+                      maxWidth: isMobile ? "100%" : "400px",
+                      height: isMobile ? "200px" : "250px",
                       objectFit: "cover",
                       borderRadius: "12px",
                     }}
@@ -795,7 +1008,11 @@ const ExperienceForm = () => {
                     <Typography
                       variant="caption"
                       color="text.secondary"
-                      sx={{ display: "block", mt: 1 }}
+                      sx={{
+                        display: "block",
+                        mt: 1,
+                        fontSize: isMobile ? "0.7rem" : "0.75rem",
+                      }}
                     >
                       Imagen por defecto para {categories}
                     </Typography>
@@ -803,52 +1020,90 @@ const ExperienceForm = () => {
                 </Box>
               )}
 
-              <Typography variant="h6" color="primary" gutterBottom>
+              <Typography
+                variant={isMobile ? "h6" : "h5"}
+                color="primary"
+                gutterBottom
+                sx={{ fontSize: isMobile ? "1.1rem" : "1.25rem" }}
+              >
                 {title || "Sin título"}
               </Typography>
-              <Typography variant="body2" color="text.secondary" paragraph>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                paragraph
+                sx={{ fontSize: isMobile ? "0.85rem" : "0.875rem" }}
+              >
                 {caption || "Sin descripción"}
               </Typography>
-              <Grid container spacing={2}>
-                <Grid item xs={6}>
-                  <Typography variant="body2">
+              <Grid container spacing={isMobile ? 1 : 2}>
+                <Grid item xs={12} sm={6}>
+                  <Typography
+                    variant="body2"
+                    sx={{ fontSize: isMobile ? "0.8rem" : "0.875rem" }}
+                  >
                     <strong>Categoría:</strong>{" "}
                     {categories || "No seleccionada"}
                   </Typography>
                 </Grid>
-                <Grid item xs={6}>
-                  <Typography variant="body2">
+                <Grid item xs={12} sm={6}>
+                  <Typography
+                    variant="body2"
+                    sx={{ fontSize: isMobile ? "0.8rem" : "0.875rem" }}
+                  >
                     <strong>Región:</strong> {region || "No seleccionada"}
                   </Typography>
                 </Grid>
-                <Grid item xs={6}>
-                  <Typography variant="body2">
+                <Grid item xs={12} sm={6}>
+                  <Typography
+                    variant="body2"
+                    sx={{ fontSize: isMobile ? "0.8rem" : "0.875rem" }}
+                  >
                     <strong>Prefectura:</strong>{" "}
                     {prefecture || "No seleccionada"}
                   </Typography>
                 </Grid>
-                <Grid item xs={6}>
-                  <Typography variant="body2">
+                <Grid item xs={12} sm={6}>
+                  <Typography
+                    variant="body2"
+                    sx={{ fontSize: isMobile ? "0.8rem" : "0.875rem" }}
+                  >
                     <strong>Precio:</strong> ¥{price || 0}
                   </Typography>
                 </Grid>
                 {phone && (
-                  <Grid item xs={6}>
-                    <Typography variant="body2">
+                  <Grid item xs={12} sm={6}>
+                    <Typography
+                      variant="body2"
+                      sx={{ fontSize: isMobile ? "0.8rem" : "0.875rem" }}
+                    >
                       <strong>Teléfono:</strong> {phone}
                     </Typography>
                   </Grid>
                 )}
                 {email && (
-                  <Grid item xs={6}>
-                    <Typography variant="body2">
+                  <Grid item xs={12} sm={6}>
+                    <Typography
+                      variant="body2"
+                      sx={{ fontSize: isMobile ? "0.8rem" : "0.875rem" }}
+                    >
                       <strong>Email:</strong> {email}
+                    </Typography>
+                  </Grid>
+                )}
+                {schedule && (
+                  <Grid item xs={12}>
+                    <Typography
+                      variant="body2"
+                      sx={{ fontSize: isMobile ? "0.8rem" : "0.875rem" }}
+                    >
+                      <strong>Horarios:</strong> {schedule}
                     </Typography>
                   </Grid>
                 )}
               </Grid>
             </Paper>
-          </Box>
+          </Stack>
         );
 
       default:
@@ -865,43 +1120,119 @@ const ExperienceForm = () => {
       libraries={["places"]}
       language="es"
     >
+      {/* Header */}
       <Box
         sx={{
           background: theme.palette.secondary.light,
-          padding: "30px",
+          padding: isMobile ? "20px 16px" : "40px 24px",
           width: "100%",
-          borderRadius: "0rem 0rem 5rem 5rem",
+          borderRadius: isMobile
+            ? "0rem 0rem 2rem 2rem"
+            : "0rem 0rem 5rem 5rem",
           marginTop: "-25px",
         }}
       >
-        <Typography variant="h2" textAlign="center">
+        <Typography
+          variant={isMobile ? "h4" : "h2"}
+          textAlign="center"
+          sx={{
+            fontSize: isMobile ? "1.75rem" : "3rem",
+            fontWeight: "bold",
+          }}
+        >
           {isEditing ? "Editar" : "Crear"} experiencia
         </Typography>
       </Box>
 
-      <Box sx={{ maxWidth: "900px", margin: "0 auto", p: 3 }}>
-        {/* Stepper */}
-        <Paper elevation={2} sx={{ p: 3, mb: 4 }}>
-          <Stepper activeStep={activeStep} sx={{ mb: 3 }}>
-            {steps.map((label) => (
+      {/* Main Container */}
+      <Container
+        maxWidth="lg"
+        sx={{
+          px: isMobile ? 2 : 3,
+          py: isMobile ? 2 : 4,
+        }}
+      >
+        {/* Stepper Container */}
+        <Paper
+          elevation={isMobile ? 1 : 3}
+          sx={{
+            p: isMobile ? 2 : 4,
+            borderRadius: "20px",
+            mb: 2,
+          }}
+        >
+          {/* Responsive Stepper */}
+          <Stepper
+            activeStep={activeStep}
+            orientation={isMobile ? "vertical" : "horizontal"}
+            sx={{
+              mb: isMobile ? 2 : 4,
+              "& .MuiStepLabel-label": {
+                fontSize: isMobile ? "0.75rem" : "0.875rem",
+                fontWeight: 500,
+              },
+              "& .MuiStepContent-root": {
+                borderLeft: isMobile
+                  ? `2px solid ${theme.palette.primary.light}`
+                  : "none",
+                ml: isMobile ? 1 : 0,
+                pl: isMobile ? 2 : 0,
+              },
+            }}
+          >
+            {steps.map((label, index) => (
               <Step key={label}>
-                <StepLabel>{label}</StepLabel>
+                <StepLabel
+                  sx={{
+                    "& .MuiStepIcon-root": {
+                      fontSize: isMobile ? "1.2rem" : "1.5rem",
+                    },
+                  }}
+                >
+                  {isMobile ? label.split(" ")[0] : label}
+                </StepLabel>
               </Step>
             ))}
           </Stepper>
 
           {/* Step Content */}
-          <Box sx={{ mt: 4 }}>{renderStepContent(activeStep)}</Box>
+          <Box
+            sx={{
+              mt: isMobile ? 2 : 4,
+              minHeight: isMobile ? "300px" : "400px",
+            }}
+          >
+            {renderStepContent(activeStep)}
+          </Box>
 
           {/* Navigation Buttons */}
-          <Box sx={{ display: "flex", justifyContent: "space-between", mt: 4 }}>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: isMobile ? "column" : "row",
+              justifyContent: "space-between",
+              alignItems: isMobile ? "stretch" : "center",
+              mt: isMobile ? 3 : 4,
+              gap: isMobile ? 2 : 0,
+            }}
+          >
             <Button
               onClick={handleBack}
               disabled={activeStep === 0}
-              startIcon={<ArrowLeft />}
+              startIcon={!isMobile && <ArrowLeft size={20} />}
               variant="outlined"
-              sx={{ borderRadius: "30rem", textTransform: "none" }}
+              size={isMobile ? "large" : "medium"}
+              sx={{
+                borderRadius: "30px",
+                textTransform: "none",
+                px: isMobile ? 3 : 4,
+                py: isMobile ? 1.5 : 1,
+                fontSize: isMobile ? "1rem" : "0.875rem",
+                minWidth: isMobile ? "100%" : "auto",
+                order: isMobile ? 2 : 1,
+              }}
             >
+              {isMobile && <ArrowLeft size={20} style={{ marginRight: 8 }} />}
               Anterior
             </Button>
 
@@ -912,27 +1243,48 @@ const ExperienceForm = () => {
                 }
                 variant="contained"
                 disabled={mutation.isLoading}
-                sx={{ px: 4, borderRadius: "30rem", textTransform: "none" }}
+                size={isMobile ? "large" : "medium"}
+                sx={{
+                  px: isMobile ? 3 : 6,
+                  py: isMobile ? 1.5 : 1,
+                  borderRadius: "30px",
+                  textTransform: "none",
+                  fontSize: isMobile ? "1rem" : "0.875rem",
+                  fontWeight: "bold",
+                  minWidth: isMobile ? "100%" : "auto",
+                  order: isMobile ? 1 : 2,
+                }}
               >
                 {mutation.isLoading
                   ? "Procesando..."
                   : isEditing
-                  ? "Actualizar experiencia"
-                  : "Crear experiencia"}
+                    ? "Actualizar experiencia"
+                    : "Crear experiencia"}
               </Button>
             ) : (
               <Button
                 onClick={handleNext}
                 variant="contained"
-                sx={{ borderRadius: "30rem", textTransform: "none" }}
-                endIcon={<ArrowRight />}
+                size={isMobile ? "large" : "medium"}
+                sx={{
+                  borderRadius: "30px",
+                  textTransform: "none",
+                  px: isMobile ? 3 : 4,
+                  py: isMobile ? 1.5 : 1,
+                  fontSize: isMobile ? "1rem" : "0.875rem",
+                  fontWeight: "bold",
+                  minWidth: isMobile ? "100%" : "auto",
+                  order: isMobile ? 1 : 2,
+                }}
+                endIcon={!isMobile && <ArrowRight size={20} />}
               >
                 Siguiente
+                {isMobile && <ArrowRight size={20} style={{ marginLeft: 8 }} />}
               </Button>
             )}
           </Box>
         </Paper>
-      </Box>
+      </Container>
     </LoadScript>
   );
 };

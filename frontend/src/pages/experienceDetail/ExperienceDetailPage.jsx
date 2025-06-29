@@ -18,7 +18,7 @@ import {
   getAllExperiences,
   getSingleExperience,
 } from "../../services/index/experiences";
-import { useTheme } from "@mui/material";
+import { useTheme, useMediaQuery } from "@mui/material";
 import ExperienceDetailSkeleton from "./components/ExperienceDetailSkeleton";
 import ErrorMessage from "../../components/ErrorMessage";
 import parseJsonToHtml from "../../utils/parseJsonToHtml";
@@ -28,7 +28,7 @@ import {
   removeFavorite as removeFavoriteService,
   getUserFavorites,
 } from "../../services/index/favorites";
-import { Box, Typography } from "@mui/material";
+import { Box, Typography, Button, IconButton } from "@mui/material";
 import Aside from "./container/Aside";
 import Hero from "./container/Hero";
 import { Tabs, Tab } from "./container/Tabs";
@@ -49,6 +49,11 @@ const ExperienceDetailPage = () => {
   const [isFavorite, setIsFavorite] = useState(false);
   const theme = useTheme(true);
 
+  // Responsive breakpoints
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const isTablet = useMediaQuery(theme.breakpoints.down("lg"));
+  const isSmallMobile = useMediaQuery(theme.breakpoints.down("sm"));
+
   const formatCategory = (category) => {
     const categoryMap = {
       restaurantes: "Restaurante",
@@ -56,35 +61,45 @@ const ExperienceDetailPage = () => {
       atractivos: "Atractivo",
     };
 
-    return categoryMap[category.toLowerCase()] || category; // Default to original if not found
+    return categoryMap[category.toLowerCase()] || category;
+  };
+
+  // Helper function to check if image is a default/sample image
+  const isDefaultImage = (photoUrl) => {
+    return photoUrl && photoUrl.startsWith("https://images.unsplash.com");
+  };
+
+  // Helper function to get the full image URL
+  const getImageUrl = () => {
+    if (!data?.photo) return images.sampleExperienceImage;
+
+    return data.photo.startsWith("http")
+      ? data.photo
+      : stables.UPLOAD_FOLDER_BASE_URL + data.photo;
   };
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryFn: () => getSingleExperience({ slug }),
     queryKey: ["experience", slug],
     onSuccess: async (data) => {
-      // Debugging: Check what the API returns
       console.log("Raw API Response:", data);
 
-      // Ensure `body` is correctly formatted before parsing
       if (data?.body) {
         try {
-          // If `body` is a string, parse it into an object
           const parsedBody =
             typeof data.body === "string" ? JSON.parse(data.body) : data.body;
-
-          console.log("Parsed Body for HTML:", parsedBody); // Debugging output
+          console.log("Parsed Body for HTML:", parsedBody);
           setBody(parseJsonToHtml(parsedBody));
         } catch (error) {
           console.error("Error parsing JSON body:", error);
-          setBody(null); // Prevent crashes by setting a fallback
+          setBody(null);
         }
       } else {
         console.warn("No body content available.");
         setBody(null);
       }
 
-      setIsMapReady(true); // Enable map after data loads
+      setIsMapReady(true);
 
       if (user && jwt) {
         const favorites = await getUserFavorites({
@@ -177,125 +192,244 @@ const ExperienceDetailPage = () => {
         <ErrorMessage message="No se pudieron obtener los detalles de la publicación" />
       ) : (
         <>
+          {/* Responsive Hero Section */}
           <Hero
-            imageUrl={
-              data?.photo
-                ? data.photo.startsWith("http")
-                  ? data.photo
-                  : stables.UPLOAD_FOLDER_BASE_URL + data.photo
-                : images.sampleExperienceImage
-            }
+            imageUrl={getImageUrl()}
             imageAlt={data?.title}
+            isDefaultImage={isDefaultImage(data?.photo)}
+            category={data?.categories}
+            indicatorType={isMobile ? "corner" : "watermark"} // Different indicators for mobile
           />
           <BgShape />
-          <section className="container mx-auto px-5  py-5">
+
+          {/* Responsive Main Content */}
+          <section
+            className="container mx-auto px-5 py-5"
+            style={{
+              paddingLeft: isMobile ? "1rem" : "1.25rem",
+              paddingRight: isMobile ? "1rem" : "1.25rem",
+              paddingTop: isMobile ? "1rem" : "1.25rem",
+              paddingBottom: isMobile ? "1rem" : "1.25rem",
+            }}
+          >
             <BreadcrumbBack />
-            <div className="mt-4 flex gap-2">
+
+            {/* Responsive Categories */}
+            <div
+              className="mt-4 flex gap-2"
+              style={{
+                flexWrap: "wrap",
+                gap: isMobile ? "0.5rem" : "0.75rem",
+              }}
+            >
               {Array.isArray(data?.categories) &&
                 data.categories.map((category) => (
                   <Link
                     key={category}
                     to={`/experience?category=${category}`}
                     className="text-primary text-sm inline-block md:text-base"
+                    style={{
+                      fontSize: isMobile ? "0.8rem" : "1rem",
+                      padding: isMobile ? "0.25rem 0.5rem" : "0.5rem 0.75rem",
+                      backgroundColor: theme.palette.primary.light,
+                      borderRadius: "20px",
+                      textDecoration: "none",
+                      color: theme.palette.primary.main,
+                    }}
                   >
                     {category}
                   </Link>
                 ))}
             </div>
-            <Box className="flex justify-between items-center">
-              <h1
-                className="text-3xl mb-2"
-                style={{
-                  display: "flex",
-                  flexDirection: "row",
-                  alignContent: "center",
-                  gap: 15,
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
-              >
-                {data?.title}{" "}
-                <span
-                  style={{
+
+            {/* Responsive Title and Action Buttons */}
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: isMobile ? "column" : "row",
+                alignItems: isMobile ? "flex-start" : "center",
+                justifyContent: isMobile ? "flex-start" : "space-between",
+                gap: isMobile ? 2 : 1,
+                padding: 0,
+                mb: 2,
+              }}
+            >
+              {/* Responsive Title */}
+              <Box sx={{ flex: 1 }}>
+                <Typography
+                  variant={isMobile ? "h4" : "h3"}
+                  component="h1"
+                  sx={{
+                    fontWeight: 700,
+                    color: theme.palette.text.primary,
+                    mb: isMobile ? 1 : 0,
+                    fontSize: {
+                      xs: "1.5rem",
+                      sm: "1.75rem",
+                      md: "2rem",
+                      lg: "2.5rem",
+                    },
+                    lineHeight: 1.2,
+                  }}
+                >
+                  {data?.title}
+                </Typography>
+
+                {/* Location Badge */}
+                <Box
+                  sx={{
+                    display: "inline-flex",
+                    alignItems: "center",
                     background: theme.palette.primary.light,
                     color: theme.palette.primary.main,
+                    px: isMobile ? 1.5 : 2,
+                    py: isMobile ? 0.5 : 0.75,
+                    borderRadius: "20px",
+                    fontSize: isMobile ? "0.8rem" : "0.9rem",
+                    fontWeight: 500,
+                    mt: 1,
                   }}
-                  className="text-sm px-2 py-1 rounded-full"
                 >
                   {data?.region}, {data?.prefecture}
-                </span>
-              </h1>{" "}
-              <div className="flex gap-5">
-                <button
+                </Box>
+              </Box>
+
+              {/* Responsive Action Buttons */}
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: isMobile ? "column" : "row",
+                  gap: isMobile ? 1.5 : 2,
+                  width: isMobile ? "100%" : "auto",
+                }}
+              >
+                {/* Favorite Button */}
+                <Button
                   onClick={handleFavoriteClick}
-                  style={{
+                  variant="contained"
+                  sx={{
                     background: isFavorite
-                      ? theme.palette.secondary.main // ✅ Secondary color when favorited
-                      : theme.palette.primary.main, // ✅ Primary color when not favorited
+                      ? theme.palette.secondary.main
+                      : theme.palette.primary.main,
                     color: "white",
-                    padding: "0.6rem 1rem",
+                    borderRadius: "25px",
+                    px: isMobile ? 2 : 3,
+                    py: isMobile ? 1 : 1.5,
+                    fontSize: isMobile ? "0.8rem" : "0.9rem",
+                    fontWeight: 600,
+                    textTransform: "none",
+                    boxShadow: "none",
+                    "&:hover": {
+                      boxShadow: "none",
+                      opacity: 0.9,
+                    },
+                    minWidth: isMobile ? "100%" : "auto",
                   }}
-                  className="rounded-full focus:outline-none"
+                  startIcon={
+                    isFavorite ? (
+                      <FavoriteIcon sx={{ fontSize: isMobile ? 18 : 20 }} />
+                    ) : (
+                      <FavoriteBorderOutlinedIcon
+                        sx={{ fontSize: isMobile ? 18 : 20 }}
+                      />
+                    )
+                  }
                 >
-                  <Typography
-                    variant="h6"
-                    className="text-white text-2xl flex items-center"
-                  >
-                    {isFavorite
+                  {isMobile
+                    ? isFavorite
+                      ? "En Favoritos"
+                      : "Agregar a Favoritos"
+                    : isFavorite
                       ? "Agregado a Favoritos"
                       : "Agregar a Favoritos"}
-                    {isFavorite ? (
-                      <FavoriteIcon className="text-white text-2xl ml-2" />
-                    ) : (
-                      <FavoriteBorderOutlinedIcon className="text-white text-2xl ml-2" />
-                    )}
-                  </Typography>
-                </button>{" "}
-                <button
+                </Button>
+
+                {/* Share Button */}
+                <Button
                   onClick={handleShareClick}
-                  style={{
-                    background: theme.palette.primary.main,
-                    color: "white",
-                    padding: "0.6rem 1rem",
+                  variant="outlined"
+                  sx={{
+                    borderColor: theme.palette.primary.main,
+                    color: theme.palette.primary.main,
+                    borderRadius: "25px",
+                    px: isMobile ? 2 : 3,
+                    py: isMobile ? 1 : 1.5,
+                    fontSize: isMobile ? "0.8rem" : "0.9rem",
+                    fontWeight: 600,
+                    textTransform: "none",
+                    "&:hover": {
+                      backgroundColor: theme.palette.primary.light,
+                      borderColor: theme.palette.primary.main,
+                    },
+                    minWidth: isMobile ? "100%" : "auto",
                   }}
-                  className="rounded-full focus:outline-none"
+                  startIcon={
+                    <ShareOutlinedIcon sx={{ fontSize: isMobile ? 18 : 20 }} />
+                  }
                 >
-                  <Typography
-                    variant="h6"
-                    className="text-white text-2xl flex items-center"
-                  >
-                    Compartir
-                    <ShareOutlinedIcon className="text-white text-2xl ml-2" />
-                  </Typography>
-                </button>
-              </div>
+                  Compartir
+                </Button>
+              </Box>
             </Box>
 
-            {/* ⭐ Add Rating Here */}
-            <Box display="flex" alignItems="center" gap={1} mb={2}>
+            {/* Responsive Rating Section */}
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: isMobile ? "column" : "row",
+                alignItems: isMobile ? "flex-start" : "center",
+                gap: isMobile ? 1 : 2,
+                mb: 3,
+                p: isMobile ? 2 : 0,
+                backgroundColor: isMobile
+                  ? theme.palette.background.default
+                  : "transparent",
+                borderRadius: isMobile ? 2 : 0,
+              }}
+            >
               <Typography
                 variant="h6"
-                sx={{ fontWeight: "bold", color: theme.palette.primary.main }}
+                sx={{
+                  fontWeight: "bold",
+                  color: theme.palette.primary.main,
+                  fontSize: isMobile ? "1rem" : "1.25rem",
+                }}
               >
                 {data?.ratings
                   ? `${data.ratings.toFixed(1)} / 5`
                   : "Sin calificaciones"}
               </Typography>
-              <StarRating rating={data?.ratings || 0} isEditable={false} />
 
-              {/* Display stars */}
-              <Typography variant="body1" color="textSecondary">
+              <StarRating
+                rating={data?.ratings || 0}
+                isEditable={false}
+                size={isMobile ? 18 : 20}
+              />
+
+              <Typography
+                variant="body1"
+                color="textSecondary"
+                sx={{ fontSize: isMobile ? "0.9rem" : "1rem" }}
+              >
                 ({data?.numReviews || 0} reseñas)
               </Typography>
             </Box>
-            <Tabs className="flex border-b">
+
+            {/* Responsive Tabs */}
+            <Tabs>
               <Tab label="Descripción">
-                <Box display="flex" flexDirection="column" minHeight="100vh">
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    minHeight: isMobile ? "auto" : "100vh",
+                  }}
+                >
                   <Box width="100%">
                     <Aside info={data} />
                   </Box>
 
-                  <Box mt="auto" pt={5}>
+                  <Box mt={isMobile ? 4 : "auto"} pt={5}>
                     <CarouselExperiences
                       header="Experiencias relacionadas"
                       experiences={ExperiencesData?.data}
@@ -305,10 +439,7 @@ const ExperienceDetailPage = () => {
                 </Box>
               </Tab>
 
-              <Tab
-                label="Reseñas"
-                className="group py-2 px-4 border-b-2 transition-colors"
-              >
+              <Tab label="Reseñas">
                 <div className="flex flex-col lg:flex-row lg:gap-x-5">
                   <div className="flex-1">
                     <ReviewsContainer

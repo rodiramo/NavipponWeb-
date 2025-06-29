@@ -105,7 +105,7 @@ const CarouselExperiences = ({
               <Box
                 sx={{
                   position: "absolute",
-                  top: -8,
+                  bottom: -8,
                   left: 8,
                   right: 8,
                   zIndex: 10,
@@ -120,7 +120,7 @@ const CarouselExperiences = ({
                     key={index}
                     sx={{
                       backgroundColor: theme.palette.primary.light,
-                      color: theme.palette.secondary.dark,
+                      color: theme.palette.primary.main,
                       fontSize: "0.7rem",
                       fontWeight: 600,
                       padding: "4px 8px",
