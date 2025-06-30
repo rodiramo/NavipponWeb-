@@ -149,7 +149,7 @@ const UserList = ({ currentUser, token }) => {
           mb: 3,
           "& .MuiOutlinedInput-root": {
             borderRadius: 30,
-            backgroundColor: theme.palette.background.paper,
+            backgroundColor: theme.palette.background.default,
             "&:hover fieldset": {
               borderColor: theme.palette.primary.main,
             },
@@ -212,7 +212,8 @@ const UserList = ({ currentUser, token }) => {
                 px: 2,
                 border: `2px dashed ${theme.palette.divider}`,
                 borderRadius: 3,
-                backgroundColor: theme.palette.background.paper,
+                backgroundColor:
+                  theme.palette.background.theme.palette.background.default,
               }}
             >
               <PeopleOutlined
@@ -258,10 +259,6 @@ const UserList = ({ currentUser, token }) => {
                         p: 1.5,
                         borderRadius: 2,
                         transition: "all 0.2s ease-in-out",
-                        "&:hover": {
-                          backgroundColor: theme.palette.action.hover,
-                          transform: "translateX(4px)",
-                        },
                       }}
                     >
                       {/* Avatar */}
@@ -307,31 +304,28 @@ const UserList = ({ currentUser, token }) => {
                         </Typography>
                       </Box>
                       {/* Friend Toggle Button */}
+                      <Tooltip title="Ver perfil">
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          onClick={() => navigate(`/profile/${user._id}`)}
+                          sx={{
+                            borderRadius: "30px",
+                            textTransform: "none",
 
-                      <Button
-                        size="small"
-                        startIcon={<Eye />}
-                        variant="outlined"
-                        onClick={() => navigate(`/profile/${user._id}`)}
-                        sx={{
-                          borderRadius: "30px",
-                          textTransform: "none",
-                          fontSize: "0.8rem",
-                          fontWeight: "500",
-                          minWidth: "80px",
-                          height: "32px",
-                          borderColor: theme.palette.primary.main,
-                          color: theme.palette.primary.main,
-                          "&:hover": {
-                            backgroundColor: theme.palette.primary.main,
-                            color: "white",
-                            borderColor: theme.palette.primary.main,
-                          },
-                        }}
-                      >
-                        Ver perfil
-                      </Button>
-
+                            height: "32px",
+                            borderColor: theme.palette.secondary.medium,
+                            color: theme.palette.secondary.medium,
+                            "&:hover": {
+                              backgroundColor: theme.palette.secondary.medium,
+                              color: theme.palette.primary.white,
+                              borderColor: theme.palette.secondary.medium,
+                            },
+                          }}
+                        >
+                          <Eye />
+                        </Button>
+                      </Tooltip>
                       {/* Friend Toggle Button */}
                       <Tooltip
                         title={
@@ -345,18 +339,19 @@ const UserList = ({ currentUser, token }) => {
                           onClick={() => handleFriendToggle(user._id)}
                           disabled={processingFriends.has(user._id)}
                           sx={{
+                            p: 1,
+                            border: `1.5px solid ${theme.palette.primary.main}`,
                             backgroundColor: friends.includes(user._id)
-                              ? theme.palette.error.light
+                              ? theme.palette.error.lightest
                               : theme.palette.primary.light,
                             color: friends.includes(user._id)
                               ? theme.palette.error.dark
-                              : theme.palette.primary.dark,
+                              : theme.palette.primary.main,
                             "&:hover": {
                               backgroundColor: friends.includes(user._id)
                                 ? theme.palette.error.main
                                 : theme.palette.primary.main,
                               color: "white",
-                              transform: "scale(1.1)",
                             },
                             "&:disabled": {
                               backgroundColor:
@@ -366,7 +361,7 @@ const UserList = ({ currentUser, token }) => {
                           }}
                         >
                           {processingFriends.has(user._id) ? (
-                            <CircularProgress size={16} />
+                            <CircularProgress size={20} />
                           ) : friends.includes(user._id) ? (
                             <PersonRemoveOutlined fontSize="small" />
                           ) : (

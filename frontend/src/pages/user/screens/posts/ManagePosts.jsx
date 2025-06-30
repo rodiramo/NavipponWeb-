@@ -79,7 +79,13 @@ const ManagePosts = () => {
 
   // Empty State Component
   const EmptyState = () => (
-    <Container maxWidth="sm">
+    <Container
+      sx={{
+        background: theme.palette.background.default,
+        width: "100%",
+        height: "100%",
+      }}
+    >
       <Fade in={true} timeout={600}>
         <Box
           sx={{
@@ -101,13 +107,6 @@ const ManagePosts = () => {
               "&::before": {
                 content: '""',
                 position: "absolute",
-                top: "50%",
-                left: "50%",
-                transform: "translate(-50%, -50%)",
-                width: "80%",
-                height: "80%",
-                background: `linear-gradient(135deg, ${theme.palette.primary.main}20, ${theme.palette.secondary.main}20)`,
-                borderRadius: "50%",
                 animation: "pulse 2s ease-in-out infinite",
               },
               "@keyframes pulse": {
@@ -160,12 +159,9 @@ const ManagePosts = () => {
 
           {/* Description */}
           <Typography
-            variant="body1"
             sx={{
               color: theme.palette.text.secondary,
               mb: 4,
-              maxWidth: "400px",
-              lineHeight: 1.6,
             }}
           >
             ¡Comparte tus experiencias, aventuras y conocimientos con otros
@@ -180,9 +176,10 @@ const ManagePosts = () => {
             sx={{
               backgroundColor: theme.palette.primary.main,
               color: "white",
-              borderRadius: "25px",
+              borderRadius: "30rem",
               px: 4,
               py: 2,
+              borderRadius: "30rem",
               fontSize: "1.1rem",
               fontWeight: "bold",
               textTransform: "none",
@@ -195,7 +192,7 @@ const ManagePosts = () => {
               transition: "all 0.2s ease-in-out",
             }}
           >
-            Crear Mi Primera Publicación
+            Crear mi primera publicación
           </Button>
         </Box>
       </Fade>

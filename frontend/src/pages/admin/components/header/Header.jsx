@@ -165,7 +165,7 @@ const Header = ({ isMenuOpen, setIsMenuOpen }) => {
           </Box>
           <Divider
             sx={{
-              margin: { sm: "0.75rem", md: "4rem", lg: "5rem" },
+              margin: { sm: "0.75rem", md: "1rem", lg: "1rem" },
               width: "100%",
             }}
           />
@@ -269,7 +269,7 @@ const Header = ({ isMenuOpen, setIsMenuOpen }) => {
           >
             <Divider
               sx={{
-                margin: { sm: "2rem", md: "4rem", lg: "5rem" },
+                margin: { sm: "2rem", md: "4rem", lg: "1rem" },
                 width: "100%",
               }}
             />

@@ -349,7 +349,7 @@ const ChecklistWidget = ({
               flex: 1,
               padding: "8px 12px",
               border: `1px solid ${theme.palette.grey[300]}`,
-              borderRadius: "8px",
+              borderRadius: "30px",
               outline: "none",
               fontSize: "0.875rem",
             }}
@@ -360,6 +360,7 @@ const ChecklistWidget = ({
             sx={{
               backgroundColor: theme.palette.primary.main,
               color: "white",
+              borderRadius: "30rem",
               "&:hover": { backgroundColor: theme.palette.primary.dark },
             }}
           >
@@ -515,7 +516,7 @@ const Dashboard = () => {
             value={itineraries.length}
             subtitle="Total de itinerarios"
             icon={<Award />}
-            color={theme.palette.primary.main}
+            color={theme.palette.primary.black}
             trend={12}
           />
         </Grid>
@@ -529,7 +530,7 @@ const Dashboard = () => {
             )}
             subtitle="Días planificados"
             icon={<MapPin />}
-            color={theme.palette.success.main}
+            color={theme.palette.primary.black}
             trend={8}
           />
         </Grid>
@@ -540,7 +541,7 @@ const Dashboard = () => {
             value={user?.friends?.length || 0}
             subtitle="Conexiones"
             icon={<Users />}
-            color={theme.palette.info.main}
+            color={theme.palette.primary.black}
           />
         </Grid>
 
@@ -550,7 +551,7 @@ const Dashboard = () => {
             value={`${Math.round((completedTasks / checklist.length) * 100)}%`}
             subtitle="Progreso general"
             icon={<CheckCircle2 />}
-            color={theme.palette.warning.main}
+            color={theme.palette.primary.black}
           />
         </Grid>
 

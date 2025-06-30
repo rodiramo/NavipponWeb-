@@ -114,7 +114,7 @@ const CategoryCard = () => {
                 {/* Top Section */}
                 <div>
                   {/* Icon Container */}
-                  <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white/20 backdrop-blur-sm border border-white/30 mb-6 transition-all duration-300  group-hover:bg-white/30">
+                  <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20  rounded-2xl bg-white/20 backdrop-blur-sm border border-white/30 mb-6 transition-all duration-300  group-hover:bg-white/30">
                     {React.cloneElement(category.icon, {
                       color: "white",
                       size: window.innerWidth < 640 ? "2rem" : "2.5rem",
@@ -134,7 +134,7 @@ const CategoryCard = () => {
                   </p>
 
                   {/* CTA Button */}
-                  <div className="flex items-center gap-2 text-white font-semibold transition-all duration-300 group-hover:gap-4">
+                  <div className="flex items-center gap-2 text-white font-semibold transition-all duration-300 group-hover:gap-4 ">
                     <span className="text-base sm:text-lg">Explorar</span>
                     <div className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center transition-all duration-300 group-hover:bg-white/30 group-hover:rotate-12">
                       <svg

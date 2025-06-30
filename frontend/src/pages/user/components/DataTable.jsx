@@ -96,7 +96,7 @@ const DataTable = ({
           textAlign: "center",
           py: 8,
           border: "none",
-          backgroundColor: "transparent",
+          backgroundColor: theme.palette.background.default,
         }}
       >
         <Box
@@ -133,7 +133,7 @@ const DataTable = ({
     <Box
       sx={{
         minHeight: "100vh",
-        backgroundColor: theme.palette.background.default, // Use default background
+        backgroundColor: theme.palette.background.default,
       }}
     >
       {/* Page Title */}
