@@ -25,7 +25,6 @@ import {
 import {
   Search,
   MapPin,
-  Euro,
   Star,
   Filter,
   X,
@@ -205,7 +204,7 @@ const ExperienceCard = ({ experience, onSelect, isSelected, theme }) => {
                 boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
               }}
             >
-              <Euro size={14} />
+              ¥
               <Typography
                 variant="subtitle2"
                 sx={{

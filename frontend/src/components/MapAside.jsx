@@ -158,8 +158,8 @@ const MapAside = ({ experiences = [] }) => {
                     overflow: hidden;
                   ">
                     ${exp.description.substring(0, 100)}${
-                        exp.description.length > 100 ? "..." : ""
-                      }
+                      exp.description.length > 100 ? "..." : ""
+                    }
                   </p>
                 `
                     : ""

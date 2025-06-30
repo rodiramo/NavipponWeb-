@@ -20,6 +20,7 @@ import {
   Edit,
   CalendarDays,
   HandCoins,
+  Download,
   MessagesSquare,
   ArrowLeft,
   Users,
@@ -43,6 +44,8 @@ const ItineraryHeader = ({
   myRole,
   travelDays,
   totalBudget,
+  onOfflineClick,
+  hasOfflinePermission = true,
   travelers,
   friendsList,
   onAddTraveler,
@@ -471,7 +474,21 @@ const ItineraryHeader = ({
                   currentUserId={currentUserId}
                 />
               </Box>
-
+              {hasOfflinePermission && (
+                <Tooltip title="PDF & Offline">
+                  <IconButton
+                    onClick={onOfflineClick}
+                    sx={{
+                      padding: 2,
+                      border: "50%",
+                      background:
+                        "linear-gradient(rgba(228, 135, 155, 0.38), rgba(235, 157, 188, 0.41))",
+                    }}
+                  >
+                    <Download size={20} color={theme.palette.primary.light} />
+                  </IconButton>
+                </Tooltip>
+              )}
               {/* Notes Button - Available to all users */}
               <Tooltip title="Notas del viaje">
                 <IconButton
@@ -479,8 +496,8 @@ const ItineraryHeader = ({
                   sx={{
                     backgroundColor: theme.palette.primary.main,
                     color: "white",
-                    width: 48,
-                    height: 48,
+                    padding: 2,
+                    border: "50%",
                     boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
                     backdropFilter: "blur(10px)",
                     "&:hover": {
@@ -491,7 +508,7 @@ const ItineraryHeader = ({
                     transition: "all 0.3s ease",
                   }}
                 >
-                  <MessagesSquare size={24} />
+                  <MessagesSquare size={20} />
                 </IconButton>
               </Tooltip>
             </Box>

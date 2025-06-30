@@ -1,6 +1,6 @@
 // Complete ItineraryDetailPage.jsx with Permanent Auto-Favorites Fix
 import React, { useState, useEffect, useCallback } from "react";
-import { Box, useTheme, Typography } from "@mui/material";
+import { Box, useTheme, Typography, IconButton } from "@mui/material";
 import { toast } from "react-hot-toast";
 import { useNavigate, useParams } from "react-router-dom";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
@@ -10,7 +10,8 @@ import { Calendar, CalendarCheck } from "lucide-react";
 import es from "date-fns/locale/es";
 import DateChangeDialog from "./components/DateChangeDialog";
 import DateDisplay from "./components/DateDisplay";
-
+import OfflineManager from "./components/OfflineManager";
+import { Download } from "lucide-react";
 // DnD Kit imports
 import {
   DndContext,
@@ -51,6 +52,8 @@ import {
 import { getUserFriends } from "../../../../services/index/users";
 
 const ItineraryDetailPage = () => {
+  const [offlineModalOpen, setOfflineModalOpen] = useState(false);
+
   const theme = useTheme();
   const [itinerary, setItinerary] = useState(null);
   const [userRole, setUserRole] = useState("viewer");
@@ -617,37 +620,63 @@ const ItineraryDetailPage = () => {
     }
   }, [user?._id]);
 
-  // Enhanced addExistingFavoriteToBoard that handles local favorites
+  // Add this debugging to your addExistingFavoriteToBoard function
   const addExistingFavoriteToBoard = async (
     favoriteDoc,
     experience,
     boardIndex
   ) => {
+    console.log("🎯 DEBUG addExistingFavoriteToBoard:");
+    console.log("📄 favoriteDoc:", favoriteDoc);
+    console.log("🎪 experience:", experience);
+    console.log("📍 boardIndex:", boardIndex);
+    console.log(
+      "🗂️ Current boards before:",
+      JSON.parse(JSON.stringify(boards))
+    );
+
     try {
       const newBoards = [...boards];
       const targetBoard = newBoards[boardIndex];
+
+      console.log(
+        "🎯 Target board before:",
+        JSON.parse(JSON.stringify(targetBoard))
+      );
 
       // Check for duplicates
       const isDuplicate = targetBoard.favorites?.some((boardFav) => {
         const boardFavId =
           typeof boardFav === "object" ? boardFav._id : boardFav;
+        console.log(
+          "🔍 Checking duplicate:",
+          boardFavId,
+          "vs",
+          favoriteDoc._id
+        );
         return boardFavId === favoriteDoc._id;
       });
 
       if (isDuplicate) {
+        console.log("❌ Duplicate found, aborting");
         toast.error("Esta experiencia ya está añadida en este día");
         return;
       }
 
       // Add to UI state
-      if (!targetBoard.favorites) targetBoard.favorites = [];
+      if (!targetBoard.favorites) {
+        console.log("📝 Creating new favorites array");
+        targetBoard.favorites = [];
+      }
 
       const uiFavorite = {
         _id: favoriteDoc._id,
         experienceId: experience,
         uniqueId: `${boardIndex}-${targetBoard.favorites.length}-${favoriteDoc._id}`,
-        isLocal: favoriteDoc.isLocal, // Preserve local flag
+        isLocal: favoriteDoc.isLocal,
       };
+
+      console.log("✨ Creating UI favorite:", uiFavorite);
 
       targetBoard.favorites.push(uiFavorite);
 
@@ -657,13 +686,26 @@ const ItineraryDetailPage = () => {
         0
       );
 
+      console.log("💰 Updated board budget:", targetBoard.dailyBudget);
+      console.log(
+        "🎯 Target board after:",
+        JSON.parse(JSON.stringify(targetBoard))
+      );
+
       setBoards(newBoards);
       updateTotalBudget(newBoards);
 
+      console.log(
+        "🚀 About to call saveBoardChanges with:",
+        JSON.parse(JSON.stringify(newBoards))
+      );
+
       // Save to backend (this will filter out local favorites automatically)
       await saveBoardChanges(newBoards);
+
+      console.log("✅ saveBoardChanges completed successfully");
     } catch (error) {
-      console.error("Error adding to board:", error);
+      console.error("❌ Error in addExistingFavoriteToBoard:", error);
       toast.error("Error al añadir la experiencia al día");
 
       // Revert changes on error
@@ -998,7 +1040,7 @@ const ItineraryDetailPage = () => {
         removeExperience: false,
         dragDrop: false,
         manageTravelers: false,
-        addNotes: false,
+        addNotes: true,
       },
       editor: {
         view: true,
@@ -1182,26 +1224,101 @@ const ItineraryDetailPage = () => {
     }
   };
 
+  // Add this new handler function
+  const handleToggleChecklistItem = async (itemId) => {
+    if (!hasPermission("addNotes")) {
+      toast.error("No tienes permisos para modificar la lista");
+      return;
+    }
+
+    try {
+      const updatedNotes = notes.map((note) =>
+        note._id === itemId ? { ...note, completed: !note.completed } : note
+      );
+
+      setNotes(updatedNotes);
+      await updateItinerary(id, { notes: updatedNotes }, jwt);
+      toast.success("Tarea actualizada");
+    } catch (error) {
+      console.error("Error updating checklist item:", error);
+      toast.error("Error al actualizar la tarea");
+
+      // Revert changes on error
+      fetchItinerary();
+    }
+  };
+  const handleDeleteChecklistItem = async (itemId) => {
+    if (!hasPermission("addNotes")) {
+      toast.error("No tienes permisos para eliminar tareas");
+      return;
+    }
+
+    try {
+      const updatedNotes = notes.filter((note) => note._id !== itemId);
+
+      // Update backend first
+      await updateItinerary(id, { notes: updatedNotes }, jwt);
+
+      // Then update local state
+      setNotes(updatedNotes);
+      toast.success("Tarea eliminada");
+    } catch (error) {
+      console.error("Error deleting checklist item:", error);
+      toast.error("Error al eliminar la tarea");
+    }
+  };
+  const handleEditChecklistItem = async (itemId, newText) => {
+    if (!hasPermission("addNotes")) {
+      toast.error("No tienes permisos para editar tareas");
+      return;
+    }
+
+    try {
+      const updatedNotes = notes.map((note) =>
+        note._id === itemId ? { ...note, text: newText } : note
+      );
+
+      // Update backend first
+      await updateItinerary(id, { notes: updatedNotes }, jwt);
+
+      // Then update local state
+      setNotes(updatedNotes);
+      toast.success("Tarea actualizada");
+    } catch (error) {
+      console.error("Error editing checklist item:", error);
+      toast.error("Error al editar la tarea");
+
+      // Optionally refetch to ensure consistency
+      fetchItinerary();
+    }
+  };
+  // Update the handleAddNote function to add checklist items
   const handleAddNote = async () => {
     if (!newNote.trim() || !user?._id) return;
 
-    const note = {
+    const checklistItem = {
       text: newNote,
-      date: new Date(),
-      author: { _id: user._id, name: user.name || "Unknown" },
+      completed: false,
+      author: user.name || user._id, // Use name if available, fallback to ID
     };
-    const updatedNotes = [...notes, note];
+
+    const updatedNotes = [...notes, checklistItem];
     setNotes(updatedNotes);
+
     try {
       await updateItinerary(id, { notes: updatedNotes }, jwt);
+      toast.success("Tarea añadida");
     } catch (error) {
-      console.error("Error adding note", error);
-      toast.error("Error adding note");
+      console.error("Error adding checklist item:", error);
+      toast.error("Error al añadir tarea");
+
+      // Revert changes on error
+      setNotes(notes);
     }
+
     setNewNote("");
     setNotesModalOpen(false);
   };
-
   const handleClearFilters = () => {
     setSelectedCategory("All");
     setSelectedRegion("All");
@@ -1521,6 +1638,7 @@ const ItineraryDetailPage = () => {
   return (
     <Box>
       <ScrollHeader />
+
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
@@ -1560,6 +1678,8 @@ const ItineraryDetailPage = () => {
               myRole={myRole}
               travelDays={travelDays}
               totalBudget={totalBudget}
+              onOfflineClick={() => setOfflineModalOpen(true)}
+              hasOfflinePermission={hasPermission("view")}
               travelers={travelers}
               friendsList={friendsList}
               startDate={startDate}
@@ -1678,6 +1798,22 @@ const ItineraryDetailPage = () => {
           </DragOverlay>
         )}
       </DndContext>
+
+      <OfflineManager
+        itinerary={{
+          _id: id,
+          name,
+          totalBudget,
+          travelDays,
+          isPrivate,
+          creator,
+          travelers,
+        }}
+        boards={boards}
+        startDate={startDate}
+        open={offlineModalOpen}
+        onClose={() => setOfflineModalOpen(false)}
+      />
       {userRole !== "viewer" && (
         <DateChangeDialog
           open={isEditingDates}
@@ -1687,7 +1823,6 @@ const ItineraryDetailPage = () => {
           onConfirm={handleUpdateItineraryDates}
         />
       )}
-
       {/* Only show AddExperienceModal if user can add experiences */}
       {hasPermission("addExperience") && (
         <AddExperienceModal
@@ -1701,16 +1836,18 @@ const ItineraryDetailPage = () => {
           loading={loadingExperiences}
         />
       )}
-
-      {hasPermission("viewNotes") && (
+      {hasPermission("addNotes") && (
         <NotesModal
           open={notesModalOpen}
           onClose={() => setNotesModalOpen(false)}
           notes={notes}
           newNote={newNote}
-          setNewNote={hasPermission("addNotes") ? setNewNote : () => {}}
-          onAddNote={hasPermission("addNotes") ? handleAddNote : undefined}
-          readOnly={!hasPermission("addNotes")}
+          setNewNote={setNewNote}
+          onAddNote={handleAddNote}
+          onToggleCheck={handleToggleChecklistItem}
+          onDeleteItem={handleDeleteChecklistItem} // ✅ Add this
+          onEditItem={handleEditChecklistItem} // ✅ Add this
+          currentUser={user}
         />
       )}
     </Box>

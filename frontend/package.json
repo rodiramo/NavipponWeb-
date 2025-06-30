@@ -43,6 +43,8 @@
     "dayjs": "^1.11.13",
     "firebase": "^11.1.0",
     "html-react-parser": "^3.0.15",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^3.0.1",
     "leaflet": "^1.9.4",
     "leaflet.markercluster": "^1.5.3",
     "lowlight": "^2.9.0",
