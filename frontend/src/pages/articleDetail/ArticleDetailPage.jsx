@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { Link, useParams } from "react-router-dom";
 import {
   Box,
@@ -13,9 +13,11 @@ import {
   useMediaQuery,
   Container,
   Grid,
+  CircularProgress,
   Paper,
   Stack,
 } from "@mui/material";
+import { setFriends } from "../../store/reducers/authSlice";
 import { PersonAddOutlined, PersonRemoveOutlined } from "@mui/icons-material";
 import { toggleFriend } from "../../services/index/users";
 import { toast } from "react-hot-toast";
@@ -31,6 +33,8 @@ import {
   Share,
   FavoriteBorder,
 } from "@mui/icons-material";
+import { useDispatch } from "react-redux";
+
 import { useQuery } from "@tanstack/react-query";
 import { getAllPosts, getSinglePost } from "../../services/index/posts";
 import MainLayout from "../../components/MainLayout";
@@ -40,8 +44,8 @@ import ErrorMessage from "../../components/ErrorMessage";
 import ArticleDetailSkeleton from "./components/ArticleDetailSkeleton";
 import BreadcrumbBack from "../../components/BreadcrumbBack";
 import useUser from "../../hooks/useUser";
+import { useSelector } from "react-redux";
 
-// Rich Text Renderer Component
 const RichTextRenderer = ({ content, theme }) => {
   // Function to apply text marks (bold, italic, etc.)
   const applyMarks = (text, marks = []) => {
@@ -489,11 +493,15 @@ const ArticleDetailPage = (token) => {
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const isTablet = useMediaQuery(theme.breakpoints.down("lg"));
 
-  const [friends, setFriends] = useState({});
+  // ✅ Get friends from Redux store
+  const userFriends = useSelector((state) => state.auth.user?.friends ?? []);
+
   const [body, setBody] = useState(null);
   const [tags, setTags] = useState([]);
   const [isFavorited, setIsFavorited] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
+  // ✅ Local state for immediate UI update
+  const [localFriendState, setLocalFriendState] = useState(null);
 
   // Fetch Post
   const { data, isLoading, isError } = useQuery({
@@ -538,11 +546,48 @@ const ArticleDetailPage = (token) => {
     queryKey: ["posts"],
   });
 
+  const isPostAuthorFriend = useMemo(() => {
+    return data?.user?._id ? userFriends.includes(data.user._id) : false;
+  }, [userFriends, data?.user?._id]);
+
+  const isOwnPost = useMemo(() => {
+    return user?._id === data?.user?._id;
+  }, [user?._id, data?.user?._id]);
+
+  // ✅ Sync local state with Redux when data changes
+  useEffect(() => {
+    if (data?.user?._id && localFriendState === null) {
+      setLocalFriendState(userFriends.includes(data.user._id));
+    }
+  }, [data?.user?._id, userFriends, localFriendState]);
+
+  // Debug friend state
+  useEffect(() => {
+    if (data?.user?._id) {
+      console.log("🔍 Friend Debug:", {
+        userFriends,
+        postAuthorId: data.user._id,
+        isPostAuthorFriend,
+        isOwnPost,
+        currentUserId: user?._id,
+        localFriendState,
+      });
+    }
+  }, [
+    userFriends,
+    data?.user?._id,
+    isPostAuthorFriend,
+    isOwnPost,
+    user?._id,
+    localFriendState,
+  ]);
+
   // Scroll to top on mount
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
-
+  const dispatch = useDispatch();
+  const [processingFriends, setProcessingFriends] = useState(new Set());
   useEffect(() => {
     if (data?.tags && Array.isArray(data.tags)) {
       setTags(data.tags);
@@ -551,23 +596,37 @@ const ArticleDetailPage = (token) => {
     }
   }, [data?.tags]);
 
-  // Toggle Friend Status
-  const handleFriendToggle = async (userId) => {
+  // ✅ Fixed Toggle Friend Status - with immediate UI update
+  const handleFriendToggle = async () => {
+    if (!data?.user?._id || !jwt) {
+      toast.error("Error: No se puede agregar/quitar amigo");
+      return;
+    }
+
+    const userId = data.user._id;
+    setProcessingFriends((prev) => new Set(prev.add(userId)));
+
     try {
-      await toggleFriend({ userId, token });
+      const updatedUser = await toggleFriend({ userId, token: jwt });
+      dispatch(setFriends(updatedUser.friends));
 
-      setFriends((prev) => {
-        const updatedFriends = { ...prev, [userId]: !prev[userId] };
-        localStorage.setItem("friends", JSON.stringify(updatedFriends));
-        return updatedFriends;
-      });
-
+      const userName = data.user.name || "Usuario";
+      const isFriend = updatedUser.friends.includes(userId);
       toast.success(
-        friends[userId] ? "Eliminado de amigos" : "Agregado a amigos"
+        isFriend
+          ? `Ahora eres amigo de ${userName}`
+          : `Has dejado de seguir a ${userName}`,
+        { duration: 3000 }
       );
     } catch (error) {
       toast.error("Error al actualizar amigos");
       console.error(error);
+    } finally {
+      setProcessingFriends((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(userId);
+        return newSet;
+      });
     }
   };
 
@@ -616,15 +675,14 @@ const ArticleDetailPage = (token) => {
     <>
       {/* Author Section */}
       <Paper
-        elevation={2}
+        elevation={0}
         sx={{
           p: 3,
           mb: 3,
-          borderRadius: 2,
-          backgroundColor: theme.palette.background.default,
-          border: `1px solid ${
-            theme.palette.neutral?.light || theme.palette.grey[200]
-          }`,
+          borderRadius: 3,
+          backgroundColor: theme.palette.background.paper,
+          border: `1px solid ${theme.palette.divider}`,
+          background: `linear-gradient(135deg, ${theme.palette.background.paper} 0%, ${theme.palette.primary.main}05 100%)`,
         }}
       >
         <Typography
@@ -632,10 +690,10 @@ const ArticleDetailPage = (token) => {
           sx={{
             mb: 2,
             color: theme.palette.primary.main,
-            fontWeight: "bold",
+            fontWeight: 700,
           }}
         >
-          Autor
+          Sobre el Autor
         </Typography>
 
         <Box
@@ -647,71 +705,99 @@ const ArticleDetailPage = (token) => {
             gap: 2,
           }}
         >
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
             <Avatar
               src={
                 data?.user?.avatar
                   ? stables.UPLOAD_FOLDER_BASE_URL + data?.user.avatar
-                  : "/default-avatar.jpg"
+                  : images.userImage
               }
               alt={data?.user?.name}
               sx={{
-                width: { xs: 40, sm: 48 },
-                height: { xs: 40, sm: 48 },
-                border: `2px solid ${theme.palette.primary.main}`,
+                width: { xs: 48, sm: 56 },
+                height: { xs: 48, sm: 56 },
+                border: `3px solid ${theme.palette.primary.main}`,
+                boxShadow: theme.shadows[3],
               }}
             />
-            <Typography
-              variant="body1"
-              sx={{
-                fontWeight: "medium",
-                color: theme.palette.text.primary,
-              }}
-            >
-              {data?.user?.name || "Autor desconocido"}
-            </Typography>
+            <Box>
+              <Typography
+                variant="h6"
+                sx={{
+                  fontWeight: 600,
+                  color: theme.palette.text.primary,
+                  fontSize: { xs: "1rem", sm: "1.125rem" },
+                }}
+              >
+                {data?.user?.name || "Autor desconocido"}
+              </Typography>
+              <Typography
+                variant="body2"
+                sx={{
+                  color: theme.palette.text.secondary,
+                  fontSize: "0.875rem",
+                }}
+              >
+                {isOwnPost ? "Tu publicación" : "Contribuidor"}
+              </Typography>
+            </Box>
           </Box>
 
-          <Tooltip
-            title={friends[user?._id] ? "Eliminar amigo" : "Agregar amigo"}
-          >
-            <IconButton
-              size="small"
-              onClick={() => handleFriendToggle(user?._id)}
-              sx={{
-                backgroundColor: primaryLight,
-                p: 1.5,
-                "&:hover": {
-                  backgroundColor: primaryDark,
-                  "& svg": {
-                    color: "white",
-                  },
-                },
-                transition: "all 0.2s ease-in-out",
-              }}
+          {user && !isOwnPost && (
+            <Tooltip
+              title={
+                isPostAuthorFriend ? "Eliminar de amigos" : "Agregar a amigos"
+              }
             >
-              {friends[user?._id] ? (
-                <PersonRemoveOutlined sx={{ color: primaryDark }} />
-              ) : (
-                <PersonAddOutlined sx={{ color: primaryDark }} />
-              )}
-            </IconButton>
-          </Tooltip>
+              <IconButton
+                onClick={handleFriendToggle}
+                disabled={processingFriends.has(data?.user?._id)}
+                sx={{
+                  backgroundColor: isPostAuthorFriend
+                    ? theme.palette.error.light
+                    : theme.palette.primary.light,
+                  color: isPostAuthorFriend
+                    ? theme.palette.error.main
+                    : theme.palette.primary.main,
+                  width: { xs: 44, sm: 48 },
+                  height: { xs: 44, sm: 48 },
+                  "&:hover": {
+                    backgroundColor: isPostAuthorFriend
+                      ? theme.palette.error.main
+                      : theme.palette.primary.main,
+                    color: "white",
+                    transform: "scale(1.05)",
+                  },
+                  "&:disabled": {
+                    backgroundColor: theme.palette.action.disabledBackground,
+                  },
+                  transition: "all 0.3s ease",
+                  boxShadow: theme.shadows[2],
+                }}
+              >
+                {processingFriends.has(data?.user?._id) ? (
+                  <CircularProgress size={20} />
+                ) : isPostAuthorFriend ? (
+                  <PersonRemoveOutlined sx={{ fontSize: { xs: 20, sm: 24 } }} />
+                ) : (
+                  <PersonAddOutlined sx={{ fontSize: { xs: 20, sm: 24 } }} />
+                )}
+              </IconButton>
+            </Tooltip>
+          )}
         </Box>
       </Paper>
 
       {/* Categories Section */}
       {data?.categories && data.categories.length > 0 && (
         <Paper
-          elevation={2}
+          elevation={0}
           sx={{
             p: 3,
             mb: 3,
-            borderRadius: 2,
-            backgroundColor: theme.palette.background.default,
-            border: `1px solid ${
-              theme.palette.neutral?.light || theme.palette.grey[200]
-            }`,
+            borderRadius: 3,
+            backgroundColor: theme.palette.background.paper,
+            border: `1px solid ${theme.palette.divider}`,
           }}
         >
           <Typography
@@ -719,7 +805,7 @@ const ArticleDetailPage = (token) => {
             sx={{
               mb: 2,
               color: theme.palette.primary.main,
-              fontWeight: "bold",
+              fontWeight: 700,
             }}
           >
             Categorías
@@ -730,13 +816,10 @@ const ArticleDetailPage = (token) => {
                 key={category._id}
                 label={category.title}
                 color="primary"
-                variant="outlined"
+                variant="filled"
                 sx={{
-                  "&:hover": {
-                    backgroundColor: theme.palette.primary.light,
-                    transform: "translateY(-1px)",
-                  },
-                  transition: "all 0.2s ease-in-out",
+                  borderRadius: "30px",
+                  fontWeight: 500,
                 }}
               />
             ))}
@@ -745,56 +828,49 @@ const ArticleDetailPage = (token) => {
       )}
 
       {/* Tags Section */}
-      <Paper
-        elevation={2}
-        sx={{
-          p: 3,
-          mb: 3,
-          borderRadius: 2,
-          backgroundColor: theme.palette.background.default,
-          border: `1px solid ${
-            theme.palette.neutral?.light || theme.palette.grey[200]
-          }`,
-        }}
-      >
-        <Typography
-          variant="h6"
+      {tags.length > 0 && (
+        <Paper
+          elevation={0}
           sx={{
-            mb: 2,
-            color: theme.palette.primary.main,
-            fontWeight: "bold",
+            p: 3,
+            mb: 3,
+            borderRadius: 3,
+            border: `1px solid ${theme.palette.divider}`,
           }}
         >
-          Etiquetas
-        </Typography>
-        {tags.length === 0 ? (
-          <Typography variant="body2" color="text.secondary">
-            No hay etiquetas disponibles
+          <Typography
+            variant="h6"
+            sx={{
+              mb: 2,
+              color: theme.palette.primary.main,
+              fontWeight: 700,
+            }}
+          >
+            Etiquetas
           </Typography>
-        ) : (
           <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", gap: 1 }}>
             {tags.map((tag, index) => (
               <Chip
                 key={index}
-                label={tag}
+                label={`#${tag}`}
+                variant="outlined"
                 sx={{
-                  backgroundColor:
-                    theme.palette.secondary?.medium ||
-                    theme.palette.secondary.main,
-                  color: "white",
+                  borderRadius: "30px",
+                  fontWeight: 500,
+                  borderColor: theme.palette.secondary.medium,
+                  color: theme.palette.secondary.medium,
                   "&:hover": {
-                    backgroundColor:
-                      theme.palette.secondary?.main ||
-                      theme.palette.secondary.dark,
-                    transform: "translateY(-1px)",
+                    backgroundColor: theme.palette.secondary.medium,
+                    color: "white",
+                    transform: "translateY(-2px)",
                   },
-                  transition: "all 0.2s ease-in-out",
+                  transition: "all 0.3s ease",
                 }}
               />
             ))}
           </Stack>
-        )}
-      </Paper>
+        </Paper>
+      )}
     </>
   );
 
@@ -806,78 +882,126 @@ const ArticleDetailPage = (token) => {
         <ErrorMessage message="No se pudieron obtener los detalles de la publicación" />
       ) : (
         <Container
-          maxWidth="xl"
+          maxWidth={false}
           sx={{
-            py: { xs: 8, sm: 10, md: 15 },
-            px: { xs: 2, sm: 3 },
+            py: { xs: 6, sm: 8, md: 12 },
+            px: { xs: 2, sm: 3, md: 12 },
+            width: "100%",
           }}
         >
-          <Grid container spacing={{ xs: 0, md: 4 }}>
+          <Grid container spacing={{ xs: 0, md: 6 }} sx={{ maxWidth: "none" }}>
             {/* Main Content */}
-            <Grid item xs={12} md={8} lg={9}>
-              <Box sx={{ mb: { xs: 4, md: 0 } }}>
+            <Grid item xs={12} md={9} lg={8}>
+              <Box sx={{ mb: { xs: 4, md: 0 }, pr: { md: 2 } }}>
                 {/* Breadcrumb */}
-                <Box sx={{ mb: 3 }}>
+                <Box sx={{ mb: 4 }}>
                   <BreadcrumbBack />
                 </Box>
 
                 {/* Article Header */}
-                <Box sx={{ textAlign: "center", mb: 4 }}>
-                  {/* Date */}
-                  <Typography
-                    variant="body2"
+                <Box sx={{ mb: 5 }}>
+                  {/* Date and Reading Time */}
+                  <Box
                     sx={{
-                      color:
-                        theme.palette.secondary?.medium ||
-                        theme.palette.text.secondary,
-                      mb: 2,
-                      fontSize: { xs: "0.875rem", sm: "1rem" },
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 2,
+                      mb: 3,
+                      flexWrap: "wrap",
                     }}
                   >
-                    {new Date(data?.createdAt).toLocaleDateString("es-ES", {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
-                    })}
-                  </Typography>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        color: theme.palette.text.secondary,
+                        fontSize: { xs: "0.875rem", sm: "1rem" },
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1,
+                      }}
+                    >
+                      {" "}
+                      {new Date(data?.createdAt).toLocaleDateString("es-ES", {
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric",
+                      })}
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        color: theme.palette.primary.main,
+                        fontSize: { xs: "0.875rem", sm: "1rem" },
+                        fontWeight: 500,
+                      }}
+                    >
+                      ⏱{" "}
+                      {Math.ceil(
+                        (data?.caption?.split(" ").length || 100) / 200
+                      )}{" "}
+                      min lectura
+                    </Typography>
+                  </Box>
 
                   {/* Post Title */}
                   <Typography
                     variant="h1"
                     sx={{
-                      fontWeight: "bold",
-                      color: theme.palette.primary.main,
+                      fontWeight: 800,
+                      color: theme.palette.text.primary,
                       fontSize: {
-                        xs: "1.75rem",
-                        sm: "2.25rem",
-                        md: "2.75rem",
+                        xs: "2rem",
+                        sm: "2.5rem",
+                        md: "3rem",
                         lg: "3.5rem",
                       },
-                      lineHeight: 1.2,
-                      fontFamily: theme.typography.h1?.fontFamily,
+                      lineHeight: { xs: 1.2, md: 1.1 },
+                      letterSpacing: "-0.02em",
+                      mb: 3,
+                      background: `linear-gradient(135deg, 
+                        ${theme.palette.primary.main} , 
+                        ${theme.palette.primary.main} 100%)`,
+                      backgroundClip: "text",
+                      WebkitBackgroundClip: "text",
+                      WebkitTextFillColor: "transparent",
                     }}
                   >
                     {data?.title}
                   </Typography>
+
+                  {/* Caption/Subtitle */}
+                  <Typography
+                    variant="h5"
+                    sx={{
+                      color: theme.palette.text.secondary,
+                      fontSize: {
+                        xs: "1.125rem",
+                        sm: "1.25rem",
+                        md: "1.375rem",
+                      },
+                      lineHeight: 1.6,
+                      fontWeight: 400,
+                      mb: 4,
+                      fontStyle: "italic",
+                    }}
+                  >
+                    {data?.caption}
+                  </Typography>
                 </Box>
 
-                {/* Post Image with Overlay Buttons */}
+                {/* ✅ Consistently Sized Post Image with Overlay Buttons */}
                 <Box
                   sx={{
                     position: "relative",
                     width: "100%",
-                    mb: 4,
-                    borderRadius: 2,
-                    overflow: "hidden",
-                    boxShadow: theme.shadows[4],
-                    "&:hover": {
-                      boxShadow: theme.shadows[8],
-                      transform: "scale(1.01)",
-                      "& .overlay-buttons": {
-                        opacity: 1,
-                      },
+                    height: {
+                      xs: "300px",
+                      sm: "400px",
+                      md: "500px",
+                      lg: "600px",
                     },
-                    transition: "all 0.3s ease-in-out",
+                    borderRadius: 3,
+                    mb: 5,
                   }}
                 >
                   <Box
@@ -890,8 +1014,10 @@ const ArticleDetailPage = (token) => {
                     alt={data?.title}
                     sx={{
                       width: "100%",
-                      height: "auto",
-                      display: "block",
+                      borderRadius: 3,
+                      height: "100%",
+                      objectFit: "cover",
+                      transition: "transform 0.3s ease",
                     }}
                   />
 
@@ -900,13 +1026,12 @@ const ArticleDetailPage = (token) => {
                     className="overlay-buttons"
                     sx={{
                       position: "absolute",
-                      bottom: 16,
-                      right: 16,
+                      bottom: 20,
+                      right: 20,
                       display: "flex",
-                      flexDirection: "column",
-                      gap: 1,
-                      opacity: { xs: 1, md: 0.8 },
-                      transition: "opacity 0.3s ease-in-out",
+                      gap: 2,
+                      opacity: { xs: 1, md: 0.9 },
+                      transition: "opacity 0.3s ease",
                     }}
                   >
                     {/* Share Button */}
@@ -914,55 +1039,55 @@ const ArticleDetailPage = (token) => {
                       onClick={handleShare}
                       disabled={isSharing}
                       sx={{
-                        backgroundColor: "rgba(255, 255, 255, 0.9)",
+                        backgroundColor: "rgba(255, 255, 255, 0.95)",
                         backdropFilter: "blur(10px)",
                         color: theme.palette.primary.main,
-                        width: 48,
-                        height: 48,
-                        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
-                        border: "1px solid rgba(255, 255, 255, 0.2)",
+                        width: { xs: 48, sm: 56 },
+                        height: { xs: 48, sm: 56 },
+                        boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3)",
+                        border: "1px solid rgba(255, 255, 255, 0.3)",
                         "&:hover": {
                           backgroundColor: theme.palette.primary.main,
                           color: "white",
-                          transform: "scale(1.1)",
-                          boxShadow: "0 6px 20px rgba(0, 0, 0, 0.25)",
+                          transform: "scale(1.1) translateY(-2px)",
+                          boxShadow: "0 12px 40px rgba(0, 0, 0, 0.4)",
                         },
                         "&:disabled": {
                           backgroundColor: "rgba(255, 255, 255, 0.7)",
                           color: theme.palette.primary.light,
                         },
-                        transition: "all 0.2s ease-in-out",
+                        transition: "all 0.3s ease",
                       }}
                     >
-                      <Share sx={{ fontSize: 24 }} />
+                      <Share sx={{ fontSize: { xs: 20, sm: 24 } }} />
                     </IconButton>
 
                     {/* Favorite Button */}
                     <IconButton
                       onClick={handleFavoriteToggle}
                       sx={{
-                        backgroundColor: "rgba(255, 255, 255, 0.9)",
+                        backgroundColor: "rgba(255, 255, 255, 0.95)",
                         backdropFilter: "blur(10px)",
                         color: isFavorited
                           ? theme.palette.error.main
                           : theme.palette.grey[600],
-                        width: 48,
-                        height: 48,
-                        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
-                        border: "1px solid rgba(255, 255, 255, 0.2)",
+                        width: { xs: 48, sm: 56 },
+                        height: { xs: 48, sm: 56 },
+                        boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3)",
+                        border: "1px solid rgba(255, 255, 255, 0.3)",
                         "&:hover": {
                           backgroundColor: theme.palette.error.main,
                           color: "white",
-                          transform: "scale(1.1)",
-                          boxShadow: "0 6px 20px rgba(0, 0, 0, 0.25)",
+                          transform: "scale(1.1) translateY(-2px)",
+                          boxShadow: "0 12px 40px rgba(0, 0, 0, 0.4)",
                         },
-                        transition: "all 0.2s ease-in-out",
+                        transition: "all 0.3s ease",
                       }}
                     >
                       {isFavorited ? (
-                        <Favorite sx={{ fontSize: 24 }} />
+                        <Favorite sx={{ fontSize: { xs: 20, sm: 24 } }} />
                       ) : (
-                        <FavoriteBorder sx={{ fontSize: 24 }} />
+                        <FavoriteBorder sx={{ fontSize: { xs: 20, sm: 24 } }} />
                       )}
                     </IconButton>
                   </Box>
@@ -970,7 +1095,7 @@ const ArticleDetailPage = (token) => {
 
                 {/* Mobile Sidebar - Show above content on mobile */}
                 {isMobile && (
-                  <Box sx={{ mb: 4 }}>
+                  <Box sx={{ mb: 5 }}>
                     <SidebarContent />
                   </Box>
                 )}
@@ -978,7 +1103,7 @@ const ArticleDetailPage = (token) => {
                 {/* Post Content - Using Rich Text Renderer */}
                 <Box
                   sx={{
-                    mb: 4,
+                    mb: 5,
                     "& .drop-cap": {
                       fontSize: { xs: "1rem", sm: "1.1rem", md: "1.2rem" },
                       lineHeight: { xs: 1.6, md: 1.7 },
@@ -996,7 +1121,7 @@ const ArticleDetailPage = (token) => {
                 {/* Divider */}
                 <Divider
                   sx={{
-                    my: { xs: 3, md: 4 },
+                    my: 6,
                     borderColor: theme.palette.divider,
                   }}
                 />
@@ -1010,7 +1135,7 @@ const ArticleDetailPage = (token) => {
                 />
 
                 {/* Suggested Posts - Moved to bottom */}
-                <Box sx={{ mt: { xs: 4, md: 6 } }}>
+                <Box sx={{ mt: 8 }}>
                   <SuggestedPosts
                     header="Más artículos interesantes"
                     posts={postsData?.data}
@@ -1022,22 +1147,23 @@ const ArticleDetailPage = (token) => {
 
             {/* Desktop Sidebar */}
             {!isMobile && (
-              <Grid item md={4} lg={3}>
+              <Grid item md={3} lg={4}>
                 <Box
                   sx={{
                     position: "sticky",
-                    top: 100,
-                    maxHeight: "calc(100vh - 120px)",
+                    top: 120,
+                    maxHeight: "calc(100vh - 140px)",
                     overflowY: "auto",
+                    pl: { md: 2 },
                     "&::-webkit-scrollbar": {
-                      width: "4px",
+                      width: "6px",
                     },
                     "&::-webkit-scrollbar-track": {
                       backgroundColor: "transparent",
                     },
                     "&::-webkit-scrollbar-thumb": {
                       backgroundColor: theme.palette.primary.main,
-                      borderRadius: "2px",
+                      borderRadius: "3px",
                     },
                   }}
                 >

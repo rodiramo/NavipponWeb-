@@ -9,7 +9,7 @@ import {
 import { v4 as uuidv4 } from "uuid";
 import Editor from "../components/editor/Editor";
 import { useTheme } from "@mui/material";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import ErrorMessage from "../components/ErrorMessage";
 import { stables } from "../constants";
 import { toast } from "react-hot-toast";
@@ -32,6 +32,7 @@ import {
   Divider,
   Grid,
   IconButton,
+  CircularProgress,
 } from "@mui/material";
 import {
   CloudUpload,
@@ -60,7 +61,11 @@ const generateSlug = (title) => {
   return `${baseSlug}-${uniqueId}`;
 };
 
-const PostForm = ({ slug = null, open, onClose }) => {
+const PostForm = ({ slug: propSlug = null, open, onClose }) => {
+  const { slug: routeSlug } = useParams();
+  const slug = propSlug || routeSlug; // Support both prop and route slug
+  const isEditing = Boolean(slug);
+
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { user, jwt } = useUser();
@@ -73,29 +78,42 @@ const PostForm = ({ slug = null, open, onClose }) => {
   const [tags, setTags] = useState([]);
   const [postSlug, setPostSlug] = useState(slug || "");
   const [caption, setCaption] = useState("");
+  const [dataLoaded, setDataLoaded] = useState(false);
   const theme = useTheme();
 
   // Fetch post data if editing
-  const { data, isLoading, isError } = useQuery({
+  const {
+    data: postData,
+    isLoading: isLoadingPost,
+    isError: isErrorPost,
+  } = useQuery({
     queryFn: () => getSingleUserPost({ slug, token: jwt }),
     queryKey: ["userPost", slug],
-    enabled: !!slug,
+    enabled: isEditing && !!jwt,
     onSuccess: (data) => {
+      console.log("✅ Post data loaded:", data);
       setInitialPhoto(data?.photo);
-      setSelectedCategories(data.categories.map((item) => item._id));
-      setTitle(data.title);
-      setTags(data.tags);
-      setBody(data.body);
-      setCaption(data.caption);
+      setSelectedCategories(data.categories?.map((item) => item._id) || []);
+      setTitle(data.title || "");
+      setTags(data.tags || []);
+      setBody(data.body || null);
+      setCaption(data.caption || "");
+      setPostSlug(data.slug || "");
+      setDataLoaded(true);
+    },
+    onError: (error) => {
+      console.error("❌ Error loading post:", error);
+      toast.error("Error al cargar el post");
     },
     refetchOnWindowFocus: false,
   });
 
   // Fetch Categories
-  useQuery({
+  const { data: categoriesData, isLoading: isLoadingCategories } = useQuery({
     queryFn: getAllCategories,
     queryKey: ["categories"],
     onSuccess: (data) => {
+      console.log("✅ Categories loaded:", data?.data?.length);
       setCategories(data?.data || []);
     },
     onError: (error) => {
@@ -110,8 +128,13 @@ const PostForm = ({ slug = null, open, onClose }) => {
       updateUserPost({ updatedData, slug, token }),
     onSuccess: (data) => {
       queryClient.invalidateQueries(["userPost", slug]);
+      queryClient.invalidateQueries(["posts"]);
       toast.success("Post actualizado");
-      onClose();
+      if (onClose) {
+        onClose();
+      } else {
+        navigate("/user/posts/manage");
+      }
     },
     onError: (error) => {
       toast.error(error.message);
@@ -124,7 +147,11 @@ const PostForm = ({ slug = null, open, onClose }) => {
     onSuccess: () => {
       queryClient.invalidateQueries(["posts"]);
       toast.success("Post creado con éxito");
-      onClose();
+      if (onClose) {
+        onClose();
+      } else {
+        navigate("/user/posts/manage");
+      }
     },
     onError: (error) => {
       toast.error(error.message);
@@ -142,11 +169,14 @@ const PostForm = ({ slug = null, open, onClose }) => {
     setInitialPhoto(null);
   };
 
+  // Auto-generate slug for new posts
   useEffect(() => {
-    if (!slug) {
+    if (!isEditing && title) {
       setPostSlug(generateSlug(title));
     }
-  }, [title, slug]);
+  }, [title, isEditing]);
+
+  // In your PostForm handleSubmit function:
 
   const handleSubmit = async () => {
     if (!title || !caption || !body) {
@@ -163,10 +193,23 @@ const PostForm = ({ slug = null, open, onClose }) => {
     formData.append("caption", caption);
     formData.append("slug", postSlug);
     formData.append("body", JSON.stringify(body));
-    formData.append("tags", JSON.stringify(tags));
-    formData.append("categories", JSON.stringify(selectedCategories));
 
-    if (slug) {
+    // ✅ FIX: Ensure categories and tags are clean arrays
+    const cleanCategories = Array.isArray(selectedCategories)
+      ? selectedCategories.filter((cat) => cat && typeof cat === "string")
+      : [];
+
+    const cleanTags = Array.isArray(tags)
+      ? tags.filter((tag) => tag && typeof tag === "string")
+      : [];
+
+    console.log("📂 Sending Categories:", cleanCategories);
+    console.log("🏷️ Sending Tags:", cleanTags);
+
+    formData.append("tags", JSON.stringify(cleanTags));
+    formData.append("categories", JSON.stringify(cleanCategories));
+
+    if (isEditing) {
       mutateUpdatePost({ updatedData: formData, slug, token: jwt });
     } else {
       mutateCreatePost({ postData: formData, token: jwt });
@@ -180,6 +223,43 @@ const PostForm = ({ slug = null, open, onClose }) => {
         : [...prev, categoryId]
     );
   };
+
+  // Show loading while fetching post data for editing
+  if (isEditing && (isLoadingPost || !dataLoaded)) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: "400px",
+          flexDirection: "column",
+          gap: 2,
+        }}
+      >
+        <CircularProgress size={40} />
+        <Typography variant="body1" color="text.secondary">
+          Cargando datos del post...
+        </Typography>
+      </Box>
+    );
+  }
+
+  // Show error if failed to load post data
+  if (isEditing && isErrorPost) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <ErrorMessage message="Error al cargar los datos del post" />
+        <Button
+          variant="outlined"
+          onClick={() => navigate("/user/posts/manage")}
+          sx={{ mt: 2 }}
+        >
+          Volver a mis posts
+        </Button>
+      </Box>
+    );
+  }
 
   return (
     <Box
@@ -208,7 +288,7 @@ const PostForm = ({ slug = null, open, onClose }) => {
             mb: 1,
           }}
         >
-          {slug ? "Editar Publicación" : "Nueva Publicación"}
+          {isEditing ? "Editar Publicación" : "Nueva Publicación"}
         </Typography>
         <Typography
           variant="body2"
@@ -217,10 +297,23 @@ const PostForm = ({ slug = null, open, onClose }) => {
             color: theme.palette.text.secondary,
           }}
         >
-          {slug
+          {isEditing
             ? "Actualiza tu contenido"
             : "Comparte tu experiencia con la comunidad"}
         </Typography>
+        {isEditing && postData && (
+          <Typography
+            variant="body2"
+            sx={{
+              textAlign: "center",
+              color: theme.palette.primary.main,
+              mt: 1,
+              fontWeight: "medium",
+            }}
+          >
+            Editando: "{postData.title}"
+          </Typography>
+        )}
       </Paper>
 
       <Grid container spacing={3}>
@@ -287,7 +380,7 @@ const PostForm = ({ slug = null, open, onClose }) => {
                       }}
                     >
                       <img
-                        src={`https://res.cloudinary.com/mycloud/image/upload/${initialPhoto}`}
+                        src={stables.UPLOAD_FOLDER_BASE_URL + initialPhoto}
                         alt={title}
                         style={{
                           width: "100%",
@@ -464,15 +557,19 @@ const PostForm = ({ slug = null, open, onClose }) => {
               </Typography>
               <Box
                 sx={{
-                  border: `1px solid ${theme.palette.divider}`,
                   borderRadius: 2,
                   overflow: "hidden",
+                  minHeight: "300px",
                 }}
               >
                 <Editor
                   content={body}
                   editable={true}
-                  onDataChange={(data) => setBody(data)}
+                  onDataChange={(data) => {
+                    console.log("📝 Editor content changed:", data);
+                    setBody(data);
+                  }}
+                  key={`editor-${isEditing ? slug : "new"}-${dataLoaded}`}
                 />
               </Box>
             </CardContent>
@@ -492,36 +589,46 @@ const PostForm = ({ slug = null, open, onClose }) => {
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                 Selecciona las categorías que mejor describan tu publicación
               </Typography>
-              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-                {categories.map((category) => (
-                  <Chip
-                    key={category._id}
-                    label={category.title}
-                    clickable
-                    variant={
-                      selectedCategories.includes(category._id)
-                        ? "filled"
-                        : "outlined"
-                    }
-                    color={
-                      selectedCategories.includes(category._id)
-                        ? "primary"
-                        : "default"
-                    }
-                    onClick={() => handleCategoryToggle(category._id)}
-                    sx={{
-                      borderRadius: 2,
-                      "&:hover": {
-                        backgroundColor: selectedCategories.includes(
-                          category._id
-                        )
-                          ? theme.palette.primary.dark
-                          : theme.palette.action.hover,
-                      },
-                    }}
-                  />
-                ))}
-              </Box>
+
+              {isLoadingCategories ? (
+                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                  <CircularProgress size={20} />
+                  <Typography variant="body2" color="text.secondary">
+                    Cargando categorías...
+                  </Typography>
+                </Box>
+              ) : (
+                <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+                  {categories.map((category) => (
+                    <Chip
+                      key={category._id}
+                      label={category.title}
+                      clickable
+                      variant={
+                        selectedCategories.includes(category._id)
+                          ? "filled"
+                          : "outlined"
+                      }
+                      color={
+                        selectedCategories.includes(category._id)
+                          ? "primary"
+                          : "default"
+                      }
+                      onClick={() => handleCategoryToggle(category._id)}
+                      sx={{
+                        borderRadius: 2,
+                        "&:hover": {
+                          backgroundColor: selectedCategories.includes(
+                            category._id
+                          )
+                            ? theme.palette.primary.dark
+                            : theme.palette.action.hover,
+                        },
+                      }}
+                    />
+                  ))}
+                </Box>
+              )}
             </CardContent>
           </Card>
 
@@ -539,12 +646,18 @@ const PostForm = ({ slug = null, open, onClose }) => {
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                 Añade etiquetas para mejorar la búsqueda de tu contenido
               </Typography>
+
               <CreatableSelect
-                defaultValue={tags.map((tag) => ({ value: tag, label: tag }))}
+                key={`tags-${isEditing ? slug : "new"}-${dataLoaded}`}
+                value={tags.map((tag) => ({ value: tag, label: tag }))}
                 isMulti
-                onChange={(newValue) =>
-                  setTags(newValue.map((item) => item.value))
-                }
+                onChange={(newValue) => {
+                  const newTags = newValue
+                    ? newValue.map((item) => item.value)
+                    : [];
+                  console.log("🏷️ Tags updated:", newTags);
+                  setTags(newTags);
+                }}
                 placeholder="Añadir etiquetas..."
                 noOptionsMessage={() => "No hay opciones disponibles"}
                 formatCreateLabel={(inputValue) =>
@@ -585,8 +698,8 @@ const PostForm = ({ slug = null, open, onClose }) => {
                     backgroundColor: state.isSelected
                       ? theme.palette.primary.main
                       : state.isFocused
-                      ? theme.palette.action.hover
-                      : "transparent",
+                        ? theme.palette.action.hover
+                        : "transparent",
                     color: state.isSelected
                       ? theme.palette.primary.contrastText
                       : theme.palette.text.primary,
@@ -627,7 +740,13 @@ const PostForm = ({ slug = null, open, onClose }) => {
         <CardContent sx={{ p: 3 }}>
           <Box display="flex" gap={2} justifyContent="flex-end">
             <Button
-              onClick={onClose}
+              onClick={() => {
+                if (onClose) {
+                  onClose();
+                } else {
+                  navigate("/user/posts/manage");
+                }
+              }}
               variant="outlined"
               sx={{
                 borderRadius: 3,
@@ -657,9 +776,9 @@ const PostForm = ({ slug = null, open, onClose }) => {
             >
               {isLoadingUpdate || isLoadingCreate
                 ? "Procesando..."
-                : slug
-                ? "Actualizar Publicación"
-                : "Publicar"}
+                : isEditing
+                  ? "Actualizar Publicación"
+                  : "Publicar"}
             </Button>
           </Box>
         </CardContent>

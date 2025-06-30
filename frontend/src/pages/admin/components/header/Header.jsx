@@ -120,16 +120,16 @@ const Header = ({ isMenuOpen, setIsMenuOpen }) => {
             theme.palette.background.nav || theme.palette.background.paper,
           color: theme.palette.text.primary,
           transition: "width 0.3s ease-in-out",
-          height: "100vh",
+          height: "100vh", // ✅ Keep fixed height
           borderRadius: "0rem 2rem 2rem 0rem",
-          zIndex: 1000,
+
           position: "fixed",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
           padding: "1rem",
-          justifyContent: "space-between",
           boxShadow: theme.shadows[4],
+          overflow: "hidden", // ✅ Important: hide overflow on main container
         }}
       >
         {/* Header Section */}
@@ -141,14 +141,14 @@ const Header = ({ isMenuOpen, setIsMenuOpen }) => {
             alignItems: "center",
           }}
         >
-          {/* Logo and Theme Toggle Row */}
+          {/* Logo */}
           <Box
             sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: isMenuOpen ? "space-between" : "center",
               width: "100%",
-              mb: 2,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              flexShrink: 0, // ✅ Prevent shrinking
             }}
           >
             <Link to="/">
@@ -162,92 +162,22 @@ const Header = ({ isMenuOpen, setIsMenuOpen }) => {
                 }}
               />
             </Link>
-
-            {/* Theme Toggle Button */}
-            {isMenuOpen && (
-              <Tooltip
-                title={isDarkMode ? "Modo claro" : "Modo oscuro"}
-                placement="left"
-              >
-                <IconButton
-                  onClick={handleThemeToggle}
-                  sx={{
-                    background: `${theme.palette.primary.main}20`,
-                    color: theme.palette.primary.main,
-                    transition: "all 0.3s ease",
-                    "&:hover": {
-                      backgroundColor: theme.palette.primary.main,
-                      color: theme.palette.primary.contrastText,
-                      transform: "rotate(180deg)",
-                    },
-                  }}
-                >
-                  {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
-                </IconButton>
-              </Tooltip>
-            )}
           </Box>
-
-          {/* Compact Theme Toggle for Collapsed Menu */}
-          {!isMenuOpen && (
-            <Tooltip
-              title={isDarkMode ? "Modo claro" : "Modo oscuro"}
-              placement="right"
-            >
-              <IconButton
-                onClick={handleThemeToggle}
-                sx={{
-                  background: `${theme.palette.primary.main}20`,
-                  color: theme.palette.primary.main,
-                  mb: 2,
-                  width: 40,
-                  height: 40,
-                  transition: "all 0.3s ease",
-                  "&:hover": {
-                    backgroundColor: theme.palette.primary.main,
-                    color: theme.palette.primary.contrastText,
-                    transform: "rotate(180deg)",
-                  },
-                }}
-              >
-                {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
-              </IconButton>
-            </Tooltip>
-          )}
-
-          {/* Sidebar Toggle Button */}
-          <Box
+          <Divider
             sx={{
-              display: "flex",
-              justifyContent: "flex-end",
-              padding: 1,
-              marginRight: "-20px",
+              margin: { sm: "0.75rem", md: "4rem", lg: "5rem" },
               width: "100%",
             }}
-          >
-            <IconButton
-              onClick={() => setIsMenuOpen((prev) => !prev)}
-              sx={{
-                background: theme.palette.primary.main,
-                color: "white",
-                marginRight: "-35px",
-                alignSelf: isMenuOpen ? "flex-end" : "center",
-                "&:hover": {
-                  backgroundColor: theme.palette.primary.dark,
-                },
-              }}
-            >
-              {isMenuOpen ? (
-                <AiOutlineArrowLeft size={24} />
-              ) : (
-                <AiOutlineArrowRight size={24} />
-              )}
-            </IconButton>
-          </Box>
+          />
 
           {/* User Profile */}
           <Box
-            sx={{ display: "flex", alignItems: "center", mt: 3, width: "100%" }}
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              mt: 6,
+              width: "100%",
+            }}
           >
             <Box
               sx={{
@@ -304,123 +234,217 @@ const Header = ({ isMenuOpen, setIsMenuOpen }) => {
               )}
             </Box>
           </Box>
+        </Box>{" "}
+        <Box
+          sx={{
+            width: "100%",
+            flex: 1, // ✅ Take remaining space
+            display: "flex",
+            flexDirection: "column",
+            overflow: "hidden", // ✅ Hide overflow on container
+            minHeight: 0, // ✅ Allow flex item to shrink below content size
+          }}
+        >
+          <Box
+            sx={{
+              width: "100%",
+              overflowY: "auto", // ✅ Enable scrolling
+              overflowX: "hidden",
+              flex: 1,
+              paddingRight: "4px", // ✅ Space for scrollbar
+              "&::-webkit-scrollbar": {
+                width: "4px",
+              },
+              "&::-webkit-scrollbar-track": {
+                backgroundColor: "transparent",
+              },
+              "&::-webkit-scrollbar-thumb": {
+                backgroundColor: `${theme.palette.primary.main}60`,
+                borderRadius: "2px",
+              },
+              "&::-webkit-scrollbar-thumb:hover": {
+                backgroundColor: theme.palette.primary.main,
+              },
+            }}
+          >
+            <Divider
+              sx={{
+                margin: { sm: "2rem", md: "4rem", lg: "5rem" },
+                width: "100%",
+              }}
+            />
+
+            {/* Navigation Items */}
+            <Box>
+              <Tooltip title={!isMenuOpen ? "Dashboard" : ""} placement="right">
+                <span>
+                  <NavItem
+                    title="Dashboard"
+                    link="/admin"
+                    name="dashboard"
+                    activeNavName={activeNavName}
+                    setActiveNavName={setActiveNavName}
+                    icon={<SquareKanban size={24} />}
+                    isMenuOpen={isMenuOpen}
+                  />
+                </span>
+              </Tooltip>
+
+              <Tooltip title={!isMenuOpen ? "Importar" : ""} placement="right">
+                <span>
+                  <NavItem
+                    title="Importar"
+                    link="/admin/import"
+                    name="import"
+                    activeNavName={activeNavName}
+                    setActiveNavName={setActiveNavName}
+                    icon={<Upload size={24} />}
+                    isMenuOpen={isMenuOpen}
+                  />
+                </span>
+              </Tooltip>
+
+              <Tooltip
+                title={!isMenuOpen ? "Experiencias" : ""}
+                placement="right"
+              >
+                <span>
+                  <NavItem
+                    title="Experiencias"
+                    link="/admin/experiences/manage"
+                    name="experiences"
+                    activeNavName={activeNavName}
+                    setActiveNavName={setActiveNavName}
+                    icon={<Compass size={24} />}
+                    isMenuOpen={isMenuOpen}
+                  />
+                </span>
+              </Tooltip>
+
+              <Tooltip
+                title={!isMenuOpen ? "Publicaciones" : ""}
+                placement="right"
+              >
+                <span>
+                  <NavItem
+                    title="Publicaciones"
+                    link="/admin/posts/manage"
+                    name="posts"
+                    activeNavName={activeNavName}
+                    setActiveNavName={setActiveNavName}
+                    icon={<Newspaper size={24} />}
+                    isMenuOpen={isMenuOpen}
+                  />
+                </span>
+              </Tooltip>
+
+              <Tooltip
+                title={!isMenuOpen ? "Comentarios" : ""}
+                placement="right"
+              >
+                <span>
+                  <NavItem
+                    title="Comentarios"
+                    link="/admin/comments"
+                    name="comments"
+                    activeNavName={activeNavName}
+                    setActiveNavName={setActiveNavName}
+                    icon={<MessagesSquare size={24} />}
+                    isMenuOpen={isMenuOpen}
+                  />
+                </span>
+              </Tooltip>
+
+              <Tooltip title={!isMenuOpen ? "Reseñas" : ""} placement="right">
+                <span>
+                  <NavItem
+                    title="Reseñas"
+                    link="/admin/reviews"
+                    name="reviews"
+                    activeNavName={activeNavName}
+                    setActiveNavName={setActiveNavName}
+                    icon={<Star size={24} />}
+                    isMenuOpen={isMenuOpen}
+                  />
+                </span>
+              </Tooltip>
+
+              <Tooltip title={!isMenuOpen ? "Usuarios" : ""} placement="right">
+                <span>
+                  <NavItem
+                    title="Usuarios"
+                    link="/admin/users/manage"
+                    name="users"
+                    activeNavName={activeNavName}
+                    setActiveNavName={setActiveNavName}
+                    icon={<UsersRound size={24} />}
+                    isMenuOpen={isMenuOpen}
+                  />
+                </span>
+              </Tooltip>
+            </Box>
+          </Box>{" "}
         </Box>
-
-        <Box sx={{ width: "100%", flex: 1 }}>
-          <Divider sx={{ margin: "1.5rem 0", width: "100%" }} />
-
-          {/* Navigation Items */}
-          <Box>
-            <Tooltip title={!isMenuOpen ? "Dashboard" : ""} placement="right">
-              <span>
-                <NavItem
-                  title="Dashboard"
-                  link="/admin"
-                  name="dashboard"
-                  activeNavName={activeNavName}
-                  setActiveNavName={setActiveNavName}
-                  icon={<SquareKanban size={24} />}
-                  isMenuOpen={isMenuOpen}
-                />
-              </span>
-            </Tooltip>
-
-            <Tooltip title={!isMenuOpen ? "Importar" : ""} placement="right">
-              <span>
-                <NavItem
-                  title="Importar"
-                  link="/admin/import"
-                  name="import"
-                  activeNavName={activeNavName}
-                  setActiveNavName={setActiveNavName}
-                  icon={<Upload size={24} />}
-                  isMenuOpen={isMenuOpen}
-                />
-              </span>
-            </Tooltip>
-
-            <Tooltip
-              title={!isMenuOpen ? "Experiencias" : ""}
-              placement="right"
-            >
-              <span>
-                <NavItem
-                  title="Experiencias"
-                  link="/admin/experiences/manage"
-                  name="experiences"
-                  activeNavName={activeNavName}
-                  setActiveNavName={setActiveNavName}
-                  icon={<Compass size={24} />}
-                  isMenuOpen={isMenuOpen}
-                />
-              </span>
-            </Tooltip>
-
-            <Tooltip
-              title={!isMenuOpen ? "Publicaciones" : ""}
-              placement="right"
-            >
-              <span>
-                <NavItem
-                  title="Publicaciones"
-                  link="/admin/posts/manage"
-                  name="posts"
-                  activeNavName={activeNavName}
-                  setActiveNavName={setActiveNavName}
-                  icon={<Newspaper size={24} />}
-                  isMenuOpen={isMenuOpen}
-                />
-              </span>
-            </Tooltip>
-
-            <Tooltip title={!isMenuOpen ? "Comentarios" : ""} placement="right">
-              <span>
-                <NavItem
-                  title="Comentarios"
-                  link="/admin/comments"
-                  name="comments"
-                  activeNavName={activeNavName}
-                  setActiveNavName={setActiveNavName}
-                  icon={<MessagesSquare size={24} />}
-                  isMenuOpen={isMenuOpen}
-                />
-              </span>
-            </Tooltip>
-
-            <Tooltip title={!isMenuOpen ? "Reseñas" : ""} placement="right">
-              <span>
-                <NavItem
-                  title="Reseñas"
-                  link="/admin/reviews"
-                  name="reviews"
-                  activeNavName={activeNavName}
-                  setActiveNavName={setActiveNavName}
-                  icon={<Star size={24} />}
-                  isMenuOpen={isMenuOpen}
-                />
-              </span>
-            </Tooltip>
-
-            <Tooltip title={!isMenuOpen ? "Usuarios" : ""} placement="right">
-              <span>
-                <NavItem
-                  title="Usuarios"
-                  link="/admin/users/manage"
-                  name="users"
-                  activeNavName={activeNavName}
-                  setActiveNavName={setActiveNavName}
-                  icon={<UsersRound size={24} />}
-                  isMenuOpen={isMenuOpen}
-                />
-              </span>
-            </Tooltip>
-          </Box>
-        </Box>
-
-        <Divider sx={{ margin: "1rem 0", width: "100%" }} />
-
         {/* Footer Section */}
-        <Box sx={{ width: "100%", marginTop: "auto", paddingBottom: "1rem" }}>
+        <Box
+          sx={{
+            width: "100%",
+            flexShrink: 0, // ✅ Prevent shrinking
+            paddingTop: "1rem",
+          }}
+        >
+          <Box sx={{ padding: "10px" }}>
+            {isMenuOpen && (
+              <Tooltip
+                title={isDarkMode ? "Modo claro" : "Modo oscuro"}
+                placement="left"
+              >
+                <IconButton
+                  onClick={handleThemeToggle}
+                  sx={{
+                    background: `${theme.palette.primary.main}20`,
+                    color: theme.palette.primary.main,
+                    margin: "auto",
+                    display: "block",
+                    transition: "all 0.3s ease",
+                    "&:hover": {
+                      backgroundColor: theme.palette.primary.main,
+                      color: theme.palette.primary.contrastText,
+                      transform: "rotate(180deg)",
+                    },
+                  }}
+                >
+                  {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
+                </IconButton>
+              </Tooltip>
+            )}{" "}
+          </Box>{" "}
+          {/* Compact Theme Toggle for Collapsed Menu */}
+          {!isMenuOpen && (
+            <Tooltip
+              title={isDarkMode ? "Modo claro" : "Modo oscuro"}
+              placement="right"
+            >
+              <IconButton
+                onClick={handleThemeToggle}
+                sx={{
+                  background: `${theme.palette.primary.main}20`,
+                  color: theme.palette.primary.main,
+                  mb: 2,
+                  width: 40,
+                  height: 40,
+                  transition: "all 0.3s ease",
+                  "&:hover": {
+                    backgroundColor: theme.palette.primary.main,
+                    color: theme.palette.primary.contrastText,
+                    transform: "rotate(180deg)",
+                  },
+                }}
+              >
+                {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
+              </IconButton>
+            </Tooltip>
+          )}
           {/* Create Experience Button */}
           <Box
             sx={{
@@ -473,7 +497,6 @@ const Header = ({ isMenuOpen, setIsMenuOpen }) => {
               </span>
             </Tooltip>
           </Box>
-
           {/* Back to Home Button */}
           <Tooltip title={!isMenuOpen ? "Inicio" : ""} placement="right">
             <span>
@@ -488,7 +511,32 @@ const Header = ({ isMenuOpen, setIsMenuOpen }) => {
               />
             </span>
           </Tooltip>
-        </Box>
+        </Box>{" "}
+        <IconButton
+          onClick={() => setIsMenuOpen((prev) => !prev)}
+          sx={{
+            background: theme.palette.primary.main,
+            color: "white",
+            position: "fixed", // ✅ Fixed positioning
+            left: isMenuOpen ? 230 : 50, // ✅ Adjust based on sidebar state
+            top: 80, // ✅ Fixed position from top
+            zIndex: 1100, // ✅ Higher than sidebar
+            width: 40,
+            height: 40,
+            boxShadow: theme.shadows[6],
+            transition: "all 0.3s ease-in-out", // ✅ Smooth transition
+            "&:hover": {
+              backgroundColor: theme.palette.primary.dark,
+              transform: "scale(1.1)",
+            },
+          }}
+        >
+          {isMenuOpen ? (
+            <AiOutlineArrowLeft size={20} />
+          ) : (
+            <AiOutlineArrowRight size={20} />
+          )}
+        </IconButton>
       </Box>
     </Box>
   );

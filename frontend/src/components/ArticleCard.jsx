@@ -2,9 +2,13 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setFriends } from "../store/reducers/authSlice.js";
 import { AiOutlineClose, AiFillHeart, AiOutlineHeart } from "react-icons/ai";
-import { PersonAddOutlined, PersonRemoveOutlined } from "@mui/icons-material";
+import {
+  PersonAddOutlined,
+  PersonRemoveOutlined,
+  EditOutlined,
+} from "@mui/icons-material";
 import { images, stables } from "../constants";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   addFavorite,
   removeFavorite,
@@ -13,10 +17,11 @@ import {
 import { toggleFriend } from "../services/index/users";
 import { toast } from "react-hot-toast";
 import { useTheme, IconButton, Typography, Chip } from "@mui/material";
-import { Clock, User, Eye, Calendar } from "lucide-react";
+import { Clock, User, Eye, Calendar, Edit } from "lucide-react";
 
-const ArticleCard = ({ post, className, currentUser, token }) => {
+const ArticleCard = ({ post, className, currentUser, token, onEdit }) => {
   const theme = useTheme();
+  const navigate = useNavigate();
   const dispatch = useDispatch();
   const friends = useSelector((state) => state.auth.user?.friends ?? []);
   const [isHovered, setIsHovered] = useState(false);
@@ -48,6 +53,19 @@ const ArticleCard = ({ post, className, currentUser, token }) => {
     }
   };
 
+  const handleEdit = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    // If onEdit prop is provided, use it (for modal/drawer editing)
+    if (onEdit) {
+      onEdit(post);
+    } else {
+      // Otherwise navigate to edit page
+      navigate(`/blog/edit/${post.slug}`);
+    }
+  };
+
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString("es-ES", {
@@ -71,6 +89,7 @@ const ArticleCard = ({ post, className, currentUser, token }) => {
       onMouseLeave={() => setIsHovered(false)}
       style={{
         borderRadius: "16px",
+        minHeight: "600px",
         background: "rgba(255, 255, 255, 0.1)",
         backdropFilter: "blur(20px)",
         border: "1px solid rgba(255, 255, 255, 0.2)",
@@ -106,7 +125,7 @@ const ArticleCard = ({ post, className, currentUser, token }) => {
             >
               <span className="flex items-center gap-2">
                 <Eye size={16} />
-                Leer artículo
+                {isOwnProfile ? "Ver mi artículo" : "Leer artículo"}
               </span>
             </div>
           </div>
@@ -143,18 +162,42 @@ const ArticleCard = ({ post, className, currentUser, token }) => {
           </div>
         </div>
 
-        {/* Favorite Button */}
-        <button
-          className="absolute top-3 right-3 group/heart w-12 h-12 rounded-full backdrop-blur-md border border-white/20 flex items-center justify-center transition-all duration-300 hover:scale-110 hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/50"
-          style={{
-            backgroundColor: theme.palette.primary.white,
-          }}
-        >
-          <AiFillHeart
-            style={{ color: theme.palette.primary.main, fontSize: "1.5rem" }}
-            className="text-xl transition-transform duration-300 group-hover/heart:scale-125"
-          />
-        </button>
+        {/* Top Right Actions */}
+        <div className="absolute top-3 right-3 flex flex-col gap-2 z-10">
+          {/* Edit Button - Only show for own posts */}
+          {currentUser && isOwnProfile && (
+            <button
+              onClick={handleEdit}
+              className="group/edit w-12 h-12 rounded-full backdrop-blur-md border border-white/20 flex items-center justify-center transition-all duration-300 hover:scale-110 hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/50"
+              style={{
+                backgroundColor: `${theme.palette.info.main}20`,
+                borderColor: `${theme.palette.info.main}30`,
+              }}
+              title="Editar artículo"
+            >
+              <EditOutlined
+                style={{
+                  color: theme.palette.info.main,
+                  fontSize: "1.25rem",
+                }}
+                className="transition-transform duration-300 group-hover/edit:scale-125"
+              />
+            </button>
+          )}
+
+          {/* Favorite Button */}
+          <button
+            className="group/heart w-12 h-12 rounded-full backdrop-blur-md border border-white/20 flex items-center justify-center transition-all duration-300 hover:scale-110 hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/50"
+            style={{
+              backgroundColor: theme.palette.primary.white,
+            }}
+          >
+            <AiFillHeart
+              style={{ color: theme.palette.primary.main, fontSize: "1.5rem" }}
+              className="text-xl transition-transform duration-300 group-hover/heart:scale-125"
+            />
+          </button>
+        </div>
       </div>
 
       {/* Content Section */}
@@ -184,7 +227,6 @@ const ArticleCard = ({ post, className, currentUser, token }) => {
             {post.caption}
           </p>
         </Link>
-
         {/* Author Section */}
         <div className="flex items-center justify-between pt-4 border-t border-slate-200/20">
           <div className="flex items-center gap-3">
@@ -205,45 +247,56 @@ const ArticleCard = ({ post, className, currentUser, token }) => {
 
             {/* Author Info */}
             <div>
-              <h4 className="font-semibold">{post.user.name}</h4>
-              <p className="text-sm">Autor</p>
+              <h4 className="font-semibold">
+                {post.user.name}
+                {isOwnProfile && (
+                  <span className="ml-2 text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-800">
+                    Tú
+                  </span>
+                )}
+              </h4>
+              <p className="text-sm">
+                {isOwnProfile ? "Tu artículo" : "Autor"}
+              </p>
             </div>
           </div>
 
-          {/* Friend Toggle Button - Only show if user is logged in and it's not their own profile */}
-          {currentUser && !isOwnProfile && (
-            <button
-              onClick={handleFriendToggle}
-              className="group/friend relative w-10 h-10 rounded-full transition-all duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2"
-              style={{
-                backgroundColor: isFriend
-                  ? `${theme.palette.error.main}20`
-                  : `${theme.palette.primary.main}20`,
-                color: isFriend
-                  ? theme.palette.error.main
-                  : theme.palette.primary.main,
-                borderColor: isFriend
-                  ? `${theme.palette.error.main}30`
-                  : `${theme.palette.primary.main}30`,
-                border: "1px solid",
-              }}
-            >
-              {isFriend ? (
-                <PersonRemoveOutlined className="transition-transform duration-300 group-hover/friend:scale-110" />
-              ) : (
-                <PersonAddOutlined className="transition-transform duration-300 group-hover/friend:scale-110" />
-              )}
-            </button>
-          )}
+          {/* Action Buttons */}
+          <div className="flex items-center gap-2">
+            {/* Friend Toggle Button - Only show if user is logged in and it's not their own profile */}
+            {currentUser && !isOwnProfile && (
+              <button
+                onClick={handleFriendToggle}
+                className="group/friend relative w-10 h-10 rounded-full transition-all duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2"
+                style={{
+                  backgroundColor: isFriend
+                    ? `${theme.palette.error.main}20`
+                    : `${theme.palette.primary.main}20`,
+                  color: isFriend
+                    ? theme.palette.error.main
+                    : theme.palette.primary.main,
+                  borderColor: isFriend
+                    ? `${theme.palette.error.main}30`
+                    : `${theme.palette.primary.main}30`,
+                  border: "1px solid",
+                }}
+              >
+                {isFriend ? (
+                  <PersonRemoveOutlined className="transition-transform duration-300 group-hover/friend:scale-110" />
+                ) : (
+                  <PersonAddOutlined className="transition-transform duration-300 group-hover/friend:scale-110" />
+                )}
+              </button>
+            )}
+          </div>
         </div>
-
         {/* Tags Section - Optional */}
         {post.tags && post.tags.length > 0 && (
           <div className="flex flex-wrap gap-2 pt-2">
             {post.tags.slice(0, 3).map((tag, index) => (
               <span
                 key={index}
-                className="px-3 py-1 text-xs font-medium rounded-full transition-all duration-300 hover:scale-105"
+                className="px-3 py-1 text-xs mb-5 font-medium rounded-full transition-all duration-300 hover:scale-105"
                 style={{
                   backgroundColor: `${theme.palette.primary.main}10`,
                   color: theme.palette.primary.main,
@@ -254,6 +307,27 @@ const ArticleCard = ({ post, className, currentUser, token }) => {
               </span>
             ))}
           </div>
+        )}{" "}
+        {/* Edit Button for Bottom Section - Alternative placement */}
+        {currentUser && isOwnProfile && (
+          <button
+            onClick={handleEdit}
+            className="group/edit-bottom flex items-center gap-2 px-3 py-2 rounded-full transition-all duration-300 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2"
+            style={{
+              margin: " 0 auto",
+
+              backgroundColor: `${theme.palette.info.main}15`,
+              color: theme.palette.info.main,
+              border: `1px solid ${theme.palette.info.main}30`,
+            }}
+            title="Editar artículo"
+          >
+            <Edit
+              size={16}
+              className="transition-transform duration-300 group-hover/edit-bottom:scale-110"
+            />
+            <span className="text-sm font-medium hidden sm:inline">Editar</span>
+          </button>
         )}
       </div>
 

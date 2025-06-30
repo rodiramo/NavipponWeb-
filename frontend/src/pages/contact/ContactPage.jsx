@@ -110,6 +110,7 @@ const ContactPage = () => {
               <Card
                 sx={{
                   borderRadius: "24px",
+                  background: theme.palette.background.default,
                   boxShadow: "0 20px 60px rgba(0, 0, 0, 0.1)",
                   overflow: "hidden",
                   backdropFilter: "blur(20px)",
@@ -324,6 +325,7 @@ const ContactPage = () => {
                 {/* Contact Information Cards */}
                 <Card
                   sx={{
+                    background: theme.palette.background.default,
                     borderRadius: "20px",
                     backdropFilter: "blur(20px)",
                     boxShadow: "0 10px 30px rgba(0,0,0,0.1)",
@@ -409,6 +411,7 @@ const ContactPage = () => {
                 <Card
                   sx={{
                     borderRadius: "20px",
+                    background: theme.palette.background.default,
                     backdropFilter: "blur(20px)",
                     boxShadow: "0 10px 30px rgba(0,0,0,0.1)",
                     p: 3,

@@ -132,7 +132,6 @@ const DataTable = ({
       sx={{
         minHeight: "100vh",
         backgroundColor: theme.palette.background.default,
-        p: { xs: 2, md: 3 },
       }}
     >
       {/* Page Title */}
@@ -160,7 +159,7 @@ const DataTable = ({
         }}
       >
         {/* Header Section */}
-        <CardContent sx={{ p: { xs: 2, md: 3 }, pb: 0 }}>
+        <CardContent sx={{ pb: 0 }}>
           <Box
             sx={{
               display: "flex",
@@ -281,7 +280,7 @@ const DataTable = ({
             border: "none",
           }}
         >
-          <Table sx={{ minWidth: 650 }}>
+          <Table>
             {/* Table Header */}
             {tableHeaderTitleList.length > 0 && (
               <TableHead>
@@ -299,7 +298,6 @@ const DataTable = ({
                         color: theme.palette.text.primary,
                         textTransform: "uppercase",
                         letterSpacing: "0.05em",
-                        borderBottom: `2px solid ${theme.palette.divider}`,
                         py: 2.5,
                         px: 3,
                       }}
@@ -317,9 +315,6 @@ const DataTable = ({
                 "& .MuiTableRow-root": {
                   "&:hover": {
                     backgroundColor: `${theme.palette.primary.main}04`,
-                  },
-                  "& .MuiTableCell-root": {
-                    borderBottom: `1px solid ${theme.palette.divider}`,
                   },
                 },
               }}

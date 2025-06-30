@@ -102,7 +102,6 @@ const OnboardingGuide = ({ open, onClose, user }) => {
             position: "relative",
             maxWidth: 600,
             width: "90%",
-            maxHeight: "80vh",
             overflow: "auto",
             borderRadius: 4,
             background: `linear-gradient(135deg, ${theme.palette.background.paper}95, ${theme.palette.background.paper}85)`,

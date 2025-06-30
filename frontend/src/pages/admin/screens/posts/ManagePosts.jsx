@@ -392,7 +392,6 @@ const ManagePosts = () => {
                 backgroundColor: theme.palette.background.default,
                 transition: "all 0.2s ease-in-out",
               }}
-              className="hover:shadow-lg"
             >
               {/* Post Thumbnail and Title */}
               <td
@@ -594,7 +593,6 @@ const ManagePosts = () => {
               {/* Actions */}
               <td
                 style={{
-                  padding: "16px 24px",
                   borderBottom: `1px solid ${theme.palette.neutral.light}`,
                 }}
               >
@@ -605,6 +603,8 @@ const ManagePosts = () => {
                     to={`/blog/${post?.slug}`}
                     sx={{
                       textTransform: "none",
+                      width: "120px",
+
                       borderRadius: 30,
                       color: theme.palette.secondary.medium,
                       borderColor: theme.palette.secondary.medium,
@@ -619,7 +619,6 @@ const ManagePosts = () => {
                     Ver detalles
                   </Button>
                   <Button
-                    startIcon={<Edit size={16} />}
                     component={Link}
                     to={`/admin/posts/manage/edit/${post.slug}`}
                     sx={{
@@ -637,12 +636,12 @@ const ManagePosts = () => {
                     variant="outlined"
                     size="small"
                   >
-                    Editar
+                    {" "}
+                    <Edit size={16} />
                   </Button>
 
                   <Button
                     disabled={isLoadingDeleteData}
-                    startIcon={<Trash2 size={16} />}
                     onClick={() => deleteDataHandler({ slug: post?.slug })}
                     sx={{
                       color: theme.palette.error.main,
@@ -659,7 +658,7 @@ const ManagePosts = () => {
                     variant="outlined"
                     size="small"
                   >
-                    Borrar
+                    <Trash2 size={16} />
                   </Button>
                 </Stack>
               </td>
