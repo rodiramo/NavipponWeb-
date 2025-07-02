@@ -35,7 +35,7 @@ app.use(
     origin: [
       "http://localhost:3001",
       "https://navippon.netlify.app",
-      "https://navippon.up.railway.app",
+      "https://navippon.netlify.app/",
     ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
