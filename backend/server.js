@@ -1,12 +1,8 @@
 import express from "express";
 import dotenv from "dotenv";
-import path from "path";
 import connectDB from "./config/db.js";
 import cors from "cors";
-import {
-  errorResponserHandler,
-  invalidPathHandler,
-} from "./middleware/errorHandler.js";
+import { v2 as cloudinary } from "cloudinary"; // Added missing import
 import upload from "./middleware/uploadPictureMiddleware.js";
 
 // Routes
@@ -24,46 +20,70 @@ import itineraryRoutes from "./routes/itineraryRoutes.js";
 import emailRoutes from "./routes/emailRoutes.js";
 import importRoutes from "./routes/importRoutes.js";
 
-// Add with your other routes
-
 dotenv.config();
 connectDB();
 const app = express();
-app.use(express.json());
-// Update your CORS configuration in your Railway backend
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      // Allow requests with no origin (like mobile apps or curl)
-      if (!origin) return callback(null, true);
 
-      const allowedOrigins = [
-        "http://localhost:3001",
-        "http://localhost:3000",
-        "https://navippon.netlify.app",
-      ];
+// 🔥 CRITICAL: CORS MUST BE CONFIGURED BEFORE ALL OTHER MIDDLEWARE
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (mobile apps, curl, etc.)
+    if (!origin) return callback(null, true);
 
-      // Allow any netlify.app subdomain (for preview deployments)
-      const isNetlifyDomain = origin.endsWith(".netlify.app");
+    const allowedOrigins = [
+      "http://localhost:3001",
+      "http://localhost:3000",
+      "https://navippon.netlify.app",
+    ];
 
-      if (allowedOrigins.includes(origin) || isNetlifyDomain) {
-        return callback(null, true);
-      }
+    // Allow any netlify.app subdomain (for preview deployments)
+    const isNetlifyDomain = origin.endsWith(".netlify.app");
 
-      return callback(new Error("Not allowed by CORS"));
-    },
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "x-access-token"],
-    optionsSuccessStatus: 200,
-  })
-);
-app.use(express.urlencoded({ extended: true }));
+    if (allowedOrigins.includes(origin) || isNetlifyDomain) {
+      console.log(`✅ CORS allowed for origin: ${origin}`);
+      return callback(null, true);
+    }
 
-app.get("/", (req, res) => {
-  res.send("Server is running...");
+    console.log(`❌ CORS blocked for origin: ${origin}`);
+    return callback(new Error("Not allowed by CORS"));
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+  allowedHeaders: ["Content-Type", "Authorization", "x-access-token"],
+  optionsSuccessStatus: 200,
+  preflightContinue: false,
+};
+
+// Apply CORS FIRST
+app.use(cors(corsOptions));
+
+// Handle preflight requests explicitly
+app.options("*", cors(corsOptions));
+
+// Body parsing middleware
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ extended: true, limit: "50mb" }));
+
+// Debug middleware to track requests
+app.use((req, res, next) => {
+  console.log(
+    `${new Date().toISOString()} - ${req.method} ${req.path} - Origin: ${
+      req.headers.origin
+    }`
+  );
+  next();
 });
 
+// Basic health check route
+app.get("/", (req, res) => {
+  res.json({
+    message: "Server is running...",
+    timestamp: new Date().toISOString(),
+    cors: "enabled",
+  });
+});
+
+// API Routes
 app.use("/api/users", userRoutes);
 app.use("/api/posts", postRoutes);
 app.use("/api/experiences", experienceRoutes);
@@ -88,7 +108,7 @@ app.post("/upload", upload.single("image"), (req, res) => {
 
 const GOOGLE_API_KEY = process.env.REACT_APP_GOOGLE_API_KEY;
 
-// In your app.js, update these routes:
+// Google Places API routes
 app.get("/api/places", async (req, res) => {
   const { lat, lng } = req.query;
   try {
@@ -116,9 +136,10 @@ app.get("/api/place-details", async (req, res) => {
     res.status(500).json({ error: "Error fetching place details" });
   }
 });
+
 // 📌 Remove Image Route
 app.delete("/remove", async (req, res) => {
-  const { imageUrl } = req.body; // Cloudinary Image URL
+  const { imageUrl } = req.body;
 
   if (!imageUrl) {
     return res.status(400).json({ error: "No image URL provided" });
@@ -133,14 +154,84 @@ app.delete("/remove", async (req, res) => {
 
     res.json({ message: "Image deleted successfully" });
   } catch (error) {
+    console.error("Cloudinary delete error:", error);
     res.status(500).json({ error: "Failed to delete image" });
   }
 });
 
-app.use(invalidPathHandler);
-app.use(errorResponserHandler);
+// 🔥 CUSTOM ERROR HANDLERS WITH CORS SUPPORT
+// Handle 404 errors with CORS headers
+app.use("*", (req, res) => {
+  // Ensure CORS headers are present for 404 responses
+  const origin = req.headers.origin;
+  if (
+    origin &&
+    (origin.endsWith(".netlify.app") ||
+      [
+        "http://localhost:3000",
+        "http://localhost:3001",
+        "https://navippon.netlify.app",
+      ].includes(origin))
+  ) {
+    res.header("Access-Control-Allow-Origin", origin);
+    res.header("Access-Control-Allow-Credentials", "true");
+  }
+
+  console.log(`404 - Route not found: ${req.method} ${req.originalUrl}`);
+  res.status(404).json({
+    error: "Route not found",
+    path: req.originalUrl,
+    method: req.method,
+  });
+});
+
+// Global error handler with CORS support
+app.use((err, req, res, next) => {
+  // Ensure CORS headers are present even in error responses
+  const origin = req.headers.origin;
+  if (
+    origin &&
+    (origin.endsWith(".netlify.app") ||
+      [
+        "http://localhost:3000",
+        "http://localhost:3001",
+        "https://navippon.netlify.app",
+      ].includes(origin))
+  ) {
+    res.header("Access-Control-Allow-Origin", origin);
+    res.header("Access-Control-Allow-Credentials", "true");
+  }
+
+  console.error("Global error handler:", err.message);
+  console.error("Stack trace:", err.stack);
+
+  // Don't expose error details in production
+  const isDevelopment = process.env.NODE_ENV === "development";
+  const errorMessage = isDevelopment ? err.message : "Internal Server Error";
+
+  res.status(err.status || 500).json({
+    error: errorMessage,
+    timestamp: new Date().toISOString(),
+    ...(isDevelopment && { stack: err.stack }),
+  });
+});
+
 const PORT = process.env.PORT || 5001;
 
-app.listen(PORT, () =>
-  console.log(`El servidor está corriendo en puerto ${PORT}`)
-);
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`🌐 Environment: ${process.env.NODE_ENV || "development"}`);
+  console.log(`✅ CORS enabled for netlify.app domains`);
+  console.log(`📝 Logging requests enabled`);
+});
+
+// Handle process termination
+process.on("SIGTERM", () => {
+  console.log("SIGTERM signal received: closing HTTP server");
+  process.exit(0);
+});
+
+process.on("SIGINT", () => {
+  console.log("SIGINT signal received: closing HTTP server");
+  process.exit(0);
+});
