@@ -1,8 +1,8 @@
 import React from "react";
 import { useTheme } from "@mui/material/styles";
 import { Box, Typography, Container, Button } from "@mui/material";
-import nube from "../../../assets/nube.png";
 import { Pencil } from "lucide-react";
+const nube = "./assets/nube.png";
 
 const Hero = ({ user, jwt, onOpenModal }) => {
   const theme = useTheme();

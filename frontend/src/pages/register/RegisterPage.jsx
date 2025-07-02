@@ -18,9 +18,6 @@ import HomeButton from "../../components/HomeButton";
 import { useDispatch } from "react-redux";
 import { signup } from "../../services/index/users";
 import { userActions } from "../../store/reducers/userReducers";
-import logoBlack from "../../assets/navippon-icon.png";
-import logo from "../../assets/navippon-logo-white.png";
-import backgroundImage from "../../assets/register-bg.jpg";
 
 const RegisterPage = () => {
   const theme = useTheme();
@@ -97,7 +94,7 @@ const RegisterPage = () => {
           position="relative"
           sx={{
             borderRadius: "0rem 200rem 200rem 0rem",
-            backgroundImage: `url(${backgroundImage})`,
+            backgroundImage: "url(/assets/register-bg.jpg)",
             backgroundSize: "cover",
             backgroundPosition: "center",
           }}
@@ -120,7 +117,7 @@ const RegisterPage = () => {
           >
             <Link to="/">
               <img
-                src={logo}
+                src="/assets/navippon-logo-white.png"
                 alt="Navippon Logo"
                 style={{ width: "7rem", marginTop: "2rem", marginLeft: "2rem" }}
               />
@@ -136,7 +133,7 @@ const RegisterPage = () => {
           mt={2}
         >
           <img
-            src={logoBlack}
+            src="/assets/navippon-icon.png"
             alt="Navippon Logo"
             style={{ width: "7rem", marginTop: "3.5rem" }}
           />

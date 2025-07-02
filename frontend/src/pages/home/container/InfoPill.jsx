@@ -1,8 +1,9 @@
 import React from "react";
 import { useTheme } from "@mui/material/styles";
-import pastilla1 from "../../../assets/1.png";
-import pastilla2 from "../../../assets/2.png";
-import pastilla3 from "../../../assets/3.png";
+
+const pastilla1 = "/assets/1.png";
+const pastilla2 = "/assets/2.png";
+const pastilla3 = "/assets/3.png";
 
 const InfoPill = () => {
   const theme = useTheme();

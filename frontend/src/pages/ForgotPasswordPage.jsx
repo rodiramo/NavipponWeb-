@@ -11,12 +11,12 @@ import {
   Alert,
   CircularProgress,
 } from "@mui/material";
+import HomeButton from "../components/HomeButton";
 import { useMutation } from "@tanstack/react-query";
 import { forgotPassword } from "../services/index/users";
-import logoBlack from "../assets/navippon-icon.png";
-import logo from "../assets/navippon-logo-white.png";
-import backgroundImage from "../assets/login-bg.jpg";
-import HomeButton from "../components/HomeButton";
+const logoBlack = "./assets/navippon-icon.png";
+const logo = "./assets/navippon-logo-white.png";
+const backgroundImage = "./assets/login-bg.jpg";
 
 const ForgotPasswordPage = () => {
   const theme = useTheme();

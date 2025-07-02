@@ -1,6 +1,6 @@
 import { Box, Typography, useTheme } from "@mui/material";
 import Search from "../../../components/Search"; // Import your Search component
-import nube from "../../../assets/nube.png";
+const nube = "./assets/nube.png";
 
 const Header = ({ onSearchKeyword }) => {
   // Accept search handler as prop

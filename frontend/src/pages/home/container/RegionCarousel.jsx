@@ -5,66 +5,58 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import { useTheme } from "@mui/material";
 import "../../../css/Regions.css";
-import HokkaidoImage from "../../../assets/Hokkaido.jpg";
-import TohokuImage from "../../../assets/Tohoku.jpg";
-import KantoImage from "../../../assets/Kanto.jpg";
-import ChubuImage from "../../../assets/Chubu.jpg";
-import KansaiImage from "../../../assets/Kansai.jpg";
-import ChugokuImage from "../../../assets/Chugoku.jpg";
-import ShikokuImage from "../../../assets/Shikoku.jpg";
-import KyushuImage from "../../../assets/Kyushu.jpg";
 import { CircleArrowLeft, CircleArrowRight } from "lucide-react";
 
 const regions = [
   {
     name: "Hokkaido",
-    image: HokkaidoImage,
+    image: "/assets/Hokkaido.jpg",
     description: "Conocido por sus paisajes nevados y festivales de invierno.",
     highlights: ["Sapporo", "Hakodate", "Niseko"],
   },
   {
     name: "Tohoku",
-    image: TohokuImage,
+    image: "/assets/Tohoku.jpg",
     description: "Famoso por sus montañas, onsens y cultura samurái.",
     highlights: ["Sendai", "Aomori", "Yamagata"],
   },
   {
     name: "Kanto",
-    image: KantoImage,
+    image: "/assets/Kanto.jpg",
     description:
       "Hogar de Tokio, una metrópolis llena de tecnología y cultura.",
     highlights: ["Tokyo", "Yokohama", "Kamakura"],
   },
   {
     name: "Chubu",
-    image: ChubuImage,
+    image: "/assets/Chubu.jpg",
     description:
       "Con el majestuoso Monte Fuji y encantadoras ciudades históricas.",
     highlights: ["Monte Fuji", "Nagoya", "Takayama"],
   },
   {
     name: "Kansai",
-    image: KansaiImage,
+    image: "/assets/Kansai.jpg",
     description:
       "Conocido por Kioto, Osaka y Nara, ricas en historia y gastronomía.",
     highlights: ["Kyoto", "Osaka", "Nara"],
   },
   {
     name: "Chugoku",
-    image: ChugokuImage,
+    image: "/assets/Chugoku.jpg",
     description: "Famoso por el Santuario de Itsukushima y Hiroshima.",
     highlights: ["Hiroshima", "Miyajima", "Okayama"],
   },
   {
     name: "Shikoku",
-    image: ShikokuImage,
+    image: "/assets/Shikoku.jpg",
     description:
       "Un destino espiritual con la famosa peregrinación de 88 templos.",
     highlights: ["Matsuyama", "Tokushima", "Kochi"],
   },
   {
     name: "Kyushu",
-    image: KyushuImage,
+    image: "/assets/Kyushu.jpg",
     description: "Con volcanes activos, aguas termales y una cultura vibrante.",
     highlights: ["Fukuoka", "Kagoshima", "Beppu"],
   },

@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Send, X, User, Sparkles } from "lucide-react";
 import { useTheme } from "@mui/material";
-import botIcon from "../../../../assets/botIcon.png";
 
 const ModernChatBot = ({ onClose, user }) => {
   const theme = useTheme();
@@ -362,16 +361,19 @@ Puedo ayudarte con información detallada sobre:
     setIsTyping(true);
 
     // Simulate typing delay
-    setTimeout(() => {
-      const botResponse = {
-        id: Date.now() + 1,
-        type: "bot",
-        content: getBotResponse(inputValue),
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, botResponse]);
-      setIsTyping(false);
-    }, 1000 + Math.random() * 1000);
+    setTimeout(
+      () => {
+        const botResponse = {
+          id: Date.now() + 1,
+          type: "bot",
+          content: getBotResponse(inputValue),
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, botResponse]);
+        setIsTyping(false);
+      },
+      1000 + Math.random() * 1000
+    );
   };
 
   const handleKeyPress = (e) => {
@@ -417,7 +419,11 @@ Puedo ayudarte con información detallada sobre:
       >
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-            <img src={botIcon} alt="NaviBot" className="w-6 h-6 rounded-full" />
+            <img
+              src="/assets/botIcon.png"
+              alt="NaviBot"
+              className="w-6 h-6 rounded-full"
+            />
           </div>
           <div>
             <h3 className="font-bold text-lg">NaviBot 🌸</h3>
@@ -463,8 +469,8 @@ Puedo ayudarte con información detallada sobre:
                     message.type === "user"
                       ? theme.palette.secondary.main
                       : theme.palette.mode === "dark"
-                      ? theme.palette.grey[700]
-                      : theme.palette.grey[100],
+                        ? theme.palette.grey[700]
+                        : theme.palette.grey[100],
                   color:
                     message.type === "user"
                       ? theme.palette.secondary.contrastText
@@ -475,7 +481,7 @@ Puedo ayudarte con información detallada sobre:
                   <User className="w-4 h-4" />
                 ) : (
                   <img
-                    src={botIcon}
+                    src="/assets/botIcon.png"
                     alt="Bot"
                     className="w-4 h-4 rounded-full"
                   />
@@ -537,7 +543,11 @@ Puedo ayudarte con información detallada sobre:
                   color: theme.palette.primary.main,
                 }}
               >
-                <img src={botIcon} alt="Bot" className="w-4 h-4 rounded-full" />
+                <img
+                  src="/assets/botIcon.png"
+                  alt="Bot"
+                  className="w-4 h-4 rounded-full"
+                />
               </div>
               <div
                 className="p-3 rounded-2xl rounded-bl-md shadow-sm border"

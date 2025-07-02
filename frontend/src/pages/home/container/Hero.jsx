@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { Box, Typography } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import Search from "../../../components/Search";
-import nube from "../../../assets/nube.png";
+
+const nube = "/assets/nube.png";
 
 // Background images array
 const backgroundImages = [

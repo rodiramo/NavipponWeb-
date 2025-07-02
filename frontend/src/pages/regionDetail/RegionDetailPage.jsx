@@ -37,18 +37,11 @@ import {
 } from "lucide-react";
 import ExperienceCard from "../../components/ExperienceCard"; // Adjust path as needed
 import HorizontalExperienceCard from "../experience/container/HorizontalExperienceCard"; // Adjust path as needed
-import HokkaidoImage from "../../assets/Hokkaido.jpg";
-import TohokuImage from "../../assets/Tohoku.jpg";
-import KantoImage from "../../assets/Kanto.jpg";
-import ChubuImage from "../../assets/Chubu.jpg";
-import KansaiImage from "../../assets/Kansai.jpg";
-import ChugokuImage from "../../assets/Chugoku.jpg";
-import ShikokuImage from "../../assets/Shikoku.jpg";
-import KyushuImage from "../../assets/Kyushu.jpg";
+
 const regionData = {
   Hokkaido: {
     name: "Hokkaido",
-    image: HokkaidoImage,
+    image: "/assets/Hokkaido.jpg",
     description:
       "La isla más septentrional de Japón, famosa por sus paisajes nevados, productos lácteos de alta calidad y los festivales de nieve de Sapporo.",
 
@@ -67,7 +60,7 @@ const regionData = {
   },
   Tohoku: {
     name: "Tohoku",
-    image: TohokuImage,
+    image: "/assets/Tohoku.jpg",
     description:
       "Una región montañosa rica en tradiciones, famosa por sus onsens, festivales únicos y la cultura samurái.",
 
@@ -90,7 +83,7 @@ const regionData = {
   },
   Kanto: {
     name: "Kanto",
-    image: KantoImage,
+    image: "/assets/Kanto.jpg",
     description:
       "El corazón económico y cultural de Japón, hogar de Tokio y una metrópolis vibrante que combina tradición milenaria con tecnología de vanguardia.",
 
@@ -109,7 +102,7 @@ const regionData = {
   },
   Chubu: {
     name: "Chubu",
-    image: ChubuImage,
+    image: "/assets/Chubu.jpg",
     description:
       "Dominada por el majestuoso Monte Fuji y los Alpes Japoneses, esta región ofrece paisajes espectaculares y ciudades históricas tradicionales.",
 
@@ -129,7 +122,7 @@ const regionData = {
   },
   Kansai: {
     name: "Kansai",
-    image: KansaiImage,
+    image: "/assets/Kansai.jpg",
     description:
       "El alma cultural e histórica de Japón, hogar de las antiguas capitales Kyoto y Nara, junto con la vibrante ciudad gastronómica de Osaka.",
 
@@ -148,7 +141,7 @@ const regionData = {
   },
   Chugoku: {
     name: "Chugoku",
-    image: ChugokuImage,
+    image: "/assets/Chugoku.jpg",
     description:
       "Una región de contrastes entre la costa del Mar de Japón y el Mar Interior de Seto, famosa por el icónico Santuario de Itsukushima.",
 
@@ -167,7 +160,7 @@ const regionData = {
   },
   Shikoku: {
     name: "Shikoku",
-    image: ShikokuImage,
+    image: "/assets/Shikoku.jpg",
     description:
       "La isla más pequeña de las cuatro principales, conocida por la peregrinación espiritual de 88 templos y paisajes naturales vírgenes.",
 
@@ -186,7 +179,7 @@ const regionData = {
   },
   Kyushu: {
     name: "Kyushu",
-    image: KyushuImage,
+    image: "/assets/Kyushu.jpg",
     description:
       "La isla volcánica más meridional, famosa por sus aguas termales naturales, volcanes activos y cultura vibrante.",
 

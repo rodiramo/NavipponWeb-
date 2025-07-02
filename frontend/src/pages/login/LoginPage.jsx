@@ -15,9 +15,6 @@ import {
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import useUser from "../../hooks/useUser";
-import logoBlack from "../../assets/navippon-icon.png";
-import logo from "../../assets/navippon-logo-white.png";
-import backgroundImage from "../../assets/login-bg.jpg";
 import HomeButton from "../../components/HomeButton";
 
 const LoginPage = () => {
@@ -75,7 +72,7 @@ const LoginPage = () => {
           position="relative"
           sx={{
             borderRadius: "0rem 200rem 200rem 0rem",
-            backgroundImage: `url(${backgroundImage})`,
+            backgroundImage: "url(/assets/login-bg.jpg)",
             backgroundSize: "cover",
             backgroundPosition: "center",
           }}
@@ -98,7 +95,7 @@ const LoginPage = () => {
           >
             <Link to="/">
               <img
-                src={logo}
+                src="/assets/navippon-logo-white.png"
                 alt="Navippon Logo"
                 style={{ width: "7rem", marginTop: "2rem", marginLeft: "2rem" }}
               />
@@ -114,7 +111,7 @@ const LoginPage = () => {
           mt={2}
         >
           <img
-            src={logoBlack}
+            src="/assets/navippon-icon.png"
             alt="Navippon Logo"
             style={{ width: "7rem", marginTop: "3.5rem" }}
           />

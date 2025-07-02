@@ -1,27 +1,18 @@
-import Logo from "../assets/Logo.svg";
-import LogoWhite from "../assets/navippon-logo-white.png";
-import LogoBlack from "../assets/navippon-icon.png";
-import DefaultAvatar from "../assets/default-avatar.jpg";
-import Company from "../assets/company.png";
-import HeroImage from "../assets/HeroImage.svg";
-import Post1Image from "../assets/posts/post1.jpg";
-import PostProfileImage from "../assets/posts/post-profile.svg";
-import CtaImage from "../assets/CtaImage.jpg";
-const samplePostImage = "/images/sample.jpg";
-const userImage = "/images/user.png";
+// Updated constants file - images now served from public folder
+// No more imports needed - just path strings
 
 const images = {
-  Logo,
-  LogoWhite,
-  LogoBlack,
-  DefaultAvatar,
-  Company,
-  HeroImage,
-  Post1Image,
-  PostProfileImage,
-  CtaImage,
-  samplePostImage,
-  userImage,
+  Logo: "/assets/Logo.svg",
+  LogoWhite: "/assets/navippon-logo-white.png",
+  LogoBlack: "/assets/navippon-icon.png",
+  DefaultAvatar: "/assets/default-avatar.jpg",
+  Company: "/assets/company.png",
+  HeroImage: "/assets/HeroImage.svg",
+  Post1Image: "/assets/posts/post1.jpg",
+  PostProfileImage: "/assets/posts/post-profile.svg",
+  CtaImage: "/assets/cta.jpg",
+  samplePostImage: "/images/sample.jpg",
+  userImage: "/images/user.png",
 };
 
 export default images;

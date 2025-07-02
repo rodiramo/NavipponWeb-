@@ -2,7 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { NavLink } from "react-router-dom";
 import { useWindowSize } from "@uidotdev/usehooks";
 import { images, stables } from "../../../../constants";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { toggleMode } from "../../../../themeSlice";
 import { AiOutlineArrowLeft, AiOutlineArrowRight } from "react-icons/ai";
@@ -15,7 +15,6 @@ import {
   Star,
   UsersRound,
   CirclePlus,
-  HeartPulse,
   MessagesSquare,
   Upload,
   Sun,

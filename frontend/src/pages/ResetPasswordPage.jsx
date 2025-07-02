@@ -15,8 +15,8 @@ import {
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { resetPassword, verifyResetToken } from "../services/index/users";
-import logoBlack from "../assets/navippon-icon.png";
 import HomeButton from "../components/HomeButton";
+const logoBlack = "./assets/navippon-icon.png";
 
 const ResetPasswordPage = () => {
   const theme = useTheme();
