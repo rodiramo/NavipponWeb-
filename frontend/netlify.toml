@@ -1,11 +1,13 @@
 [build]
   base = "frontend"
-  publish = "build"
   command = "npm run build"
- 
+  publish = "frontend/build"
+
 [build.environment]
   NODE_VERSION = "18"
-  NODE_OPTIONS = "--max-old-space-size=4096"
+  NODE_OPTIONS = "--max-old-space-size=3072"
+  CI = "false"
+  GENERATE_SOURCEMAP = "false"
 
 [[redirects]]
   from = "/*"
