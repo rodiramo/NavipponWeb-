@@ -12,17 +12,13 @@ import Experiences from "./container/Experiences";
 import useUser from "../../hooks/useUser";
 import {
   OnboardingGuide,
-  FloatingHelpButton,
   QuickStartCard,
-  FeatureTips,
 } from "../../components/OnboardingGuide.jsx";
 
 const HomePage = () => {
   const { user, jwt: token } = useUser();
   const navigate = useNavigate();
   const location = useLocation();
-  const [reload, setReload] = useState(false);
-  const [filters, setFilters] = useState({ tags: [] });
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
 
@@ -53,10 +49,6 @@ const HomePage = () => {
     }
   }, [user]);
 
-  const handleReload = () => {
-    setReload(!reload);
-  };
-
   const handleStartItinerary = () => {
     if (user) {
       navigate("/user/itineraries/manage/create");
@@ -64,10 +56,6 @@ const HomePage = () => {
       // Show login modal or redirect to login
       navigate("/login?redirect=/user/itineraries/manage/create");
     }
-  };
-
-  const handleShowHelp = () => {
-    setShowHelp(true);
   };
 
   const handleOnboardingClose = () => {

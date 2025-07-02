@@ -11,12 +11,7 @@ import {
   Paper,
   Button,
 } from "@mui/material";
-import {
-  ExpandMore,
-  HelpOutline,
-  CreditCard,
-  Settings,
-} from "@mui/icons-material";
+import { ExpandMore, HelpOutline, Settings } from "@mui/icons-material";
 
 import MainLayout from "../../components/MainLayout";
 import { Calendar, MapPin, Plane, MessageCircle, Mail } from "lucide-react";

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "react-hot-toast";
 import useUser from "../../../../hooks/useUser";
-import { Search, Download, CloudDownload, TrendingUp } from "lucide-react";
+import { Search, Download, CloudDownload } from "lucide-react";
 import {
   useTheme,
   Box,
@@ -13,7 +13,6 @@ import {
   Card,
   CardMedia,
   CardContent,
-  CardActions,
   Chip,
   CircularProgress,
   Alert,
@@ -23,14 +22,11 @@ import {
   InputLabel,
   Select,
   Paper,
-  IconButton,
-  Tooltip,
 } from "@mui/material";
 
 const AdminImport = () => {
-  const { user, jwt } = useUser();
+  const { jwt } = useUser();
   const theme = useTheme();
-
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPrefecture, setSelectedPrefecture] = useState("Tokyo");
   const [selectedCategory, setSelectedCategory] = useState("all");

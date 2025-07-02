@@ -14,7 +14,6 @@ import {
   Rating,
   Divider,
   Fade,
-  Zoom,
 } from "@mui/material";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -23,16 +22,11 @@ import {
   BedSingle,
   Info,
   MapPin,
-  Star,
   Clock,
-  Users,
-  Euro,
   Map,
   Phone,
-  Calendar,
   Sparkles,
   ExternalLink,
-  Heart,
 } from "lucide-react";
 import { MdOutlineTempleBuddhist, MdOutlineRamenDining } from "react-icons/md";
 import { stables, images } from "../../../../../constants";
@@ -386,17 +380,6 @@ const ExperienceDetailsModal = ({ open, onClose, experience, category }) => {
       </DialogActions>
     </Dialog>
   );
-};
-const PermissionWrapper = ({
-  allowedRoles,
-  userRole,
-  children,
-  fallback = null,
-}) => {
-  if (!allowedRoles.includes(userRole)) {
-    return fallback;
-  }
-  return children;
 };
 
 const ActivityCard = ({

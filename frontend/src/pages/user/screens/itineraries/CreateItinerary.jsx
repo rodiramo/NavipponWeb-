@@ -5,15 +5,8 @@ import { getUserFriends } from "../../../../services/index/users"; // Import you
 import { createItinerary } from "../../../../services/index/itinerary";
 import useUser from "../../../../hooks/useUser";
 import { toast } from "react-hot-toast";
-import {
-  extractPlaceId,
-  getPlaceDetails,
-} from "../../../../services/index/map";
-
-import BreadcrumbBack from "../../../../components/BreadcrumbBack";
 import { ArrowRight, ArrowLeft } from "lucide-react";
-import { stables, images } from "../../../../constants";
-import { FaTrash, FaTimes } from "react-icons/fa";
+import { stables } from "../../../../constants";
 import {
   useTheme,
   MenuItem,
@@ -34,43 +27,6 @@ import { format, addDays, differenceInDays } from "date-fns";
 import "react-date-range/dist/styles.css"; // Main styles
 import "react-date-range/dist/theme/default.css";
 import { es } from "date-fns/locale";
-
-const categoriesEnum = ["Hoteles", "Atractivos", "Restaurantes"];
-const regions = {
-  Hokkaido: ["Hokkaido"],
-  Tohoku: ["Aomori", "Iwate", "Miyagi", "Akita", "Yamagata", "Fukushima"],
-  Kanto: [
-    "Tokio",
-    "Kanagawa",
-    "Chiba",
-    "Saitama",
-    "Ibaraki",
-    "Tochigi",
-    "Gunma",
-  ],
-  Chubu: [
-    "Aichi",
-    "Shizuoka",
-    "Gifu",
-    "Nagano",
-    "Niigata",
-    "Toyama",
-    "Ishikawa",
-    "Fukui",
-  ],
-  Kansai: ["Osaka", "Kyoto", "Hyogo", "Nara", "Wakayama", "Shiga", "Mie"],
-  Chugoku: ["Hiroshima", "Okayama", "Shimane", "Tottori", "Yamaguchi"],
-  Shikoku: ["Ehime", "Kagawa", "Kochi", "Tokushima"],
-  Kyushu: [
-    "Fukuoka",
-    "Nagasaki",
-    "Kumamoto",
-    "Oita",
-    "Miyazaki",
-    "Kagoshima",
-    "Saga",
-  ],
-};
 
 const CreateItinerary = () => {
   const [name, setName] = useState("");
@@ -184,17 +140,6 @@ const CreateItinerary = () => {
     setFilteredFavorites(filtered);
   };
 
-  const handleClearFilters = () => {
-    setSelectedCategory("All");
-    setSelectedRegion("All");
-    setSelectedPrefecture("All");
-    setFilteredFavorites(favorites);
-  };
-
-  const updateTotalBudget = (boards) => {
-    const total = boards.reduce((sum, board) => sum + board.dailyBudget, 0);
-    setTotalBudget(total);
-  };
   const handleDateChange = (ranges) => {
     const newRange = ranges.selection;
     setDateRange([newRange]);

@@ -1,16 +1,5 @@
 import React from "react";
-import {
-  Container,
-  Typography,
-  Box,
-  Paper,
-  Divider,
-  useTheme,
-  List,
-  ListItem,
-  ListItemText,
-  Button,
-} from "@mui/material";
+import { Container, Typography, Box, Paper, useTheme } from "@mui/material";
 import {
   Gavel,
   Shield,

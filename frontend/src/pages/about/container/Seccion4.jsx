@@ -1,11 +1,9 @@
 import { useTheme } from "@mui/material/styles";
-import { Box, Typography, useMediaQuery } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 
 const CommunitySection = () => {
   const theme = useTheme();
   const lightBlue = theme.palette.secondary.light;
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-  const isTablet = useMediaQuery(theme.breakpoints.down("lg"));
 
   return (
     <Box

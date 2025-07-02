@@ -1,23 +1,20 @@
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import {
   AiOutlineBold,
-  AiOutlineClose,
   AiOutlineEnter,
   AiOutlineItalic,
   AiOutlineOrderedList,
   AiOutlineRedo,
   AiOutlineStrikethrough,
   AiOutlineUndo,
-  AiOutlineFontColors,
   AiOutlineUnderline,
   AiOutlineUnorderedList,
 } from "react-icons/ai";
 import { Tooltip } from "@mui/material";
-import { BiParagraph, BiColorFill } from "react-icons/bi";
-import { FiCode } from "react-icons/fi";
-import { MenuItem, Select, useTheme } from "@mui/material";
+import { BiColorFill } from "react-icons/bi";
+import { useTheme } from "@mui/material";
 import { MdOutlineLayersClear } from "react-icons/md";
-import { PiCodeBlock, PiQuotes, PiImageSquareBold } from "react-icons/pi";
+import { PiQuotes } from "react-icons/pi";
 import { TbSpacingVertical } from "react-icons/tb";
 
 const MenuBar = ({ editor }) => {
@@ -25,47 +22,15 @@ const MenuBar = ({ editor }) => {
   const [selectedColor, setSelectedColor] = useState(
     theme.palette.primary.main
   );
-  const addImage = useCallback(() => {
-    const url = window.prompt("URL");
-
-    if (url) {
-      editor.chain().focus().setImage({ src: url }).run();
-    }
-  }, [editor]);
 
   if (!editor) {
     return null;
   }
-  const textTypes = [
-    { label: "Párrafo", value: "paragraph" },
-    { label: "Encabezado 1", value: "heading", level: 1 },
-    { label: "Encabezado 2", value: "heading", level: 2 },
-    { label: "Encabezado 3", value: "heading", level: 3 },
-    { label: "Código", value: "codeBlock" },
-    { label: "Cita", value: "blockquote" },
-  ];
+
   const handleColorChange = (event) => {
     const newColor = event.target.value;
     setSelectedColor(newColor);
     editor.chain().focus().setMark("textStyle", { color: newColor }).run();
-  };
-  const handleChange = (event) => {
-    const selectedType = event.target.value;
-
-    if (selectedType === "paragraph") {
-      editor.chain().focus().setParagraph().run();
-    } else if (selectedType === "codeBlock") {
-      editor.chain().focus().toggleCodeBlock().run();
-    } else if (selectedType === "blockquote") {
-      editor.chain().focus().toggleBlockquote().run();
-    } else {
-      const level = textTypes.find(
-        (type) => type.value === selectedType
-      )?.level;
-      if (level) {
-        editor.chain().focus().toggleHeading({ level }).run();
-      }
-    }
   };
 
   return (

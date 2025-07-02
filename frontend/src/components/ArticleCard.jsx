@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setFriends } from "../store/reducers/authSlice.js";
-import { AiOutlineClose, AiFillHeart, AiOutlineHeart } from "react-icons/ai";
+import { AiFillHeart } from "react-icons/ai";
 import {
   PersonAddOutlined,
   PersonRemoveOutlined,
@@ -9,15 +9,11 @@ import {
 } from "@mui/icons-material";
 import { images, stables } from "../constants";
 import { Link, useNavigate } from "react-router-dom";
-import {
-  addFavorite,
-  removeFavorite,
-  getUserFavorites,
-} from "../services/index/favorites";
+
 import { toggleFriend } from "../services/index/users";
 import { toast } from "react-hot-toast";
-import { useTheme, IconButton, Typography, Chip } from "@mui/material";
-import { Clock, User, Eye, Calendar, Edit } from "lucide-react";
+import { useTheme, Chip } from "@mui/material";
+import { Clock, Eye, Calendar, Edit } from "lucide-react";
 
 const ArticleCard = ({ post, className, currentUser, token, onEdit }) => {
   const theme = useTheme();

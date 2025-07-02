@@ -3,14 +3,13 @@ import { useParams, useNavigate } from "react-router-dom";
 import MainLayout from "../../components/MainLayout.jsx";
 import BreadcrumbBack from "../../components/BreadcrumbBack.jsx";
 import BgShape from "../../components/Shapes/BgShape.jsx";
-import { GoogleMap, LoadScript, Marker, Polygon } from "@react-google-maps/api";
+import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
 import {
   Box,
   Typography,
   Container,
   Grid,
   Card,
-  CardContent,
   Chip,
   Button,
   TextField,
@@ -21,19 +20,13 @@ import {
   InputLabel,
   CircularProgress,
   Alert,
-  Paper,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import {
   Search,
-  ArrowLeft,
-  Camera,
   Grid3X3,
   List,
-  Mountain,
-  Building,
   Star,
-  Utensils,
   Cloud,
   Sun,
   CloudRain,
@@ -41,7 +34,6 @@ import {
   Wind,
   Droplets,
   Eye,
-  MapPin,
 } from "lucide-react";
 import ExperienceCard from "../../components/ExperienceCard"; // Adjust path as needed
 import HorizontalExperienceCard from "../experience/container/HorizontalExperienceCard"; // Adjust path as needed

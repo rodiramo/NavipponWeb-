@@ -1,7 +1,6 @@
 import React from "react";
 import { useTheme } from "@mui/material/styles";
 import { Box, Typography, Container, Button } from "@mui/material";
-import { Create, Explore } from "@mui/icons-material";
 import nube from "../../../assets/nube.png";
 import { Pencil } from "lucide-react";
 

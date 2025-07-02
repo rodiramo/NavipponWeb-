@@ -4,8 +4,7 @@ import { toast } from "react-hot-toast";
 import StarRating from "../../components/Stars";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import FavoriteBorderOutlinedIcon from "@mui/icons-material/FavoriteBorderOutlined";
-import "leaflet/dist/leaflet.css"; // ✅ Required for Leaflet
-import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 import BgShape from "../../components/Shapes/BgShape.jsx";
 import BreadcrumbBack from "../../components/BreadcrumbBack.jsx";
 import ReviewsContainer from "../../components/reviews/ReviewsContainer";
@@ -28,18 +27,11 @@ import {
   removeFavorite as removeFavoriteService,
   getUserFavorites,
 } from "../../services/index/favorites";
-import { Box, Typography, Button, IconButton } from "@mui/material";
+import { Box, Typography, Button } from "@mui/material";
 import Aside from "./container/Aside";
 import Hero from "./container/Hero";
 import { Tabs, Tab } from "./container/Tabs";
 import CarouselExperiences from "./container/CarouselExperiences";
-import SuggestedExperiences from "./container/SuggestedExperiences";
-
-// ✅ Fix Map Icons
-const markerIcon = new L.Icon({
-  iconUrl: "https://leafletjs.com/examples/custom-icons/leaf-green.png",
-  iconSize: [38, 95],
-});
 
 const ExperienceDetailPage = () => {
   const { slug } = useParams();
@@ -49,27 +41,12 @@ const ExperienceDetailPage = () => {
   const [isFavorite, setIsFavorite] = useState(false);
   const theme = useTheme(true);
 
-  // Responsive breakpoints
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-  const isTablet = useMediaQuery(theme.breakpoints.down("lg"));
-  const isSmallMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
-  const formatCategory = (category) => {
-    const categoryMap = {
-      restaurantes: "Restaurante",
-      hoteles: "Hotel",
-      atractivos: "Atractivo",
-    };
-
-    return categoryMap[category.toLowerCase()] || category;
-  };
-
-  // Helper function to check if image is a default/sample image
   const isDefaultImage = (photoUrl) => {
     return photoUrl && photoUrl.startsWith("https://images.unsplash.com");
   };
 
-  // Helper function to get the full image URL
   const getImageUrl = () => {
     if (!data?.photo) return images.sampleExperienceImage;
 

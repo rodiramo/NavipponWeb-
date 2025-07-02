@@ -21,7 +21,6 @@ import {
   Heart,
   Calendar,
   Users,
-  ArrowRight,
   Sparkles,
   ChevronRight,
   ChevronLeft,

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useSelector } from "react-redux";
+
 import {
   useTheme,
   Typography,
@@ -9,7 +9,7 @@ import {
   MenuItem,
 } from "@mui/material";
 import { ArrowDownWideNarrow } from "lucide-react";
-import PropTypes from "prop-types";
+
 import Review from "./Review";
 import ReviewForm from "./ReviewForm";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -32,13 +32,13 @@ const ReviewsContainer = ({
   const queryClient = useQueryClient();
   const [sortOption, setSortOption] = useState("fecha-reciente");
   const [anchorEl, setAnchorEl] = useState(null);
-  const { user, jwt } = useUser();
+  const { jwt } = useUser();
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [allReviews, setAllReviews] = useState(reviews);
   const [affectedReview, setAffectedReview] = useState(null);
   const theme = useTheme();
 
-    useEffect(() => {
+  useEffect(() => {
     setAllReviews(reviews);
   }, [reviews]);
 
@@ -362,4 +362,4 @@ const ReviewsContainer = ({
   );
 };
 
-export default ReviewsContainer; 
+export default ReviewsContainer;

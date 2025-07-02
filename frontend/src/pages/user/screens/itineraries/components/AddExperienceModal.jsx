@@ -16,7 +16,6 @@ import {
   InputAdornment,
   CircularProgress,
   useTheme,
-  Avatar,
   IconButton,
   Fade,
   Zoom,
@@ -31,12 +30,10 @@ import {
   Plus,
   BedSingle,
   Sparkles,
-  Heart,
 } from "lucide-react";
 import { MdOutlineTempleBuddhist, MdOutlineRamenDining } from "react-icons/md";
 import { stables, images } from "../../../../../constants";
 
-// Experience Card Component
 const ExperienceCard = ({ experience, onSelect, isSelected, theme }) => {
   const getCategoryIcon = (category) => {
     if (category === "Hoteles") return <BedSingle size={16} />;

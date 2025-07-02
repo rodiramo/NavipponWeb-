@@ -37,7 +37,6 @@ import {
   DialogContent,
   DialogActions,
   LinearProgress,
-  Badge,
 } from "@mui/material";
 
 import {
@@ -51,14 +50,11 @@ import {
   LogOut,
   CirclePlus,
   Search,
-  Filter,
   Share,
-  Copy,
   Globe,
   Lock,
   MapPin,
   Clock,
-  TrendingUp,
 } from "lucide-react";
 
 const ManageItineraries = () => {

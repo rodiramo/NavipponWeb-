@@ -1,7 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import React, { useState, useEffect } from "react";
-import CreatableSelect from "react-select/creatable";
-import { getSingleUserExperience, updateUserExperience } from "../../../../services/index/userExperiences";
+import { useState } from "react";
+import {
+  getSingleUserExperience,
+  updateUserExperience,
+} from "../../../../services/index/userExperiences";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import ExperienceDetailSkeleton from "../../../experienceDetail/components/ExperienceDetailSkeleton";
 import ErrorMessage from "../../../../components/ErrorMessage";
@@ -10,12 +12,50 @@ import { HiOutlineCamera } from "react-icons/hi";
 import { toast } from "react-hot-toast";
 import useUser from "../../../../hooks/useUser";
 import Editor from "../../../../components/editor/Editor";
-import MultiSelectTagDropdown from "../../components/select-dropdown/MultiSelectTagDropdown";
-import { MdOutlineForest, MdOutlineBeachAccess, MdOutlineRamenDining, MdOutlineCoffee, MdOutlineShoppingBag, MdOutlineTempleBuddhist, MdOutlineTempleHindu, MdOutlineHotTub, MdOutlineCastle, MdOutlineSpa, MdFreeBreakfast, MdAirportShuttle } from "react-icons/md";
+import {
+  MdOutlineForest,
+  MdOutlineBeachAccess,
+  MdOutlineRamenDining,
+  MdOutlineCoffee,
+  MdOutlineShoppingBag,
+  MdOutlineTempleBuddhist,
+  MdOutlineTempleHindu,
+  MdOutlineHotTub,
+  MdOutlineCastle,
+  MdOutlineSpa,
+  MdFreeBreakfast,
+  MdAirportShuttle,
+} from "react-icons/md";
 import { TbBuildingMonument, TbTorii } from "react-icons/tb";
 import { LiaCocktailSolid, LiaGamepadSolid } from "react-icons/lia";
-import { GiGreekTemple, GiPartyPopper, GiSamuraiHelmet, GiGrapes, GiBed } from "react-icons/gi";
-import { FaRegStar, FaWifi, FaUtensils, FaDog, FaLeaf, FaFish, FaChild, FaHotel, FaCapsules, FaBuilding, FaHome, FaSwimmer, FaParking, FaDumbbell, FaWheelchair, FaHeart, FaBriefcase, FaHiking, FaMountain } from "react-icons/fa";
+import {
+  GiGreekTemple,
+  GiPartyPopper,
+  GiSamuraiHelmet,
+  GiGrapes,
+  GiBed,
+} from "react-icons/gi";
+import {
+  FaRegStar,
+  FaWifi,
+  FaUtensils,
+  FaDog,
+  FaLeaf,
+  FaFish,
+  FaChild,
+  FaHotel,
+  FaCapsules,
+  FaBuilding,
+  FaHome,
+  FaSwimmer,
+  FaParking,
+  FaDumbbell,
+  FaWheelchair,
+  FaHeart,
+  FaBriefcase,
+  FaHiking,
+  FaMountain,
+} from "react-icons/fa";
 import { BsRobot } from "react-icons/bs";
 import { VscOctoface } from "react-icons/vsc";
 import { LuFerrisWheel } from "react-icons/lu";
@@ -25,49 +65,101 @@ const categoriesEnum = ["Hoteles", "Atractivos", "Restaurantes"];
 const regions = {
   Hokkaido: ["Hokkaido"],
   Tohoku: ["Aomori", "Iwate", "Miyagi", "Akita", "Yamagata", "Fukushima"],
-  Kanto: ["Tokio", "Kanagawa", "Chiba", "Saitama", "Ibaraki", "Tochigi", "Gunma"],
-  Chubu: ["Aichi", "Shizuoka", "Gifu", "Nagano", "Niigata", "Toyama", "Ishikawa", "Fukui"],
+  Kanto: [
+    "Tokio",
+    "Kanagawa",
+    "Chiba",
+    "Saitama",
+    "Ibaraki",
+    "Tochigi",
+    "Gunma",
+  ],
+  Chubu: [
+    "Aichi",
+    "Shizuoka",
+    "Gifu",
+    "Nagano",
+    "Niigata",
+    "Toyama",
+    "Ishikawa",
+    "Fukui",
+  ],
   Kansai: ["Osaka", "Kyoto", "Hyogo", "Nara", "Wakayama", "Shiga", "Mie"],
   Chugoku: ["Hiroshima", "Okayama", "Shimane", "Tottori", "Yamaguchi"],
   Shikoku: ["Ehime", "Kagawa", "Kochi", "Tokushima"],
-  Kyushu: ["Fukuoka", "Nagasaki", "Kumamoto", "Oita", "Miyazaki", "Kagoshima", "Saga"],
+  Kyushu: [
+    "Fukuoka",
+    "Nagasaki",
+    "Kumamoto",
+    "Oita",
+    "Miyazaki",
+    "Kagoshima",
+    "Saga",
+  ],
 };
 
 const generalTags = {
   season: ["Primavera", "Verano", "Otoño", "Invierno", "Todo el año"],
   budget: ["Gratis", "Económico", "Moderado", "Lujo"],
   rating: [1, 2, 3, 4, 5],
-  location: ["Cerca de estaciones de tren o metro", "Cerca de aeropuertos", "Cerca de áreas de puntos de interés"],
+  location: [
+    "Cerca de estaciones de tren o metro",
+    "Cerca de aeropuertos",
+    "Cerca de áreas de puntos de interés",
+  ],
 };
 
 const attractionTags = [
-  { icon: <MdOutlineForest />, title: 'Naturaleza' },
-  { icon: <MdOutlineBeachAccess />, title: 'Playa' },
-  { icon: <TbBuildingMonument />, title: 'Monumento' },
-  { icon: <MdOutlineRamenDining />, title: 'Gastronomía' },
-  { icon: <LiaCocktailSolid />, title: 'Noche' },
-  { icon: <GiGreekTemple />, title: 'Museo' },
-  { icon: <MdOutlineCoffee />, title: 'Cafés' },
-  { icon: <MdOutlineShoppingBag />, title: 'Shopping' },
-  { icon: <FaRegStar />, title: 'Ocio' },
-  { icon: <GiPartyPopper />, title: 'Festival' },
-  { icon: <BsRobot />, title: 'Tecnología' },
-  { icon: <LiaGamepadSolid />, title: 'Juegos' },
-  { icon: <VscOctoface />, title: 'Anime' },
-  { icon: <LuFerrisWheel />, title: 'Parques temáticos' },
-  { icon: <GiSamuraiHelmet />, title: 'Samurai' },
-  { icon: <MdOutlineTempleBuddhist />, title: 'Templo Budista' },
-  { icon: <PiBirdBold />, title: 'Reserva de Aves' },
-  { icon: <MdOutlineCastle />, title: 'Castillos' },
-  { icon: <PiCross />, title: 'Templo Cristiano' },
-  { icon: <TbTorii />, title: 'Templo Sintoísta' },
-  { icon: <MdOutlineTempleHindu />, title: 'Templo Hindú' },
-  { icon: <MdOutlineHotTub />, title: 'Aguas Termales' },
-  { icon: <GiGrapes />, title: 'Viñedos' },
+  { icon: <MdOutlineForest />, title: "Naturaleza" },
+  { icon: <MdOutlineBeachAccess />, title: "Playa" },
+  { icon: <TbBuildingMonument />, title: "Monumento" },
+  { icon: <MdOutlineRamenDining />, title: "Gastronomía" },
+  { icon: <LiaCocktailSolid />, title: "Noche" },
+  { icon: <GiGreekTemple />, title: "Museo" },
+  { icon: <MdOutlineCoffee />, title: "Cafés" },
+  { icon: <MdOutlineShoppingBag />, title: "Shopping" },
+  { icon: <FaRegStar />, title: "Ocio" },
+  { icon: <GiPartyPopper />, title: "Festival" },
+  { icon: <BsRobot />, title: "Tecnología" },
+  { icon: <LiaGamepadSolid />, title: "Juegos" },
+  { icon: <VscOctoface />, title: "Anime" },
+  { icon: <LuFerrisWheel />, title: "Parques temáticos" },
+  { icon: <GiSamuraiHelmet />, title: "Samurai" },
+  { icon: <MdOutlineTempleBuddhist />, title: "Templo Budista" },
+  { icon: <PiBirdBold />, title: "Reserva de Aves" },
+  { icon: <MdOutlineCastle />, title: "Castillos" },
+  { icon: <PiCross />, title: "Templo Cristiano" },
+  { icon: <TbTorii />, title: "Templo Sintoísta" },
+  { icon: <MdOutlineTempleHindu />, title: "Templo Hindú" },
+  { icon: <MdOutlineHotTub />, title: "Aguas Termales" },
+  { icon: <GiGrapes />, title: "Viñedos" },
 ];
 
-const restaurantTypes = ["Restaurantes tradicionales", "Cadenas de comida rápida", "Cafeterías y cafés", "Restaurantes de alta cocina", "Food trucks", "Ramen", "Sushi"];
-const cuisines = ["Cocina japonesa tradicional", "Internacional", "Fusión", "Cocina vegetariana/vegana", "Cocina sin gluten", "Cocina halal", "Cocina kosher", "Rápida", "Cocina de autor", "Con espectáculo", "Familiar", "Romántica", "Negocios", "Ocasiones especiales"];
+const restaurantTypes = [
+  "Restaurantes tradicionales",
+  "Cadenas de comida rápida",
+  "Cafeterías y cafés",
+  "Restaurantes de alta cocina",
+  "Food trucks",
+  "Ramen",
+  "Sushi",
+];
+const cuisines = [
+  "Cocina japonesa tradicional",
+  "Internacional",
+  "Fusión",
+  "Cocina vegetariana/vegana",
+  "Cocina sin gluten",
+  "Cocina halal",
+  "Cocina kosher",
+  "Rápida",
+  "Cocina de autor",
+  "Con espectáculo",
+  "Familiar",
+  "Romántica",
+  "Negocios",
+  "Ocasiones especiales",
+];
 const restaurantServices = [
   { icon: <FaWifi />, label: "Wi-Fi gratis" },
   { icon: <FaUtensils />, label: "Menú en inglés" },
@@ -78,7 +170,7 @@ const restaurantServices = [
   { icon: <FaDog />, label: "Admite mascotas" },
   { icon: <FaLeaf />, label: "Ingredientes orgánicos" },
   { icon: <FaFish />, label: "Mariscos frescos" },
-  { icon: <FaChild />, label: "Menús infantiles" }
+  { icon: <FaChild />, label: "Menús infantiles" },
 ];
 
 const accommodation = [
@@ -87,7 +179,7 @@ const accommodation = [
   { icon: <FaCapsules />, label: "Hoteles cápsula" },
   { icon: <FaBuilding />, label: "Hoteles de negocios" },
   { icon: <FaHome />, label: "Apartamentos" },
-  { icon: <GiBed />, label: "Hostales" }
+  { icon: <GiBed />, label: "Hostales" },
 ];
 
 const hotelServices = [
@@ -99,7 +191,7 @@ const hotelServices = [
   { icon: <FaDumbbell />, label: "Gimnasio" },
   { icon: <FaUtensils />, label: "Restaurante en el hotel" },
   { icon: <FaWheelchair />, label: "Accesible" },
-  { icon: <FaDog />, label: "Admite mascotas" }
+  { icon: <FaDog />, label: "Admite mascotas" },
 ];
 
 const typeTrip = [
@@ -107,14 +199,14 @@ const typeTrip = [
   { icon: <FaHeart />, label: "Luna de miel" },
   { icon: <FaBriefcase />, label: "De negocios" },
   { icon: <FaHiking />, label: "Amigable para mochileros" },
-  { icon: <FaMountain />, label: "Para aventureros" }
+  { icon: <FaMountain />, label: "Para aventureros" },
 ];
 
 const EditExperience = () => {
   const { slug } = useParams();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const { user, jwt } = useUser();
+  const { jwt } = useUser();
   const [initialPhoto, setInitialPhoto] = useState(null);
   const [photo, setPhoto] = useState(null);
   const [body, setBody] = useState(null);
@@ -178,23 +270,29 @@ const EditExperience = () => {
       setSchedule(data.schedule);
       setMap(data.map);
       setAddress(data.address);
-      setSelectedGeneralTags(data.generalTags || {
-        season: [],
-        budget: [],
-        rating: [],
-        location: [],
-      });
+      setSelectedGeneralTags(
+        data.generalTags || {
+          season: [],
+          budget: [],
+          rating: [],
+          location: [],
+        }
+      );
       setSelectedAttractionTags(data.attractionTags || []);
-      setSelectedRestaurantTags(data.restaurantTags || {
-        restaurantTypes: [],
-        cuisines: [],
-        restaurantServices: [],
-      });
-      setSelectedHotelTags(data.hotelTags || {  
-        accommodation: [],  
-        hotelServices: [],
-        typeTrip: [],
-      });
+      setSelectedRestaurantTags(
+        data.restaurantTags || {
+          restaurantTypes: [],
+          cuisines: [],
+          restaurantServices: [],
+        }
+      );
+      setSelectedHotelTags(
+        data.hotelTags || {
+          accommodation: [],
+          hotelServices: [],
+          typeTrip: [],
+        }
+      );
     },
     refetchOnWindowFocus: false,
   });
@@ -247,7 +345,28 @@ const EditExperience = () => {
 
     updatedData.append(
       "document",
-      JSON.stringify({ body, categories, title, tags, slug: experienceSlug, caption, approved, region, prefecture, price, phone, email, website, schedule, map, address, generalTags: selectedGeneralTags, attractionTags: selectedAttractionTags, hotelTags: selectedHotelTags, restaurantTags: selectedRestaurantTags })
+      JSON.stringify({
+        body,
+        categories,
+        title,
+        tags,
+        slug: experienceSlug,
+        caption,
+        approved,
+        region,
+        prefecture,
+        price,
+        phone,
+        email,
+        website,
+        schedule,
+        map,
+        address,
+        generalTags: selectedGeneralTags,
+        attractionTags: selectedAttractionTags,
+        hotelTags: selectedHotelTags,
+        restaurantTags: selectedRestaurantTags,
+      })
     );
 
     mutateUpdateExperienceDetail({
@@ -296,7 +415,7 @@ const EditExperience = () => {
       return newTags;
     });
   };
-  
+
   const handleHotelTagChange = (tagType, tagLabel) => {
     setSelectedHotelTags((prevTags) => {
       const newTags = { ...prevTags };
@@ -323,7 +442,10 @@ const EditExperience = () => {
       ) : (
         <section className="container mx-auto max-w-5xl flex flex-col px-5 py-5 lg:flex-row lg:gap-x-5 lg:items-start">
           <article className="flex-1">
-            <label htmlFor="experiencePicture" className="w-full cursor-pointer">
+            <label
+              htmlFor="experiencePicture"
+              className="w-full cursor-pointer"
+            >
               {photo ? (
                 <img
                   src={URL.createObjectURL(photo)}
@@ -389,96 +511,95 @@ const EditExperience = () => {
             </div>
             <div className="d-form-control w-full">
               <label className="d-label" htmlFor="slug">
-                <span className="d-label-text">Título de navegación único (slug) </span>
+                <span className="d-label-text">
+                  Título de navegación único (slug){" "}
+                </span>
               </label>
               <input
                 id="slug"
                 value={experienceSlug}
                 className="d-input d-input-bordered border-slate-300 !outline-slate-300 text-xl font-medium font-roboto text-dark-hard"
                 onChange={(e) =>
-                  setExperienceSlug(e.target.value.replace(/\s+/g, "-").toLowerCase())
+                  setExperienceSlug(
+                    e.target.value.replace(/\s+/g, "-").toLowerCase()
+                  )
                 }
                 placeholder="experience slug"
               />
             </div>
 
-
-
-
             <div className="d-form-control w-full">
-            <label className="d-label" htmlFor="phone">
-              <span className="d-label-text">Teléfono</span>
-            </label>
-            <input
-              id="phone"
-              value={phone}
-              className="d-input d-input-bordered border-slate-300 !outline-slate-300 text-xl font-medium font-roboto text-dark-hard"
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="Teléfono"
-            />
-          </div>
-          <div className="d-form-control w-full">
-            <label className="d-label" htmlFor="email">
-              <span className="d-label-text">Correo Electrónico</span>
-            </label>
-            <input
-              id="email"
-              value={email}
-              className="d-input d-input-bordered border-slate-300 !outline-slate-300 text-xl font-medium font-roboto text-dark-hard"
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Correo Electrónico"
-            />
-          </div>
-          <div className="d-form-control w-full">
-            <label className="d-label" htmlFor="website">
-              <span className="d-label-text">Sitio Web</span>
-            </label>
-            <input
-              id="website"
-              value={website}
-              className="d-input d-input-bordered border-slate-300 !outline-slate-300 text-xl font-medium font-roboto text-dark-hard"
-              onChange={(e) => setWebsite(e.target.value)}
-              placeholder="Sitio Web"
-            />
-          </div>
-          <div className="d-form-control w-full">
-            <label className="d-label" htmlFor="schedule">
-              <span className="d-label-text">Horario</span>
-            </label>
-            <input
-              id="schedule"
-              value={schedule}
-              className="d-input d-input-bordered border-slate-300 !outline-slate-300 text-xl font-medium font-roboto text-dark-hard"
-              onChange={(e) => setSchedule(e.target.value)}
-              placeholder="Horario"
-            />
-          </div>
-          <div className="d-form-control w-full">
-            <label className="d-label" htmlFor="map">
-              <span className="d-label-text">Mapa</span>
-            </label>
-            <input
-              id="map"
-              value={map}
-              className="d-input d-input-bordered border-slate-300 !outline-slate-300 text-xl font-medium font-roboto text-dark-hard"
-              onChange={(e) => setMap(e.target.value)}
-              placeholder="Google Maps URL"
-            />
-          </div>
-          <div className="d-form-control w-full">
-            <label className="d-label" htmlFor="address">
-              <span className="d-label-text">Dirección</span>
-            </label>
-            <input
-              id="address"
-              value={address}
-              className="d-input d-input-bordered border-slate-300 !outline-slate-300 text-xl font-medium font-roboto text-dark-hard"
-              onChange={(e) => setAddress(e.target.value)}
-              placeholder="Dirección"
-            />
-          </div>
-
-
+              <label className="d-label" htmlFor="phone">
+                <span className="d-label-text">Teléfono</span>
+              </label>
+              <input
+                id="phone"
+                value={phone}
+                className="d-input d-input-bordered border-slate-300 !outline-slate-300 text-xl font-medium font-roboto text-dark-hard"
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="Teléfono"
+              />
+            </div>
+            <div className="d-form-control w-full">
+              <label className="d-label" htmlFor="email">
+                <span className="d-label-text">Correo Electrónico</span>
+              </label>
+              <input
+                id="email"
+                value={email}
+                className="d-input d-input-bordered border-slate-300 !outline-slate-300 text-xl font-medium font-roboto text-dark-hard"
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Correo Electrónico"
+              />
+            </div>
+            <div className="d-form-control w-full">
+              <label className="d-label" htmlFor="website">
+                <span className="d-label-text">Sitio Web</span>
+              </label>
+              <input
+                id="website"
+                value={website}
+                className="d-input d-input-bordered border-slate-300 !outline-slate-300 text-xl font-medium font-roboto text-dark-hard"
+                onChange={(e) => setWebsite(e.target.value)}
+                placeholder="Sitio Web"
+              />
+            </div>
+            <div className="d-form-control w-full">
+              <label className="d-label" htmlFor="schedule">
+                <span className="d-label-text">Horario</span>
+              </label>
+              <input
+                id="schedule"
+                value={schedule}
+                className="d-input d-input-bordered border-slate-300 !outline-slate-300 text-xl font-medium font-roboto text-dark-hard"
+                onChange={(e) => setSchedule(e.target.value)}
+                placeholder="Horario"
+              />
+            </div>
+            <div className="d-form-control w-full">
+              <label className="d-label" htmlFor="map">
+                <span className="d-label-text">Mapa</span>
+              </label>
+              <input
+                id="map"
+                value={map}
+                className="d-input d-input-bordered border-slate-300 !outline-slate-300 text-xl font-medium font-roboto text-dark-hard"
+                onChange={(e) => setMap(e.target.value)}
+                placeholder="Google Maps URL"
+              />
+            </div>
+            <div className="d-form-control w-full">
+              <label className="d-label" htmlFor="address">
+                <span className="d-label-text">Dirección</span>
+              </label>
+              <input
+                id="address"
+                value={address}
+                className="d-input d-input-bordered border-slate-300 !outline-slate-300 text-xl font-medium font-roboto text-dark-hard"
+                onChange={(e) => setAddress(e.target.value)}
+                placeholder="Dirección"
+              />
+            </div>
 
             <div className="d-form-control w-full">
               <label className="d-label" htmlFor="region">
@@ -553,8 +674,6 @@ const EditExperience = () => {
               )}
             </div>
 
-
-
             <div className="mb-5 mt-2">
               <label className="d-label">
                 <span className="d-label-text">Filtros Generales</span>
@@ -566,7 +685,9 @@ const EditExperience = () => {
                       <label className="font-bold">{tagLabels[tagType]}</label>
                       <select
                         value={selectedGeneralTags[tagType][0] || ""}
-                        onChange={(e) => handleSelectChange(tagType, e.target.value)}
+                        onChange={(e) =>
+                          handleSelectChange(tagType, e.target.value)
+                        }
                         className="d-input d-input-bordered border-slate-300 !outline-slate-300 text-sm font-medium font-roboto text-dark-hard w-auto"
                       >
                         <option value="">Selecciona una opción</option>
@@ -588,7 +709,10 @@ const EditExperience = () => {
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                   {attractionTags.map((tag) => (
-                    <label key={tag.title} className="flex items-center space-x-2">
+                    <label
+                      key={tag.title}
+                      className="flex items-center space-x-2"
+                    >
                       <input
                         type="checkbox"
                         checked={selectedAttractionTags.includes(tag.title)}
@@ -605,130 +729,173 @@ const EditExperience = () => {
               </div>
             )}
 
-                {categories === "Restaurantes" && (
-                  <div className="mb-5 mt-2">
-                    <label className="d-label">
-                      <span className="d-label-text">Tipos de Restaurantes</span>
+            {categories === "Restaurantes" && (
+              <div className="mb-5 mt-2">
+                <label className="d-label">
+                  <span className="d-label-text">Tipos de Restaurantes</span>
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {restaurantTypes.map((type) => (
+                    <label key={type} className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        checked={selectedRestaurantTags.restaurantTypes.includes(
+                          type
+                        )}
+                        onChange={() =>
+                          handleRestaurantTagChange("restaurantTypes", type)
+                        }
+                        className="form-checkbox h-4 w-4 text-primary"
+                      />
+                      <span className="ml-2">{type}</span>
                     </label>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                      {restaurantTypes.map((type) => (
-                        <label key={type} className="flex items-center space-x-2">
-                          <input
-                            type="checkbox"
-                            checked={selectedRestaurantTags.restaurantTypes.includes(type)}
-                            onChange={() => handleRestaurantTagChange("restaurantTypes", type)}
-                            className="form-checkbox h-4 w-4 text-primary"
-                          />
-                          <span className="ml-2">{type}</span>
-                        </label>
-                      ))}
-                    </div>
+                  ))}
+                </div>
 
-                    <label className="d-label mt-4">
-                      <span className="d-label-text">Cocinas</span>
+                <label className="d-label mt-4">
+                  <span className="d-label-text">Cocinas</span>
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {selectedRestaurantTags.cuisines &&
+                    cuisines.map((cuisine) => (
+                      <label
+                        key={cuisine}
+                        className="flex items-center space-x-2"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedRestaurantTags.cuisines.includes(
+                            cuisine
+                          )}
+                          onChange={() =>
+                            handleRestaurantTagChange("cuisines", cuisine)
+                          }
+                          className="form-checkbox h-4 w-4 text-primary"
+                        />
+                        <span className="ml-2">{cuisine}</span>
+                      </label>
+                    ))}
+                </div>
+
+                <label className="d-label mt-4">
+                  <span className="d-label-text">
+                    Servicios de Restaurantes
+                  </span>
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {restaurantServices.map((service) => (
+                    <label
+                      key={service.label}
+                      className="flex items-center space-x-2"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedRestaurantTags.restaurantServices.includes(
+                          service.label
+                        )}
+                        onChange={() =>
+                          handleRestaurantTagChange(
+                            "restaurantServices",
+                            service.label
+                          )
+                        }
+                        className="form-checkbox h-4 w-4 text-primary"
+                      />
+                      <span className="flex items-center">
+                        {service.icon}
+                        <span className="ml-2">{service.label}</span>
+                      </span>
                     </label>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                      {selectedRestaurantTags.cuisines && cuisines.map((cuisine) => (
-                        <label key={cuisine} className="flex items-center space-x-2">
-                          <input
-                            type="checkbox"
-                            checked={selectedRestaurantTags.cuisines.includes(cuisine)}
-                            onChange={() => handleRestaurantTagChange("cuisines", cuisine)}
-                            className="form-checkbox h-4 w-4 text-primary"
-                          />
-                          <span className="ml-2">{cuisine}</span>
-                        </label>
-                      ))}
-                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
-                    <label className="d-label mt-4">
-                      <span className="d-label-text">Servicios de Restaurantes</span>
+            {categories === "Hoteles" && (
+              <div className="mb-5 mt-2">
+                <label className="d-label">
+                  <span className="d-label-text">Alojamientos</span>
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  <select
+                    value={selectedHotelTags.accommodation?.[0] || ""}
+                    onChange={(e) =>
+                      handleHotelTagChange("accommodation", e.target.value)
+                    }
+                    className="form-select"
+                  >
+                    <option value="" disabled>
+                      Selecciona un alojamiento
+                    </option>
+                    {accommodation.map((accommodation) => (
+                      <option
+                        key={accommodation.label}
+                        value={accommodation.label}
+                      >
+                        {accommodation.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <label className="d-label mt-4">
+                  <span className="d-label-text">Servicios de Hoteles</span>
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {hotelServices.map((hotelServices) => (
+                    <label
+                      key={hotelServices.label}
+                      className="flex items-center space-x-2"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedHotelTags.hotelServices?.includes(
+                          hotelServices.label
+                        )}
+                        onChange={() =>
+                          handleHotelTagChange(
+                            "hotelServices",
+                            hotelServices.label
+                          )
+                        }
+                        className="form-checkbox h-4 w-4 text-primary"
+                      />
+                      <span className="flex items-center">
+                        {hotelServices.icon}
+                        <span className="ml-2">{hotelServices.label}</span>
+                      </span>
                     </label>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                      {restaurantServices.map((service) => (
-                        <label key={service.label} className="flex items-center space-x-2">
-                          <input
-                            type="checkbox"
-                            checked={selectedRestaurantTags.restaurantServices.includes(service.label)}
-                            onChange={() => handleRestaurantTagChange("restaurantServices", service.label)}
-                            className="form-checkbox h-4 w-4 text-primary"
-                          />
-                          <span className="flex items-center">
-                            {service.icon}
-                            <span className="ml-2">{service.label}</span>
-                          </span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                  ))}
+                </div>
 
-
-{categories === "Hoteles" && (
-        <div className="mb-5 mt-2">
-          <label className="d-label">
-            <span className="d-label-text">Alojamientos</span>
-          </label>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            <select
-              value={selectedHotelTags.accommodation?.[0] || ""}
-              onChange={(e) => handleHotelTagChange("accommodation", e.target.value)}
-              className="form-select"
-            >
-              <option value="" disabled>Selecciona un alojamiento</option>
-              {accommodation.map((accommodation) => (
-                <option key={accommodation.label} value={accommodation.label}>
-                  {accommodation.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <label className="d-label mt-4">
-            <span className="d-label-text">Servicios de Hoteles</span>
-          </label>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {hotelServices.map((hotelServices) => (
-              <label key={hotelServices.label} className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  checked={selectedHotelTags.hotelServices?.includes(hotelServices.label)}
-                  onChange={() => handleHotelTagChange("hotelServices", hotelServices.label)}
-                  className="form-checkbox h-4 w-4 text-primary"
-                />
-                <span className="flex items-center">
-                  {hotelServices.icon}
-                  <span className="ml-2">{hotelServices.label}</span>
-                </span>
-              </label>
-            ))}
-          </div>
-
-          <label className="d-label mt-4">
-            <span className="d-label-text">Tipo de Viaje</span>
-          </label>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {typeTrip.map((trip) => (
-              <label key={trip.label} className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  checked={selectedHotelTags.typeTrip?.includes(trip.label)}
-                  onChange={() => handleHotelTagChange("typeTrip", trip.label)}
-                  className="form-checkbox h-4 w-4 text-primary"
-                />
-                <span className="flex items-center">
-                  {trip.icon}
-                  <span className="ml-2">{trip.label}</span>
-                </span>
-              </label>
-            ))}
-          </div>
-        </div>
-      )}
-
-
-
-
+                <label className="d-label mt-4">
+                  <span className="d-label-text">Tipo de Viaje</span>
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {typeTrip.map((trip) => (
+                    <label
+                      key={trip.label}
+                      className="flex items-center space-x-2"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedHotelTags.typeTrip?.includes(
+                          trip.label
+                        )}
+                        onChange={() =>
+                          handleHotelTagChange("typeTrip", trip.label)
+                        }
+                        className="form-checkbox h-4 w-4 text-primary"
+                      />
+                      <span className="flex items-center">
+                        {trip.icon}
+                        <span className="ml-2">{trip.label}</span>
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="w-full">
               {isExperienceDataLoaded && (

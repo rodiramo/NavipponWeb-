@@ -1,12 +1,5 @@
 import React from "react";
-import {
-  useTheme,
-  Avatar,
-  Box,
-  Typography,
-  Button,
-  Divider,
-} from "@mui/material";
+import { useTheme, Avatar, Box, Typography, Button } from "@mui/material";
 import { FiMessageSquare, FiEdit2, FiTrash } from "react-icons/fi";
 
 import { images, stables } from "../../constants";

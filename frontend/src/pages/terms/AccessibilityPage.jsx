@@ -21,11 +21,9 @@ import {
   Keyboard,
   Mouse,
   Language,
-  Email,
   CheckCircle,
   Info,
   Build,
-  Feedback,
 } from "@mui/icons-material";
 import { Mail, Phone, MessageSquareWarning } from "lucide-react";
 import MainLayout from "../../components/MainLayout";

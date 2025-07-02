@@ -11,8 +11,6 @@ import DataTable from "../../components/DataTable";
 import { images, stables } from "../../../../constants";
 import { Link } from "react-router-dom";
 import useUser from "../../../../hooks/useUser";
-import { BsCheckLg } from "react-icons/bs";
-import { AiOutlineClose } from "react-icons/ai";
 import {
   Trash2,
   Calendar,
@@ -33,7 +31,6 @@ import {
   Button,
   Card,
   CardContent,
-  Grid,
   useMediaQuery,
   Tooltip,
   Stack,
@@ -44,7 +41,6 @@ const Reviews = () => {
   const { jwt } = useUser();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-  const isTablet = useMediaQuery(theme.breakpoints.down("lg"));
 
   const {
     currentPage,

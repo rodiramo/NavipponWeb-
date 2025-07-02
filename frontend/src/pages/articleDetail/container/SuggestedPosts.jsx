@@ -1,13 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { images, stables } from "../../../constants";
-import {
-  Favorite,
-  FavoriteBorder,
-  AccessTime,
-  TrendingUp,
-  ArrowForward,
-} from "@mui/icons-material";
+import { AccessTime, TrendingUp, ArrowForward } from "@mui/icons-material";
 import {
   Button,
   useTheme,
@@ -18,23 +12,14 @@ import {
   CardMedia,
   Grid,
   Chip,
-  useMediaQuery,
-  Avatar,
   Stack,
   Fade,
   Grow,
 } from "@mui/material";
 
 const SuggestedPosts = ({ className, header, posts = [], tags }) => {
-  const [isFavorited, setIsFavorited] = useState(false);
   const [hoveredPost, setHoveredPost] = useState(null);
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-  const isTablet = useMediaQuery(theme.breakpoints.down("lg"));
-
-  const handleFavoriteToggle = () => {
-    setIsFavorited(!isFavorited);
-  };
 
   return (
     <Box

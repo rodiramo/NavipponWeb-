@@ -243,7 +243,7 @@ const Hero = () => {
             backdropFilter: "blur(90px)",
             backgroundColor: "rgba(17, 1, 1, 0.1)",
             border: "1px solid rgba(255, 255, 255, 0.2)",
-            borderRadius: "1rem",
+
             transition: "all 0.3s ease",
           }}
         >

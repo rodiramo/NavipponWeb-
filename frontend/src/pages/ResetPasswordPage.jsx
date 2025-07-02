@@ -4,7 +4,6 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import {
   Box,
   useTheme,
-  useMediaQuery,
   Typography,
   Button,
   TextField,
@@ -41,11 +40,7 @@ const ResetPasswordPage = () => {
   });
 
   // Verify token validity
-  const {
-    data: tokenData,
-    isLoading: verifyingToken,
-    error: tokenError,
-  } = useQuery({
+  const { isLoading: verifyingToken, error: tokenError } = useQuery({
     queryKey: ["verify-reset-token", token],
     queryFn: () => verifyResetToken(token),
     retry: false,

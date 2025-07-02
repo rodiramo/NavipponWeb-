@@ -11,28 +11,11 @@ import {
   Switch,
   FormControlLabel,
   CircularProgress,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemIcon,
   Chip,
   Alert,
-  IconButton,
   Divider,
 } from "@mui/material";
-import {
-  Download,
-  Wifi,
-  WifiOff,
-  FileText,
-  MapPin,
-  Calendar,
-  Euro,
-  Trash2,
-  RefreshCw,
-  CheckCircle,
-  AlertCircle,
-} from "lucide-react";
+import { Download, Wifi, WifiOff, FileText, Trash2 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";

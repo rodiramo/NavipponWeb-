@@ -14,13 +14,9 @@ import {
   Calendar,
   FolderOpen,
   MapPin,
-  Star,
   Eye,
-  BarChart3,
   Tags,
   Map,
-  TrendingUp,
-  Activity,
   Plus,
   PlusCircle,
 } from "lucide-react";
@@ -36,21 +32,17 @@ import {
   CardContent,
   Grid,
   useMediaQuery,
-  Tooltip,
   CardMedia,
   Stack,
-  Rating,
   Paper,
-  Divider,
   LinearProgress,
   Fab,
 } from "@mui/material";
 
 const ManageExperiences = () => {
-  const { user, jwt } = useUser();
+  const { jwt } = useUser();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-  const isTablet = useMediaQuery(theme.breakpoints.down("lg"));
 
   const {
     currentPage,

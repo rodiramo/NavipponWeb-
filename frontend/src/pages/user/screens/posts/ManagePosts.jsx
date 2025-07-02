@@ -7,8 +7,7 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import DataTable from "../../components/DataTable";
 import { useDataTable } from "../../../../hooks/useDataTable";
-import { BsCheckLg } from "react-icons/bs";
-import { AiOutlineClose } from "react-icons/ai";
+
 import useUser from "../../../../hooks/useUser";
 import {
   Trash2,
@@ -19,8 +18,6 @@ import {
   CheckCircle,
   XCircle,
   Plus,
-  FileText,
-  TrendingUp,
 } from "lucide-react";
 import {
   useTheme,
@@ -34,7 +31,6 @@ import {
   CardContent,
   Grid,
   useMediaQuery,
-  Tooltip,
   CardMedia,
   Stack,
   Fade,
@@ -46,7 +42,6 @@ const ManagePosts = () => {
   const theme = useTheme();
   const navigate = useNavigate();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-  const isTablet = useMediaQuery(theme.breakpoints.down("lg"));
 
   const {
     currentPage,
@@ -179,7 +174,6 @@ const ManagePosts = () => {
               borderRadius: "30rem",
               px: 4,
               py: 2,
-              borderRadius: "30rem",
               fontSize: "1.1rem",
               fontWeight: "bold",
               textTransform: "none",

@@ -39,7 +39,6 @@ import {
   Info,
   ContactMail,
   Accessibility,
-  Cookie,
   Gavel,
   PrivacyTip,
   QuestionAnswer,

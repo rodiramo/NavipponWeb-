@@ -1,6 +1,6 @@
 import React from "react";
 import { Box, Typography, Chip, Tooltip } from "@mui/material";
-import { Image, Info, Eye, Sample } from "lucide-react";
+import { Image, Eye } from "lucide-react";
 
 // Enhanced Image Display Component with Sample Indicators
 const ImageWithSampleIndicator = ({

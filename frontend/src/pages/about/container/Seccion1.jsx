@@ -1,11 +1,9 @@
 import { useTheme } from "@mui/material/styles";
-import { Box, Typography, Container, useMediaQuery } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 
 const Seccion1 = () => {
   const theme = useTheme();
   const isDarkMode = theme.palette.mode === "dark";
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-  const isTablet = useMediaQuery(theme.breakpoints.down("lg"));
 
   const logoSrc = isDarkMode
     ? "/assets/navippon-logo-white.png"

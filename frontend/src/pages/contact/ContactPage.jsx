@@ -12,8 +12,8 @@ import {
   Grid,
   Chip,
 } from "@mui/material";
-import { images, stables } from "../../constants";
-import { useSelector, useDispatch } from "react-redux";
+import { images } from "../../constants";
+import { useSelector } from "react-redux";
 import { Phone, MapPin, Mail } from "lucide-react";
 import { useTheme } from "@mui/material/styles";
 import MainLayout from "../../components/MainLayout";

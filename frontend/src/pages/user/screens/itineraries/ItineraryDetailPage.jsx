@@ -1,17 +1,10 @@
 // Complete ItineraryDetailPage.jsx with Permanent Auto-Favorites Fix
 import React, { useState, useEffect, useCallback } from "react";
-import { Box, useTheme, Typography, IconButton } from "@mui/material";
+import { Box, useTheme } from "@mui/material";
 import { toast } from "react-hot-toast";
 import { useNavigate, useParams } from "react-router-dom";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
-import { Calendar, CalendarCheck } from "lucide-react";
-import es from "date-fns/locale/es";
 import DateChangeDialog from "./components/DateChangeDialog";
-import DateDisplay from "./components/DateDisplay";
 import OfflineManager from "./components/OfflineManager";
-import { Download } from "lucide-react";
 // DnD Kit imports
 import {
   DndContext,
@@ -55,7 +48,6 @@ const ItineraryDetailPage = () => {
   const [offlineModalOpen, setOfflineModalOpen] = useState(false);
 
   const theme = useTheme();
-  const [itinerary, setItinerary] = useState(null);
   const [userRole, setUserRole] = useState("viewer");
 
   const { id } = useParams();
@@ -114,16 +106,7 @@ const ItineraryDetailPage = () => {
       return fav && fav._id && fav.experienceId && fav.experienceId._id;
     });
   };
-  // In your main itinerary component
-  const getItineraryUserRole = (itinerary, currentUserId) => {
-    if (!itinerary?.travelers || !currentUserId) return "viewer";
 
-    const traveler = itinerary.travelers.find(
-      (t) => t.userId.toString() === currentUserId.toString()
-    );
-
-    return traveler?.role || "viewer";
-  };
   // Computed values with null safety
   const groupedFavorites = drawerFavorites.reduce((groups, fav) => {
     if (!fav || !fav.experienceId) return groups;

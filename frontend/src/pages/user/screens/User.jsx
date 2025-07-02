@@ -3,16 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import axios from "axios";
-import { stables } from "../../../constants"; // Import your stables
-
-import { updateCoverImg } from "../../../services/index/users";
+import { stables } from "../../../constants";
 import useUser from "../../../hooks/useUser";
 import FriendsWidget from "../widgets/FriendWidget";
 import {
   Box,
   Typography,
   Button,
-  Grid,
   IconButton,
   Dialog,
   DialogTitle,
@@ -22,13 +19,9 @@ import {
   Select,
   MenuItem,
   useTheme,
-  Card,
-  CardContent,
   FormControl,
   InputLabel,
   CircularProgress,
-  Autocomplete,
-  Chip,
 } from "@mui/material";
 import FmdGoodOutlinedIcon from "@mui/icons-material/FmdGoodOutlined";
 import {
@@ -39,7 +32,6 @@ import {
   Save,
 } from "@mui/icons-material";
 import ProfilePicture from "../../../components/ProfilePicture";
-import FlexBetween from "../../../components/FlexBetween";
 import { toast } from "react-hot-toast";
 import { setUserInfo } from "../../../store/reducers/authSlice";
 
@@ -52,13 +44,8 @@ const User = () => {
   const [user, setUser] = useState(reduxUser || {});
   const [isEditing, setIsEditing] = useState(false);
   const [openLocation, setOpenLocation] = useState(false);
-  const [travelStyle, setTravelStyle] = useState(user?.travelStyle || "");
-  const [budget, setBudget] = useState(user?.budget || "");
-
-  // ✅ Fixed cover image handling using the same pattern as ProfilePicture
   const [coverImage, setCoverImage] = useState(() => {
     if (user?.coverImg) {
-      // Use the same pattern as ProfilePicture component
       return `${stables.UPLOAD_FOLDER_BASE_URL}/${user.coverImg}`;
     }
     return "/assets/bg-home1.jpg";
@@ -1068,8 +1055,8 @@ const User = () => {
                   locationForm.country && !locationForm.city
                     ? `Ciudades disponibles en ${locationForm.country}`
                     : locationForm.city && locationForm.country
-                    ? `✓ ${locationForm.city}, ${locationForm.country}`
-                    : "Escribe una ciudad o selecciona un país primero"
+                      ? `✓ ${locationForm.city}, ${locationForm.country}`
+                      : "Escribe una ciudad o selecciona un país primero"
                 }
                 FormHelperTextProps={{
                   sx: {

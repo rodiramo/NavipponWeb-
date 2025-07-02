@@ -8,13 +8,11 @@ import {
   updateProfile,
 } from "../../../../services/index/users";
 import { Link } from "react-router-dom";
-
 import DataTable from "../../components/DataTable";
 import { images, stables } from "../../../../constants";
 import useUser from "../../../../hooks/useUser";
 import { BsCheckLg } from "react-icons/bs";
 import { AiOutlineClose } from "react-icons/ai";
-import { RiDeleteBin6Line } from "react-icons/ri";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   Trash2,
@@ -47,9 +45,7 @@ const Users = () => {
   const queryClient = useQueryClient();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-  const isTablet = useMediaQuery(theme.breakpoints.down("lg"));
 
-  // Debug: Check if JWT is valid
   console.log("JWT Token:", jwt ? "Present" : "Missing");
 
   // Mutation for updating admin status

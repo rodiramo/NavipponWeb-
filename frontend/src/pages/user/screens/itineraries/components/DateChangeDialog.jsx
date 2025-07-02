@@ -1,6 +1,3 @@
-// DateChangeDialog.jsx
-// Place this in: ./components/DateChangeDialog.jsx (same folder as your other itinerary components)
-
 import React, { useState } from "react";
 import {
   Box,
@@ -11,7 +8,6 @@ import {
   Typography,
   Chip,
   Divider,
-  TextField,
   useTheme,
   Fade,
 } from "@mui/material";
@@ -22,9 +18,7 @@ import { Calendar, CalendarCheck } from "lucide-react";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
-import "dayjs/locale/es"; // Spanish locale for dayjs
-
-// Configure dayjs plugins and locale
+import "dayjs/locale/es";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 dayjs.locale("es");

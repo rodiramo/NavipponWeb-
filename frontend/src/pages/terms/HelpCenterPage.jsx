@@ -12,16 +12,6 @@ import {
   CardContent,
   Button,
   Chip,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  Tabs,
-  Tab,
-  Badge,
 } from "@mui/material";
 import { Link } from "react-router-dom";
 import {
@@ -31,17 +21,8 @@ import {
   Map,
   Person,
   Settings,
-  QuestionAnswer,
-  VideoLibrary,
   MenuBook,
   Lightbulb,
-  ExpandMore,
-  CheckCircle,
-  Schedule,
-  Favorite,
-  Navigation,
-  Hotel,
-  Restaurant,
   Attractions,
   Phone,
   Email,
@@ -50,14 +31,11 @@ import {
   ArrowForward,
   Star,
   TrendingUp,
-  NewReleases,
 } from "@mui/icons-material";
 
 const HelpCenterPage = () => {
   const theme = useTheme();
   const [searchTerm, setSearchTerm] = useState("");
-  const [activeTab, setActiveTab] = useState(0);
-  const [expandedAccordion, setExpandedAccordion] = useState(false);
 
   const helpCategories = [
     {
@@ -291,10 +269,6 @@ const HelpCenterPage = () => {
         article.title.toLowerCase().includes(searchTerm.toLowerCase())
       )
   );
-
-  const handleAccordionChange = (panel) => (event, isExpanded) => {
-    setExpandedAccordion(isExpanded ? panel : false);
-  };
 
   const getDifficultyColor = (difficulty) => {
     switch (difficulty) {

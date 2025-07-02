@@ -1,8 +1,5 @@
-// DateDisplay.jsx
-// Place this in: ./components/DateDisplay.jsx (same folder as your other itinerary components)
-
 import React from "react";
-import { Box, Typography, IconButton, Tooltip, useTheme } from "@mui/material";
+import { Box, Typography, IconButton, Tooltip } from "@mui/material";
 import { Calendar, Edit } from "lucide-react";
 
 const DateDisplay = ({
@@ -12,8 +9,6 @@ const DateDisplay = ({
   canEdit,
   boardCount,
 }) => {
-  const theme = useTheme();
-
   return (
     <Box
       sx={{

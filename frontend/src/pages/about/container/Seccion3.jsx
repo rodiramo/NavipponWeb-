@@ -10,13 +10,11 @@ import {
 } from "@mui/material";
 import { Goal, Telescope, HandHeart } from "lucide-react";
 import CustomShape from "../../../components/Shapes/CustomShape";
-import { fontWeight } from "@mui/system";
 
 const PrinciplesSection = () => {
   const theme = useTheme();
   const primaryMain = theme.palette.primary.main;
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-  const isTablet = useMediaQuery(theme.breakpoints.down("lg"));
 
   const principles = [
     {

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -8,7 +8,6 @@ import {
   Avatar,
   IconButton,
   Tooltip,
-  Button,
   useTheme,
   useMediaQuery,
   Container,
@@ -22,19 +21,8 @@ import { PersonAddOutlined, PersonRemoveOutlined } from "@mui/icons-material";
 import { toggleFriend } from "../../services/index/users";
 import { toast } from "react-hot-toast";
 import { images, stables } from "../../constants";
-import {
-  Facebook,
-  Twitter,
-  WhatsApp,
-  LinkedIn,
-  ContentCopy,
-  Favorite,
-  PersonAdd,
-  Share,
-  FavoriteBorder,
-} from "@mui/icons-material";
+import { Favorite, Share, FavoriteBorder } from "@mui/icons-material";
 import { useDispatch } from "react-redux";
-
 import { useQuery } from "@tanstack/react-query";
 import { getAllPosts, getSinglePost } from "../../services/index/posts";
 import MainLayout from "../../components/MainLayout";
@@ -47,7 +35,6 @@ import useUser from "../../hooks/useUser";
 import { useSelector } from "react-redux";
 
 const RichTextRenderer = ({ content, theme }) => {
-  // Function to apply text marks (bold, italic, etc.)
   const applyMarks = (text, marks = []) => {
     if (!marks || marks.length === 0) {
       return text;
@@ -488,28 +475,21 @@ const ArticleDetailPage = (token) => {
   const { slug } = useParams();
   const { user, jwt } = useUser();
   const theme = useTheme();
-  const primaryDark = theme.palette.primary.dark;
-  const primaryLight = theme.palette.primary.light;
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-  const isTablet = useMediaQuery(theme.breakpoints.down("lg"));
 
-  // ✅ Get friends from Redux store
   const userFriends = useSelector((state) => state.auth.user?.friends ?? []);
 
   const [body, setBody] = useState(null);
   const [tags, setTags] = useState([]);
   const [isFavorited, setIsFavorited] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
-  // ✅ Local state for immediate UI update
   const [localFriendState, setLocalFriendState] = useState(null);
 
-  // Fetch Post
   const { data, isLoading, isError } = useQuery({
     queryFn: () => getSinglePost({ slug }),
     queryKey: ["blog", slug],
     onSuccess: (data) => {
       try {
-        // Handle different body formats
         if (data?.body) {
           if (typeof data.body === "string") {
             try {

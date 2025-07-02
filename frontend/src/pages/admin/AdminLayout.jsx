@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 
 const AdminLayout = () => {
   const navigate = useNavigate();
-  const { jwt, user } = useUser(); // Also get user if available
+  const { jwt } = useUser(); // Also get user if available
   const [isMenuOpen, setIsMenuOpen] = useState(true);
   const [authChecked, setAuthChecked] = useState(false); // Track if auth has been checked
 
@@ -20,17 +20,14 @@ const AdminLayout = () => {
   } = useQuery({
     queryFn: () => getUserProfile({ token: jwt }),
     queryKey: ["profile"],
-    enabled: !!jwt, // Only run when JWT exists
-    retry: 1, // Don't retry too many times
-    staleTime: 5 * 60 * 1000, // Keep data fresh for 5 minutes
+    enabled: !!jwt,
+    retry: 1,
+    staleTime: 5 * 60 * 1000,
   });
 
-  // Handle authentication and authorization checks
   useEffect(() => {
-    // Don't do anything if we're still loading the profile
     if (profileIsLoading) return;
 
-    // If we have JWT but profile query failed
     if (jwt && profileError) {
       console.error("Profile fetch failed:", profileError);
       navigate("/");
@@ -38,8 +35,6 @@ const AdminLayout = () => {
       setAuthChecked(true);
       return;
     }
-
-    // If we have JWT and profile data
     if (jwt && profileSuccess && profileData) {
       if (!profileData.admin) {
         navigate("/");
@@ -51,7 +46,6 @@ const AdminLayout = () => {
       return;
     }
 
-    // If no JWT and we've given enough time for it to load
     if (!jwt && authChecked) {
       navigate("/login");
       toast.error(
@@ -60,7 +54,6 @@ const AdminLayout = () => {
       return;
     }
 
-    // Set a timeout to check auth state after a brief delay (for page reloads)
     if (!jwt && !authChecked) {
       const timeoutId = setTimeout(() => {
         if (!jwt) {
@@ -70,8 +63,7 @@ const AdminLayout = () => {
           );
         }
         setAuthChecked(true);
-      }, 1000); // Wait 1 second for JWT to load from storage
-
+      }, 1000);
       return () => clearTimeout(timeoutId);
     }
   }, [
@@ -84,7 +76,6 @@ const AdminLayout = () => {
     authChecked,
   ]);
 
-  // Show loading state while checking authentication
   if (!authChecked || profileIsLoading) {
     return (
       <div className="w-full h-screen flex justify-center items-center bg-gray-50">
@@ -100,11 +91,8 @@ const AdminLayout = () => {
       </div>
     );
   }
-
-  // If we reach here, user is authenticated and authorized
   return (
     <div className="flex flex-col h-screen lg:flex-row">
-      {/* Pass setIsMenuOpen to allow Header to toggle it */}
       <Header isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} />
       <main
         style={{

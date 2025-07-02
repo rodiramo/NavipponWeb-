@@ -2,15 +2,8 @@ import React, { useState } from "react";
 import * as TbIcons from "react-icons/tb";
 import * as FaIcons from "react-icons/fa";
 import * as MdIcons from "react-icons/md";
-import * as LiaIcons from "react-icons/lia";
-import * as GiIcons from "react-icons/gi";
-import * as BsIcons from "react-icons/bs";
-import { PiPersonSimpleHikeBold } from "react-icons/pi";
 import { BiSushi } from "react-icons/bi";
 import { MdOutlineRamenDining } from "react-icons/md";
-
-import * as VscIcons from "react-icons/vsc";
-import * as LuIcons from "react-icons/lu";
 import * as PiIcons from "react-icons/pi";
 import { TbBeach } from "react-icons/tb";
 import { BiCapsule } from "react-icons/bi";
@@ -23,7 +16,6 @@ import {
   Cat,
   Dog,
   Microwave,
-  Shrimp,
   Trees,
   Wifi,
   Sandwich,
@@ -80,14 +72,7 @@ import {
   TrainFront,
   Languages,
 } from "lucide-react";
-import {
-  MapPin,
-  Filter,
-  RefreshCw,
-  Check,
-  ChevronDown,
-  ChevronUp,
-} from "lucide-react";
+import { MapPin, Filter, ChevronDown } from "lucide-react";
 import {
   useTheme,
   Button,
@@ -252,7 +237,6 @@ const restaurantTags = {
 
 const Aside = ({ onFilterChange, selectedFilter }) => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [selectedFilters, setSelectedFilters] = useState({
     region: "",
     tags: [],

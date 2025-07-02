@@ -2,13 +2,12 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import useUser from "../../hooks/useUser";
-import { images, stables } from "../../constants";
+import { stables } from "../../constants";
 import BreadcrumbBack from "../../components/BreadcrumbBack";
 import {
   getUserProfileById,
   getUserPosts,
   getUserTrips,
-  getUserCollaborativeTrips,
 } from "../../services/index/users";
 import MainLayout from "../../components/MainLayout";
 import ArticleCard from "../../components/ArticleCard";
@@ -18,7 +17,6 @@ import {
   Box,
   Button,
   CircularProgress,
-  IconButton,
   useTheme,
   Tabs,
   Tab,
@@ -27,30 +25,18 @@ import {
   CardMedia,
   Grid,
   Chip,
-  Divider,
-  Paper,
-  Fade,
   Container,
 } from "@mui/material";
 import {
-  PersonAdd,
-  Message,
-  Share,
   FmdGoodOutlined,
   CalendarToday,
   Language,
   Work,
   School,
-  Favorite,
-  Comment,
   Public,
   Lock,
-  Group,
   VerifiedUser,
   Edit,
-  Settings,
-  Star,
-  Person,
 } from "@mui/icons-material";
 import FriendToggle from "./component/FriendToggle";
 import { Eye, ScrollText, Info } from "lucide-react";
@@ -74,40 +60,6 @@ const UserProfilePage = () => {
 
   // Cover image state
   const [coverImage, setCoverImage] = useState("/assets/bg-home1.jpg");
-
-  const handleToggleFriend = async () => {
-    if (!profile?._id || !currentUser?._id || !token) {
-      toast.error("Error: información de usuario no disponible");
-      return;
-    }
-
-    try {
-      const response = await fetch(`/api/users/${profile._id}/toggle-friend`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setIsFriend(!isFriend);
-        console.log("Friend status toggled:", data);
-
-        toast.success(
-          !isFriend
-            ? `Ahora eres amigo de ${profile.name}`
-            : `Ya no eres amigo de ${profile.name}`
-        );
-      } else {
-        throw new Error("Error en la respuesta del servidor");
-      }
-    } catch (error) {
-      console.error("Error toggling friend:", error);
-      toast.error("Error al actualizar el estado de amistad");
-    }
-  };
 
   useEffect(() => {
     if (token && userId) {
@@ -186,14 +138,6 @@ const UserProfilePage = () => {
 
   const handleTabChange = (event, newValue) => {
     setCurrentTab(newValue);
-  };
-
-  const handleSendMessage = () => {
-    console.log("Send message to:", profile._id);
-  };
-
-  const handleShare = () => {
-    console.log("Share profile:", profile._id);
   };
 
   // Helper function to determine user permissions

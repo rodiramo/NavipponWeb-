@@ -7,10 +7,9 @@ import { Link } from "react-router-dom";
 import { useDataTable } from "../../../../hooks/useDataTable";
 import DataTable from "../../components/DataTable";
 import useUser from "../../../../hooks/useUser";
-import { textTransform } from "@mui/system";
 
 const ManageExperiences = () => {
-  const { user, jwt } = useUser();
+  const { jwt } = useUser();
 
   const {
     currentPage,

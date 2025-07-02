@@ -12,7 +12,7 @@ const UserLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const theme = useTheme();
-  const { jwt, user } = useUser();
+  const { jwt } = useUser();
   const [authChecked, setAuthChecked] = useState(false);
   const [redirected, setRedirected] = useState(false);
 

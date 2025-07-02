@@ -9,7 +9,6 @@ import {
   Bell,
   LucideLogOut,
   LucideArrowLeft,
-  MessagesSquare,
   LucideArrowRight,
 } from "lucide-react";
 import { useTheme } from "@mui/material";

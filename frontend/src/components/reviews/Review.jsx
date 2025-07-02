@@ -5,7 +5,7 @@ import ReviewForm from "./ReviewForm";
 import { Avatar, useTheme } from "@mui/material";
 import StarIcon from "@mui/icons-material/Star";
 import { formatDistanceToNow } from "date-fns";
-import { es } from "date-fns/locale"; // ✅ Import Spanish locale
+import { es } from "date-fns/locale";
 
 const Review = ({
   review,

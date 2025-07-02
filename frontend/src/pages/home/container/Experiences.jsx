@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { FaArrowRight } from "react-icons/fa";
+
 import ExperienceCard from "../../../components/ExperienceCard";
 import { useQuery } from "@tanstack/react-query";
 import { getAllExperiences } from "../../../services/index/experiences";

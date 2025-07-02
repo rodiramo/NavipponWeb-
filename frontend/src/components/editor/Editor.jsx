@@ -27,7 +27,7 @@ const Editor = ({ onDataChange, content = null, editable = true }) => {
       const json = editor.getJSON();
       onDataChange(json);
     },
-    content: content, // ✅ Set to null if empty
+    content: content,
   });
 
   return (

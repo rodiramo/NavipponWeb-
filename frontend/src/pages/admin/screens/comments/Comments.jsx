@@ -7,8 +7,6 @@ import {
   getAllComments,
   updateComment,
 } from "../../../../services/index/comments";
-import { BsCheckLg } from "react-icons/bs";
-import { AiOutlineClose } from "react-icons/ai";
 import DataTable from "../../components/DataTable";
 import { images, stables } from "../../../../constants";
 import { Link } from "react-router-dom";
@@ -34,7 +32,6 @@ import {
   Button,
   Card,
   CardContent,
-  Grid,
   useMediaQuery,
   Tooltip,
   Stack,
@@ -42,10 +39,9 @@ import {
 } from "@mui/material";
 
 const Comments = () => {
-  const { user, jwt } = useUser();
+  const { jwt } = useUser();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-  const isTablet = useMediaQuery(theme.breakpoints.down("lg"));
 
   const {
     currentPage,

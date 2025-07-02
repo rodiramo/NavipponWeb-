@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Box,
   Typography,
@@ -8,15 +8,11 @@ import {
   ListItem,
   ListItemText,
   Checkbox,
-  Avatar,
   IconButton,
   Button,
-  Chip,
   LinearProgress,
   Grid,
-  Paper,
   Stack,
-  Divider,
   Badge,
 } from "@mui/material";
 import { MdOutlineWavingHand } from "react-icons/md";
@@ -27,24 +23,14 @@ import { useTheme } from "@mui/material/styles";
 import {
   MapPin,
   Calendar,
-  Clock,
   Users,
   CheckSquare,
   Plus,
-  Plane,
-  Heart,
-  TrendingUp as TrendingUpIcon,
   Star,
-  CirclePlus,
   Award,
-  Settings,
   MoreVertical,
-  ArrowRight,
   CheckCircle2,
-  AlertCircle,
   Target,
-  Compass,
-  Camera,
   Bell,
 } from "lucide-react";
 import useUser from "../../../hooks/useUser";
@@ -452,7 +438,7 @@ const Dashboard = () => {
   const [newTask, setNewTask] = useState("");
 
   // Fetch user's itineraries
-  const { data: itineraries = [], isLoading } = useQuery({
+  const { data: itineraries = [] } = useQuery({
     queryKey: ["userItineraries", user?._id],
     queryFn: () => getUserItineraries(user._id, jwt),
     enabled: !!user && !!jwt,

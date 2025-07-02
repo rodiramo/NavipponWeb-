@@ -1,11 +1,9 @@
 import { useTheme } from "@mui/material/styles";
-import { Box, Typography, useMediaQuery } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 
 const Seccion2 = () => {
   const theme = useTheme();
   const primaryLight = theme.palette.primary.light;
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-  const isTablet = useMediaQuery(theme.breakpoints.down("lg"));
 
   return (
     <Box

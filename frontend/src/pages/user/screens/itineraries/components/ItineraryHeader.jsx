@@ -8,8 +8,6 @@ import {
   Button,
   useTheme,
   Container,
-  Avatar,
-  AvatarGroup,
   Tooltip,
   Switch,
   FormControlLabel,
@@ -23,12 +21,9 @@ import {
   Download,
   MessagesSquare,
   ArrowLeft,
-  Users,
   Crown,
   Lock,
   Globe,
-  Eye,
-  EyeOff,
 } from "lucide-react";
 import Travelers from "./Travelers";
 import DateDisplay from "./DateDisplay";

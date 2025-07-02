@@ -14,7 +14,6 @@ import {
   Card,
   CardContent,
 } from "@mui/material";
-import StarRating from "../components/Stars";
 import { useTheme } from "@mui/material";
 import {
   MapPin,
@@ -23,7 +22,6 @@ import {
   Plus,
   BookOpen,
   Check,
-  People,
   Image as ImageIcon,
 } from "lucide-react";
 import {

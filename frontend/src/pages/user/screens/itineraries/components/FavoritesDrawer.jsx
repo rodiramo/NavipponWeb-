@@ -7,18 +7,15 @@ import {
   IconButton,
   useTheme,
   Chip,
-  Avatar,
   Badge,
   Collapse,
   Tooltip,
   Button,
-  Fade,
   Zoom,
 } from "@mui/material";
 import { useDraggable, useDroppable } from "@dnd-kit/core";
 import {
   XCircle,
-  Plus,
   BedSingle,
   Filter,
   ChevronDown,
@@ -31,7 +28,6 @@ import {
 import { MdOutlineTempleBuddhist, MdOutlineRamenDining } from "react-icons/md";
 import { stables, images } from "../../../../../constants";
 
-// Enhanced Draggable Favorite Item Component
 const DraggableFavorite = ({ fav, index, userRole }) => {
   const theme = useTheme();
 

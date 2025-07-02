@@ -32,15 +32,8 @@ import {
   ListItemText,
 } from "@mui/material";
 import StarRating from "../../../components/Stars";
-import {
-  LocationOn,
-  Visibility,
-  AttachMoney,
-  Schedule,
-  People,
-} from "@mui/icons-material";
+import { LocationOn, People } from "@mui/icons-material";
 
-// Sample Image Indicator Component for Cards
 const CardImageWithSampleIndicator = ({
   src,
   alt,
@@ -121,7 +114,6 @@ const HorizontalExperienceCard = ({
   ); // Map of itineraryId -> boards[]
   const theme = useTheme();
 
-  // Helper function to check if image is a sample/default image
   const isDefaultImage = (photoUrl) => {
     return photoUrl && photoUrl.startsWith("https://images.unsplash.com");
   };

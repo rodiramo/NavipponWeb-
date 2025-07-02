@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useContext } from "react";
-import { AiFillHeart, AiOutlineHeart } from "react-icons/ai";
 import { images, stables } from "../../../../constants";
 import {
   addFavorite as addFavoriteService,
@@ -15,9 +14,7 @@ import {
   Calendar,
   Tag,
   FolderOpen,
-  Search,
   Compass,
-  Star,
   Eye,
   MapPin,
 } from "lucide-react";
@@ -45,7 +42,6 @@ const ManageFavorites = () => {
   const theme = useTheme();
   const navigate = useNavigate();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-  const isTablet = useMediaQuery(theme.breakpoints.down("lg"));
 
   const { favorites, setFavorites, addFavorite, removeFavorite } =
     useContext(FavoriteContext);

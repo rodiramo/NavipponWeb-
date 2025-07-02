@@ -8,7 +8,7 @@ import ErrorMessage from "../../../../components/ErrorMessage";
 import { stables } from "../../../../constants";
 import { HiOutlineCamera } from "react-icons/hi";
 import { toast } from "react-hot-toast";
-import useUser from "../../../../hooks/useUser";  
+import useUser from "../../../../hooks/useUser";
 import Editor from "../../../../components/editor/Editor";
 import MultiSelectTagDropdown from "../../components/select-dropdown/MultiSelectTagDropdown";
 import { getAllCategories } from "../../../../services/index/postCategories";
@@ -26,7 +26,7 @@ const EditPost = () => {
   const { slug } = useParams();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const { user, jwt } = useUser();  
+  const { jwt } = useUser();
   const [initialPhoto, setInitialPhoto] = useState(null);
   const [photo, setPhoto] = useState(null);
   const [body, setBody] = useState(null);
@@ -35,7 +35,7 @@ const EditPost = () => {
   const [tags, setTags] = useState(null);
   const [postSlug, setPostSlug] = useState(slug);
   const [caption, setCaption] = useState("");
-  const [approved, setApproved] = useState(false);  
+  const [approved, setApproved] = useState(false);
 
   const { data, isLoading, isError } = useQuery({
     queryFn: () => getSinglePost({ slug }),
@@ -45,7 +45,7 @@ const EditPost = () => {
       setCategories(data.categories.map((item) => item._id));
       setTitle(data.title);
       setTags(data.tags);
-      setApproved(data.approved);  
+      setApproved(data.approved);
     },
     refetchOnWindowFocus: false,
   });
@@ -98,7 +98,15 @@ const EditPost = () => {
 
     updatedData.append(
       "document",
-      JSON.stringify({ body, categories, title, tags, slug: postSlug, caption, approved })  
+      JSON.stringify({
+        body,
+        categories,
+        title,
+        tags,
+        slug: postSlug,
+        caption,
+        approved,
+      })
     );
 
     mutateUpdatePostDetail({
@@ -126,7 +134,9 @@ const EditPost = () => {
       ) : (
         <section className="container mx-auto max-w-5xl flex flex-col px-5 py-5 lg:flex-row lg:gap-x-5 lg:items-start">
           <article className="flex-1">
-            <div className="flex items-center justify-center w-full mb-4"> {/* Campo de aprobación */}
+            <div className="flex items-center justify-center w-full mb-4">
+              {" "}
+              {/* Campo de aprobación */}
               <label className="flex items-center space-x-2">
                 <span className="text-2xl font-bold">Aprobado</span>
                 <input
@@ -206,7 +216,9 @@ const EditPost = () => {
             </div>
             <div className="d-form-control w-full">
               <label className="d-label" htmlFor="slug">
-                <span className="d-label-text">Título de navegación único (slug) </span>
+                <span className="d-label-text">
+                  Título de navegación único (slug){" "}
+                </span>
               </label>
               <input
                 id="slug"

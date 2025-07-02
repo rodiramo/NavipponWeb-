@@ -5,7 +5,6 @@ import {
   Avatar,
   IconButton,
   Dialog,
-  DialogTitle,
   useTheme,
   DialogContent,
   DialogActions,
@@ -23,7 +22,7 @@ import {
   Tooltip,
   Slide,
 } from "@mui/material";
-import { Plus, Crown, Edit, Eye, Sparkles } from "lucide-react";
+import { Plus, Edit, Eye } from "lucide-react";
 import { stables } from "../../../../../constants";
 
 const Travelers = ({
@@ -33,8 +32,8 @@ const Travelers = ({
   onUpdateTraveler,
   onRemoveTraveler,
   creator,
-  userRole = "viewer", // Add userRole prop
-  currentUserId, // Add currentUserId to identify the current user
+  userRole = "viewer",
+  currentUserId,
 }) => {
   const theme = useTheme();
 

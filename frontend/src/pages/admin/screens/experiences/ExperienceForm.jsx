@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import React, { useState, useEffect } from "react";
-import { Link, useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
@@ -10,7 +10,6 @@ import {
   createExperience,
 } from "../../../../services/index/experiences";
 import { LoadScript, Autocomplete } from "@react-google-maps/api";
-
 import Editor from "../../../../components/editor/Editor";
 import ExperienceTypeSelect from "./tags/ExperienceTypeSelect";
 import PriceInput from "./tags/PriceInput";
@@ -34,7 +33,6 @@ import {
   Step,
   StepLabel,
   Card,
-  CardContent,
   useTheme,
   Grid,
   Paper,
@@ -50,13 +48,7 @@ import HotelTags from "./tags/HotelTags";
 import RestaurantTags from "./tags/RestaurantTags";
 import AtractionTags from "./tags/AtractionTags";
 import GeneralTags from "./tags/GeneralTags";
-import {
-  extractPlaceId,
-  getGooglePlaceDetails,
-  fetchPlaceDetails,
-} from "../../../../services/index/map";
 
-// Enhanced default image configuration with high-quality Unsplash images
 const DEFAULT_IMAGES = {
   Hoteles:
     "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&h=600&fit=crop&auto=format&q=80",
@@ -81,7 +73,6 @@ const DEFAULT_SCHEDULES = {
 const ExperienceForm = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-  const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
   const { slug } = useParams();
   const queryClient = useQueryClient();
   const navigate = useNavigate();

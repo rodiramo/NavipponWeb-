@@ -43,29 +43,6 @@ const LoginPage = () => {
     }
   }, [navigate, isLogged, user]);
 
-  // Function to determine if this is a first-time login
-  const checkIfFirstTimeLogin = (userData) => {
-    // Option 1: Check if user has a 'isFirstLogin' flag from backend
-    if (userData?.isFirstLogin) {
-      return true;
-    }
-
-    // Option 2: Check if user was just created (registration flow)
-    const justRegistered = sessionStorage.getItem("justRegistered");
-    if (justRegistered) {
-      sessionStorage.removeItem("justRegistered"); // Clean up
-      return true;
-    }
-
-    // Option 3: Check if user has never seen the onboarding (use your existing key)
-    const hasSeenOnboarding = localStorage.getItem("onboardingCompleted");
-    if (!hasSeenOnboarding) {
-      return true;
-    }
-
-    return false;
-  };
-
   const {
     register,
     handleSubmit,

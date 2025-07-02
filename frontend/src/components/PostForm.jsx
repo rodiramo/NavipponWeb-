@@ -14,12 +14,7 @@ import ErrorMessage from "../components/ErrorMessage";
 import { stables } from "../constants";
 import { toast } from "react-hot-toast";
 import useUser from "../hooks/useUser";
-import MultiSelectTagDropdown from "../pages/user/components/select-dropdown/MultiSelectTagDropdown";
 import { getAllCategories } from "../services/index/postCategories";
-import {
-  categoryToOption,
-  filterCategories,
-} from "../utils/multiSelectTagUtils";
 import {
   Button,
   TextField,
@@ -29,7 +24,6 @@ import {
   Paper,
   Card,
   CardContent,
-  Divider,
   Grid,
   IconButton,
   CircularProgress,
@@ -44,11 +38,6 @@ import {
   Title,
   Description,
 } from "@mui/icons-material";
-
-const promiseOptions = async (inputValue) => {
-  const { data: categoriesData } = await getAllCategories();
-  return filterCategories(inputValue, categoriesData);
-};
 
 const generateSlug = (title) => {
   const baseSlug = title
@@ -68,7 +57,7 @@ const PostForm = ({ slug: propSlug = null, open, onClose }) => {
 
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const { user, jwt } = useUser();
+  const { jwt } = useUser();
   const [initialPhoto, setInitialPhoto] = useState(null);
   const [photo, setPhoto] = useState(null);
   const [body, setBody] = useState(null);
@@ -109,7 +98,7 @@ const PostForm = ({ slug: propSlug = null, open, onClose }) => {
   });
 
   // Fetch Categories
-  const { data: categoriesData, isLoading: isLoadingCategories } = useQuery({
+  const { isLoading: isLoadingCategories } = useQuery({
     queryFn: getAllCategories,
     queryKey: ["categories"],
     onSuccess: (data) => {

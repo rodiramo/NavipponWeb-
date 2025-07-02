@@ -24,7 +24,7 @@ import {
   CheckCircle,
   Warning,
 } from "@mui/icons-material";
-import { Mail } from "lucide-react"; // Use Mail icon for email links
+import { Mail } from "lucide-react";
 import MainLayout from "../../components/MainLayout";
 
 const PrivacyPage = () => {

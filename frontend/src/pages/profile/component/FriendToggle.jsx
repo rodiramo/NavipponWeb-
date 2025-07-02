@@ -8,12 +8,7 @@ import {
   IconButton,
   Chip,
 } from "@mui/material";
-import {
-  PersonAddOutlined,
-  PersonRemoveOutlined,
-  Group,
-  Person,
-} from "@mui/icons-material";
+import { PersonAddOutlined, PersonRemoveOutlined } from "@mui/icons-material";
 import { useTheme } from "@mui/material/styles";
 import { toast } from "react-hot-toast";
 import { toggleFriend } from "../../../services/index/users";

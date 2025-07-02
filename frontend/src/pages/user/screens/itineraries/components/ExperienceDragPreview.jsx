@@ -1,8 +1,6 @@
 import React from "react";
-import { Box, Typography, useTheme, Avatar } from "@mui/material";
-import { DragOverlay } from "@dnd-kit/core";
-import { BedSingle, MapPin, Euro } from "lucide-react";
-import { MdOutlineTempleBuddhist, MdOutlineRamenDining } from "react-icons/md";
+import { Box, Typography, useTheme } from "@mui/material";
+import { MapPin } from "lucide-react";
 import { stables, images } from "../../../../../constants";
 
 // Enhanced Drag Preview Component
@@ -10,15 +8,6 @@ const ExperienceDragPreview = ({ experience, category }) => {
   const theme = useTheme();
 
   if (!experience) return null;
-
-  const getCategoryIcon = (cat) => {
-    if (cat === "Hoteles") return <BedSingle size={16} color="white" />;
-    if (cat === "Atractivos")
-      return <MdOutlineTempleBuddhist size={16} color="white" />;
-    if (cat === "Restaurantes")
-      return <MdOutlineRamenDining size={16} color="white" />;
-    return null;
-  };
 
   const getCategoryColor = (cat) => {
     if (cat === "Hoteles") return theme.palette.secondary.medium;

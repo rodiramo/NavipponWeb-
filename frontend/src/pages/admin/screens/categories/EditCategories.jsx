@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
 import { useParams, useNavigate } from "react-router-dom";
-import useUser from "../../../../hooks/useUser";  
+import useUser from "../../../../hooks/useUser";
 import {
   getSingleCategory,
   updateCategory,
@@ -13,7 +13,7 @@ const EditCategories = () => {
   const [categoryTitle, setCategoryTitle] = useState("");
   const navigate = useNavigate();
   const { slug } = useParams();
-  const { user, jwt } = useUser();  
+  const { jwt } = useUser();
 
   const { isLoading, isError } = useQuery({
     queryFn: () => getSingleCategory({ slug }),

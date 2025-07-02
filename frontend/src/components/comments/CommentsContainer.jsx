@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { useSelector } from "react-redux";
 
 import Comment from "./Comment";
 import CommentForm from "./CommentForm";
@@ -10,7 +9,7 @@ import {
   updateComment,
 } from "../../services/index/comments";
 import { toast } from "react-hot-toast";
-import useUser from "../../hooks/useUser";  
+import useUser from "../../hooks/useUser";
 
 const CommentsContainer = ({
   className,
@@ -19,7 +18,7 @@ const CommentsContainer = ({
   postSlug,
 }) => {
   const queryClient = useQueryClient();
-  const { user, jwt } = useUser();  
+  const { jwt } = useUser();
   const [affectedComment, setAffectedComment] = useState(null);
 
   const { mutate: mutateNewComment, isLoading: isLoadingNewComment } =
@@ -28,9 +27,7 @@ const CommentsContainer = ({
         return createNewComment({ token, desc, slug, parent, replyOnUser });
       },
       onSuccess: () => {
-        toast.success(
-          "Tu comentario se ha enviado con éxito"
-        );
+        toast.success("Tu comentario se ha enviado con éxito");
         queryClient.invalidateQueries(["blog", postSlug]);
       },
       onError: (error) => {

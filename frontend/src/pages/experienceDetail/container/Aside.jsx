@@ -7,21 +7,10 @@ import {
   CardContent,
   Chip,
   Divider,
-  Paper,
 } from "@mui/material";
-import { FaCalendarAlt } from "react-icons/fa";
-import {
-  Clock,
-  Globe,
-  Map,
-  Phone,
-  Mail,
-  SunSnow,
-  MapPin,
-  Euro,
-} from "lucide-react";
+import { Globe, Map, Phone, Mail, SunSnow, MapPin, Euro } from "lucide-react";
 import ScheduleDisplay from "./ScheduleDisplay";
-import { generalTags, attractionTags, hotelTags, restaurantTags } from "./tags";
+import { attractionTags, hotelTags, restaurantTags } from "./tags";
 import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
 
 const getGoogleIcon = (category) => {

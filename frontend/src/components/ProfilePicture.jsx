@@ -12,13 +12,12 @@ import { userActions } from "../store/reducers/userReducers";
 import useUser from "../hooks/useUser";
 
 const ProfilePicture = ({ avatar }) => {
-  const { user, jwt } = useUser();
+  const { jwt } = useUser();
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
   const theme = useTheme();
   const [openCrop, setOpenCrop] = useState(false);
   const [photo, setPhoto] = useState(null);
-
 
   const [localAvatar, setLocalAvatar] = useState(avatar);
 
@@ -75,7 +74,7 @@ const ProfilePicture = ({ avatar }) => {
             photo={photo}
             setOpenCrop={setOpenCrop}
             onAvatarChange={(newAvatar) => {
-              setLocalAvatar(newAvatar); 
+              setLocalAvatar(newAvatar);
               queryClient.invalidateQueries(["profile"]);
             }}
           />,

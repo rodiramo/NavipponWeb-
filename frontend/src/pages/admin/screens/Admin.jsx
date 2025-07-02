@@ -35,10 +35,8 @@ import {
   Chip,
 } from "@mui/material";
 import {
-  TrendingUp,
   Users,
   Star,
-  MessageCircle,
   Heart,
   BarChart3,
   Activity,

@@ -3,19 +3,16 @@ import { Box, Typography, Chip, useTheme, useMediaQuery } from "@mui/material";
 import { Image, Eye } from "lucide-react";
 import "../../../css/Items/ActivityDetail.css";
 
-// Responsive Sample Image Indicator Component
 const SampleImageIndicator = ({
   imageUrl,
   imageAlt,
   isDefaultImage = false,
   category = "",
-  indicatorType = "watermark", // "corner", "watermark", "overlay"
+  indicatorType = "watermark",
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-  const isTablet = useMediaQuery(theme.breakpoints.down("lg"));
 
-  // Responsive Corner Badge Indicator
   const CornerIndicator = () => (
     <div
       style={{

@@ -9,10 +9,10 @@ import {
 } from "../../../../services/index/postCategories";
 import DataTable from "../../components/DataTable";
 import { useState } from "react";
-import useUser from "../../../../hooks/useUser"; 
+import useUser from "../../../../hooks/useUser";
 
 const Categories = () => {
-  const { user, jwt } = useUser();  
+  const { jwt } = useUser();
   const [categoryTitle, seTcategoryTitle] = useState("");
 
   const { mutate: mutateCreateCategory, isLoading: isLoadingCreateCategory } =
