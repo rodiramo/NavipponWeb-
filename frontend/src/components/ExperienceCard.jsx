@@ -27,7 +27,6 @@ import {
 import {
   addFavorite as addFavoriteService,
   removeFavorite as removeFavoriteService,
-  getFavoritesCount as getFavoritesCountService,
   getUserFavorites,
 } from "../services/index/favorites";
 import {
@@ -132,7 +131,6 @@ const ExperienceCard = ({
   onItineraryAdd,
 }) => {
   const [isFavorite, setIsFavorite] = useState(false);
-  const [favoritesCount, setFavoritesCount] = useState(0);
   const [userItineraries, setUserItineraries] = useState([]);
   const [anchorEl, setAnchorEl] = useState(null);
   const [experienceInItineraries, setExperienceInItineraries] = useState(
@@ -190,19 +188,6 @@ const ExperienceCard = ({
   };
 
   useEffect(() => {
-    const fetchFavoritesCount = async () => {
-      try {
-        const response = await getFavoritesCountService(experience._id);
-        setFavoritesCount(response.favoritesCount);
-      } catch (error) {
-        console.error("Error fetching favorites count:", error);
-      }
-    };
-
-    fetchFavoritesCount();
-  }, [experience._id]);
-
-  useEffect(() => {
     if (user && token) {
       const fetchFavorites = async () => {
         try {
@@ -258,22 +243,20 @@ const ExperienceCard = ({
 
     try {
       if (isFavorite) {
-        const response = await removeFavoriteService({
+        await removeFavoriteService({
           userId: user._id,
           experienceId: experience._id,
           token,
         });
         setIsFavorite(false);
-        setFavoritesCount(response.favoritesCount);
         toast.success("Se eliminó de favoritos");
       } else {
-        const response = await addFavoriteService({
+        await addFavoriteService({
           userId: user._id,
           experienceId: experience._id,
           token,
         });
         setIsFavorite(true);
-        setFavoritesCount(response.favoritesCount);
         toast.success("Se agregó a favoritos");
       }
       onFavoriteToggle && onFavoriteToggle();

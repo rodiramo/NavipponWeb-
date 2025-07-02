@@ -1,4 +1,3 @@
-import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setFriends } from "../store/reducers/authSlice.js";
 import { AiFillHeart } from "react-icons/ai";
@@ -20,8 +19,6 @@ const ArticleCard = ({ post, className, currentUser, token, onEdit }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const friends = useSelector((state) => state.auth.user?.friends ?? []);
-  const [isHovered, setIsHovered] = useState(false);
-  const [imageLoaded, setImageLoaded] = useState(false);
 
   // Check if the current user is a friend
   const isFriend = friends?.includes(post.user._id) ?? false;
@@ -81,8 +78,6 @@ const ArticleCard = ({ post, className, currentUser, token, onEdit }) => {
   return (
     <div
       className={`group relative overflow-hidden transition-all duration-500 ${className}`}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
       style={{
         borderRadius: "16px",
         minHeight: "600px",
@@ -106,7 +101,6 @@ const ArticleCard = ({ post, className, currentUser, token, onEdit }) => {
             }
             alt={post.title}
             className="w-full h-64 sm:h-72 lg:h-64 object-cover transition-transform duration-700 group-hover:scale-110"
-            onLoad={() => setImageLoaded(true)}
             loading="lazy"
           />
 

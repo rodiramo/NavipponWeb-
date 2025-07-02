@@ -418,7 +418,7 @@ const FeatureTips = () => {
     }, 5000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [tips.length]);
 
   return (
     <Fade in key={currentTip}>
