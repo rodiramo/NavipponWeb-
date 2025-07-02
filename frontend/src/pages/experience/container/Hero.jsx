@@ -96,7 +96,7 @@ const Header = ({ onSearchKeyword }) => {
             fontSize: { xs: "1rem", sm: "1.125rem", md: "1.25rem" },
             fontWeight: 400,
             lineHeight: 1.6,
-            color: theme.palette.text.secondary,
+            color: theme.palette.primary.black,
             maxWidth: "600px",
             opacity: 0.9,
             textAlign: "center",

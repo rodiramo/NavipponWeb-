@@ -36,12 +36,14 @@ import {
 } from "@mui/material";
 import {
   TrendingUp,
-  People,
+  Users,
   Star,
-  ChatBubbleOutline,
-  Favorite,
-  Assessment,
-} from "@mui/icons-material";
+  MessageCircle,
+  Heart,
+  BarChart3,
+  Activity,
+  Calendar,
+} from "lucide-react";
 
 const Admin = () => {
   const { jwt } = useUser();
@@ -98,7 +100,7 @@ const Admin = () => {
         });
         setTopExperiences(experiencesWithFavorites);
       } catch (error) {
-        console.error("Error fetching counts", error);
+        console.error("Error al cargar los datos", error);
       } finally {
         setLoading(false);
       }
@@ -112,10 +114,11 @@ const Admin = () => {
       <Box
         sx={{
           minHeight: "100vh",
-          background: `linear-gradient(135deg, ${theme.palette.primary.light}15, ${theme.palette.secondary.light}15)`,
+          background: `linear-gradient(135deg, ${theme.palette.primary.light}08, ${theme.palette.secondary.light}08)`,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
+          p: 3,
         }}
       >
         <Box
@@ -124,10 +127,15 @@ const Admin = () => {
             alignItems: "center",
             gap: 2,
             color: theme.palette.text.secondary,
+            backgroundColor: theme.palette.background.paper,
+            borderRadius: "16px",
+            p: 4,
           }}
         >
           <CircularProgress size={32} color="primary" />
-          <Typography variant="h6">Cargando panel...</Typography>
+          <Typography variant="h6" fontWeight="500">
+            Cargando panel de administración...
+          </Typography>
         </Box>
       </Box>
     );
@@ -198,15 +206,14 @@ const Admin = () => {
 
   const MetricCard = ({ title, value, icon, growth, color }) => (
     <Card
-      elevation={2}
+      elevation={0}
       sx={{
-        borderRadius: 3,
+        borderRadius: "16px",
         transition: "all 0.3s ease",
-        "&:hover": {
-          transform: "translateY(-4px)",
-          boxShadow: theme.shadows[8],
-        },
+
         border: `1px solid ${theme.palette.divider}`,
+        backgroundColor: theme.palette.background.paper,
+        overflow: "hidden",
       }}
     >
       <CardContent sx={{ p: 3 }}>
@@ -221,9 +228,12 @@ const Admin = () => {
           <Box
             sx={{
               p: 1.5,
-              borderRadius: 2,
-              backgroundColor: `${color}15`,
+              borderRadius: "12px",
+              backgroundColor: `${color}10`,
               color: color,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
             }}
           >
             {icon}
@@ -232,17 +242,35 @@ const Admin = () => {
             label={`+${growth}%`}
             size="small"
             sx={{
-              backgroundColor: theme.palette.primary.light,
-              color: theme.palette.primary.dark,
+              backgroundColor: `${theme.palette.success.main}15`,
+              color: theme.palette.success.dark,
               fontWeight: 600,
+              fontSize: "0.75rem",
+              height: "24px",
+              "& .MuiChip-label": {
+                px: 1,
+              },
             }}
           />
         </Box>
-        <Typography variant="body2" color="text.secondary" gutterBottom>
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          gutterBottom
+          sx={{ fontWeight: 500, mb: 1 }}
+        >
           {title}
         </Typography>
-        <Typography variant="h4" fontWeight="bold" color={color}>
-          {typeof value === "number" ? value.toLocaleString() : value}
+        <Typography
+          variant="h4"
+          fontWeight="700"
+          color="text.primary"
+          sx={{
+            fontSize: { xs: "1.5rem", sm: "2rem" },
+            lineHeight: 1.2,
+          }}
+        >
+          {typeof value === "number" ? value.toLocaleString("es-ES") : value}
         </Typography>
       </CardContent>
     </Card>
@@ -253,22 +281,40 @@ const Admin = () => {
       sx={{
         minHeight: "100vh",
         width: "100%",
-        p: 3,
+        p: { xs: 2, sm: 3 },
+        backgroundColor: theme.palette.background.default,
       }}
     >
-      <Box sx={{ margin: "0 auto" }}>
+      <Box sx={{ maxWidth: "1400px", margin: "0 auto" }}>
         {/* Header */}
         <Box sx={{ mb: 4 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
+            <BarChart3 size={32} color={theme.palette.primary.main} />
+            <Typography
+              variant="h3"
+              fontWeight="800"
+              color="text.primary"
+              sx={{
+                fontSize: { xs: "1.75rem", sm: "2.5rem" },
+                background: `linear-gradient(135deg, ${theme.palette.primary.main})`,
+                backgroundClip: "text",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+              }}
+            >
+              Panel de Administración
+            </Typography>
+          </Box>
           <Typography
-            variant="h3"
-            fontWeight="bold"
-            color="text.primary"
-            gutterBottom
+            variant="h6"
+            color="text.secondary"
+            sx={{
+              fontWeight: 400,
+              fontSize: { xs: "1rem", sm: "1.25rem" },
+            }}
           >
-            Panel de análisis
-          </Typography>
-          <Typography variant="h6" color="text.secondary">
-            Rendimiento de la plataforma y métricas de participación de usuarios
+            Estadísticas y métricas de rendimiento de{" "}
+            <span style={{ color: theme.palette.primary.main }}>Navippon</span>
           </Typography>
         </Box>
 
@@ -278,34 +324,34 @@ const Admin = () => {
             <MetricCard
               title="Total de usuarios"
               value={counts.users}
-              icon={<People />}
+              icon={<Users size={24} />}
               growth={userGrowth}
               color={theme.palette.primary.main}
             />
           </Grid>
           <Grid item xs={12} sm={6} lg={3}>
             <MetricCard
-              title="Experiencias"
+              title="Experiencias publicadas"
               value={counts.experiences}
-              icon={<Assessment />}
+              icon={<Calendar size={24} />}
               growth={expGrowth}
-              color={theme.palette.primary.main}
+              color={theme.palette.info.main}
             />
           </Grid>
           <Grid item xs={12} sm={6} lg={3}>
             <MetricCard
-              title="Reseñas"
+              title="Reseñas escritas"
               value={counts.reviews}
-              icon={<Star />}
+              icon={<Star size={24} />}
               growth={reviewGrowth}
               color={theme.palette.warning.main}
             />
           </Grid>
           <Grid item xs={12} sm={6} lg={3}>
             <MetricCard
-              title="Participación"
+              title="Interacciones totales"
               value={counts.comments + counts.posts}
-              icon={<ChatBubbleOutline />}
+              icon={<Activity size={24} />}
               growth={
                 counts.posts > 0
                   ? ((counts.comments / counts.posts) * 100).toFixed(0)
@@ -321,18 +367,20 @@ const Admin = () => {
           {/* Content Distribution Pie Chart */}
           <Grid item xs={12} lg={6}>
             <Paper
-              elevation={2}
+              elevation={0}
               sx={{
-                borderRadius: 3,
+                borderRadius: "16px",
                 p: 3,
                 border: `1px solid ${theme.palette.divider}`,
+                backgroundColor: theme.palette.background.paper,
               }}
             >
               <Typography
                 variant="h5"
-                fontWeight="semibold"
+                fontWeight="600"
                 color="text.primary"
                 gutterBottom
+                sx={{ mb: 3 }}
               >
                 Distribución de contenido
               </Typography>
@@ -360,13 +408,13 @@ const Admin = () => {
                     </Pie>
                     <RechartsTooltip
                       formatter={(value, name) => [
-                        `${value.toLocaleString()}`,
+                        `${value.toLocaleString("es-ES")}`,
                         name,
                       ]}
                       contentStyle={{
                         backgroundColor: theme.palette.background.paper,
                         border: `1px solid ${theme.palette.divider}`,
-                        borderRadius: 8,
+                        borderRadius: "12px",
                         color: theme.palette.text.primary,
                       }}
                     />
@@ -376,7 +424,16 @@ const Admin = () => {
                   {contentData.map((item) => (
                     <Grid item xs={6} key={item.name}>
                       <Box
-                        sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 1.5,
+                          p: 1,
+                          borderRadius: "8px",
+                          "&:hover": {
+                            backgroundColor: `${item.color}08`,
+                          },
+                        }}
                       >
                         <Box
                           sx={{
@@ -384,14 +441,24 @@ const Admin = () => {
                             height: 16,
                             borderRadius: "50%",
                             backgroundColor: item.color,
+                            flexShrink: 0,
                           }}
                         />
-                        <Box>
-                          <Typography variant="body2" fontWeight="medium">
+                        <Box sx={{ minWidth: 0 }}>
+                          <Typography
+                            variant="body2"
+                            fontWeight="600"
+                            sx={{
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
                             {item.name}
                           </Typography>
                           <Typography variant="caption" color="text.secondary">
-                            {item.percentage}%
+                            {item.percentage}% (
+                            {item.value.toLocaleString("es-ES")})
                           </Typography>
                         </Box>
                       </Box>
@@ -405,18 +472,20 @@ const Admin = () => {
           {/* Growth Trends */}
           <Grid item xs={12} lg={6}>
             <Paper
-              elevation={2}
+              elevation={0}
               sx={{
-                borderRadius: 3,
+                borderRadius: "16px",
                 p: 3,
                 border: `1px solid ${theme.palette.divider}`,
+                backgroundColor: theme.palette.background.paper,
               }}
             >
               <Typography
                 variant="h5"
-                fontWeight="semibold"
+                fontWeight="600"
                 color="text.primary"
                 gutterBottom
+                sx={{ mb: 3 }}
               >
                 Tendencias de crecimiento
               </Typography>
@@ -449,15 +518,21 @@ const Admin = () => {
                   <XAxis
                     dataKey="month"
                     stroke={theme.palette.text.secondary}
+                    fontSize={12}
                   />
-                  <YAxis stroke={theme.palette.text.secondary} />
+                  <YAxis stroke={theme.palette.text.secondary} fontSize={12} />
                   <RechartsTooltip
                     contentStyle={{
                       backgroundColor: theme.palette.background.paper,
                       border: `1px solid ${theme.palette.divider}`,
-                      borderRadius: 8,
+                      borderRadius: "12px",
                       color: theme.palette.text.primary,
                     }}
+                    labelFormatter={(label) => `Mes: ${label}`}
+                    formatter={(value, name) => [
+                      value.toLocaleString("es-ES"),
+                      name === "users" ? "Usuarios" : name,
+                    ]}
                   />
                   <Area
                     type="monotone"
@@ -474,18 +549,20 @@ const Admin = () => {
 
         {/* Top Experiences Bar Chart */}
         <Paper
-          elevation={2}
+          elevation={0}
           sx={{
-            borderRadius: 3,
+            borderRadius: "16px",
             p: 3,
             border: `1px solid ${theme.palette.divider}`,
+            backgroundColor: theme.palette.background.paper,
           }}
         >
           <Typography
             variant="h5"
-            fontWeight="semibold"
+            fontWeight="600"
             color="text.primary"
             gutterBottom
+            sx={{ mb: 3 }}
           >
             Experiencias más populares por favoritos
           </Typography>
@@ -505,15 +582,20 @@ const Admin = () => {
                 textAnchor="end"
                 height={100}
                 interval={0}
+                fontSize={12}
               />
-              <YAxis stroke={theme.palette.text.secondary} />
+              <YAxis stroke={theme.palette.text.secondary} fontSize={12} />
               <RechartsTooltip
                 contentStyle={{
                   backgroundColor: theme.palette.background.paper,
                   border: `1px solid ${theme.palette.divider}`,
-                  borderRadius: 8,
+                  borderRadius: "12px",
                   color: theme.palette.text.primary,
                 }}
+                formatter={(value) => [
+                  `${value.toLocaleString("es-ES")} favoritos`,
+                  "Favoritos",
+                ]}
               />
               <Bar
                 dataKey="favorites"
@@ -537,39 +619,59 @@ const Admin = () => {
                 <Grid item xs={12} sm={6} md={2.4} key={exp._id}>
                   <Box
                     sx={{
-                      backgroundColor: theme.palette.grey[50],
-                      borderRadius: 2,
+                      backgroundColor: `${theme.palette.primary.main}08`,
+                      borderRadius: "12px",
                       p: 2,
                       textAlign: "center",
                       border: `1px solid ${theme.palette.divider}`,
+                      transition: "all 0.2s ease",
+                      "&:hover": {
+                        backgroundColor: `${theme.palette.primary.main}15`,
+                      },
                     }}
                   >
                     <Typography
                       variant="h4"
-                      fontWeight="bold"
+                      fontWeight="700"
                       color="primary.main"
                       gutterBottom
+                      sx={{ fontSize: "1.75rem" }}
                     >
                       {percentage}%
                     </Typography>
                     <Typography
                       variant="caption"
                       color="text.secondary"
-                      sx={{ lineHeight: 1.2 }}
+                      sx={{
+                        lineHeight: 1.3,
+                        display: "block",
+                        fontWeight: 500,
+                      }}
                     >
                       {exp.title}
                     </Typography>
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                      sx={{ mt: 1 }}
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: 0.5,
+                        mt: 1,
+                      }}
                     >
-                      <Favorite
-                        fontSize="small"
-                        sx={{ mr: 0.5, verticalAlign: "middle" }}
+                      <Heart
+                        size={14}
+                        color={theme.palette.error.main}
+                        fill={theme.palette.error.main}
                       />
-                      {exp.favoritesCount}
-                    </Typography>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        fontWeight="600"
+                      >
+                        {exp.favoritesCount.toLocaleString("es-ES")}
+                      </Typography>
+                    </Box>
                   </Box>
                 </Grid>
               );

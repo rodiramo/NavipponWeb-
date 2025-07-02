@@ -114,7 +114,7 @@ const CategoryCard = () => {
                 {/* Top Section */}
                 <div>
                   {/* Icon Container */}
-                  <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white/20 backdrop-blur-sm border border-white/30 mb-6 transition-all duration-300  group-hover:bg-white/30">
+                  <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20  rounded-2xl bg-white/20 backdrop-blur-sm border border-white/30 mb-6 transition-all duration-300  group-hover:bg-white/30">
                     {React.cloneElement(category.icon, {
                       color: "white",
                       size: window.innerWidth < 640 ? "2rem" : "2.5rem",
@@ -134,7 +134,7 @@ const CategoryCard = () => {
                   </p>
 
                   {/* CTA Button */}
-                  <div className="flex items-center gap-2 text-white font-semibold transition-all duration-300 group-hover:gap-4">
+                  <div className="flex items-center gap-2 text-white font-semibold transition-all duration-300 group-hover:gap-4 ">
                     <span className="text-base sm:text-lg">Explorar</span>
                     <div className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center transition-all duration-300 group-hover:bg-white/30 group-hover:rotate-12">
                       <svg
@@ -155,11 +155,6 @@ const CategoryCard = () => {
                 </div>
               </div>
 
-              {/* Shimmer Effect */}
-              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-              </div>
-
               {/* Bottom Accent Line */}
               <div
                 className="absolute bottom-0 left-0 h-1 transition-all duration-500 group-hover:h-2"
@@ -172,31 +167,6 @@ const CategoryCard = () => {
               ></div>
             </div>
           ))}
-        </div>
-
-        {/* Bottom CTA */}
-        <div className="text-center mt-12 sm:mt-16">
-          <div
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-full text-white font-medium shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer"
-            style={{
-              backgroundColor: theme.palette.primary.main,
-            }}
-          >
-            <span>Ver todas las experiencias</span>
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M13 7l5 5m0 0l-5 5m5-5H6"
-              />
-            </svg>
-          </div>
         </div>
       </div>
     </section>

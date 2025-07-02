@@ -12,6 +12,11 @@ import {
   addTraveler,
   updateTravelerRole,
   removeTraveler,
+  // New experience management functions
+  addExperienceToItinerary,
+  removeExperienceFromItinerary,
+  checkExperienceInItinerary,
+  getItineraryExperiences,
 } from "../controllers/itineraryControllers.js";
 import { authGuard } from "../middleware/authMiddleware.js";
 
@@ -27,6 +32,20 @@ router.patch("/leave/:id", authGuard, leaveItinerary);
 // Get itineraries where the user is invited
 router.route("/invited").get(authGuard, getInvitedItineraries);
 
+// New routes for experience management
+router.patch("/:id/experiences", authGuard, addExperienceToItinerary);
+router.delete(
+  "/:id/experiences/:experienceId",
+  authGuard,
+  removeExperienceFromItinerary
+);
+router.get(
+  "/:id/experiences/:experienceId/check",
+  authGuard,
+  checkExperienceInItinerary
+);
+router.get("/:id/experiences", authGuard, getItineraryExperiences);
+
 // Itinerary by ID (view, update, delete)
 router
   .route("/:id")
@@ -37,7 +56,7 @@ router
 // For editing an itinerary (if needed)
 router.route("/:id/edit").get(authGuard, getItineraryForEdit);
 
-// New routes for traveler management
+// Routes for traveler management
 router.patch("/addTraveler/:id", authGuard, addTraveler);
 router.patch("/updateTravelerRole/:id", authGuard, updateTravelerRole);
 router.patch("/removeTraveler/:id", authGuard, removeTraveler);

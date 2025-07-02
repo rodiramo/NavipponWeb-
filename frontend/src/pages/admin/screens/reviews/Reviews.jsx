@@ -153,10 +153,9 @@ const Reviews = () => {
             variant="filled"
             sx={{
               backgroundColor: review?.check
-                ? theme.palette.success.main
-                : theme.palette.warning.main,
-              color: "white",
-              fontWeight: "bold",
+                ? theme.palette.success.light
+                : theme.palette.warning.light,
+              color: "black",
             }}
           />
         </Box>
@@ -166,7 +165,9 @@ const Reviews = () => {
           <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
             <Star
               size={16}
-              style={{ marginRight: 8, color: theme.palette.primary.main }}
+              color={theme.palette.primary.main}
+              fill={theme.palette.primary.main} // This fills the star
+              style={{ marginRight: 8 }}
             />
             <Typography variant="body2" color="textSecondary">
               Reseña para:
@@ -227,7 +228,20 @@ const Reviews = () => {
             <Typography variant="body2" color="textSecondary" sx={{ mr: 1 }}>
               Calificación:
             </Typography>
-            <Rating value={review.rating} readOnly size="small" />
+            <Rating
+              value={review.rating}
+              readOnly
+              size="small"
+              sx={{
+                color: theme.palette.secondary.medium,
+                "& .MuiRating-iconFilled": {
+                  color: theme.palette.secondary.medium,
+                },
+                "& .MuiRating-iconEmpty": {
+                  color: theme.palette.secondary.main,
+                },
+              }}
+            />{" "}
             <Typography variant="body2" sx={{ ml: 1, fontWeight: "bold" }}>
               {review.rating}/5
             </Typography>
@@ -308,6 +322,7 @@ const Reviews = () => {
                 color: theme.palette.error.main,
                 textTransform: "none",
                 borderRadius: 30,
+                gap: 1,
                 borderColor: theme.palette.error.main,
                 "&:hover": {
                   backgroundColor: theme.palette.error.lightest,
@@ -428,9 +443,9 @@ const Reviews = () => {
                 <Box sx={{ display: "flex", alignItems: "center" }}>
                   <Star
                     size={16}
+                    color={theme.palette.primary.main}
                     style={{
                       marginRight: 8,
-                      color: theme.palette.primary.main,
                     }}
                   />
                   <Box>
@@ -469,7 +484,20 @@ const Reviews = () => {
                       <Box
                         sx={{ display: "flex", alignItems: "center", mt: 0.5 }}
                       >
-                        <Rating value={review.rating} readOnly size="small" />
+                        <Rating
+                          value={review.rating}
+                          readOnly
+                          size="small"
+                          sx={{
+                            color: theme.palette.secondary.medium,
+                            "& .MuiRating-iconFilled": {
+                              color: theme.palette.secondary.medium,
+                            },
+                            "& .MuiRating-iconEmpty": {
+                              color: theme.palette.secondary.main,
+                            },
+                          }}
+                        />{" "}
                         <Typography variant="caption" sx={{ ml: 0.5 }}>
                           ({review.rating})
                         </Typography>
@@ -552,12 +580,6 @@ const Reviews = () => {
                       )}
                     </IconButton>
                   </Tooltip>
-                  <Chip
-                    size="small"
-                    label={review?.check ? "Aprobada" : "Pendiente"}
-                    color={review?.check ? "success" : "warning"}
-                    variant="outlined"
-                  />
                 </Stack>
               </td>
 
@@ -579,6 +601,7 @@ const Reviews = () => {
                     borderColor: theme.palette.error.main,
                     textTransform: "none",
                     borderRadius: 30,
+                    gap: 1,
                     "&:hover": {
                       backgroundColor: theme.palette.error.lightest,
                       borderColor: theme.palette.error.dark,

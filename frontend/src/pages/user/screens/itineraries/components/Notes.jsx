@@ -1,4 +1,4 @@
-// Modern Collaborative Notes.jsx
+// Modern Collaborative Checklist.jsx
 import React, { useState } from "react";
 import {
   Dialog,
@@ -18,79 +18,109 @@ import {
   Tooltip,
   Fade,
   Zoom,
+  LinearProgress,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  ListItemSecondaryAction,
 } from "@mui/material";
 import {
-  MessagesSquare,
-  Send,
   CheckSquare,
   Square,
-  Pin,
-  Heart,
-  Smile,
-  Clock,
-  Users,
   Plus,
+  Trash2,
+  CheckCircle2,
+  Circle,
+  Target,
+  Users,
+  Calendar,
+  Edit3,
+  Save,
+  X,
 } from "lucide-react";
 
-const Notes = ({
+const Checklist = ({
   open,
   onClose,
-  notes = [],
+  notes = [], // These are actually checklist items
   newNote,
   setNewNote,
   onAddNote,
   onToggleCheck,
-  onTogglePin,
+  onDeleteItem,
+  onEditItem,
   currentUser,
 }) => {
   const theme = useTheme();
-  const [noteType, setNoteType] = useState("message");
+  const [editingId, setEditingId] = useState(null);
+  const [editText, setEditText] = useState("");
+
+  // Calculate progress
+  const totalItems = notes.length;
+  const completedItems = notes.filter((item) => item.completed).length;
+  const progressPercentage =
+    totalItems > 0 ? (completedItems / totalItems) * 100 : 0;
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (newNote.trim()) {
-      onAddNote(noteType);
-      setNoteType("message");
+      onAddNote();
     }
   };
 
-  // Group notes by date
-  const groupedNotes = notes.reduce((groups, note) => {
-    const date = new Date(note.date).toDateString();
-    if (!groups[date]) groups[date] = [];
-    groups[date].push(note);
-    return groups;
-  }, {});
+  const handleToggleComplete = (itemId) => {
+    if (onToggleCheck) {
+      onToggleCheck(itemId);
+    }
+  };
 
-  const formatTime = (date) => {
-    return new Date(date).toLocaleTimeString("es-ES", {
+  const handleStartEdit = (item) => {
+    if (isCurrentUser(item)) {
+      setEditingId(item._id);
+      setEditText(item.text);
+    }
+  };
+
+  const handleSaveEdit = () => {
+    if (editText.trim() && onEditItem) {
+      onEditItem(editingId, editText.trim());
+      setEditingId(null);
+      setEditText("");
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setEditText("");
+  };
+
+  const handleDelete = (itemId) => {
+    if (window.confirm("¿Estás seguro de que quieres eliminar esta tarea?")) {
+      onDeleteItem(itemId);
+    }
+  };
+
+  const formatDate = (date) => {
+    return new Date(date).toLocaleDateString("es-ES", {
+      day: "numeric",
+      month: "short",
       hour: "2-digit",
       minute: "2-digit",
     });
   };
 
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-
-    if (date.toDateString() === today.toDateString()) {
-      return "Hoy";
-    } else if (date.toDateString() === yesterday.toDateString()) {
-      return "Ayer";
-    } else {
-      return date.toLocaleDateString("es-ES", {
-        weekday: "long",
-        day: "numeric",
-        month: "long",
-      });
-    }
+  const isCurrentUser = (item) => {
+    return (
+      item.author === currentUser?.name || item.author === currentUser?._id
+    );
   };
 
-  const isCurrentUser = (note) => {
-    return note.author?._id === currentUser?._id;
-  };
+  // Sort items: incomplete first, then completed
+  const sortedItems = [...notes].sort((a, b) => {
+    if (a.completed === b.completed) return 0;
+    return a.completed ? 1 : -1;
+  });
 
   return (
     <Dialog
@@ -113,19 +143,11 @@ const Notes = ({
       {/* Modern Header */}
       <DialogTitle
         sx={{
-          background: `linear-gradient(135deg, ${theme.palette.secondary.medium})`,
+          background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
           color: "white",
           p: 3,
           position: "relative",
           overflow: "hidden",
-          "&::before": {
-            content: '""',
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-          },
         }}
       >
         <Box
@@ -151,36 +173,56 @@ const Notes = ({
                 border: "2px solid rgba(255,255,255,0.3)",
               }}
             >
-              <MessagesSquare size={24} />
+              <Target size={24} />
             </Box>
             <Box>
               <Typography variant="h5" fontWeight={800}>
-                Notas del Equipo
+                Lista de Tareas
               </Typography>
               <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                Colabora y organiza tareas juntos
+                Organiza y completa tareas del viaje
               </Typography>
             </Box>
           </Box>
-          <Chip
-            label={`${notes.length} notas`}
+
+          {/* Progress Stats */}
+          <Box sx={{ textAlign: "right" }}>
+            <Typography variant="h6" fontWeight={700}>
+              {completedItems}/{totalItems}
+            </Typography>
+            <Typography variant="body2" sx={{ opacity: 0.9 }}>
+              completadas
+            </Typography>
+          </Box>
+        </Box>
+
+        {/* Progress Bar */}
+        <Box sx={{ mt: 2 }}>
+          <LinearProgress
+            variant="determinate"
+            value={progressPercentage}
             sx={{
-              background: "rgba(255,255,255,0.2)",
-              color: "white",
-              backdropFilter: "blur(10px)",
-              border: "1px solid rgba(255,255,255,0.3)",
-              fontWeight: 600,
+              height: 8,
+              borderRadius: 4,
+              backgroundColor: "rgba(255,255,255,0.2)",
+              "& .MuiLinearProgress-bar": {
+                backgroundColor: "rgba(255,255,255,0.9)",
+                borderRadius: 4,
+              },
             }}
           />
+          <Typography variant="body2" sx={{ mt: 1, opacity: 0.9 }}>
+            {Math.round(progressPercentage)}% completado
+          </Typography>
         </Box>
       </DialogTitle>
 
       <DialogContent
         sx={{ p: 0, display: "flex", flexDirection: "column", height: "500px" }}
       >
-        {/* Notes Feed */}
-        <Box sx={{ flex: 1, overflowY: "auto", p: 3 }}>
-          {Object.keys(groupedNotes).length === 0 ? (
+        {/* Checklist Items */}
+        <Box sx={{ flex: 1, overflowY: "auto" }}>
+          {sortedItems.length === 0 ? (
             <Box
               sx={{
                 display: "flex",
@@ -204,228 +246,257 @@ const Notes = ({
                   mb: 3,
                 }}
               >
-                <MessagesSquare size={40} opacity={0.5} />
+                <Target size={40} opacity={0.5} />
               </Box>
               <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
-                ¡Empieza la conversación!
+                ¡Crea tu primera tarea!
               </Typography>
               <Typography variant="body2" sx={{ maxWidth: 300 }}>
-                Comparte notas, crea tareas y mantén a todo el equipo organizado
+                Añade tareas importantes para organizar tu viaje perfectamente
               </Typography>
             </Box>
           ) : (
-            Object.entries(groupedNotes).map(([date, dayNotes]) => (
-              <Box key={date} sx={{ mb: 4 }}>
-                {/* Date Separator */}
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 2,
-                    mb: 3,
-                  }}
+            <List sx={{ p: 2 }}>
+              {sortedItems.map((item, index) => (
+                <Zoom
+                  in={true}
+                  key={item._id || index}
+                  style={{ transitionDelay: `${index * 50}ms` }}
                 >
-                  <Divider sx={{ flex: 1 }} />
-                  <Chip
-                    label={formatDate(date)}
-                    size="small"
+                  <ListItem
                     sx={{
-                      background: `linear-gradient(135deg, ${theme.palette.primary.main}15, ${theme.palette.secondary.main}15)`,
-                      border: `1px solid ${theme.palette.primary.main}30`,
-                      color: theme.palette.primary.main,
-                      fontWeight: 600,
-                      fontSize: "0.75rem",
+                      mb: 1,
+                      borderRadius: 3,
+                      background: item.completed
+                        ? `linear-gradient(135deg, ${theme.palette.success.main}08, ${theme.palette.success.light}05)`
+                        : `${theme.palette.background.paper}`,
+                      border: `1px solid ${
+                        item.completed
+                          ? theme.palette.success.main + "30"
+                          : theme.palette.divider
+                      }`,
+                      transition: "all 0.3s ease",
+                      "&:hover": {
+                        transform: "translateY(-1px)",
+                        boxShadow: "0 4px 16px rgba(0,0,0,0.1)",
+                        borderColor: item.completed
+                          ? theme.palette.success.main
+                          : theme.palette.primary.main,
+                      },
                     }}
-                  />
-                  <Divider sx={{ flex: 1 }} />
-                </Box>
-
-                {/* Notes for this date */}
-                {dayNotes.map((note, index) => (
-                  <Zoom
-                    in={true}
-                    key={index}
-                    style={{ transitionDelay: `${index * 100}ms` }}
                   >
-                    <Box
-                      sx={{
-                        mb: 2,
-                        display: "flex",
-                        justifyContent: isCurrentUser(note)
-                          ? "flex-end"
-                          : "flex-start",
-                      }}
-                    >
-                      <Box
+                    <ListItemIcon sx={{ minWidth: 40 }}>
+                      <IconButton
+                        onClick={() => handleToggleComplete(item._id)}
                         sx={{
-                          maxWidth: "70%",
-                          display: "flex",
-                          alignItems: "flex-start",
-                          gap: 1.5,
-                          flexDirection: isCurrentUser(note)
-                            ? "row-reverse"
-                            : "row",
+                          color: item.completed
+                            ? theme.palette.success.main
+                            : theme.palette.grey[400],
+                          transition: "all 0.2s ease",
+                          "&:hover": {
+                            backgroundColor: item.completed
+                              ? `${theme.palette.success.main}15`
+                              : `${theme.palette.primary.main}15`,
+                            transform: "scale(1.1)",
+                          },
                         }}
                       >
-                        {/* Avatar */}
-                        <Avatar
-                          src={note.author?.avatar}
-                          sx={{
-                            width: 36,
-                            height: 36,
-                            bgcolor: isCurrentUser(note)
-                              ? theme.palette.primary.main
-                              : theme.palette.secondary.main,
-                            fontSize: "0.875rem",
-                            fontWeight: 600,
-                            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-                          }}
-                        >
-                          {note.author?.name?.charAt(0)?.toUpperCase() || "A"}
-                        </Avatar>
+                        {item.completed ? (
+                          <CheckCircle2 size={24} />
+                        ) : (
+                          <Circle size={24} />
+                        )}
+                      </IconButton>
+                    </ListItemIcon>
 
-                        {/* Message Bubble */}
-                        <Box
-                          sx={{
-                            position: "relative",
-                            background:
-                              note.type === "task"
-                                ? `linear-gradient(135deg, ${theme.palette.warning.main}15, ${theme.palette.warning.light}15)`
-                                : isCurrentUser(note)
-                                ? `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`
-                                : `${theme.palette.background.paper}`,
-                            color: isCurrentUser(note)
-                              ? "white"
-                              : theme.palette.text.primary,
-                            borderRadius: 3,
-                            p: 2,
-                            boxShadow: "0 4px 16px rgba(0,0,0,0.1)",
-                            border:
-                              note.type === "task"
-                                ? `1px solid ${theme.palette.warning.main}30`
-                                : isCurrentUser(note)
-                                ? "none"
-                                : `1px solid ${theme.palette.divider}`,
-                            backdropFilter: "blur(10px)",
-                            transition: "all 0.2s ease",
-                            "&:hover": {
-                              transform: "translateY(-1px)",
-                              boxShadow: "0 6px 20px rgba(0,0,0,0.15)",
-                            },
-                          }}
-                        >
-                          {/* Note Header */}
+                    <ListItemText
+                      primary={
+                        editingId === item._id ? (
                           <Box
                             sx={{
                               display: "flex",
-                              alignItems: "center",
                               gap: 1,
-                              mb: 1,
+                              alignItems: "center",
                             }}
                           >
-                            {note.type === "task" && (
-                              <Tooltip
-                                title={
-                                  note.completed
-                                    ? "Marcar como pendiente"
-                                    : "Marcar como completada"
+                            <TextField
+                              value={editText}
+                              onChange={(e) => setEditText(e.target.value)}
+                              variant="outlined"
+                              size="small"
+                              fullWidth
+                              autoFocus
+                              onKeyPress={(e) => {
+                                if (e.key === "Enter") {
+                                  handleSaveEdit();
                                 }
-                              >
-                                <IconButton
-                                  size="small"
-                                  onClick={() => onToggleCheck?.(note._id)}
-                                  sx={{
-                                    p: 0.5,
-                                    color: note.completed
-                                      ? theme.palette.success.main
-                                      : theme.palette.warning.main,
-                                  }}
-                                >
-                                  {note.completed ? (
-                                    <CheckSquare size={18} />
-                                  ) : (
-                                    <Square size={18} />
-                                  )}
-                                </IconButton>
-                              </Tooltip>
-                            )}
-
-                            <Typography
-                              variant="caption"
-                              sx={{
-                                opacity: 0.8,
-                                fontWeight: 500,
-                                color: isCurrentUser(note)
-                                  ? "rgba(255,255,255,0.9)"
-                                  : theme.palette.text.secondary,
+                                if (e.key === "Escape") {
+                                  handleCancelEdit();
+                                }
                               }}
-                            >
-                              {note.author?.name} • {formatTime(note.date)}
-                            </Typography>
-
-                            {note.pinned && (
-                              <Tooltip title="Nota fijada">
-                                <Pin size={14} style={{ opacity: 0.7 }} />
-                              </Tooltip>
-                            )}
-                          </Box>
-
-                          {/* Note Content */}
-                          <Typography
-                            variant="body2"
-                            sx={{
-                              whiteSpace: "pre-wrap",
-                              wordBreak: "break-word",
-                              lineHeight: 1.4,
-                              textDecoration:
-                                note.type === "task" && note.completed
-                                  ? "line-through"
-                                  : "none",
-                              opacity:
-                                note.type === "task" && note.completed
-                                  ? 0.7
-                                  : 1,
-                            }}
-                          >
-                            {note.text}
-                          </Typography>
-
-                          {/* Note Type Badge */}
-                          {note.type === "task" && (
-                            <Chip
-                              label={
-                                note.completed ? "Completada" : "Pendiente"
-                              }
+                              sx={{
+                                "& .MuiOutlinedInput-root": {
+                                  borderRadius: 2,
+                                  fontSize: "1rem",
+                                },
+                              }}
+                            />
+                            <IconButton
+                              onClick={handleSaveEdit}
                               size="small"
                               sx={{
-                                mt: 1,
+                                color: theme.palette.success.main,
+                                "&:hover": {
+                                  backgroundColor: `${theme.palette.success.main}15`,
+                                },
+                              }}
+                            >
+                              <Save size={18} />
+                            </IconButton>
+                            <IconButton
+                              onClick={handleCancelEdit}
+                              size="small"
+                              sx={{
+                                color: theme.palette.error.main,
+                                "&:hover": {
+                                  backgroundColor: `${theme.palette.error.main}15`,
+                                },
+                              }}
+                            >
+                              <X size={18} />
+                            </IconButton>
+                          </Box>
+                        ) : (
+                          <Typography
+                            variant="body1"
+                            onClick={() => handleStartEdit(item)}
+                            sx={{
+                              textDecoration: item.completed
+                                ? "line-through"
+                                : "none",
+                              opacity: item.completed ? 0.7 : 1,
+                              fontWeight: 500,
+                              color: item.completed
+                                ? theme.palette.text.secondary
+                                : theme.palette.text.primary,
+                              cursor: isCurrentUser(item)
+                                ? "pointer"
+                                : "default",
+                              transition: "all 0.2s ease",
+                              "&:hover": isCurrentUser(item)
+                                ? {
+                                    color: theme.palette.primary.main,
+                                    backgroundColor: `${theme.palette.primary.main}05`,
+                                    borderRadius: 1,
+                                    padding: "2px 4px",
+                                  }
+                                : {},
+                            }}
+                          >
+                            {item.text}
+                            {isCurrentUser(item) && (
+                              <Edit3
+                                size={14}
+                                style={{
+                                  marginLeft: "8px",
+                                  opacity: 0.5,
+                                  display: "inline",
+                                }}
+                              />
+                            )}
+                          </Typography>
+                        )
+                      }
+                      secondary={
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1,
+                            mt: 0.5,
+                          }}
+                        >
+                          <Typography variant="caption" color="text.secondary">
+                            {typeof item.author === "string" &&
+                            item.author.length === 24
+                              ? `Usuario ${item.author.slice(-4)}`
+                              : item.author}
+                            {isCurrentUser(item) && (
+                              <Chip
+                                label="Tú"
+                                size="small"
+                                sx={{
+                                  ml: 1,
+                                  height: 16,
+                                  fontSize: "0.65rem",
+                                  background: `${theme.palette.info.main}20`,
+                                  color: theme.palette.info.main,
+                                }}
+                              />
+                            )}
+                          </Typography>
+                          {item.completed && (
+                            <Chip
+                              label="Completada"
+                              size="small"
+                              sx={{
                                 height: 20,
                                 fontSize: "0.7rem",
-                                background: note.completed
-                                  ? `${theme.palette.success.main}20`
-                                  : `${theme.palette.warning.main}20`,
-                                color: note.completed
-                                  ? theme.palette.success.main
-                                  : theme.palette.warning.main,
-                                border: `1px solid ${
-                                  note.completed
-                                    ? theme.palette.success.main
-                                    : theme.palette.warning.main
-                                }30`,
+                                background: `${theme.palette.success.main}20`,
+                                color: theme.palette.success.main,
+                                border: `1px solid ${theme.palette.success.main}30`,
                               }}
                             />
                           )}
                         </Box>
-                      </Box>
-                    </Box>
-                  </Zoom>
-                ))}
-              </Box>
-            ))
+                      }
+                    />
+
+                    {/* Action buttons - only show for current user's items */}
+                    {isCurrentUser(item) && editingId !== item._id && (
+                      <ListItemSecondaryAction>
+                        <Box sx={{ display: "flex", gap: 0.5 }}>
+                          <Tooltip title="Editar tarea">
+                            <IconButton
+                              onClick={() => handleStartEdit(item)}
+                              sx={{
+                                color: theme.palette.primary.main,
+                                opacity: 0.7,
+                                "&:hover": {
+                                  opacity: 1,
+                                  backgroundColor: `${theme.palette.primary.main}15`,
+                                },
+                              }}
+                            >
+                              <Edit3 size={16} />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Eliminar tarea">
+                            <IconButton
+                              onClick={() => handleDelete(item._id)}
+                              sx={{
+                                color: theme.palette.error.main,
+                                opacity: 0.7,
+                                "&:hover": {
+                                  opacity: 1,
+                                  backgroundColor: `${theme.palette.error.main}15`,
+                                },
+                              }}
+                            >
+                              <Trash2 size={16} />
+                            </IconButton>
+                          </Tooltip>
+                        </Box>
+                      </ListItemSecondaryAction>
+                    )}
+                  </ListItem>
+                </Zoom>
+              ))}
+            </List>
           )}
         </Box>
 
-        {/* Modern Input Section */}
+        {/* Add New Item Section */}
         <Box
           sx={{
             p: 3,
@@ -434,55 +505,6 @@ const Notes = ({
             borderTop: `1px solid ${theme.palette.divider}40`,
           }}
         >
-          {/* Note Type Selector */}
-          <Box sx={{ display: "flex", gap: 1, mb: 2 }}>
-            <Chip
-              label="Mensaje"
-              variant={noteType === "message" ? "filled" : "outlined"}
-              onClick={() => setNoteType("message")}
-              sx={{
-                background:
-                  noteType === "message"
-                    ? `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`
-                    : "transparent",
-                color:
-                  noteType === "message" ? "white" : theme.palette.primary.main,
-                border: `1px solid ${theme.palette.primary.main}`,
-                fontWeight: 600,
-                cursor: "pointer",
-                "&:hover": {
-                  background:
-                    noteType === "message"
-                      ? `linear-gradient(135deg, ${theme.palette.primary.dark}, ${theme.palette.primary.main})`
-                      : `${theme.palette.primary.main}10`,
-                },
-              }}
-            />
-            <Chip
-              label=" Tarea"
-              variant={noteType === "task" ? "filled" : "outlined"}
-              onClick={() => setNoteType("task")}
-              sx={{
-                background:
-                  noteType === "task"
-                    ? `linear-gradient(135deg, ${theme.palette.warning.main})`
-                    : "transparent",
-                color:
-                  noteType === "task" ? "white" : theme.palette.warning.main,
-                border: `1px solid ${theme.palette.warning.main}`,
-                fontWeight: 600,
-                cursor: "pointer",
-                "&:hover": {
-                  background:
-                    noteType === "task"
-                      ? `linear-gradient(135deg, ${theme.palette.warning.dark})`
-                      : `${theme.palette.warning.main}10`,
-                },
-              }}
-            />
-          </Box>
-
-          {/* Input Form */}
           <Box
             component="form"
             onSubmit={handleSubmit}
@@ -490,13 +512,7 @@ const Notes = ({
           >
             <TextField
               fullWidth
-              multiline
-              maxRows={4}
-              placeholder={
-                noteType === "task"
-                  ? "Describe la tarea..."
-                  : "Escribe un mensaje..."
-              }
+              placeholder="Añadir nueva tarea..."
               value={newNote}
               onChange={(e) => setNewNote(e.target.value)}
               variant="outlined"
@@ -519,9 +535,7 @@ const Notes = ({
                 },
               }}
             />
-            <Tooltip
-              title={`Enviar ${noteType === "task" ? "tarea" : "mensaje"}`}
-            >
+            <Tooltip title="Añadir tarea">
               <IconButton
                 type="submit"
                 disabled={!newNote.trim()}
@@ -529,13 +543,13 @@ const Notes = ({
                   width: 48,
                   height: 48,
                   background: newNote.trim()
-                    ? `linear-gradient(135deg, ${theme.palette.primary.main})`
+                    ? `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`
                     : theme.palette.grey[300],
                   color: "white",
                   transition: "all 0.3s ease",
                   "&:hover": {
                     background: newNote.trim()
-                      ? `linear-gradient(135deg, ${theme.palette.primary.dark})`
+                      ? `linear-gradient(135deg, ${theme.palette.primary.dark}, ${theme.palette.primary.main})`
                       : theme.palette.grey[400],
                     boxShadow: newNote.trim()
                       ? `0 8px 24px ${theme.palette.primary.main}40`
@@ -546,7 +560,7 @@ const Notes = ({
                   },
                 }}
               >
-                <Send size={20} />
+                <Plus size={20} />
               </IconButton>
             </Tooltip>
           </Box>
@@ -584,4 +598,4 @@ const Notes = ({
   );
 };
 
-export default Notes;
+export default Checklist;

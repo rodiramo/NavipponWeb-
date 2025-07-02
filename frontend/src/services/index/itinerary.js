@@ -216,3 +216,102 @@ export const removeTravelerFromItinerary = async (
     throw new Error(error.message);
   }
 };
+// Add these functions to your existing itinerary service file
+
+// Add an experience to an itinerary
+export const addExperienceToItinerary = async ({
+  itineraryId,
+  experienceId,
+  boardDate,
+  token,
+}) => {
+  try {
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    const { data } = await axios.patch(
+      `/api/itineraries/${itineraryId}/experiences`,
+      { experienceId, boardDate },
+      config
+    );
+    return data;
+  } catch (error) {
+    if (error.response && error.response.data.message)
+      throw new Error(error.response.data.message);
+    throw new Error(error.message);
+  }
+};
+
+// Remove an experience from an itinerary
+export const removeExperienceFromItinerary = async ({
+  itineraryId,
+  experienceId,
+  boardDate,
+  token,
+}) => {
+  try {
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    };
+
+    // Add boardDate as query parameter if provided
+    const url = boardDate
+      ? `/api/itineraries/${itineraryId}/experiences/${experienceId}?boardDate=${boardDate}`
+      : `/api/itineraries/${itineraryId}/experiences/${experienceId}`;
+
+    const { data } = await axios.delete(url, config);
+    return data;
+  } catch (error) {
+    if (error.response && error.response.data.message)
+      throw new Error(error.response.data.message);
+    throw new Error(error.message);
+  }
+};
+
+// Check if an experience is already in an itinerary
+export const checkExperienceInItinerary = async ({
+  itineraryId,
+  experienceId,
+  token,
+}) => {
+  try {
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    const { data } = await axios.get(
+      `/api/itineraries/${itineraryId}/experiences/${experienceId}/check`,
+      config
+    );
+    return data; // Returns { exists: true/false, boards: [], itineraryId, experienceId, favoriteId }
+  } catch (error) {
+    if (error.response && error.response.data.message)
+      throw new Error(error.response.data.message);
+    throw new Error(error.message);
+  }
+};
+
+// Get all experiences in an itinerary
+export const getItineraryExperiences = async (itineraryId, token) => {
+  try {
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    const { data } = await axios.get(
+      `/api/itineraries/${itineraryId}/experiences`,
+      config
+    );
+    return data;
+  } catch (error) {
+    if (error.response && error.response.data.message)
+      throw new Error(error.response.data.message);
+    throw new Error(error.message);
+  }
+};

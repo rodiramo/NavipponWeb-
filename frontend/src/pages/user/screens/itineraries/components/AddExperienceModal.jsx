@@ -25,7 +25,6 @@ import {
 import {
   Search,
   MapPin,
-  Euro,
   Star,
   Filter,
   X,
@@ -81,23 +80,47 @@ const ExperienceCard = ({ experience, onSelect, isSelected, theme }) => {
         <Box sx={{ position: "relative", height: 200 }}>
           <CardMedia
             component="img"
-            image={
-              experience.photo
-                ? `${stables.UPLOAD_FOLDER_BASE_URL}/${experience.photo}`
-                : images.sampleFavoriteImage
-            }
+            image={(() => {
+              const photo = experience?.photo;
+
+              // If has photo, handle URL type
+              if (photo) {
+                return photo.startsWith("http")
+                  ? photo
+                  : `${stables.UPLOAD_FOLDER_BASE_URL}${photo}`;
+              }
+
+              // Category-based fallback
+              switch (experience?.categories) {
+                case "Hoteles":
+                  return images.sampleHotelImage;
+                case "Restaurantes":
+                  return images.sampleRestaurantImage;
+                case "Atractivos":
+                  return images.sampleAttractionImage;
+                default:
+                  return images.sampleFavoriteImage;
+              }
+            })()}
             alt={experience.title}
             sx={{
-              width: "100%", // Explicit width
-              height: "200px", // Explicit height
+              width: "100%",
+              height: "200px",
               objectFit: "cover",
               transition: "transform 0.3s ease",
             }}
             onError={(e) => {
-              e.target.src = images.sampleFavoriteImage;
+              // Final fallback to category-specific or default sample
+              const categoryImages = {
+                Hoteles: images.sampleHotelImage,
+                Restaurantes: images.sampleRestaurantImage,
+                Atractivos: images.sampleAttractionImage,
+              };
+              e.target.src =
+                categoryImages[experience?.categories] ||
+                images.sampleFavoriteImage;
             }}
           />
-
           <Box
             sx={{
               position: "absolute",
@@ -181,7 +204,7 @@ const ExperienceCard = ({ experience, onSelect, isSelected, theme }) => {
                 boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
               }}
             >
-              <Euro size={14} />
+              ¥
               <Typography
                 variant="subtitle2"
                 sx={{

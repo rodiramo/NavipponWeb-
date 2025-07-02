@@ -18,21 +18,24 @@ const Hero = () => {
   const navigate = useNavigate();
   const theme = useTheme();
   const [currentImage, setCurrentImage] = useState(0);
-  const [fade, setFade] = useState(true);
+  const [nextImage, setNextImage] = useState(1);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // Background image auto-transition effect
+  // Background image auto-transition effect with improved crossfade
   useEffect(() => {
     const interval = setInterval(() => {
-      setFade(false);
+      setIsTransitioning(true);
+
       setTimeout(() => {
-        setCurrentImage((prev) => (prev + 1) % backgroundImages.length);
-        setFade(true);
-      }, 500);
+        setCurrentImage(nextImage);
+        setNextImage((nextImage + 1) % backgroundImages.length);
+        setIsTransitioning(false);
+      }, 1000); // 1 second transition
     }, 5000); // Change every 5 seconds
 
     return () => clearInterval(interval);
-  }, []);
+  }, [nextImage]);
 
   // Loading animation
   useEffect(() => {
@@ -40,8 +43,19 @@ const Hero = () => {
     return () => clearTimeout(timer);
   }, []);
 
+  // Simple search handler - we know the Search component passes { searchKeyword }
   const handleSearch = ({ searchKeyword }) => {
-    navigate(`/experience?search=${encodeURIComponent(searchKeyword)}`);
+    console.log("Hero handleSearch called with keyword:", searchKeyword);
+
+    if (searchKeyword && searchKeyword.trim()) {
+      const searchUrl = `/experience?page=1&search=${encodeURIComponent(
+        searchKeyword.trim()
+      )}`;
+      console.log("Hero navigating to:", searchUrl);
+      navigate(searchUrl);
+    } else {
+      console.log("No valid search keyword in Hero");
+    }
   };
 
   return (
@@ -53,28 +67,51 @@ const Hero = () => {
         alignItems: "center",
         justifyContent: "center",
         textAlign: "center",
+        // Add dark background to prevent white flash
+        backgroundColor: "#1a1a1a",
       }}
     >
-      {/* Background Image Slideshow */}
-      {backgroundImages.map((image, index) => (
-        <Box
-          key={index}
-          sx={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            background: `linear-gradient(135deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0.7) 100%), url(${image})`,
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-            transition: "opacity 1.5s ease-in-out, transform 20s ease-out",
-            opacity: index === currentImage && fade ? 1 : 0,
-            transform: index === currentImage ? "scale(1.05)" : "scale(1)",
-            filter: "brightness(0.8) contrast(1.1)",
-          }}
-        />
-      ))}
+      {/* Background Image Slideshow with improved transitions */}
+      {backgroundImages.map((image, index) => {
+        const isCurrent = index === currentImage;
+        const isNext = index === nextImage && isTransitioning;
+        const isVisible = isCurrent || isNext;
+
+        return (
+          <Box
+            key={index}
+            sx={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%",
+              background: `linear-gradient(135deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0.7) 100%), url(${image})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              transition: "opacity 1s ease-in-out, transform 20s ease-out",
+              opacity: isVisible ? 1 : 0,
+              transform: isCurrent ? "scale(1.05)" : "scale(1)",
+              filter: "brightness(0.8) contrast(1.1)",
+              zIndex: isCurrent ? 1 : 0,
+            }}
+          />
+        );
+      })}
+
+      {/* Dark overlay to ensure text readability during transitions */}
+      <Box
+        sx={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          background:
+            "linear-gradient(135deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.3) 100%)",
+          zIndex: 1,
+        }}
+      />
 
       {/* Animated Background Elements */}
       <Box
@@ -87,10 +124,11 @@ const Hero = () => {
           background: `radial-gradient(circle at 20% 30%, ${theme.palette.primary.main}15 0%, transparent 50%), 
                      radial-gradient(circle at 80% 70%, ${theme.palette.secondary.main}15 0%, transparent 50%)`,
           animation: "pulse 4s ease-in-out infinite alternate",
+          zIndex: 1,
         }}
       />
 
-      {/* Floating Cloud Element */}
+      {/* Floating Cloud Elements */}
       <Box
         sx={{
           position: "absolute",
@@ -103,6 +141,7 @@ const Hero = () => {
           backgroundRepeat: "no-repeat",
           opacity: 0.3,
           animation: "float 6s ease-in-out infinite",
+          zIndex: 1,
           "@keyframes float": {
             "0%, 100%": { transform: "translateY(0px)" },
             "50%": { transform: "translateY(-20px)" },
@@ -121,12 +160,14 @@ const Hero = () => {
           backgroundRepeat: "no-repeat",
           opacity: 0.3,
           animation: "float 6s ease-in-out infinite",
+          zIndex: 1,
           "@keyframes float": {
             "0%, 100%": { transform: "translateY(0px)" },
             "50%": { transform: "translateY(-20px)" },
           },
         }}
       />
+
       {/* Content Overlay */}
       <Box
         sx={{
@@ -169,7 +210,7 @@ const Hero = () => {
             component="span"
             sx={{
               display: "block",
-              background: `linear-gradient(135deg, ${theme.palette.primary.main}`,
+              background: `white`,
               backgroundClip: "text",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
@@ -198,13 +239,11 @@ const Hero = () => {
             maxWidth: "600px",
             lineHeight: 1.6,
             animation: "fadeInUp 1s ease-out 0.9s both",
-            textShadow: "0 2px 10px rgba(0,0,0,0.5)",
-
+            textShadow: "0 2px 10px rgba(0,0,0,0.8)",
             backdropFilter: "blur(90px)",
             backgroundColor: "rgba(17, 1, 1, 0.1)",
             border: "1px solid rgba(255, 255, 255, 0.2)",
             borderRadius: "1rem",
-            boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3)",
             transition: "all 0.3s ease",
           }}
         >
@@ -237,6 +276,7 @@ const Hero = () => {
             },
           }}
         >
+          {/* Search Component */}
           <Search onSearchKeyword={handleSearch} />
         </Box>
       </Box>

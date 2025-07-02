@@ -127,7 +127,7 @@ const BlogPage = () => {
                   p: { xs: 3, md: 4 },
                   mb: 4,
                   borderRadius: 3,
-
+                  background: theme.palette.background.default,
                   border: `1px solid ${theme.palette.divider}`,
                 }}
               >
@@ -202,7 +202,7 @@ const BlogPage = () => {
                         border: `2px solid ${theme.palette.primary.main}`,
                         borderRadius: "30px",
                         padding: "8px",
-                        backgroundColor: theme.palette.background.paper,
+                        backgroundColor: theme.palette.background.default,
                         "&:hover": {
                           backgroundColor: theme.palette.primary.light,
                           transform: "scale(1.05)",
@@ -298,7 +298,7 @@ const BlogPage = () => {
                       textAlign: "center",
                       borderRadius: 3,
                       border: `2px dashed ${theme.palette.divider}`,
-                      backgroundColor: theme.palette.background.paper,
+                      backgroundColor: theme.palette.background.default,
                     }}
                   >
                     <PostAdd
@@ -397,9 +397,8 @@ const BlogPage = () => {
                     <Box
                       sx={{
                         p: 3,
-                        background: `linear-gradient(135deg, 
-                          ${theme.palette.primary.main}08, 
-                          ${theme.palette.secondary.main}05)`,
+                        background: theme.palette.background.default,
+
                         borderBottom: `1px solid ${theme.palette.divider}`,
                       }}
                     >
@@ -407,7 +406,9 @@ const BlogPage = () => {
                         display="flex"
                         alignItems="center"
                         gap={1}
-                        sx={{ mb: 1 }}
+                        sx={{
+                          mb: 1,
+                        }}
                       >
                         <PeopleOutlined color="primary" />
                         <Typography
@@ -429,7 +430,12 @@ const BlogPage = () => {
                         Conecta con otros miembros de la comunidad
                       </Typography>
                     </Box>
-                    <Box sx={{ p: 3 }}>
+                    <Box
+                      sx={{
+                        p: 3,
+                        background: theme.palette.background.default,
+                      }}
+                    >
                       <UserList currentUser={user} token={jwt} />
                     </Box>
                   </Paper>
@@ -472,7 +478,7 @@ const BlogPage = () => {
               top: 16,
               right: 16,
               zIndex: 1000,
-              backgroundColor: theme.palette.background.paper,
+              backgroundColor: theme.palette.background.default,
               color: theme.palette.text.secondary,
               border: `1px solid ${theme.palette.divider}`,
               "&:hover": {

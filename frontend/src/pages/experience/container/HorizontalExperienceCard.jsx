@@ -8,8 +8,14 @@ import {
   getFavoritesCount as getFavoritesCountService,
   getUserFavorites,
 } from "../../../services/index/favorites";
+// Add itinerary service imports
+import {
+  getUserItineraries,
+  addExperienceToItinerary,
+  checkExperienceInItinerary,
+} from "../../../services/index/itinerary";
 import { images, stables } from "../../../constants";
-import { Eye } from "lucide-react";
+import { Eye, Plus, BookOpen, Check, Image as ImageIcon } from "lucide-react";
 import {
   IconButton,
   useTheme,
@@ -20,6 +26,10 @@ import {
   Card,
   CardContent,
   Divider,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
 } from "@mui/material";
 import StarRating from "../../../components/Stars";
 import {
@@ -30,17 +40,99 @@ import {
   People,
 } from "@mui/icons-material";
 
+// Sample Image Indicator Component for Cards
+const CardImageWithSampleIndicator = ({
+  src,
+  alt,
+  isSample = false,
+  category = "",
+  style = {},
+  theme,
+  sx = {},
+}) => {
+  // Corner indicator for cards (subtle and clean)
+  const CornerIndicator = () => (
+    <Box
+      sx={{
+        position: "absolute",
+        top: 8,
+        right: 8,
+        zIndex: 3, // Higher z-index to appear above category badge
+      }}
+    ></Box>
+  );
+
+  // If not a sample image, render normally
+  if (!isSample) {
+    return (
+      <Box
+        component="img"
+        src={src}
+        alt={alt}
+        sx={{
+          width: "100%",
+          height: "100%",
+          borderRadius: "24px",
+          objectFit: "cover",
+          transition: "transform 0.4s ease",
+          ...sx,
+        }}
+      />
+    );
+  }
+
+  // For sample images, add the indicator
+  return (
+    <Box sx={{ position: "relative", width: "100%", height: "100%" }}>
+      <Box
+        component="img"
+        src={src}
+        alt={alt}
+        sx={{
+          width: "100%",
+          height: "100%",
+          borderRadius: "24px",
+          objectFit: "cover",
+          transition: "transform 0.4s ease",
+          filter: "brightness(0.96)", // Slightly dim sample images
+          ...sx,
+        }}
+      />
+      <CornerIndicator />
+    </Box>
+  );
+};
+
 const HorizontalExperienceCard = ({
   experience,
   user,
   token,
   className,
   onFavoriteToggle,
+  onItineraryAdd, // New callback for itinerary updates
 }) => {
   const [isFavorite, setIsFavorite] = useState(false);
   const [favoritesCount, setFavoritesCount] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
+  const [userItineraries, setUserItineraries] = useState([]);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [experienceInItineraries, setExperienceInItineraries] = useState(
+    new Map()
+  ); // Map of itineraryId -> boards[]
   const theme = useTheme();
+
+  // Helper function to check if image is a sample/default image
+  const isDefaultImage = (photoUrl) => {
+    return photoUrl && photoUrl.startsWith("https://images.unsplash.com");
+  };
+
+  // Get the full image URL
+  const getImageUrl = () => {
+    if (!experience?.photo) return images.sampleExperienceImage;
+    return experience.photo.startsWith("http")
+      ? experience.photo
+      : stables.UPLOAD_FOLDER_BASE_URL + experience.photo;
+  };
 
   useEffect(() => {
     const fetchFavoritesCount = async () => {
@@ -69,7 +161,38 @@ const HorizontalExperienceCard = ({
         }
       };
 
+      const fetchUserItineraries = async () => {
+        try {
+          const itineraries = await getUserItineraries(user._id, token);
+          setUserItineraries(itineraries);
+
+          // Check which itineraries already contain this experience
+          const inItineraries = new Map();
+          for (const itinerary of itineraries) {
+            try {
+              const checkResult = await checkExperienceInItinerary({
+                itineraryId: itinerary._id,
+                experienceId: experience._id,
+                token,
+              });
+              if (checkResult.exists) {
+                inItineraries.set(itinerary._id, checkResult.boards || []);
+              }
+            } catch (error) {
+              console.error(
+                `Error checking experience in itinerary ${itinerary._id}:`,
+                error
+              );
+            }
+          }
+          setExperienceInItineraries(inItineraries);
+        } catch (error) {
+          console.error("Error fetching user itineraries:", error);
+        }
+      };
+
       fetchFavorites();
+      fetchUserItineraries();
     }
   }, [user, token, experience._id]);
 
@@ -102,7 +225,7 @@ const HorizontalExperienceCard = ({
         toast.success("Se agregó a favoritos");
       }
 
-      onFavoriteToggle();
+      onFavoriteToggle && onFavoriteToggle();
     } catch (error) {
       if (error.response && error.response.status === 400) {
         toast.error("La experiencia ya está en tus favoritos");
@@ -113,11 +236,62 @@ const HorizontalExperienceCard = ({
     }
   };
 
-  const formatPrice = (price) => {
-    if (price === 0) return "Gratis";
-    // Convert Japanese Yen to Euros (approximate rate: 1 EUR = 160 JPY)
-    const priceInEuros = (price / 160).toFixed(0);
-    return `€${parseInt(priceInEuros).toLocaleString()}`;
+  const handleItineraryMenuOpen = (event) => {
+    if (!user || !token) {
+      toast.error("Debes iniciar sesión para agregar a itinerario");
+      return;
+    }
+
+    if (userItineraries.length === 0) {
+      toast.error("No tienes itinerarios creados. Crea uno primero.");
+      return;
+    }
+
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleItineraryMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleAddToItinerary = async (itinerary) => {
+    try {
+      // Add to first board (earliest date) by default
+      const boardDate =
+        itinerary.boards && itinerary.boards.length > 0
+          ? itinerary.boards[0].date
+          : null;
+
+      await addExperienceToItinerary({
+        itineraryId: itinerary._id,
+        experienceId: experience._id,
+        boardDate, // Optional - will use first board if not specified
+        token,
+      });
+
+      // Update the state to show this itinerary now contains the experience
+      setExperienceInItineraries((prev) => {
+        const newMap = new Map(prev);
+        const existingBoards = newMap.get(itinerary._id) || [];
+        newMap.set(
+          itinerary._id,
+          [...existingBoards, boardDate].filter(Boolean)
+        );
+        return newMap;
+      });
+
+      toast.success(`Experiencia agregada a "${itinerary.name}"`);
+      onItineraryAdd && onItineraryAdd(itinerary._id, experience._id);
+    } catch (error) {
+      if (error.response && error.response.status === 400) {
+        toast.error("La experiencia ya está en este itinerario");
+      } else {
+        toast.error("Error al agregar a itinerario");
+      }
+      console.error("Error adding to itinerary:", error);
+    } finally {
+      handleItineraryMenuClose();
+    }
   };
 
   const getCategoryColor = (category) => {
@@ -141,6 +315,7 @@ const HorizontalExperienceCard = ({
   };
 
   const categoryColors = getCategoryColor(experience.categories);
+  const hasItineraries = user && token && userItineraries.length > 0;
 
   return (
     <Card
@@ -149,16 +324,17 @@ const HorizontalExperienceCard = ({
       onMouseLeave={() => setIsHovered(false)}
       sx={{
         display: "flex",
+        justifyContent: "center",
         flexDirection: { xs: "column", md: "row" },
         minHeight: { xs: "auto", md: "280px" },
         borderRadius: "24px",
         overflow: "hidden",
+        alignItems: "center",
         background: `linear-gradient(135deg, 
           ${theme.palette.background.paper} 0%, 
           ${theme.palette.primary.main}03 100%)`,
         border: `2px solid ${theme.palette.primary.main}08`,
         boxShadow: "none",
-        transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
         position: "relative",
         "&::before": {
           content: '""',
@@ -176,37 +352,29 @@ const HorizontalExperienceCard = ({
         },
       }}
     >
-      {/* Image Section */}
+      {/* Enhanced Image Section with Sample Indicator */}
       <Box
         sx={{
           position: "relative",
           width: { xs: "100%", md: "400px" },
-          height: { xs: "240px", md: "280px" },
+          height: { xs: "240px", md: "335px" },
           flexShrink: 0,
           display: "flex",
+          justifyContent: "center",
           alignItems: "center",
           overflow: "hidden",
         }}
       >
-        {/* Main Image */}
-        <Box
-          component="img"
-          src={
-            experience.photo
-              ? `${stables.UPLOAD_FOLDER_BASE_URL}${experience.photo}`
-              : images.sampleExperienceImage
-          }
+        {/* Enhanced Image with Sample Indicator */}
+        <CardImageWithSampleIndicator
+          src={getImageUrl()}
           alt={experience.title}
-          sx={{
-            width: "100%",
-            height: "100%",
-            borderRadius: "24px",
-            objectFit: "cover",
-            transition: "transform 0.4s ease",
-          }}
+          isSample={isDefaultImage(experience?.photo)}
+          category={experience.categories}
+          theme={theme}
         />
 
-        {/* Category Badge */}
+        {/* Category Badge - positioned to not conflict with sample indicator */}
         <Chip
           label={experience.categories}
           sx={{
@@ -218,14 +386,48 @@ const HorizontalExperienceCard = ({
             fontSize: "0.75rem",
             fontWeight: 600,
             height: "28px",
+            zIndex: 2, // Ensure it's below the sample indicator
             "& .MuiChip-label": {
               paddingX: 1.5,
             },
           }}
         />
+
+        {/* Optional: Additional info for sample images */}
+        {isDefaultImage(experience?.photo) && (
+          <Box
+            sx={{
+              position: "absolute",
+              bottom: 12,
+              left: 12,
+              width: "fit-content",
+              right: 12,
+              background: theme.palette.secondary.light,
+              backdropFilter: "blur(4px)",
+              borderRadius: "30px",
+              padding: "4px 8px",
+              display: "flex",
+              alignItems: "center",
+              gap: 0.5,
+              border: `1px solid ${theme.palette.secondary.dark}30`,
+            }}
+          >
+            <ImageIcon size={12} color={theme.palette.secondary.dark} />
+            <Typography
+              variant="caption"
+              sx={{
+                color: theme.palette.secondary.dark,
+                fontWeight: 500,
+                fontSize: "0.7rem",
+              }}
+            >
+              Imagen de muestra
+            </Typography>
+          </Box>
+        )}
       </Box>
 
-      {/* Content Section */}
+      {/* Content Section - Unchanged */}
       <CardContent
         sx={{
           flex: 1,
@@ -269,8 +471,6 @@ const HorizontalExperienceCard = ({
 
         {/* Header Content */}
         <Box sx={{ paddingRight: 6 }}>
-          {" "}
-          {/* Add padding to avoid overlap with favorite button */}
           {/* Title */}
           <Typography
             variant="h5"
@@ -376,7 +576,7 @@ const HorizontalExperienceCard = ({
 
         <Divider sx={{ marginY: 2, opacity: 0.5 }} />
 
-        {/* Action Section */}
+        {/* Action Section - Unchanged */}
         <Box
           sx={{
             display: "flex",
@@ -387,7 +587,7 @@ const HorizontalExperienceCard = ({
             position: "relative",
           }}
         >
-          {/* Left side - View Details Button and Favorites Info */}
+          {/* Left side - Buttons and Favorites Info */}
           <Box
             sx={{
               display: "flex",
@@ -397,46 +597,69 @@ const HorizontalExperienceCard = ({
               flex: 1,
             }}
           >
-            {/* View Details Button */}
-            <Button
-              component={Link}
-              to={`/experience/${experience.slug}`}
-              variant="contained"
-              startIcon={<Eye size={16} />}
-              sx={{
-                background: theme.palette.secondary.medium,
-                color: theme.palette.primary.white,
-                textTransform: "none",
-                borderRadius: "25px",
-                paddingX: 3,
-                paddingY: 1.5,
-                fontWeight: 600,
-                boxShadow: "none",
-                fontSize: "0.875rem",
-                "&:hover": {
-                  boxShadow: "none",
-                  background: theme.palette.secondary.light,
-                  color: theme.palette.secondary.dark,
-                },
-                transition: "all 0.3s ease",
-              }}
-            >
-              Ver Detalles
-            </Button>
-
-            {/* Favorites Info */}
+            {/* Buttons Row */}
             <Box
               sx={{
                 display: "flex",
-                alignItems: "center",
-                gap: 1,
-                color: theme.palette.text.secondary,
+                gap: 2,
+                flexWrap: "wrap",
               }}
             >
-              <AiFillHeart size={16} color={theme.palette.primary.main} />
-              <Typography variant="caption">
-                {favoritesCount} popularidad
-              </Typography>
+              {/* View Details Button */}
+              <Button
+                component={Link}
+                to={`/experience/${experience.slug}`}
+                variant="contained"
+                startIcon={<Eye size={16} />}
+                sx={{
+                  background: theme.palette.secondary.medium,
+                  color: theme.palette.primary.white,
+                  textTransform: "none",
+                  borderRadius: "25px",
+                  paddingX: 3,
+                  paddingY: 1.5,
+                  fontWeight: 600,
+                  boxShadow: "none",
+                  fontSize: "0.875rem",
+                  "&:hover": {
+                    boxShadow: "none",
+                    background: theme.palette.secondary.light,
+                    color: theme.palette.secondary.dark,
+                  },
+                  transition: "all 0.3s ease",
+                }}
+              >
+                Ver Detalles
+              </Button>
+
+              {/* Add to Itinerary Button */}
+              {hasItineraries && (
+                <Button
+                  onClick={handleItineraryMenuOpen}
+                  startIcon={<Plus size={16} />}
+                  sx={{
+                    backgroundColor: theme.palette.primary.light,
+                    color: theme.palette.primary.main,
+                    borderRadius: "25px",
+                    textTransform: "none",
+                    fontWeight: 600,
+                    fontSize: "0.875rem",
+                    paddingX: 3,
+                    paddingY: 1.5,
+                    border: `1px solid ${theme.palette.primary.main}30`,
+                    boxShadow: "none",
+                    transition: "all 0.3s ease",
+                    "&:hover": {
+                      backgroundColor: theme.palette.primary.main,
+                      color: theme.palette.primary.white,
+                      transform: "translateY(-1px)",
+                      boxShadow: "none",
+                    },
+                  }}
+                >
+                  Agregar a itinerario
+                </Button>
+              )}
             </Box>
           </Box>
 
@@ -466,14 +689,79 @@ const HorizontalExperienceCard = ({
                 alignItems: "center",
               }}
             >
-              {experience.price === 0 ? (
-                <> Gratis</>
-              ) : (
-                <>{formatPrice(experience.price)}</>
-              )}
+              ¥{" "}
+              {experience.price === 0 ? <> Gratis</> : <>{experience.price}</>}
             </Box>
           </Box>
         </Box>
+
+        {/* Itinerary Menu - Unchanged */}
+        <Menu
+          anchorEl={anchorEl}
+          open={Boolean(anchorEl)}
+          onClose={handleItineraryMenuClose}
+          PaperProps={{
+            sx: {
+              borderRadius: "12px",
+              mt: 1,
+              minWidth: "200px",
+              boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)",
+            },
+          }}
+        >
+          {userItineraries.map((itinerary) => {
+            const boardsWithExperience =
+              experienceInItineraries.get(itinerary._id) || [];
+            const isInItinerary = boardsWithExperience.length > 0;
+            const boardsText = isInItinerary
+              ? `En ${boardsWithExperience.length} día${
+                  boardsWithExperience.length > 1 ? "s" : ""
+                }`
+              : `${itinerary.travelDays || 0} días de viaje`;
+
+            return (
+              <MenuItem
+                key={itinerary._id}
+                onClick={() =>
+                  !isInItinerary && handleAddToItinerary(itinerary)
+                }
+                disabled={isInItinerary}
+                sx={{
+                  py: 1.5,
+                  px: 2,
+                  "&:hover": {
+                    backgroundColor: !isInItinerary
+                      ? theme.palette.primary.light
+                      : "transparent",
+                  },
+                  opacity: isInItinerary ? 0.6 : 1,
+                }}
+              >
+                <ListItemIcon>
+                  {isInItinerary ? (
+                    <Check size={20} color={theme.palette.success.main} />
+                  ) : (
+                    <BookOpen size={20} color={theme.palette.primary.main} />
+                  )}
+                </ListItemIcon>
+                <ListItemText
+                  primary={itinerary.name}
+                  secondary={boardsText}
+                  primaryTypographyProps={{
+                    fontWeight: 500,
+                    fontSize: "0.9rem",
+                  }}
+                  secondaryTypographyProps={{
+                    fontSize: "0.75rem",
+                    color: isInItinerary
+                      ? theme.palette.success.main
+                      : theme.palette.text.secondary,
+                  }}
+                />
+              </MenuItem>
+            );
+          })}
+        </Menu>
       </CardContent>
     </Card>
   );

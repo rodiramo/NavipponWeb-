@@ -361,3 +361,102 @@ export const verifyResetToken = async (token) => {
     );
   }
 };
+
+export const addItemToList = async (token) => {
+  try {
+    const { data } = await axios.post(`/api/users/checklist`);
+    return data;
+  } catch (error) {
+    throw new Error(
+      error.response?.data?.message || "Invalid or expired token"
+    );
+  }
+};
+
+// Add these functions to your existing users service file
+
+export const getUserPosts = async ({ userId, token, page = 1, limit = 12 }) => {
+  try {
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    };
+
+    const { data } = await axios.get(
+      `/api/users/${userId}/posts?page=${page}&limit=${limit}`,
+      config
+    );
+
+    return data;
+  } catch (error) {
+    console.error(
+      "❌ API Error fetching user posts:",
+      error.response?.data || error.message
+    );
+    throw new Error(
+      error.response?.data?.message || "Error fetching user posts."
+    );
+  }
+};
+
+export const getUserTrips = async ({
+  userId,
+  token,
+  includePrivate = false,
+  page = 1,
+  limit = 12,
+}) => {
+  try {
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    };
+
+    const { data } = await axios.get(
+      `/api/users/${userId}/trips?includePrivate=${includePrivate}&page=${page}&limit=${limit}`,
+      config
+    );
+
+    return data;
+  } catch (error) {
+    console.error(
+      "❌ API Error fetching user trips:",
+      error.response?.data || error.message
+    );
+    throw new Error(
+      error.response?.data?.message || "Error fetching user trips."
+    );
+  }
+};
+
+export const getUserFavorites = async ({
+  userId,
+  token,
+  page = 1,
+  limit = 12,
+}) => {
+  try {
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    };
+
+    const { data } = await axios.get(
+      `/api/users/${userId}/favorites?page=${page}&limit=${limit}`,
+      config
+    );
+
+    return data;
+  } catch (error) {
+    console.error(
+      "❌ API Error fetching user favorites:",
+      error.response?.data || error.message
+    );
+    throw new Error(
+      error.response?.data?.message || "Error fetching user favorites."
+    );
+  }
+};

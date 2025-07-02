@@ -24,8 +24,7 @@ import {
   Slide,
 } from "@mui/material";
 import { Plus, Crown, Edit, Eye, Sparkles } from "lucide-react";
-import { stables } from "../../../../../constants"; // adjust path as needed
-import { borderRadius } from "@mui/system";
+import { stables } from "../../../../../constants";
 
 const Travelers = ({
   travelers,
@@ -34,6 +33,8 @@ const Travelers = ({
   onUpdateTraveler,
   onRemoveTraveler,
   creator,
+  userRole = "viewer", // Add userRole prop
+  currentUserId, // Add currentUserId to identify the current user
 }) => {
   const theme = useTheme();
 
@@ -44,7 +45,14 @@ const Travelers = ({
   const [anchorEl, setAnchorEl] = useState(null);
   const [popoverTraveler, setPopoverTraveler] = useState(null);
 
-  const handleOpenAddModal = () => setOpenAddModal(true);
+  // Check if user can manage travelers (only owners)
+  const canManageTravelers = userRole === "owner";
+
+  const handleOpenAddModal = () => {
+    if (!canManageTravelers) return;
+    setOpenAddModal(true);
+  };
+
   const handleCloseAddModal = () => {
     setSelectedFriendId("");
     setSelectedFriendRole("viewer");
@@ -52,6 +60,7 @@ const Travelers = ({
   };
 
   const handleAddTravelerSubmit = () => {
+    if (!canManageTravelers) return;
     if (selectedFriendId) {
       onAddTraveler(selectedFriendId, selectedFriendRole);
       handleCloseAddModal();
@@ -59,8 +68,15 @@ const Travelers = ({
   };
 
   const handleAvatarClick = (event, traveler) => {
-    setAnchorEl(event.currentTarget);
-    setPopoverTraveler(traveler);
+    // Only open popover if user can manage travelers or it's their own avatar
+    const isOwnAvatar =
+      currentUserId &&
+      (traveler.userId._id || traveler.userId).toString() ===
+        currentUserId.toString();
+    if (canManageTravelers || isOwnAvatar) {
+      setAnchorEl(event.currentTarget);
+      setPopoverTraveler(traveler);
+    }
   };
 
   const handlePopoverClose = () => {
@@ -68,25 +84,21 @@ const Travelers = ({
     setPopoverTraveler(null);
   };
 
-  // For the role dropdown inside the popover
   const handleChangeRole = (newRole) => {
-    if (popoverTraveler) {
-      onUpdateTraveler(
-        popoverTraveler.userId._id || popoverTraveler.userId,
-        newRole
-      );
-    }
+    if (!canManageTravelers || !popoverTraveler) return;
+    onUpdateTraveler(
+      popoverTraveler.userId._id || popoverTraveler.userId,
+      newRole
+    );
   };
 
-  // For removing traveler inside the popover
   const handleRemove = () => {
-    if (popoverTraveler) {
-      onRemoveTraveler(popoverTraveler.userId._id || popoverTraveler.userId);
-      handlePopoverClose();
-    }
+    if (!canManageTravelers || !popoverTraveler) return;
+    onRemoveTraveler(popoverTraveler.userId._id || popoverTraveler.userId);
+    handlePopoverClose();
   };
 
-  // Filter out users already in `travelers` from `friendsList`.
+  // Filter out users already in travelers from friendsList
   const availableFriendsForAdd = friendsList.filter(
     (friend) =>
       !travelers?.some(
@@ -96,12 +108,18 @@ const Travelers = ({
       )
   );
 
-  // Determine if the popover is open
   const openPopover = Boolean(anchorEl);
 
-  // Get role icon and color
   const getRoleConfig = (role) => {
     switch (role) {
+      case "owner":
+        return {
+          color: theme.palette.warning.main,
+          bgColor: `${theme.palette.warning.main}15`,
+          label: "Propietario",
+          borderRadius: 30,
+          gradient: `linear-gradient(135deg, ${theme.palette.warning.main}, ${theme.palette.warning.dark})`,
+        };
       case "editor":
         return {
           color: theme.palette.primary.main,
@@ -120,7 +138,7 @@ const Travelers = ({
         };
       default:
         return {
-          color: "white ",
+          color: "white",
           bgColor: `${theme.palette.grey[600]}15`,
           borderRadius: 30,
           label: "Invitado",
@@ -129,11 +147,16 @@ const Travelers = ({
     }
   };
 
+  const isPopoverReadOnly =
+    !canManageTravelers &&
+    popoverTraveler &&
+    currentUserId &&
+    (popoverTraveler.userId._id || popoverTraveler.userId).toString() ===
+      currentUserId.toString();
+
   return (
     <>
-      {/* Modern Travelers Section */}
       <Box>
-        {/* Section Header with Glass Effect */}
         <Box sx={{}}>
           <Box
             sx={{
@@ -143,7 +166,6 @@ const Travelers = ({
             }}
           ></Box>
 
-          {/* Modern Avatar Stack */}
           <Box
             sx={{
               display: "flex",
@@ -153,7 +175,77 @@ const Travelers = ({
               position: "relative",
             }}
           >
-            {/* Travelers with Modern Glass Effect */}
+            {/* Show Creator Avatar if exists */}
+            {creator && (
+              <Tooltip
+                title={
+                  <Box sx={{ textAlign: "center", p: 0.5 }}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                      {creator.name}
+                    </Typography>
+                    <Typography
+                      variant="caption"
+                      sx={{ color: theme.palette.warning.main }}
+                    >
+                      Propietario
+                    </Typography>
+                  </Box>
+                }
+                arrow
+              >
+                <Zoom in={true} style={{ transitionDelay: `${0 * 150}ms` }}>
+                  <Box
+                    sx={{
+                      position: "relative",
+                      zIndex: 100,
+                      ml: 2,
+                      mr: travelers?.length > 0 ? -1.5 : 0,
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        position: "relative",
+                        "&::before": {
+                          content: '""',
+                          position: "absolute",
+                          inset: -3,
+                          borderRadius: "50%",
+                          background: `linear-gradient(135deg, ${theme.palette.warning.main}, ${theme.palette.warning.dark})`,
+                          opacity: 0.6,
+                        },
+                      }}
+                    >
+                      <Avatar
+                        src={
+                          creator.avatar
+                            ? `${stables.UPLOAD_FOLDER_BASE_URL}/${creator.avatar}`
+                            : ""
+                        }
+                        sx={{
+                          width: 56,
+                          height: 56,
+                          position: "relative",
+                          zIndex: 1,
+                          border: `3px solid ${theme.palette.background.paper}`,
+                          boxShadow: "0 12px 32px rgba(0,0,0,0.12)",
+                          background: !creator.avatar
+                            ? `linear-gradient(135deg, ${theme.palette.warning.main}, ${theme.palette.warning.dark})`
+                            : undefined,
+                          color: "white",
+                          fontSize: "1.3rem",
+                          fontWeight: 700,
+                        }}
+                      >
+                        {!creator.avatar &&
+                          creator.name?.charAt(0).toUpperCase()}
+                      </Avatar>
+                    </Box>
+                  </Box>
+                </Zoom>
+              </Tooltip>
+            )}
+
+            {/* Travelers */}
             {travelers?.map((traveler, index) => {
               const { userId, role } = traveler;
               const avatarUrl = userId.avatar
@@ -163,6 +255,9 @@ const Travelers = ({
                 ? userId.name.charAt(0).toUpperCase()
                 : "";
               const roleConfig = getRoleConfig(role);
+              const isCurrentUser =
+                currentUserId &&
+                (userId._id || userId).toString() === currentUserId.toString();
 
               return (
                 <Tooltip
@@ -170,7 +265,7 @@ const Travelers = ({
                   title={
                     <Box sx={{ textAlign: "center", p: 0.5 }}>
                       <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                        {userId.name}
+                        {userId.name} {isCurrentUser && "(Tú)"}
                       </Typography>
                       <Typography
                         variant="caption"
@@ -181,15 +276,6 @@ const Travelers = ({
                     </Box>
                   }
                   arrow
-                  slotProps={{
-                    tooltip: {
-                      sx: {
-                        bgcolor: "rgba(0,0,0,0.9)",
-                        backdropFilter: "blur(10px)",
-                        border: "1px solid rgba(255,255,255,0.1)",
-                      },
-                    },
-                  }}
                 >
                   <Zoom
                     in={true}
@@ -199,13 +285,19 @@ const Travelers = ({
                       sx={{
                         position: "relative",
                         zIndex: 99 - index,
-                        cursor: "pointer",
+                        cursor:
+                          canManageTravelers || isCurrentUser
+                            ? "pointer"
+                            : "default",
                         transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
-                        ml: index === 0 ? 2 : -1.5,
-                        "&:hover": {
-                          transform: "translateY(-8px) scale(1.05)",
-                          zIndex: 200,
-                        },
+                        ml: index === 0 && !creator ? 2 : -1.5,
+                        "&:hover":
+                          canManageTravelers || isCurrentUser
+                            ? {
+                                transform: "translateY(-8px) scale(1.05)",
+                                zIndex: 200,
+                              }
+                            : {},
                       }}
                       onClick={(e) => handleAvatarClick(e, traveler)}
                     >
@@ -217,13 +309,17 @@ const Travelers = ({
                             position: "absolute",
                             inset: -3,
                             borderRadius: "50%",
+                            background: roleConfig.gradient,
                             opacity: 0.6,
                             transition: "all 0.3s ease",
                           },
-                          "&:hover::before": {
-                            opacity: 1,
-                            inset: -5,
-                          },
+                          "&:hover::before":
+                            canManageTravelers || isCurrentUser
+                              ? {
+                                  opacity: 1,
+                                  inset: -5,
+                                }
+                              : {},
                         }}
                       >
                         <Avatar
@@ -236,9 +332,12 @@ const Travelers = ({
                             border: `3px solid ${theme.palette.background.paper}`,
                             boxShadow: "0 12px 32px rgba(0,0,0,0.12)",
                             transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
-                            "&:hover": {
-                              boxShadow: `0 20px 40px ${roleConfig.color}30`,
-                            },
+                            "&:hover":
+                              canManageTravelers || isCurrentUser
+                                ? {
+                                    boxShadow: `0 20px 40px ${roleConfig.color}30`,
+                                  }
+                                : {},
                             background: !avatarUrl
                               ? roleConfig.gradient
                               : undefined,
@@ -255,50 +354,48 @@ const Travelers = ({
                 </Tooltip>
               );
             })}
-            <Tooltip title="Añadir compañero" arrow>
-              <Box
-                sx={{
-                  ml: travelers?.length > 0 || creator ? -0.5 : 2,
-                  position: "relative",
-                }}
-              >
-                <IconButton
-                  onClick={handleOpenAddModal}
+
+            {/* Add Traveler Button - Only show for owners */}
+            {canManageTravelers && (
+              <Tooltip title="Añadir compañero" arrow>
+                <Box
                   sx={{
-                    width: 56,
-                    height: 56,
-                    color: "white",
-                    border: `3px solid ${theme.palette.background.paper}`,
-                    boxShadow: "0 12px 32px rgba(0,0,0,0.12)",
-                    transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+                    ml: travelers?.length > 0 || creator ? -0.5 : 2,
                     position: "relative",
-                    overflow: "hidden",
-                    "&::before": {
-                      content: '""',
-                      position: "absolute",
-                      inset: 0,
-                      transition: "transform 0.6s ease",
-                    },
-                    "&:hover": {
-                      boxShadow: `0 20px 40px ${theme.palette.primary.main}40`,
-                      "&::before": {
-                        transform: "translateX(100%)",
-                      },
-                    },
-                    "&:active": {
-                      transform: "translateY(-6px) scale(1.02)",
-                    },
                   }}
                 >
-                  <Plus size={28} />
-                </IconButton>
-              </Box>
-            </Tooltip>
+                  <IconButton
+                    onClick={handleOpenAddModal}
+                    sx={{
+                      width: 56,
+                      height: 56,
+                      background: `linear-gradient(135deg, ${theme.palette.primary.main})`,
+                      color: "white",
+                      border: `3px solid ${theme.palette.background.paper}`,
+                      boxShadow: "0 12px 32px rgba(0,0,0,0.12)",
+                      transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+                      position: "relative",
+                      overflow: "hidden",
+                      "&:hover": {
+                        boxShadow: `0 20px 40px ${theme.palette.primary.main}40`,
+                        transform: "translateY(-8px) scale(1.05)",
+                        background: `linear-gradient(135deg, ${theme.palette.primary.dark})`,
+                      },
+                      "&:active": {
+                        transform: "translateY(-6px) scale(1.02)",
+                      },
+                    }}
+                  >
+                    <Plus size={28} />
+                  </IconButton>
+                </Box>
+              </Tooltip>
+            )}
           </Box>
         </Box>
       </Box>
 
-      {/* Ultra-Modern Popover */}
+      {/* Popover - Show for owners or when viewing own profile */}
       <Popover
         open={openPopover}
         anchorEl={anchorEl}
@@ -322,76 +419,37 @@ const Travelers = ({
             border: `1px solid ${theme.palette.divider}40`,
             boxShadow: "0 32px 64px rgba(0,0,0,0.2)",
             overflow: "visible",
-            "&::before": {
-              content: '""',
-              position: "absolute",
-              top: -8,
-              left: "50%",
-              transform: "translateX(-50%)",
-              width: 0,
-              height: 0,
-              borderLeft: "8px solid transparent",
-              borderRight: "8px solid transparent",
-              borderBottom: `8px solid ${theme.palette.background.paper}`,
-              filter: "drop-shadow(0 -2px 4px rgba(0,0,0,0.1))",
-            },
           },
         }}
       >
         {popoverTraveler && (
           <Box sx={{ p: 4, minWidth: 320, maxWidth: 380 }}>
-            {/* Modern Header */}
+            {/* Header */}
             <Box sx={{ mb: 3, textAlign: "center" }}>
-              <Box
+              <Avatar
+                src={
+                  popoverTraveler.userId.avatar
+                    ? `${stables.UPLOAD_FOLDER_BASE_URL}/${popoverTraveler.userId.avatar}`
+                    : undefined
+                }
                 sx={{
-                  position: "relative",
-                  display: "inline-block",
-                  "&::before": {
-                    content: '""',
-                    position: "absolute",
-                    inset: -4,
-                    borderRadius: "50%",
-                    animation: "rotate 6s linear infinite",
-                    "@keyframes rotate": {
-                      "0%": { transform: "rotate(0deg)" },
-                      "100%": { transform: "rotate(360deg)" },
-                    },
-                  },
-                  "&::after": {
-                    content: '""',
-                    position: "absolute",
-                    inset: -1,
-                    borderRadius: "50%",
-                    background: theme.palette.background.paper,
-                  },
+                  width: 80,
+                  height: 80,
+                  mx: "auto",
+                  mb: 2,
+                  background: !popoverTraveler.userId.avatar
+                    ? `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`
+                    : undefined,
                 }}
               >
-                <Avatar
-                  src={
-                    popoverTraveler.userId.avatar
-                      ? `${stables.UPLOAD_FOLDER_BASE_URL}/${popoverTraveler.userId.avatar}`
-                      : undefined
-                  }
-                  sx={{
-                    width: 80,
-                    height: 80,
-                    position: "relative",
-                    zIndex: 1,
-                    background: !popoverTraveler.userId.avatar
-                      ? `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`
-                      : undefined,
-                  }}
-                >
-                  {!popoverTraveler.userId.avatar
-                    ? popoverTraveler.userId.name?.charAt(0).toUpperCase()
-                    : ""}
-                </Avatar>
-              </Box>
+                {!popoverTraveler.userId.avatar
+                  ? popoverTraveler.userId.name?.charAt(0).toUpperCase()
+                  : ""}
+              </Avatar>
               <Typography
                 variant="h5"
                 sx={{
                   fontWeight: 700,
-                  mt: 2,
                   mb: 0.5,
                 }}
               >
@@ -406,10 +464,9 @@ const Travelers = ({
               </Typography>
             </Box>
 
-            {/* Modern Role Chip */}
+            {/* Role Chip */}
             <Box sx={{ mb: 3, textAlign: "center" }}>
               <Chip
-                icon={getRoleConfig(popoverTraveler.role).icon}
                 label={getRoleConfig(popoverTraveler.role).label}
                 sx={{
                   background: getRoleConfig(popoverTraveler.role).gradient,
@@ -426,7 +483,7 @@ const Travelers = ({
 
             <Divider sx={{ my: 3, opacity: 0.3 }} />
 
-            {/* Modern Profile Link */}
+            {/* Profile Link */}
             <Box sx={{ mb: 3, textAlign: "center" }}>
               <MuiLink
                 href={`/profile/${popoverTraveler.userId._id}`}
@@ -447,21 +504,230 @@ const Travelers = ({
                   transition: "all 0.3s ease",
                 }}
               >
-                <Eye size={16}></Eye>
+                <Eye size={16} />
                 Ver perfil completo
               </MuiLink>
             </Box>
 
-            {/* Modern Role Selection */}
+            {/* Only show role management for owners */}
+            {canManageTravelers && (
+              <>
+                {/* Role Selection */}
+                <FormControl fullWidth sx={{ mb: 3 }}>
+                  <InputLabel id="role-label" sx={{ fontWeight: 600 }}>
+                    Cambiar Rol
+                  </InputLabel>
+                  <Select
+                    labelId="role-label"
+                    value={popoverTraveler.role}
+                    label="Cambiar Rol"
+                    onChange={(e) => handleChangeRole(e.target.value)}
+                    sx={{
+                      borderRadius: 3,
+                      "& .MuiOutlinedInput-root": {
+                        background: `${theme.palette.background.paper}50`,
+                        backdropFilter: "blur(10px)",
+                      },
+                    }}
+                  >
+                    <MenuItem value="viewer">
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 2 }}
+                      >
+                        <Box
+                          sx={{
+                            width: 32,
+                            height: 32,
+                            borderRadius: "50%",
+                            background: `linear-gradient(135deg, ${theme.palette.grey[600]}, ${theme.palette.grey[700]})`,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            color: "white",
+                          }}
+                        >
+                          <Eye size={16} />
+                        </Box>
+                        <Box>
+                          <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                            Invitado
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            Solo puede ver
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </MenuItem>
+                    <MenuItem value="editor">
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 2 }}
+                      >
+                        <Box
+                          sx={{
+                            width: 32,
+                            height: 32,
+                            borderRadius: "50%",
+                            background: `linear-gradient(135deg, ${theme.palette.primary.main})`,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            color: "white",
+                          }}
+                        >
+                          <Edit size={16} />
+                        </Box>
+                        <Box>
+                          <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                            Editor
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            Puede editar
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </MenuItem>
+                  </Select>
+                </FormControl>
+
+                {/* Remove Button */}
+                <Button
+                  variant="outlined"
+                  color="error"
+                  fullWidth
+                  onClick={handleRemove}
+                  sx={{
+                    borderRadius: 30,
+                    py: 1.5,
+                    fontWeight: 600,
+                    textTransform: "none",
+                    background: `${theme.palette.error.main}10`,
+                    backdropFilter: "blur(10px)",
+                    border: `1px solid ${theme.palette.error.main}30`,
+                    transition: "all 0.3s ease",
+                    "&:hover": {
+                      background: theme.palette.error.main,
+                      color: "white",
+                    },
+                  }}
+                >
+                  Eliminar del Viaje
+                </Button>
+              </>
+            )}
+
+            {/* Show read-only message for non-owners viewing their own profile */}
+            {isPopoverReadOnly && (
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ textAlign: "center", fontStyle: "italic" }}
+              >
+                Solo el propietario puede gestionar compañeros
+              </Typography>
+            )}
+          </Box>
+        )}
+      </Popover>
+
+      {/* Add Traveler Modal - Only accessible by owners */}
+      {canManageTravelers && (
+        <Dialog
+          open={openAddModal}
+          onClose={handleCloseAddModal}
+          maxWidth="sm"
+          fullWidth
+          TransitionComponent={Fade}
+          PaperProps={{
+            sx: {
+              borderRadius: 4,
+              background: `linear-gradient(135deg, ${theme.palette.background.paper}95, ${theme.palette.background.paper}85)`,
+              backdropFilter: "blur(20px)",
+              border: `1px solid ${theme.palette.divider}40`,
+              boxShadow: "0 32px 64px rgba(0,0,0,0.25)",
+              overflow: "hidden",
+            },
+          }}
+        >
+          <Box
+            sx={{
+              background: `linear-gradient(135deg, ${theme.palette.secondary.medium})`,
+              p: 4,
+              textAlign: "center",
+              position: "relative",
+            }}
+          >
+            <Typography
+              variant="h4"
+              sx={{
+                fontWeight: 800,
+                color: "white",
+                mb: 1,
+                position: "relative",
+                zIndex: 1,
+              }}
+            >
+              Añadir compañero
+            </Typography>
+            <Typography
+              variant="body1"
+              sx={{
+                color: "rgba(255,255,255,0.9)",
+                position: "relative",
+                zIndex: 1,
+              }}
+            >
+              Invita a un amigo a unirse a tu aventura
+            </Typography>
+          </Box>
+
+          <DialogContent sx={{ p: 4 }}>
             <FormControl fullWidth sx={{ mb: 3 }}>
-              <InputLabel id="role-label" sx={{ fontWeight: 600 }}>
-                Cambiar Rol
+              <InputLabel id="friend-select-label" sx={{ fontWeight: 600 }}>
+                Selecciona un amigo
               </InputLabel>
               <Select
-                labelId="role-label"
-                value={popoverTraveler.role}
-                label="Cambiar Rol"
-                onChange={(e) => handleChangeRole(e.target.value)}
+                labelId="friend-select-label"
+                value={selectedFriendId}
+                label="Selecciona un amigo"
+                onChange={(e) => setSelectedFriendId(e.target.value)}
+                sx={{
+                  borderRadius: 3,
+                  "& .MuiOutlinedInput-root": {
+                    background: `${theme.palette.background.paper}50`,
+                    backdropFilter: "blur(10px)",
+                  },
+                }}
+              >
+                {availableFriendsForAdd?.map((friend) => (
+                  <MenuItem key={friend._id} value={friend._id}>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                      <Avatar
+                        sx={{
+                          width: 36,
+                          height: 36,
+                          background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+                        }}
+                      >
+                        {friend.name?.charAt(0).toUpperCase()}
+                      </Avatar>
+                      <Typography sx={{ fontWeight: 600 }}>
+                        {friend.name}
+                      </Typography>
+                    </Box>
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <FormControl fullWidth>
+              <InputLabel id="role-select-label" sx={{ fontWeight: 600 }}>
+                Asignar rol
+              </InputLabel>
+              <Select
+                labelId="role-select-label"
+                value={selectedFriendRole}
+                label="Asignar rol"
+                onChange={(e) => setSelectedFriendRole(e.target.value)}
                 sx={{
                   borderRadius: 3,
                   "& .MuiOutlinedInput-root": {
@@ -524,246 +790,54 @@ const Travelers = ({
                 </MenuItem>
               </Select>
             </FormControl>
+          </DialogContent>
 
-            {/* Modern Remove Button */}
+          <DialogActions sx={{ p: 4, gap: 2 }}>
             <Button
+              onClick={handleCloseAddModal}
               variant="outlined"
-              color="error"
-              fullWidth
-              onClick={handleRemove}
               sx={{
                 borderRadius: 30,
+                px: 4,
                 py: 1.5,
                 fontWeight: 600,
                 textTransform: "none",
-                background: `${theme.palette.error.main}10`,
+                flex: 1,
+                background: `${theme.palette.grey[500]}10`,
                 backdropFilter: "blur(10px)",
-                border: `1px solid ${theme.palette.error.main}30`,
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleAddTravelerSubmit}
+              variant="contained"
+              disabled={!selectedFriendId}
+              sx={{
+                borderRadius: 30,
+                textTransform: "none",
+                px: 4,
+                py: 1.5,
+                fontWeight: 700,
+                flex: 1,
+                background: `linear-gradient(135deg, ${theme.palette.primary.main})`,
+                boxShadow: `0 8px 24px ${theme.palette.primary.main}40`,
                 transition: "all 0.3s ease",
                 "&:hover": {
-                  background: theme.palette.error.main,
-                  color: "white",
+                  transform: "translateY(-2px)",
+                  boxShadow: `0 12px 32px ${theme.palette.primary.main}50`,
+                },
+                "&:disabled": {
+                  background: theme.palette.grey[300],
+                  color: theme.palette.grey[500],
                 },
               }}
             >
-              Eliminar del Viaje
+              Añadir compañero
             </Button>
-          </Box>
-        )}
-      </Popover>
-
-      {/* Ultra-Modern Add Traveler Modal */}
-      <Dialog
-        open={openAddModal}
-        onClose={handleCloseAddModal}
-        maxWidth="sm"
-        fullWidth
-        TransitionComponent={Fade}
-        PaperProps={{
-          sx: {
-            borderRadius: 4,
-            background: `linear-gradient(135deg, ${theme.palette.background.paper}95, ${theme.palette.background.paper}85)`,
-            backdropFilter: "blur(20px)",
-            border: `1px solid ${theme.palette.divider}40`,
-            boxShadow: "0 32px 64px rgba(0,0,0,0.25)",
-            overflow: "hidden",
-          },
-        }}
-      >
-        <Box
-          sx={{
-            background: `linear-gradient(135deg, ${theme.palette.secondary.medium})`,
-            p: 4,
-            textAlign: "center",
-            position: "relative",
-            "&::before": {
-              content: '""',
-              position: "absolute",
-              inset: 0,
-            },
-          }}
-        >
-          <Typography
-            variant="h4"
-            sx={{
-              fontWeight: 800,
-              color: "white",
-              mb: 1,
-              position: "relative",
-              zIndex: 1,
-            }}
-          >
-            Añadir Compañero
-          </Typography>
-          <Typography
-            variant="body1"
-            sx={{
-              color: "rgba(255,255,255,0.9)",
-              position: "relative",
-              zIndex: 1,
-            }}
-          >
-            Invita a un amigo a unirse a tu aventura
-          </Typography>
-        </Box>
-
-        <DialogContent sx={{ p: 4 }}>
-          <FormControl fullWidth sx={{ mb: 3 }}>
-            <InputLabel id="friend-select-label" sx={{ fontWeight: 600 }}>
-              Selecciona un amigo
-            </InputLabel>
-            <Select
-              labelId="friend-select-label"
-              value={selectedFriendId}
-              label="Selecciona un amigo"
-              onChange={(e) => setSelectedFriendId(e.target.value)}
-              sx={{
-                borderRadius: 3,
-                "& .MuiOutlinedInput-root": {
-                  background: `${theme.palette.background.paper}50`,
-                  backdropFilter: "blur(10px)",
-                },
-              }}
-            >
-              {availableFriendsForAdd?.map((friend) => (
-                <MenuItem key={friend._id} value={friend._id}>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                    <Avatar
-                      sx={{
-                        width: 36,
-                        height: 36,
-                        background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-                      }}
-                    >
-                      {friend.name?.charAt(0).toUpperCase()}
-                    </Avatar>
-                    <Typography sx={{ fontWeight: 600 }}>
-                      {friend.name}
-                    </Typography>
-                  </Box>
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-
-          <FormControl fullWidth>
-            <InputLabel id="role-select-label" sx={{ fontWeight: 600 }}>
-              Asignar rol
-            </InputLabel>
-            <Select
-              labelId="role-select-label"
-              value={selectedFriendRole}
-              label="Asignar rol"
-              onChange={(e) => setSelectedFriendRole(e.target.value)}
-              sx={{
-                borderRadius: 3,
-                "& .MuiOutlinedInput-root": {
-                  background: `${theme.palette.background.paper}50`,
-                  backdropFilter: "blur(10px)",
-                },
-              }}
-            >
-              <MenuItem value="viewer">
-                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                  <Box
-                    sx={{
-                      width: 32,
-                      height: 32,
-                      borderRadius: "50%",
-                      background: `linear-gradient(135deg, ${theme.palette.grey[600]}, ${theme.palette.grey[700]})`,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      color: "white",
-                    }}
-                  >
-                    <Eye size={16} />
-                  </Box>
-                  <Box>
-                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                      Invitado
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      Solo puede ver
-                    </Typography>
-                  </Box>
-                </Box>
-              </MenuItem>
-              <MenuItem value="editor">
-                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                  <Box
-                    sx={{
-                      width: 32,
-                      height: 32,
-                      borderRadius: "50%",
-                      background: `linear-gradient(135deg, ${theme.palette.primary.main})`,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      color: "white",
-                    }}
-                  >
-                    <Edit size={16} />
-                  </Box>
-                  <Box>
-                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                      Editor
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      Puede editar
-                    </Typography>
-                  </Box>
-                </Box>
-              </MenuItem>
-            </Select>
-          </FormControl>
-        </DialogContent>
-
-        <DialogActions sx={{ p: 4, gap: 2 }}>
-          <Button
-            onClick={handleCloseAddModal}
-            variant="outlined"
-            sx={{
-              borderRadius: 30,
-              px: 4,
-              py: 1.5,
-              fontWeight: 600,
-              textTransform: "none",
-              flex: 1,
-              background: `${theme.palette.grey[500]}10`,
-              backdropFilter: "blur(10px)",
-            }}
-          >
-            Cancelar
-          </Button>
-          <Button
-            onClick={handleAddTravelerSubmit}
-            variant="contained"
-            disabled={!selectedFriendId}
-            sx={{
-              borderRadius: 30,
-              textTransform: "none",
-              px: 4,
-              py: 1.5,
-              fontWeight: 700,
-              flex: 1,
-              background: `linear-gradient(135deg, ${theme.palette.primary.main})`,
-              boxShadow: `0 8px 24px ${theme.palette.primary.main}40`,
-              transition: "all 0.3s ease",
-              "&:hover": {
-                transform: "translateY(-2px)",
-                boxShadow: `0 12px 32px ${theme.palette.primary.main}50`,
-              },
-              "&:disabled": {
-                background: theme.palette.grey[300],
-                color: theme.palette.grey[500],
-              },
-            }}
-          >
-            Añadir Compañero
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </DialogActions>
+        </Dialog>
+      )}
     </>
   );
 };

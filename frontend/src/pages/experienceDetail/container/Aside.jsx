@@ -1,10 +1,28 @@
 import React from "react";
-import { useTheme, Typography, Box } from "@mui/material";
+import {
+  useTheme,
+  Typography,
+  Box,
+  Card,
+  CardContent,
+  Chip,
+  Divider,
+  Paper,
+} from "@mui/material";
 import { FaCalendarAlt } from "react-icons/fa";
-import { Clock, Globe, Map, Phone, Mail, SunSnow } from "lucide-react";
+import {
+  Clock,
+  Globe,
+  Map,
+  Phone,
+  Mail,
+  SunSnow,
+  MapPin,
+  Euro,
+} from "lucide-react";
+import ScheduleDisplay from "./ScheduleDisplay";
 import { generalTags, attractionTags, hotelTags, restaurantTags } from "./tags";
 import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
-import { fontWeight } from "@mui/system";
 
 const getGoogleIcon = (category) => {
   if (
@@ -13,7 +31,6 @@ const getGoogleIcon = (category) => {
     !window.google.maps.Size ||
     !window.google.maps.Point
   ) {
-    // API not ready, return undefined so default marker is used.
     return undefined;
   }
 
@@ -45,28 +62,374 @@ const getGoogleIcon = (category) => {
   };
 };
 
+// Rich Text Renderer Component
+const RichTextRenderer = ({ content, theme }) => {
+  // Function to apply text marks (bold, italic, etc.)
+  const applyMarks = (text, marks = []) => {
+    if (!marks || marks.length === 0) {
+      return text;
+    }
+
+    let styledText = text;
+    let Component = React.Fragment;
+    let props = {};
+
+    marks.forEach((mark) => {
+      switch (mark.type) {
+        case "bold":
+          const BoldWrapper = ({ children }) => (
+            <Typography component="strong" sx={{ fontWeight: 700 }}>
+              {children}
+            </Typography>
+          );
+          Component = BoldWrapper;
+          break;
+        case "italic":
+          const ItalicWrapper = ({ children }) => (
+            <Typography component="em" sx={{ fontStyle: "italic" }}>
+              {children}
+            </Typography>
+          );
+          Component = ItalicWrapper;
+          break;
+        case "underline":
+          const UnderlineWrapper = ({ children }) => (
+            <Typography component="u" sx={{ textDecoration: "underline" }}>
+              {children}
+            </Typography>
+          );
+          Component = UnderlineWrapper;
+          break;
+        case "code":
+          const CodeWrapper = ({ children }) => (
+            <Typography
+              component="code"
+              sx={{
+                fontFamily: "monospace",
+                backgroundColor: theme.palette.grey[100],
+                padding: "2px 4px",
+                borderRadius: "4px",
+                fontSize: "0.9em",
+              }}
+            >
+              {children}
+            </Typography>
+          );
+          Component = CodeWrapper;
+          break;
+        case "link":
+          const LinkWrapper = ({ children }) => (
+            <Typography
+              component="a"
+              href={mark.attrs?.href || "#"}
+              target={mark.attrs?.target || "_blank"}
+              rel="noopener noreferrer"
+              sx={{
+                color: theme.palette.primary.main,
+                textDecoration: "none",
+                "&:hover": {
+                  textDecoration: "underline",
+                },
+              }}
+            >
+              {children}
+            </Typography>
+          );
+          Component = LinkWrapper;
+          break;
+        default:
+          break;
+      }
+    });
+
+    return <Component {...props}>{styledText}</Component>;
+  };
+
+  // Function to render individual content nodes
+  const renderNode = (node, index) => {
+    if (!node || !node.type) {
+      return null;
+    }
+
+    switch (node.type) {
+      case "doc":
+        return (
+          <Box key={index}>
+            {node.content?.map((child, childIndex) =>
+              renderNode(child, childIndex)
+            )}
+          </Box>
+        );
+
+      case "paragraph":
+        return (
+          <Typography
+            key={index}
+            variant="body1"
+            component="p"
+            sx={{
+              mb: 2,
+              color: theme.palette.text.primary,
+              lineHeight: 1.7,
+              "&:last-child": { mb: 0 },
+            }}
+          >
+            {node.content?.map((child, childIndex) =>
+              renderNode(child, `${index}-${childIndex}`)
+            )}
+          </Typography>
+        );
+
+      case "heading":
+        const level = node.attrs?.level || 1;
+        const headingVariants = {
+          1: "h4",
+          2: "h5",
+          3: "h6",
+          4: "subtitle1",
+          5: "subtitle2",
+          6: "body1",
+        };
+
+        return (
+          <Typography
+            key={index}
+            variant={headingVariants[level] || "h6"}
+            component={`h${Math.min(level, 6)}`}
+            sx={{
+              mb: 2,
+              mt: level <= 2 ? 3 : 2,
+              fontWeight: 600,
+              color: theme.palette.text.primary,
+              "&:first-of-type": { mt: 0 },
+            }}
+          >
+            {node.content?.map((child, childIndex) =>
+              renderNode(child, `${index}-${childIndex}`)
+            )}
+          </Typography>
+        );
+
+      case "bulletList":
+        return (
+          <Box
+            key={index}
+            component="ul"
+            sx={{
+              mb: 2,
+              pl: 3,
+              "& li": {
+                mb: 0.5,
+                color: theme.palette.text.primary,
+              },
+            }}
+          >
+            {node.content?.map((child, childIndex) =>
+              renderNode(child, `${index}-${childIndex}`)
+            )}
+          </Box>
+        );
+
+      case "orderedList":
+        return (
+          <Box
+            key={index}
+            component="ol"
+            sx={{
+              mb: 2,
+              pl: 3,
+              "& li": {
+                mb: 0.5,
+                color: theme.palette.text.primary,
+              },
+            }}
+          >
+            {node.content?.map((child, childIndex) =>
+              renderNode(child, `${index}-${childIndex}`)
+            )}
+          </Box>
+        );
+
+      case "listItem":
+        return (
+          <Box key={index} component="li">
+            {node.content?.map((child, childIndex) =>
+              renderNode(child, `${index}-${childIndex}`)
+            )}
+          </Box>
+        );
+
+      case "blockquote":
+        return (
+          <Box
+            key={index}
+            component="blockquote"
+            sx={{
+              mb: 2,
+              pl: 3,
+              borderLeft: `4px solid ${theme.palette.primary.main}`,
+              backgroundColor: `${theme.palette.primary.main}08`,
+              py: 2,
+              pr: 2,
+              fontStyle: "italic",
+              borderRadius: "0 4px 4px 0",
+            }}
+          >
+            {node.content?.map((child, childIndex) =>
+              renderNode(child, `${index}-${childIndex}`)
+            )}
+          </Box>
+        );
+
+      case "hardBreak":
+        return <br key={index} />;
+
+      case "text":
+        return (
+          <React.Fragment key={index}>
+            {applyMarks(node.text || "", node.marks)}
+          </React.Fragment>
+        );
+
+      default:
+        // Handle unknown node types gracefully
+        if (node.content && Array.isArray(node.content)) {
+          return (
+            <Box key={index}>
+              {node.content.map((child, childIndex) =>
+                renderNode(child, `${index}-${childIndex}`)
+              )}
+            </Box>
+          );
+        }
+
+        if (node.text) {
+          return (
+            <Typography key={index} component="span">
+              {node.text}
+            </Typography>
+          );
+        }
+
+        return null;
+    }
+  };
+
+  // Main render function
+  if (!content) {
+    return null;
+  }
+
+  if (Array.isArray(content)) {
+    return <Box>{content.map((node, index) => renderNode(node, index))}</Box>;
+  }
+
+  if (content.content && Array.isArray(content.content)) {
+    return (
+      <Box>{content.content.map((node, index) => renderNode(node, index))}</Box>
+    );
+  }
+
+  return renderNode(content, 0);
+};
+
 const Aside = ({ info }) => {
   const theme = useTheme();
 
-  // Render tags, description, contact info, etc.
+  // Enhanced tag rendering with better styling
   const renderTags = (tags, availableTags) => {
-    return tags.map((tag, index) => {
-      const tagInfo = availableTags.find((t) => t.title === tag);
-      return tagInfo ? (
-        <div key={index} className="flex items-center mb-2">
-          <div
-            className="icon-container mr-2"
-            style={{ color: theme.palette.primary.main }}
-          >
-            {tagInfo.icon}
-          </div>
-          <span>{tagInfo.title}</span>
-        </div>
-      ) : null;
-    });
+    return (
+      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 1 }}>
+        {tags.map((tag, index) => {
+          const tagInfo = availableTags.find((t) => t.title === tag);
+          return tagInfo ? (
+            <Chip
+              key={index}
+              icon={
+                <Box
+                  sx={{
+                    color: theme.palette.primary.main,
+                    display: "flex",
+                    alignItems: "center",
+                  }}
+                >
+                  {tagInfo.icon}
+                </Box>
+              }
+              label={tagInfo.title}
+              variant="outlined"
+              sx={{
+                borderColor: theme.palette.primary.main,
+                color: theme.palette.primary.main,
+                backgroundColor: `${theme.palette.primary.main}08`,
+                "&:hover": {
+                  backgroundColor: `${theme.palette.primary.main}15`,
+                },
+                "& .MuiChip-icon": {
+                  color: theme.palette.primary.main,
+                },
+              }}
+            />
+          ) : null;
+        })}
+      </Box>
+    );
   };
 
-  // Convert info.location.coordinates to a LatLngLiteral
+  // Contact info item component
+  const ContactItem = ({ icon, text, isLink = false, href = null }) => (
+    <Box
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        py: 1.5,
+        px: 2,
+        backgroundColor: `${theme.palette.primary.main}05`,
+        borderRadius: 2,
+        border: `1px solid ${theme.palette.primary.main}15`,
+        mb: 1,
+        transition: "all 0.2s ease",
+        "&:hover": {
+          backgroundColor: `${theme.palette.primary.main}10`,
+          transform: "translateX(2px)",
+        },
+      }}
+    >
+      <Box
+        sx={{
+          color: theme.palette.primary.main,
+          mr: 2,
+          display: "flex",
+          alignItems: "center",
+        }}
+      >
+        {icon}
+      </Box>
+      {isLink && href ? (
+        <Typography
+          component="a"
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          sx={{
+            color: theme.palette.primary.main,
+            textDecoration: "none",
+            "&:hover": {
+              textDecoration: "underline",
+            },
+          }}
+        >
+          {text}
+        </Typography>
+      ) : (
+        <Typography variant="body2" sx={{ color: theme.palette.text.primary }}>
+          {text}
+        </Typography>
+      )}
+    </Box>
+  );
+
+  // Convert coordinates
   const coordinatesObj =
     info.location &&
     Array.isArray(info.location.coordinates) &&
@@ -77,217 +440,382 @@ const Aside = ({ info }) => {
         }
       : { lat: 35.6895, lng: 139.6917 };
 
-  console.log("📍 Coordinates for Map:", coordinatesObj);
-  // Google Map container style
   const mapContainerStyle = {
     width: "100%",
     height: "100%",
   };
 
   return (
-    <Box display="flex" flexDirection={{ xs: "column", md: "row" }} gap={4}>
-      {/* Left Section - Description, tags, contact info, etc. */}
-      <Box
-        sx={{
-          flex: { xs: 1, md: 2 },
-          boxShadow: `-4px 0px 50px -9px #CDD9E1`,
-          borderRadius: 4,
-          padding: 3,
-          marginTop: 3,
-        }}
-      >
-        <Typography variant="h6" sx={{ marginBottom: 2 }}>
-          Descripción general
-        </Typography>
-        {info.body?.content?.map((block, index) => (
-          <Typography
-            key={index}
-            variant="body1"
-            sx={{ marginBottom: 2, color: "text.secondary" }}
-          >
-            {block.content?.map((textObj) => textObj.text).join(" ")}
-          </Typography>
-        ))}
-        <Typography
-          variant="body1"
-          className="font-bold"
-          sx={{ color: "text.secondary" }}
-        >
-          La mejor temporada para visitar es en{" "}
-          <span
-            className="font-bold"
-            style={{ color: theme.palette.secondary.medium }}
-          >
-            {info.generalTags?.season?.join(", ")}
-          </span>
-          .
-        </Typography>
-        <Typography
-          variant="body1"
+    <Box
+      display="flex"
+      flexDirection={{ xs: "column", md: "row" }}
+      gap={3}
+      sx={{ mt: 4 }}
+    >
+      {/* Left Section - Main Content */}
+      <Box flex={{ xs: 1, md: 2 }}>
+        <Card
+          elevation={0}
           sx={{
-            marginBottom: 4,
-            marginTop: 3,
-            color: theme.palette.primary.main,
-            fontWeight: "bold",
-            fontSize: "1.2rem",
+            background: `linear-gradient(135deg, ${theme.palette.background.paper} 0%, ${theme.palette.primary.main}03 100%)`,
+            border: `1px solid ${theme.palette.primary.main}15`,
+            borderRadius: 3,
           }}
         >
-          Precio estimado: {info.price}€
-        </Typography>
-        <hr />
-        <Box
-          display="flex"
-          sx={{
-            flexWrap: "wrap",
-            marginTop: 5,
-            justifyContent: "space-between",
-            textAlign: "left",
-          }}
-        >
-          {info.categories === "Atractivos" && (
-            <div className="-lg mb-4">
-              <h4 className="font-bold mb-2">Tipo Atractivo</h4>
-              <div className="flex flex-row items-start ml-2">
-                {renderTags(info.attractionTags, attractionTags)}
-              </div>
-            </div>
-          )}
-          {info.categories === "Hoteles" && (
-            <>
-              <div className="-lg mb-4">
-                <h4 className="font-bold mb-2">Tipo de alojamiento</h4>
-                {renderTags(
-                  info.hotelTags.accommodation,
-                  hotelTags.accommodations
-                )}
-              </div>
-              <div className="-lg mb-4">
-                <h4 className="font-bold mb-2">Servicios</h4>
-                {renderTags(
-                  info.hotelTags.hotelServices,
-                  hotelTags.hotelServices
-                )}
-              </div>
-              <div className="-lg mb-4">
-                <h4 className="font-bold mb-2">Tipo de viaje</h4>
-                {renderTags(info.hotelTags.typeTrip, hotelTags.typeTrip)}
-              </div>
-            </>
-          )}
-          {info.categories === "Restaurantes" && (
-            <>
-              <div className="border -lg mb-4">
-                <h4 className="font-bold mb-2">Tipo de restaurante</h4>
-                {renderTags(
-                  info.restaurantTags.restaurantTypes,
-                  restaurantTags.restaurantTypes
-                )}
-              </div>
-              <div className="border -lg mb-4">
-                <h4 className="font-bold mb-2">Cocinas</h4>
-                {renderTags(
-                  info.restaurantTags.cuisines,
-                  restaurantTags.cuisines
-                )}
-              </div>
-              <div className="border -lg mb-4">
-                <h4 className="font-bold mb-2">Servicios de restaurante</h4>
-                {renderTags(
-                  info.restaurantTags.restaurantServices,
-                  restaurantTags.restaurantServices
-                )}
-              </div>
-            </>
-          )}
-        </Box>
+          <CardContent sx={{ p: 4 }}>
+            {/* Render body content with rich text renderer */}
+            <Box sx={{ mb: 4 }}>
+              {info.body ? (
+                <RichTextRenderer content={info.body} theme={theme} />
+              ) : info.caption ? (
+                <Typography
+                  variant="body1"
+                  sx={{
+                    color: theme.palette.text.primary,
+                    lineHeight: 1.7,
+                  }}
+                >
+                  {info.caption}
+                </Typography>
+              ) : (
+                <Typography
+                  variant="body1"
+                  sx={{
+                    color: theme.palette.text.secondary,
+                    lineHeight: 1.7,
+                  }}
+                >
+                  No hay descripción disponible.
+                </Typography>
+              )}
+            </Box>
+
+            {/* Season and Price Info */}
+            <Box
+              sx={{ display: "flex", alignItems: "center", gap: 1, flex: 1 }}
+            >
+              <SunSnow color={theme.palette.secondary.medium} size={20} />
+              <Typography
+                variant="body1"
+                sx={{ color: theme.palette.text.primary }}
+              >
+                Mejor temporada:{" "}
+                <Typography
+                  component="span"
+                  sx={{
+                    fontWeight: 700,
+                    color: theme.palette.secondary.medium,
+                  }}
+                >
+                  {info.generalTags?.season || "No especificada"}
+                </Typography>
+              </Typography>
+            </Box>
+            <Box
+              sx={{ display: "flex", alignItems: "center", gap: 1, flex: 1 }}
+            >
+              <Euro color={theme.palette.primary.main} size={20} />
+              <Typography
+                variant="body1"
+                sx={{ color: theme.palette.text.primary }}
+              >
+                Precio Aproximado:{" "}
+                <Typography
+                  component="span"
+                  sx={{
+                    fontWeight: 700,
+                    color: theme.palette.primary.main,
+                  }}
+                >
+                  {`¥ ${info.price}` || "A consultar"}
+                </Typography>
+              </Typography>
+            </Box>
+            <Divider sx={{ mt: 4, mb: 4, opacity: 0.3 }} />
+
+            {/* Category-specific Tags */}
+            <Box>
+              {info.categories === "Atractivos" && (
+                <Box sx={{ mb: 4 }}>
+                  <Typography
+                    variant="h6"
+                    sx={{
+                      mb: 2,
+                      fontWeight: 600,
+                      color: theme.palette.text.primary,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                    }}
+                  >
+                    <MapPin size={20} color={theme.palette.primary.main} />
+                    Tipo de Atractivo
+                  </Typography>
+                  {renderTags(info.attractionTags || [], attractionTags)}
+                </Box>
+              )}
+
+              {info.categories === "Hoteles" && (
+                <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                  <Box>
+                    <Typography
+                      variant="h6"
+                      sx={{
+                        mb: 1,
+                        fontWeight: 600,
+                        color: theme.palette.text.primary,
+                      }}
+                    >
+                      Tipo de alojamiento
+                    </Typography>
+                    {renderTags(
+                      info.hotelTags?.accommodation || [],
+                      hotelTags.accommodations
+                    )}
+                  </Box>
+
+                  <Box>
+                    <Typography
+                      variant="h6"
+                      sx={{
+                        mb: 1,
+                        fontWeight: 600,
+                        color: theme.palette.text.primary,
+                      }}
+                    >
+                      Servicios
+                    </Typography>
+                    {renderTags(
+                      info.hotelTags?.hotelServices || [],
+                      hotelTags.hotelServices
+                    )}
+                  </Box>
+
+                  <Box>
+                    <Typography
+                      variant="h6"
+                      sx={{
+                        mb: 1,
+                        fontWeight: 600,
+                        color: theme.palette.text.primary,
+                      }}
+                    >
+                      Tipo de viaje
+                    </Typography>
+                    {renderTags(
+                      info.hotelTags?.typeTrip || [],
+                      hotelTags.typeTrip
+                    )}
+                  </Box>
+                </Box>
+              )}
+
+              {info.categories === "Restaurantes" && (
+                <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                  <Box>
+                    <Typography
+                      variant="h6"
+                      sx={{
+                        mb: 1,
+                        fontWeight: 600,
+                        color: theme.palette.text.primary,
+                      }}
+                    >
+                      Tipo de restaurante
+                    </Typography>
+                    {renderTags(
+                      info.restaurantTags?.restaurantTypes || [],
+                      restaurantTags.restaurantTypes
+                    )}
+                  </Box>
+
+                  <Box>
+                    <Typography
+                      variant="h6"
+                      sx={{
+                        mb: 1,
+                        fontWeight: 600,
+                        color: theme.palette.text.primary,
+                      }}
+                    >
+                      Cocinas
+                    </Typography>
+                    {renderTags(
+                      info.restaurantTags?.cuisines || [],
+                      restaurantTags.cuisines
+                    )}
+                  </Box>
+
+                  <Box>
+                    <Typography
+                      variant="h6"
+                      sx={{
+                        mb: 1,
+                        fontWeight: 600,
+                        color: theme.palette.text.primary,
+                      }}
+                    >
+                      Servicios de restaurante
+                    </Typography>
+                    {renderTags(
+                      info.restaurantTags?.restaurantServices || [],
+                      restaurantTags.restaurantServices
+                    )}
+                  </Box>
+                </Box>
+              )}
+            </Box>
+          </CardContent>
+        </Card>
       </Box>
 
-      {/* Right Section - Map & Contact Info */}
-      <Box
-        flex={{ xs: 1, md: 1 }}
-        display="flex"
-        flexDirection="column"
-        sx={{ marginTop: 3 }}
-      >
-        <Box
+      {/* Right Section - Map & Contact */}
+      <Box flex={{ xs: 1, md: 1 }}>
+        {/* Map Section */}
+        <Card
+          elevation={0}
           sx={{
-            width: "100%",
-            height: "300px",
-            borderRadius: "8px",
+            mb: 3,
+            border: `1px solid ${theme.palette.primary.main}15`,
+            borderRadius: 3,
             overflow: "hidden",
           }}
         >
-          {coordinatesObj.lat && coordinatesObj.lng ? (
-            <LoadScript
-              googleMapsApiKey={process.env.REACT_APP_GOOGLE_API_KEY}
-              libraries={["places"]}
-            >
-              <GoogleMap
-                mapContainerStyle={mapContainerStyle}
-                center={coordinatesObj}
-                zoom={13}
+          <Box
+            sx={{
+              width: "100%",
+              height: "300px",
+              position: "relative",
+            }}
+          >
+            {coordinatesObj.lat && coordinatesObj.lng ? (
+              <LoadScript
+                googleMapsApiKey={process.env.REACT_APP_GOOGLE_API_KEY}
+                libraries={["places"]}
               >
-                <Marker
-                  position={coordinatesObj}
-                  icon={getGoogleIcon(info.categories)}
-                />
-              </GoogleMap>
-            </LoadScript>
-          ) : (
-            <Typography
-              sx={{ textAlign: "center", color: theme.palette.error.main }}
-            >
-              ⚠️ Ubicación no disponible
-            </Typography>
-          )}
-        </Box>
-
-        <Box display="flex" alignItems="center" marginTop="10px" gap={1}>
-          <Box display="flex" alignItems="center" gap={1}>
-            {info.generalTags.location.map((tag, index) => (
-              <Typography key={index} variant="body1">
-                {tag}.
-              </Typography>
-            ))}
+                <GoogleMap
+                  mapContainerStyle={mapContainerStyle}
+                  center={coordinatesObj}
+                  zoom={13}
+                  options={{
+                    styles: [
+                      {
+                        featureType: "all",
+                        elementType: "geometry.fill",
+                        stylers: [{ saturation: -20 }],
+                      },
+                    ],
+                  }}
+                >
+                  <Marker
+                    position={coordinatesObj}
+                    icon={getGoogleIcon(info.categories)}
+                  />
+                </GoogleMap>
+              </LoadScript>
+            ) : (
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  height: "100%",
+                  backgroundColor: theme.palette.grey[100],
+                  color: theme.palette.error.main,
+                }}
+              >
+                <Typography>⚠️ Ubicación no disponible</Typography>
+              </Box>
+            )}
           </Box>
-        </Box>
-        <Typography variant="h6" sx={{ marginTop: 2, marginBottom: 2 }}>
-          Datos de Contacto
-        </Typography>
-        <Box display="flex" alignItems="center" sx={{ marginBottom: 1 }}>
-          <Map color={theme.palette.primary.main} size={20} />
-          <Typography variant="body1" sx={{ marginLeft: 1 }}>
-            {info.address}
-          </Typography>
-        </Box>
-        <Box display="flex" alignItems="center" sx={{ marginBottom: 1 }}>
-          <Phone color={theme.palette.primary.main} size={20} />
-          <Typography variant="body1" sx={{ marginLeft: 1 }}>
-            {info.phone}
-          </Typography>
-        </Box>
-        <Box display="flex" alignItems="center" sx={{ marginBottom: 1 }}>
-          <Mail color={theme.palette.primary.main} size={20} />
-          <Typography variant="body1" sx={{ marginLeft: 1 }}>
-            {info.email}
-          </Typography>
-        </Box>
-        <Box display="flex" alignItems="center" sx={{ marginBottom: 1 }}>
-          <Globe color={theme.palette.primary.main} size={20} />
-          <Typography variant="body1" sx={{ marginLeft: 1 }}>
-            <a
-              href={info.website}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                textDecoration: "none",
-                color: theme.palette.primary.main,
+
+          {/* Location Tags */}
+          {info.generalTags?.location && (
+            <Box
+              sx={{ p: 2, backgroundColor: `${theme.palette.primary.main}05` }}
+            >
+              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+                {Array.isArray(info.generalTags.location) ? (
+                  info.generalTags.location.map((tag, index) => (
+                    <Chip
+                      key={index}
+                      label={tag}
+                      size="small"
+                      sx={{
+                        backgroundColor: theme.palette.primary.light,
+                        color: theme.palette.primary.dark,
+                        fontSize: "0.75rem",
+                      }}
+                    />
+                  ))
+                ) : (
+                  <Chip
+                    label={info.generalTags.location}
+                    size="small"
+                    sx={{
+                      backgroundColor: theme.palette.primary.light,
+                      color: theme.palette.primary.dark,
+                      fontSize: "0.75rem",
+                    }}
+                  />
+                )}
+              </Box>
+            </Box>
+          )}
+        </Card>
+
+        {/* Contact Information */}
+        <Card
+          elevation={0}
+          sx={{
+            border: `1px solid ${theme.palette.primary.main}15`,
+            borderRadius: 3,
+          }}
+        >
+          <CardContent sx={{ p: 3 }}>
+            <Typography
+              variant="h6"
+              sx={{
+                mb: 3,
+                fontWeight: 700,
+                color: theme.palette.text.primary,
+                borderBottom: `2px solid ${theme.palette.primary.main}`,
+                pb: 1,
+                display: "inline-block",
               }}
             >
-              {info.website}
-            </a>
-          </Typography>
-        </Box>
+              Información de Contacto
+            </Typography>
+
+            <Box>
+              {info.address && (
+                <ContactItem icon={<Map size={18} />} text={info.address} />
+              )}
+              {info.phone && (
+                <ContactItem icon={<Phone size={18} />} text={info.phone} />
+              )}
+              {info.email && (
+                <ContactItem
+                  icon={<Mail size={18} />}
+                  text={info.email}
+                  isLink={true}
+                  href={`mailto:${info.email}`}
+                />
+              )}
+              {info.website && (
+                <ContactItem
+                  icon={<Globe size={18} />}
+                  text={info.website}
+                  isLink={true}
+                  href={info.website}
+                />
+              )}{" "}
+              {info.schedule && (
+                <ScheduleDisplay schedule={info.schedule} theme={theme} />
+              )}
+            </Box>
+          </CardContent>
+        </Card>
       </Box>
     </Box>
   );

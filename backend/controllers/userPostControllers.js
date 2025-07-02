@@ -5,6 +5,70 @@ import Comment from "../models/Comment.js";
 import { fileRemover } from "../utils/fileRemover.js";
 import { v4 as uuidv4 } from "uuid";
 
+// ✅ Robust function to handle deeply nested JSON strings
+const safeParseArray = (value, fieldName = "field") => {
+  console.log(`🔍 Parsing ${fieldName}:`, typeof value, value);
+
+  // If already an array, return it
+  if (Array.isArray(value)) {
+    // But check if elements are strings that need parsing
+    const parsed = value
+      .map((item) => {
+        if (typeof item === "string") {
+          try {
+            // Try to parse the string
+            const parsed = JSON.parse(item);
+            return Array.isArray(parsed) ? parsed : [parsed];
+          } catch {
+            return item;
+          }
+        }
+        return item;
+      })
+      .flat()
+      .filter((item) => item != null && item !== "");
+
+    console.log(`✅ ${fieldName} parsed as array:`, parsed);
+    return parsed;
+  }
+
+  // If it's a string, try to parse it
+  if (typeof value === "string") {
+    if (value === "" || value === "[]") {
+      return [];
+    }
+
+    try {
+      let parsed = JSON.parse(value);
+
+      // Keep parsing until we get a clean array
+      while (typeof parsed === "string") {
+        parsed = JSON.parse(parsed);
+      }
+
+      if (Array.isArray(parsed)) {
+        const cleaned = parsed
+          .flat()
+          .filter((item) => item != null && item !== "");
+        console.log(`✅ ${fieldName} parsed from string:`, cleaned);
+        return cleaned;
+      }
+
+      return [parsed].filter((item) => item != null && item !== "");
+    } catch (error) {
+      console.log(`❌ Failed to parse ${fieldName}:`, error.message);
+      return [];
+    }
+  }
+
+  // If it's something else, try to convert to array
+  if (value != null) {
+    return [value];
+  }
+
+  return [];
+};
+
 const createPost = async (req, res, next) => {
   try {
     console.log("📸 Received File:", req.file);
@@ -25,9 +89,14 @@ const createPost = async (req, res, next) => {
     let { title, caption, slug, body, tags, categories } = req.body;
 
     try {
-      categories = JSON.parse(categories || "[]");
-      tags = JSON.parse(tags || "[]");
-      body = JSON.parse(body || "{}");
+      // ✅ Use robust parsing function
+      categories = safeParseArray(categories, "categories");
+      tags = safeParseArray(tags, "tags");
+
+      // Handle body separately as it's an object, not array
+      if (typeof body === "string") {
+        body = JSON.parse(body);
+      }
     } catch (error) {
       console.log("❌ JSON Parsing Error:", error.message);
       return res
@@ -35,7 +104,7 @@ const createPost = async (req, res, next) => {
         .json({ message: "Invalid JSON format in request" });
     }
 
-    console.log("✅ Parsed Data:", {
+    console.log("✅ Final Parsed Data:", {
       title,
       caption,
       slug,
@@ -83,43 +152,126 @@ const createPost = async (req, res, next) => {
 
 const updatePost = async (req, res, next) => {
   try {
+    console.log("🔄 Updating Post - Slug:", req.params.slug);
+    console.log("📸 Received File:", req.file);
+    console.log("📥 Received Data:", req.body);
+
     const post = await Post.findOne({ slug: req.params.slug });
 
     if (!post) {
       return next(new Error("Post no encontrado"));
     }
 
+    // Check authorization
     if (post.user.toString() !== req.user._id.toString() && !req.user.admin) {
       return res.status(401).json({ message: "No autorizado" });
     }
 
-    uploadMiddleware(req, res, async function (err) {
-      if (err) {
-        return next(new Error(`Error al cargar la imagen: ${err.message}`));
+    // ✅ Parse the document data (similar to createPost)
+    let updateData;
+    try {
+      // Handle both direct form data and JSON document format
+      if (req.body.document) {
+        updateData = JSON.parse(req.body.document);
+      } else {
+        updateData = req.body;
+      }
+    } catch (error) {
+      console.log("❌ JSON Parsing Error:", error.message);
+      return res
+        .status(400)
+        .json({ message: "Invalid JSON format in request" });
+    }
+
+    let { title, caption, slug, body, tags, categories } = updateData;
+
+    // ✅ Use the same robust parsing as createPost
+    try {
+      categories = safeParseArray(categories, "categories");
+      tags = safeParseArray(tags, "tags");
+
+      // Handle body separately as it's an object, not array
+      if (typeof body === "string") {
+        body = JSON.parse(body);
       }
 
-      const { title, caption, slug, body, tags, categories } = JSON.parse(
-        req.body.document
-      );
+      console.log("✅ Final Update Data:", {
+        title,
+        caption,
+        slug,
+        body,
+        tags,
+        categories,
+      });
+    } catch (parseError) {
+      console.log("❌ Data Parsing Error:", parseError.message);
+      return res.status(400).json({ message: "Error parsing update data" });
+    }
 
-      post.title = title || post.title;
-      post.caption = caption || post.caption;
-      post.slug = slug || post.slug;
-      post.body = body || post.body;
-      post.tags = tags || post.tags;
-      post.categories = categories || post.categories;
-
-      if (req.file) {
-        if (post.photo) {
-          fileRemover(post.photo);
-        }
-        post.photo = req.file.filename;
-      }
-
-      const updatedPost = await post.save();
-      return res.json(updatedPost);
+    console.log("✅ Parsed Update Data:", {
+      title,
+      caption,
+      slug,
+      body,
+      tags,
+      categories,
     });
+
+    // ✅ Update post fields
+    post.title = title || post.title;
+    post.caption = caption || post.caption;
+    post.slug = slug || post.slug;
+    post.body = body || post.body;
+    post.tags = tags || post.tags;
+    post.categories = categories || post.categories;
+
+    // ✅ Handle Image Upload (consistent with createPost)
+    if (req.file) {
+      console.log("📸 Uploading New Image to Cloudinary:", req.file.path);
+      try {
+        const result = await cloudinary.uploader.upload(req.file.path, {
+          folder: "uploads",
+        });
+
+        // Remove old image if it exists and isn't the default
+        if (post.photo && post.photo !== "uploads/default-placeholder.jpg") {
+          // If using Cloudinary, extract public_id and delete
+          if (post.photo.includes("cloudinary.com")) {
+            const publicId = post.photo
+              .split("/")
+              .slice(-2)
+              .join("/")
+              .split(".")[0];
+            try {
+              await cloudinary.uploader.destroy(publicId);
+              console.log("🗑️ Old Cloudinary image deleted:", publicId);
+            } catch (deleteError) {
+              console.warn(
+                "⚠️ Failed to delete old Cloudinary image:",
+                deleteError.message
+              );
+            }
+          } else {
+            // If using local storage
+            fileRemover(post.photo);
+          }
+        }
+
+        post.photo = result.secure_url; // ✅ Use new Cloudinary URL
+        console.log("✅ New image uploaded:", result.secure_url);
+      } catch (uploadError) {
+        console.error("❌ Cloudinary Upload Error:", uploadError.message);
+        return res.status(500).json({ message: "Error uploading image" });
+      }
+    }
+
+    // ✅ Save the updated post
+    const updatedPost = await post.save();
+    console.log("✅ Post updated successfully:", updatedPost.slug);
+
+    return res.json(updatedPost);
   } catch (error) {
+    console.error("❌ Error in updatePost:", error);
     next(error);
   }
 };
@@ -138,7 +290,29 @@ const deletePost = async (req, res, next) => {
       throw new Error("No autorizado");
     }
 
-    fileRemover(post.photo);
+    // ✅ Handle image deletion (both Cloudinary and local)
+    if (post.photo && post.photo !== "uploads/default-placeholder.jpg") {
+      if (post.photo.includes("cloudinary.com")) {
+        // Delete from Cloudinary
+        const publicId = post.photo
+          .split("/")
+          .slice(-2)
+          .join("/")
+          .split(".")[0];
+        try {
+          await cloudinary.uploader.destroy(publicId);
+          console.log("🗑️ Cloudinary image deleted:", publicId);
+        } catch (deleteError) {
+          console.warn(
+            "⚠️ Failed to delete Cloudinary image:",
+            deleteError.message
+          );
+        }
+      } else {
+        // Delete local file
+        fileRemover(post.photo);
+      }
+    }
 
     await Comment.deleteMany({ post: post._id });
 

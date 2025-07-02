@@ -18,21 +18,53 @@ import useUser from "../../hooks/useUser";
 import logoBlack from "../../assets/navippon-icon.png";
 import logo from "../../assets/navippon-logo-white.png";
 import backgroundImage from "../../assets/login-bg.jpg";
-import HomeButton from "../../components/HomeButton"; // Import HomeButton at the top
+import HomeButton from "../../components/HomeButton";
 
 const LoginPage = () => {
   const theme = useTheme();
   const isNonMobileScreens = useMediaQuery("(min-width:1000px)");
   const navigate = useNavigate();
-  const { login, isLoginLoading, hasLoginError, isLogged } = useUser();
+  const { login, isLoginLoading, hasLoginError, isLogged, user } = useUser();
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
 
   useEffect(() => {
     if (isLogged) {
-      navigate("/");
+      console.log("🔵 Login successful, user is logged in");
+      console.log("🔵 Current location:", window.location.pathname);
+      console.log("🔵 User data:", user);
+
+      sessionStorage.setItem("cameFromLogin", "true");
+
+      sessionStorage.removeItem("lastUserPage");
+
+      console.log("🔵 About to navigate to /about (TEMPORARY TEST)");
+      navigate("/", { replace: true });
     }
-  }, [navigate, isLogged]);
+  }, [navigate, isLogged, user]);
+
+  // Function to determine if this is a first-time login
+  const checkIfFirstTimeLogin = (userData) => {
+    // Option 1: Check if user has a 'isFirstLogin' flag from backend
+    if (userData?.isFirstLogin) {
+      return true;
+    }
+
+    // Option 2: Check if user was just created (registration flow)
+    const justRegistered = sessionStorage.getItem("justRegistered");
+    if (justRegistered) {
+      sessionStorage.removeItem("justRegistered"); // Clean up
+      return true;
+    }
+
+    // Option 3: Check if user has never seen the onboarding (use your existing key)
+    const hasSeenOnboarding = localStorage.getItem("onboardingCompleted");
+    if (!hasSeenOnboarding) {
+      return true;
+    }
+
+    return false;
+  };
 
   const {
     register,
@@ -48,6 +80,8 @@ const LoginPage = () => {
 
   const submitHandler = (data) => {
     const { email, password } = data;
+
+    // Don't pass redirectTo parameter, let useEffect handle navigation
     login({ email, password, rememberMe });
   };
 

@@ -32,12 +32,13 @@ import { MdOutlineTempleBuddhist, MdOutlineRamenDining } from "react-icons/md";
 import { stables, images } from "../../../../../constants";
 
 // Enhanced Draggable Favorite Item Component
-const DraggableFavorite = ({ fav, index }) => {
+const DraggableFavorite = ({ fav, index, userRole }) => {
   const theme = useTheme();
 
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({
       id: `fav-${fav._id}`,
+      disabled: userRole === "viewer", // Disable dragging for viewers
     });
 
   const style = transform
@@ -53,7 +54,7 @@ const DraggableFavorite = ({ fav, index }) => {
       <Paper
         ref={setNodeRef}
         style={style}
-        {...listeners}
+        {...(userRole !== "viewer" ? listeners : {})}
         {...attributes}
         sx={{
           display: "flex",
@@ -95,24 +96,25 @@ const DraggableFavorite = ({ fav, index }) => {
         }}
       >
         {/* Drag Handle */}
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            width: 20,
-            height: 40,
-            color: theme.palette.text.secondary,
-            opacity: 0.5,
-            transition: "opacity 0.2s ease",
-            "&:hover": {
-              opacity: 1,
-            },
-          }}
-        >
-          <Grip size={16} />
-        </Box>
-
+        {userRole !== "viewer" && (
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: 20,
+              height: 40,
+              color: theme.palette.text.secondary,
+              opacity: 0.5,
+              transition: "opacity 0.2s ease",
+              "&:hover": {
+                opacity: 1,
+              },
+            }}
+          >
+            <Grip size={16} />
+          </Box>
+        )}
         {/* Experience Image */}
         <Box
           sx={{
@@ -125,16 +127,35 @@ const DraggableFavorite = ({ fav, index }) => {
           }}
         >
           <img
-            src={
-              fav.experienceId?.photo
-                ? stables.UPLOAD_FOLDER_BASE_URL + fav.experienceId.photo
-                : images.sampleFavoriteImage
-            }
-            alt={fav.experienceId?.title || "Experience"}
+            src={(() => {
+              const experience = fav?.experienceId;
+              const photo = experience?.photo;
+
+              // If has photo, handle URL type
+              if (photo) {
+                return photo.startsWith("http")
+                  ? photo
+                  : `${stables.UPLOAD_FOLDER_BASE_URL}${photo}`;
+              }
+
+              // Category-based fallback
+              switch (experience?.categories) {
+                case "Hoteles":
+                  return images.sampleHotelImage;
+                case "Restaurantes":
+                  return images.sampleRestaurantImage;
+                case "Atractivos":
+                  return images.sampleAttractionImage;
+                default:
+                  return images.sampleFavoriteImage;
+              }
+            })()}
+            alt={fav?.experienceId?.title || "Experience"}
             style={{
               width: "100%",
               height: "100%",
               objectFit: "cover",
+              transition: "transform 0.3s ease",
             }}
             onError={(e) => {
               e.target.src = images.sampleFavoriteImage;
@@ -579,6 +600,7 @@ const FavoritesDrawer = ({
   setSelectedPrefecture,
   onClearFilters,
   drawerWidth = 400,
+  userRole,
 }) => {
   const theme = useTheme();
 

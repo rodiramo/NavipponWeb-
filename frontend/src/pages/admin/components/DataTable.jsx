@@ -1,5 +1,24 @@
 import Pagination from "../../../components/Pagination";
-import { useTheme, Box, Button, TextField } from "@mui/material";
+import {
+  useTheme,
+  Box,
+  Button,
+  TextField,
+  Typography,
+  Paper,
+  TableContainer,
+  Table,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableCell,
+  CircularProgress,
+  Card,
+  CardContent,
+  InputAdornment,
+  Chip,
+} from "@mui/material";
+import { Search, Filter, Database } from "lucide-react";
 
 const DataTable = ({
   pageTitle,
@@ -17,8 +36,9 @@ const DataTable = ({
   currentPage,
   headers,
 }) => {
-  let totalPageCount = 0;
   const theme = useTheme();
+  let totalPageCount = 0;
+  let totalCount = 0;
 
   if (headers && headers["x-totalpagecount"]) {
     try {
@@ -28,112 +48,306 @@ const DataTable = ({
     }
   }
 
-  return (
-    <div>
-      <h1 className="text-2xl font-semibold">{pageTitle}</h1>
+  if (headers && headers["x-totalcount"]) {
+    try {
+      totalCount = JSON.parse(headers["x-totalcount"]);
+    } catch (error) {
+      console.error("Error parsing total count:", error);
+    }
+  }
 
-      <div className="w-full px-4 mx-auto">
-        <div className="py-8">
-          <div className="flex flex-row justify-between w-full mb-1 sm:mb-0">
-            <h2 className="text-2xl leading-tight">{dataListName}</h2>
-            <div className="text-end">
-              <Box
-                component="form"
-                onSubmit={searchKeywordOnSubmitHandler}
+  const LoadingState = () => (
+    <TableRow>
+      <TableCell
+        colSpan={tableHeaderTitleList.length || 5}
+        sx={{
+          textAlign: "center",
+          py: 8,
+          border: "none",
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 2,
+          }}
+        >
+          <CircularProgress size={40} thickness={4} />
+          <Typography
+            variant="body1"
+            color="text.secondary"
+            sx={{ fontWeight: 500 }}
+          >
+            Cargando datos...
+          </Typography>
+        </Box>
+      </TableCell>
+    </TableRow>
+  );
+
+  const EmptyState = () => (
+    <TableRow>
+      <TableCell
+        colSpan={tableHeaderTitleList.length || 5}
+        sx={{
+          textAlign: "center",
+          py: 8,
+          border: "none",
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 2,
+          }}
+        >
+          <Database
+            size={48}
+            color={theme.palette.text.secondary}
+            style={{ opacity: 0.5 }}
+          />
+          <Typography
+            variant="h6"
+            color="text.secondary"
+            sx={{ fontWeight: 600 }}
+          >
+            No se encontraron registros
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            {searchKeyword
+              ? `No hay resultados para "${searchKeyword}"`
+              : "No hay datos disponibles en este momento"}
+          </Typography>
+        </Box>
+      </TableCell>
+    </TableRow>
+  );
+
+  return (
+    <Box
+      sx={{
+        minHeight: "100vh",
+        backgroundColor: theme.palette.background.default,
+      }}
+    >
+      {/* Page Title */}
+      {pageTitle && (
+        <Typography
+          variant="h4"
+          component="h1"
+          sx={{
+            fontWeight: 700,
+            mb: 1,
+            color: theme.palette.text.primary,
+            fontSize: { xs: "1.75rem", md: "2.125rem" },
+          }}
+        >
+          {pageTitle}
+        </Typography>
+      )}
+
+      <Card
+        elevation={0}
+        sx={{
+          borderRadius: "16px",
+          backgroundColor: theme.palette.background.default,
+          overflow: "hidden",
+        }}
+      >
+        {/* Header Section */}
+        <CardContent sx={{ pb: 0 }}>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: { xs: "column", lg: "row" },
+              border: "none",
+              justifyContent: "space-between",
+              alignItems: { xs: "stretch", lg: "center" },
+              gap: 3,
+              mb: 3,
+            }}
+          >
+            {/* Title and Stats */}
+            <Box>
+              <Typography
+                variant="h5"
+                component="h2"
                 sx={{
+                  fontWeight: 700,
+                  mb: 1,
+                  color: theme.palette.text.primary,
                   display: "flex",
-                  flexDirection: { xs: "column", md: "row" },
-                  justifyContent: "center",
                   alignItems: "center",
-                  gap: 2,
+                  gap: 1,
                 }}
               >
-                <TextField
-                  id="form-subscribe-Filter"
-                  variant="outlined"
-                  placeholder={searchInputPlaceHolder}
-                  onChange={searchKeywordOnChangeHandler}
-                  value={searchKeyword}
-                  sx={{
-                    flex: 1,
-                    borderRadius: "50px",
-                    "& .MuiOutlinedInput-root": {
-                      borderRadius: "50px",
-                      borderColor: theme.palette.secondary.light,
-                      "&:hover fieldset": {
-                        borderColor: theme.palette.secondary.main,
-                      },
-                      "&.Mui-focused fieldset": {
-                        borderColor: theme.palette.secondary.dark,
-                      },
+                {dataListName}
+                {totalCount > 0 && (
+                  <Chip
+                    label={`${totalCount.toLocaleString("es-ES")} total`}
+                    size="small"
+                    sx={{
+                      backgroundColor: `${theme.palette.primary.main}15`,
+                      color: theme.palette.primary.main,
+                      fontWeight: 600,
+                      fontSize: "0.75rem",
+                    }}
+                  />
+                )}
+              </Typography>
+              {totalCount > 0 && (
+                <Typography variant="body2" color="text.secondary">
+                  Página {currentPage} de {totalPageCount} • Mostrando{" "}
+                  {data?.length || 0} registros
+                </Typography>
+              )}
+            </Box>
+
+            {/* Search Section */}
+            <Box
+              component="form"
+              onSubmit={searchKeywordOnSubmitHandler}
+              sx={{
+                display: "flex",
+                gap: 2,
+                alignItems: "center",
+                minWidth: { md: "400px" },
+              }}
+            >
+              <TextField
+                variant="outlined"
+                placeholder={searchInputPlaceHolder}
+                onChange={searchKeywordOnChangeHandler}
+                value={searchKeyword}
+                size="medium"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Search size={20} color={theme.palette.text.secondary} />
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{
+                  flex: 1,
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: "30px",
+                    backgroundColor: theme.palette.background.default,
+                    "&:hover fieldset": {
+                      borderColor: theme.palette.primary.main,
                     },
-                  }}
-                />
-                <Button
-                  type="submit"
-                  variant="contained"
-                  sx={{
-                    bgcolor: theme.palette.primary.main, // 🎨 Primary main color
-                    color: "white",
-                    borderRadius: "50px",
-                    padding: "10px 20px",
-                    textTransform: "none",
-                    "&:hover": {
-                      bgcolor: theme.palette.primary.dark, // 🎨 Darker primary on hover
+                    "&.Mui-focused fieldset": {
+                      borderColor: theme.palette.primary.main,
+                      borderWidth: "2px",
                     },
+                  },
+                }}
+              />
+              <Button
+                type="submit"
+                variant="contained"
+                startIcon={<Filter size={16} />}
+                sx={{
+                  backgroundColor: theme.palette.primary.main,
+                  color: "white",
+                  borderRadius: "30px",
+                  px: 3,
+                  py: 1.5,
+                  textTransform: "none",
+                  fontWeight: 600,
+                  boxShadow: "none",
+                  "&:hover": {
+                    backgroundColor: theme.palette.primary.dark,
+                    boxShadow: theme.shadows[4],
+                    transform: "translateY(-1px)",
+                  },
+                  transition: "all 0.2s ease-in-out",
+                }}
+              >
+                Filtrar
+              </Button>
+            </Box>
+          </Box>
+        </CardContent>
+
+        {/* Table Section */}
+        <TableContainer
+          sx={{
+            backgroundColor: theme.palette.background.default,
+            border: "none",
+          }}
+        >
+          <Table>
+            {/* Table Header */}
+            {tableHeaderTitleList.length > 0 && (
+              <TableHead>
+                <TableRow
+                  sx={{
+                    backgroundColor: `${theme.palette.primary.main}08`,
                   }}
                 >
-                  Filtrar
-                </Button>
-              </Box>
-            </div>
-          </div>
-          <div className="px-4 py-4 -mx-4 overflow-x-auto sm:-mx-8 sm:px-8">
-            <div className="inline-block min-w-full overflow-hidden rounded-lg shadow">
-              <table className="min-w-full leading-normal">
-                <thead>
-                  <tr>
-                    {tableHeaderTitleList.map((title, index) => (
-                      <th
-                        key={index}
-                        scope="col"
-                        className="px-5 py-3 text-sm font-normal text-left text-gray-800 uppercase bg-white border-b border-gray-200"
-                      >
-                        {title}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {isLoading || isFetching ? (
-                    <tr>
-                      <td colSpan={5} className="text-center py-10 w-full">
-                        Cargando...
-                      </td>
-                    </tr>
-                  ) : data?.length === 0 ? (
-                    <tr>
-                      <td colSpan={5} className="text-center py-10 w-full">
-                        No se encontraron registros
-                      </td>
-                    </tr>
-                  ) : (
-                    children
-                  )}
-                </tbody>
-              </table>
-              {!isLoading && (
-                <Pagination
-                  onPageChange={(page) => setCurrentPage(page)}
-                  currentPage={currentPage}
-                  totalPageCount={totalPageCount}
-                />
+                  {tableHeaderTitleList.map((title, index) => (
+                    <TableCell
+                      key={index}
+                      sx={{
+                        fontWeight: 700,
+                        fontSize: "0.875rem",
+                        color: theme.palette.text.primary,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.05em",
+                        py: 2.5,
+                        px: 3,
+                      }}
+                    >
+                      {title}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              </TableHead>
+            )}
+
+            {/* Table Body */}
+            <TableBody
+              sx={{
+                "& .MuiTableRow-root": {
+                  "&:hover": {
+                    backgroundColor: `${theme.palette.primary.main}04`,
+                  },
+                },
+              }}
+            >
+              {isLoading || isFetching ? (
+                <LoadingState />
+              ) : data?.length === 0 ? (
+                <EmptyState />
+              ) : (
+                children
               )}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+            </TableBody>
+          </Table>
+        </TableContainer>
+
+        {/* Pagination Section */}
+        {!isLoading && data?.length > 0 && (
+          <Box
+            sx={{
+              p: 3,
+              borderTop: `1px solid ${theme.palette.divider}`,
+              backgroundColor: `${theme.palette.background.default}50`,
+            }}
+          >
+            <Pagination
+              onPageChange={(page) => setCurrentPage(page)}
+              currentPage={currentPage}
+              totalPageCount={totalPageCount}
+            />
+          </Box>
+        )}
+      </Card>
+    </Box>
   );
 };
 

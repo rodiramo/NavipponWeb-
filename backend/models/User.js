@@ -38,6 +38,102 @@ const UserSchema = new Schema(
     },
     verificationCode: { type: String, required: false },
     admin: { type: Boolean, default: false },
+
+    // Friend requests
+    sentFriendRequests: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
+
+    receivedFriendRequests: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
+
+    // User favorites (posts, trips, etc.)
+    favorites: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Post",
+      },
+    ],
+
+    // Additional profile fields for enhanced profile
+    bio: {
+      type: String,
+      maxLength: 500,
+    },
+
+    dateOfBirth: {
+      type: Date,
+    },
+
+    website: {
+      type: String,
+    },
+
+    occupation: {
+      type: String,
+    },
+
+    education: {
+      type: String,
+    },
+
+    // Travel preferences
+    travelStyle: {
+      type: String,
+      enum: ["budget", "mid-range", "luxury", "backpacker", "business"],
+    },
+
+    budget: {
+      type: String,
+      enum: ["low", "medium", "high", "unlimited"],
+    },
+
+    languages: [
+      {
+        type: String,
+      },
+    ],
+
+    interests: [
+      {
+        type: String,
+      },
+    ],
+
+    // Privacy settings
+    showEmail: {
+      type: Boolean,
+      default: false,
+    },
+
+    showDateOfBirth: {
+      type: Boolean,
+      default: false,
+    },
+
+    // Counts for quick access
+    tripsCount: {
+      type: Number,
+      default: 0,
+    },
+
+    publicationsCount: {
+      type: Number,
+      default: 0,
+    },
+
+    // Join date
+    joinedDate: {
+      type: Date,
+      default: Date.now,
+    },
   },
   { timestamps: true }
 );

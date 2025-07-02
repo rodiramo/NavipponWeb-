@@ -15,7 +15,7 @@ import { setFriends } from "../../../store/reducers/authSlice";
 import useUser from "../../../hooks/useUser";
 import { stables } from "../../../constants";
 import { PersonRemoveOutlined, PeopleOutlined } from "@mui/icons-material";
-
+import { Eye } from "lucide-react"; // Ensure you have react-feather installed
 const FriendsWidget = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -206,10 +206,11 @@ const FriendsWidget = () => {
               <Box sx={{ display: "flex", gap: "8px", alignItems: "center" }}>
                 <Button
                   size="small"
+                  startIcon={<Eye />}
                   variant="outlined"
                   onClick={() => navigate(`/profile/${friend._id}`)}
                   sx={{
-                    borderRadius: "8px",
+                    borderRadius: "ropx",
                     textTransform: "none",
                     fontSize: "0.8rem",
                     fontWeight: "500",

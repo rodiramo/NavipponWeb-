@@ -11,11 +11,13 @@ import {
   getExperienceById,
   getExperienceCount,
   getTopExperiences,
+  getAllExperiencesForModal,
 } from "../controllers/experienceControllers.js";
 import { authGuard, adminGuard } from "../middleware/authMiddleware.js";
 
 router.get("/count", authGuard, getExperienceCount);
 router.get("/top", getTopExperiences);
+router.get("/modal", authGuard, getAllExperiencesForModal);
 
 router
   .route("/")

@@ -40,7 +40,7 @@ const regions = {
 
 const generalTags = {
   season: ["Primavera", "Verano", "Otoño", "Invierno", "Todo el año"],
-  budget: ["Gratis", "Económico", "Moderado", "Lujo"],
+  budget: ["Gratis", "Económico", "Moderado", "Lujo", "A consultar"],
   rating: [1, 2, 3, 4, 5],
   location: [
     "Cerca de estaciones de tren o metro",
@@ -168,7 +168,7 @@ const ExperienceSchema = new Schema(
           "La prefectura seleccionada no es válida para la región elegida.",
       },
     },
-    price: { type: Number, required: true },
+    price: { type: Number, required: false, default: "A consultar" },
     approved: { type: Boolean, default: false },
     generalTags: {
       season: [{ type: String, enum: generalTags.season }],
@@ -210,6 +210,11 @@ const ExperienceSchema = new Schema(
     schedule: { type: String, required: false },
     map: { type: String, required: false },
     address: { type: String, required: false },
+    externalIds: {
+      googlePlaceId: { type: String },
+      osmId: { type: String },
+      osmType: { type: String },
+    },
   },
   { timestamps: true, toJSON: { virtuals: true } }
 );

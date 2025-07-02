@@ -5,16 +5,33 @@ import { getAllExperiences } from "../../services/index/experiences";
 import HorizontalExperienceCardSkeleton from "./container/HorizontalExperienceCardSkeleton";
 import ErrorMessage from "../../components/ErrorMessage";
 import HorizontalExperienceCard from "./container/HorizontalExperienceCard";
+import ExperienceCard from "../../components/ExperienceCard";
 import MainLayout from "../../components/MainLayout";
 import Header from "./container/Hero";
 import Pagination from "../../components/Pagination";
-import { Typography, Button, useTheme, Box } from "@mui/material";
+import {
+  Typography,
+  Button,
+  useTheme,
+  Box,
+  Grid,
+  Modal,
+  IconButton,
+  Fab,
+} from "@mui/material";
 import { useSearchParams } from "react-router-dom";
 import MapAside from "../../components/MapAside";
 import useUser from "../../hooks/useUser";
 import Aside from "./container/Aside";
-import { ArrowDownNarrowWide } from "lucide-react";
-import { Menu, MenuItem, IconButton } from "@mui/material";
+import {
+  ArrowDownNarrowWide,
+  Grid3X3,
+  List,
+  Filter,
+  Map,
+  X,
+} from "lucide-react";
+import { Menu, MenuItem } from "@mui/material";
 
 let isFirstRun = true;
 
@@ -23,6 +40,11 @@ const ExperiencePage = ({ filters: initialFilters }) => {
   const theme = useTheme();
   const { user, jwt } = useUser();
   const [sortBy, setSortBy] = useState("");
+  const [viewMode, setViewMode] = useState("list");
+
+  // Modal states
+  const [isFiltersModalOpen, setIsFiltersModalOpen] = useState(false);
+  const [isMapModalOpen, setIsMapModalOpen] = useState(false);
 
   const { primary, text } = theme.palette;
   const [selectedFilter, setSelectedFilter] = useState("todo");
@@ -63,6 +85,7 @@ const ExperiencePage = ({ filters: initialFilters }) => {
     setSearchParams(updatedFilters);
     setAnchorEl(null);
     refetch();
+    refetchMap();
   };
 
   const searchParamsValue = Object.fromEntries([...searchParams]);
@@ -79,6 +102,16 @@ const ExperiencePage = ({ filters: initialFilters }) => {
     },
   });
 
+  // Separate query for map data - gets all experiences without pagination
+  const { data: mapData, refetch: refetchMap } = useQuery({
+    queryFn: () =>
+      getAllExperiences(searchKeyword, 1, 1000, { ...filters, sortBy }), // Higher limit for map
+    queryKey: ["mapExperiences", searchKeyword, filters, sortBy], // No currentPage dependency
+    onError: (error) => {
+      console.log("Map data error:", error);
+    },
+  });
+
   useEffect(() => {
     window.scrollTo(0, 0);
     if (isFirstRun) {
@@ -86,7 +119,8 @@ const ExperiencePage = ({ filters: initialFilters }) => {
       return;
     }
     refetch();
-  }, [currentPage, searchKeyword, filters, refetch]);
+    refetchMap();
+  }, [currentPage, searchKeyword, filters, refetch, refetchMap]);
 
   const handlePageChange = (page) => {
     setSearchParams({ page, search: searchKeyword });
@@ -98,6 +132,7 @@ const ExperiencePage = ({ filters: initialFilters }) => {
 
   const handleFavoriteToggle = () => {
     refetch();
+    refetchMap();
   };
 
   const handleFilterSelection = (selectedTab) => {
@@ -116,6 +151,7 @@ const ExperiencePage = ({ filters: initialFilters }) => {
     setFilters(updatedFilters);
     setSearchParams(updatedFilters);
     refetch();
+    refetchMap();
   };
 
   const handleFilterChange = (
@@ -128,6 +164,7 @@ const ExperiencePage = ({ filters: initialFilters }) => {
       setSelectedFilter("todo");
       setFilters({});
       refetch();
+      refetchMap();
       return;
     }
 
@@ -137,6 +174,7 @@ const ExperiencePage = ({ filters: initialFilters }) => {
     setFilters(updatedFilters);
     setSearchParams(updatedFilters);
     refetch();
+    refetchMap();
   };
 
   useEffect(() => {
@@ -150,14 +188,61 @@ const ExperiencePage = ({ filters: initialFilters }) => {
       delete updatedFilters.category;
     }
 
+    if (searchKeyword && !updatedFilters.search) {
+      updatedFilters.search = searchKeyword;
+    }
+
+    if (currentPage > 1) {
+      updatedFilters.page = currentPage;
+    }
+
+    console.log("Setting search params to:", updatedFilters);
     setSearchParams(updatedFilters);
     refetch();
-  }, [selectedFilter, filters, refetch]);
+    refetchMap();
+  }, [
+    selectedFilter,
+    filters,
+    searchKeyword,
+    currentPage,
+    refetch,
+    refetchMap,
+  ]);
 
   const totalPageCount = parseInt(data?.headers?.["x-totalpagecount"], 10);
   const selectedSortOption = sortingOptions.find(
     (option) => option.value === sortBy
   );
+
+  // Modal styles
+  const modalStyle = {
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    transform: "translate(-50%, -50%)",
+    width: "90%",
+    maxWidth: "500px",
+    maxHeight: "90vh",
+    bgcolor: "background.paper",
+    borderRadius: "16px",
+    boxShadow: 24,
+    overflow: "hidden",
+    outline: "none",
+  };
+
+  const mapModalStyle = {
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    transform: "translate(-50%, -50%)",
+    width: "95%",
+    height: "80vh",
+    bgcolor: "background.paper",
+    borderRadius: "16px",
+    boxShadow: 24,
+    overflow: "hidden",
+    outline: "none",
+  };
 
   return (
     <MainLayout>
@@ -165,10 +250,135 @@ const ExperiencePage = ({ filters: initialFilters }) => {
       <Header onSearchKeyword={handleSearch} />
 
       <section className="mx-auto w-full px-4 sm:px-6 lg:px-2 py-8 m-3">
+        {/* Mobile Action Buttons */}
+        <div className=" flex gap-3 mb-4">
+          <Button
+            variant="contained"
+            onClick={() => setIsFiltersModalOpen(true)}
+            startIcon={<Filter size={20} />}
+            sx={{
+              backgroundColor: theme.palette.primary.main,
+              color: theme.palette.primary.contrastText,
+              borderRadius: "50px",
+              padding: "12px 24px",
+              fontSize: "0.875rem",
+              fontWeight: 600,
+              textTransform: "none",
+              boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+              minWidth: "auto",
+              whiteSpace: "nowrap",
+              "&:hover": {
+                backgroundColor: theme.palette.primary.dark,
+                boxShadow: "0 6px 16px rgba(0, 0, 0, 0.2)",
+                transform: "translateY(-1px)",
+              },
+              transition: "all 0.2s ease-in-out",
+            }}
+          >
+            Filtros
+          </Button>
+          <Button
+            variant="contained"
+            onClick={() => setIsMapModalOpen(true)}
+            startIcon={<Map size={20} />}
+            sx={{
+              backgroundColor: theme.palette.secondary.main,
+              color: theme.palette.secondary.contrastText,
+              borderRadius: "50px",
+              padding: "12px 24px",
+              fontSize: "0.875rem",
+              fontWeight: 600,
+              textTransform: "none",
+              boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+              minWidth: "auto",
+              whiteSpace: "nowrap",
+              "&:hover": {
+                backgroundColor: theme.palette.secondary.dark,
+                boxShadow: "0 6px 16px rgba(0, 0, 0, 0.2)",
+                transform: "translateY(-1px)",
+              },
+              transition: "all 0.2s ease-in-out",
+            }}
+          >
+            Mapa
+          </Button>
+        </div>
+
+        {/* Filters Modal */}
+        <Modal
+          open={isFiltersModalOpen}
+          onClose={() => setIsFiltersModalOpen(false)}
+          aria-labelledby="filters-modal-title"
+        >
+          <Box sx={modalStyle}>
+            <div className="flex items-center justify-between p-4 border-b">
+              <Typography id="filters-modal-title" variant="h6" component="h2">
+                Filtros
+              </Typography>
+              <IconButton
+                onClick={() => setIsFiltersModalOpen(false)}
+                sx={{ color: theme.palette.text.secondary }}
+              >
+                <X size={24} />
+              </IconButton>
+            </div>
+            <div className="p-4 max-h-[70vh] overflow-y-auto">
+              <Aside
+                onFilterChange={(newFilters, newTab, isClear) => {
+                  handleFilterChange(newFilters, newTab, isClear);
+                  if (isClear) {
+                    setIsFiltersModalOpen(false);
+                  }
+                }}
+                selectedFilter={selectedFilter}
+              />
+            </div>
+            <div className="p-4 border-t bg-gray-50">
+              <Button
+                fullWidth
+                variant="contained"
+                onClick={() => setIsFiltersModalOpen(false)}
+                sx={{
+                  backgroundColor: theme.palette.primary.main,
+                  "&:hover": {
+                    backgroundColor: theme.palette.primary.dark,
+                  },
+                }}
+              >
+                Aplicar Filtros
+              </Button>
+            </div>
+          </Box>
+        </Modal>
+
+        {/* Map Modal */}
+        <Modal
+          open={isMapModalOpen}
+          onClose={() => setIsMapModalOpen(false)}
+          aria-labelledby="map-modal-title"
+        >
+          <Box sx={mapModalStyle}>
+            <div className="flex items-center justify-between p-4 border-b">
+              <Typography id="map-modal-title" variant="h6" component="h2">
+                Mapa de Experiencias
+              </Typography>
+              <IconButton
+                onClick={() => setIsMapModalOpen(false)}
+                sx={{ color: theme.palette.text.secondary }}
+              >
+                <X size={24} />
+              </IconButton>
+            </div>
+            <div className="h-full">
+              <MapAside experiences={mapData?.data || []} />
+            </div>
+          </Box>
+        </Modal>
+
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 xl:grid-cols-5 gap-4 lg:gap-6">
-          {/* Sidebar Filters */}
-          <aside className="xl:col-span-1 order-2 xl:order-1">
+          {/* Sidebar Filters - Desktop Only */}
+          <aside className="xl:col-span-1 order-2 xl:order-1 hidden xl:block">
             <div className="">
               <Aside
                 onFilterChange={handleFilterChange}
@@ -225,10 +435,10 @@ const ExperiencePage = ({ filters: initialFilters }) => {
                 </div>
               )}
 
-              {/* Filter Tabs and Sort Row */}
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              {/* Filter Tabs, Sort and View Toggle Row */}
+              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                 {/* Category Filter Tabs */}
-                <div className="flex">
+                <div className="flex overflow-x-auto pb-2">
                   {filterTabs.map((tab, index) => (
                     <Button
                       key={tab.key}
@@ -250,13 +460,14 @@ const ExperiencePage = ({ filters: initialFilters }) => {
                           index === 0
                             ? "30px 0px 0px 30px"
                             : index === filterTabs.length - 1
-                            ? "0px 30px 30px 0px"
-                            : 0,
+                              ? "0px 30px 30px 0px"
+                              : 0,
                         textTransform: "none",
                         fontSize: "0.875rem",
                         fontWeight: 500,
                         padding: "8px 16px",
                         minWidth: "auto",
+                        whiteSpace: "nowrap",
                         "&:hover": {
                           backgroundColor:
                             selectedFilter === tab.key
@@ -274,55 +485,129 @@ const ExperiencePage = ({ filters: initialFilters }) => {
                   ))}
                 </div>
 
-                {/* Sort Dropdown */}
-                <div className="flex items-center gap-2">
-                  <Typography
-                    variant="body2"
-                    className="text-gray-600 hidden sm:block"
-                  >
-                    Ordenar por:
-                  </Typography>
-                  <IconButton
-                    onClick={handleSortClick}
-                    sx={{
-                      border: `1px solid ${theme.palette.primary.main}`,
-                      borderRadius: "30px",
-                      padding: "8px",
-                    }}
-                  >
-                    <ArrowDownNarrowWide
-                      size={20}
-                      color={theme.palette.primary.main}
-                    />
-                  </IconButton>
+                {/* Sort Dropdown and View Toggle */}
+                <div className="flex items-center gap-3">
+                  {/* Sort Dropdown */}
+                  <div className="flex items-center gap-2">
+                    <Typography variant="body2" className="hidden sm:block">
+                      Ordenar por:
+                    </Typography>
+                    <IconButton
+                      onClick={handleSortClick}
+                      sx={{
+                        border: `1px solid ${theme.palette.primary.main}`,
+                        borderRadius: "30px",
+                        padding: "8px",
+                      }}
+                    >
+                      <ArrowDownNarrowWide
+                        size={20}
+                        color={theme.palette.primary.main}
+                      />
+                    </IconButton>
 
-                  <Menu
-                    anchorEl={anchorEl}
-                    open={Boolean(anchorEl)}
-                    onClose={() => setAnchorEl(null)}
-                  >
-                    {sortingOptions.map((option) => (
-                      <MenuItem
-                        key={option.value}
-                        onClick={() => handleSortSelection(option.value)}
-                        sx={{
-                          fontSize: "0.875rem",
-                          padding: "12px 20px",
-                        }}
-                      >
-                        {option.label}
-                      </MenuItem>
-                    ))}
-                  </Menu>
+                    <Menu
+                      anchorEl={anchorEl}
+                      open={Boolean(anchorEl)}
+                      onClose={() => setAnchorEl(null)}
+                      PaperProps={{
+                        sx: {
+                          borderRadius: "12px",
+                          mt: 1,
+                          minWidth: "180px",
+                          boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)",
+                        },
+                      }}
+                    >
+                      {sortingOptions.map((option) => (
+                        <MenuItem
+                          key={option.value}
+                          onClick={() => handleSortSelection(option.value)}
+                          sx={{
+                            fontSize: "0.875rem",
+                            padding: "12px 20px",
+                            "&:hover": {
+                              backgroundColor: `${theme.palette.primary.main}10`,
+                            },
+                          }}
+                        >
+                          {option.label}
+                        </MenuItem>
+                      ))}
+                    </Menu>
+                  </div>
+
+                  {/* View Mode Toggle */}
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant={viewMode === "grid" ? "contained" : "outlined"}
+                      onClick={() => setViewMode("grid")}
+                      sx={{
+                        minWidth: "40px",
+                        borderRadius: "30px",
+                        border: `1px solid ${theme.palette.primary.main}`,
+                        ...(viewMode === "grid"
+                          ? {
+                              backgroundColor: theme.palette.primary.main,
+                              color: theme.palette.primary.contrastText,
+                              "&:hover": {
+                                backgroundColor: theme.palette.primary.dark,
+                              },
+                            }
+                          : {
+                              color: theme.palette.primary.main,
+                              backgroundColor: "transparent",
+                              "&:hover": {
+                                backgroundColor: `${theme.palette.primary.main}08`,
+                              },
+                            }),
+                      }}
+                    >
+                      <Grid3X3 size={24} />
+                    </Button>
+
+                    <Button
+                      variant={viewMode === "list" ? "contained" : "outlined"}
+                      onClick={() => setViewMode("list")}
+                      sx={{
+                        minWidth: "40px",
+                        borderRadius: "30px",
+                        border: `1px solid ${theme.palette.primary.main}`,
+                        ...(viewMode === "list"
+                          ? {
+                              backgroundColor: theme.palette.primary.main,
+                              color: theme.palette.primary.contrastText,
+                              "&:hover": {
+                                backgroundColor: theme.palette.primary.dark,
+                              },
+                            }
+                          : {
+                              color: theme.palette.primary.main,
+                              backgroundColor: "transparent",
+                              "&:hover": {
+                                backgroundColor: `${theme.palette.primary.main}08`,
+                              },
+                            }),
+                      }}
+                    >
+                      <List size={24} />
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
 
             {/* Experience Cards */}
-            <div className="space-y-2">
+            <div className={viewMode === "grid" ? "" : "space-y-2"}>
               {isLoading || isFetching ? (
-                <div className="space-y-6">
-                  {[...Array(3)].map((_, index) => (
+                <div
+                  className={
+                    viewMode === "grid"
+                      ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-2"
+                      : "space-y-6"
+                  }
+                >
+                  {[...Array(viewMode === "grid" ? 6 : 3)].map((_, index) => (
                     <HorizontalExperienceCardSkeleton
                       key={index}
                       className="w-full"
@@ -359,18 +644,45 @@ const ExperiencePage = ({ filters: initialFilters }) => {
                   </Typography>
                 </div>
               ) : (
-                <div className="space-y-6">
-                  {data?.data.map((experience) => (
-                    <HorizontalExperienceCard
-                      key={experience._id}
-                      experience={experience}
-                      user={user}
-                      token={jwt}
-                      className="w-full"
-                      onFavoriteToggle={handleFavoriteToggle}
-                    />
-                  ))}
-                </div>
+                <>
+                  {/* Grid View */}
+                  {viewMode === "grid" ? (
+                    <Grid container spacing={3}>
+                      {data?.data.map((experience) => (
+                        <Grid
+                          item
+                          xs={12} // 1 column on mobile (0px+)
+                          sm={6} // 2 columns on small screens (600px+)
+                          md={6} // 2 columns on medium screens (900px+)
+                          lg={6} // 2 columns on large screens (1200px+)
+                          xl={4}
+                          key={experience._id}
+                        >
+                          <ExperienceCard
+                            experience={experience}
+                            user={user}
+                            token={jwt}
+                            onFavoriteToggle={handleFavoriteToggle}
+                          />
+                        </Grid>
+                      ))}
+                    </Grid>
+                  ) : (
+                    /* List View */
+                    <div className="space-y-6">
+                      {data?.data.map((experience) => (
+                        <HorizontalExperienceCard
+                          key={experience._id}
+                          experience={experience}
+                          user={user}
+                          token={jwt}
+                          className="w-full"
+                          onFavoriteToggle={handleFavoriteToggle}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </>
               )}
             </div>
 
@@ -386,21 +698,14 @@ const ExperiencePage = ({ filters: initialFilters }) => {
             )}
           </main>
 
-          {/* Map Sidebar - Desktop */}
+          {/* Map Sidebar - Desktop Only */}
           <aside className="xl:col-span-1 order-3 hidden xl:block">
             <div className="sticky top-20">
               <div className="rounded-xl overflow-hidden shadow-lg border">
-                <MapAside experiences={data?.data || []} />
+                <MapAside experiences={mapData?.data || []} />
               </div>
             </div>
           </aside>
-        </div>
-
-        {/* Map Section - Mobile */}
-        <div className="xl:hidden mt-8">
-          <div className="rounded-xl overflow-hidden shadow-lg">
-            <MapAside experiences={data?.data || []} />
-          </div>
         </div>
       </section>
     </MainLayout>

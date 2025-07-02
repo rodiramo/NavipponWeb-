@@ -26,6 +26,26 @@ const ItinerarySchema = new Schema(
         role: { type: String, enum: TRAVELER_ROLES, default: "viewer" },
       },
     ],
+    coverImage: {
+      type: String,
+      default: "",
+    },
+    likes: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
+
+    views: {
+      type: Number,
+      default: 0,
+    },
+    status: {
+      type: String,
+      enum: ["planning", "ongoing", "completed", "cancelled"],
+      default: "planning",
+    },
     notes: [
       {
         text: { type: String, required: true },

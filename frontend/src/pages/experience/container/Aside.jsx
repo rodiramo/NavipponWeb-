@@ -5,11 +5,81 @@ import * as MdIcons from "react-icons/md";
 import * as LiaIcons from "react-icons/lia";
 import * as GiIcons from "react-icons/gi";
 import * as BsIcons from "react-icons/bs";
+import { PiPersonSimpleHikeBold } from "react-icons/pi";
+import { BiSushi } from "react-icons/bi";
+import { MdOutlineRamenDining } from "react-icons/md";
+
 import * as VscIcons from "react-icons/vsc";
 import * as LuIcons from "react-icons/lu";
 import * as PiIcons from "react-icons/pi";
-import { Disclosure } from "@headlessui/react";
-import { FaChevronUp, FaChevronDown } from "react-icons/fa";
+import { TbBeach } from "react-icons/tb";
+import { BiCapsule } from "react-icons/bi";
+
+import {
+  Leaf,
+  Sun,
+  Flower2,
+  Snowflake,
+  Cat,
+  Dog,
+  Microwave,
+  Shrimp,
+  Trees,
+  Wifi,
+  Sandwich,
+  MountainSnow,
+  Dumbbell,
+  Baby,
+  Backpack,
+  Accessibility,
+  Truck,
+  ShoppingBag,
+  Utensils,
+  CircleParking,
+  Infinity,
+  Beef,
+  EggFried,
+  CircleCheck,
+  Hotel,
+  RotateCcw,
+  Bed,
+  Eye,
+  Earth,
+  Ham,
+  CookingPot,
+  Store,
+  Blocks,
+  BriefcaseBusiness,
+  Coffee,
+  Amphora,
+  Martini,
+  PiggyBank,
+  Coins,
+  Castle,
+  CircleDollarSign,
+  HandHelping,
+  Gamepad2,
+  Plane,
+  Church,
+  Waves,
+  Bot,
+  WheatOff,
+  PartyPopper,
+  MapPinHouse,
+  FerrisWheel,
+  ChefHat,
+  Carrot,
+  Vegan,
+  Grape,
+  BusFront,
+  WavesLadder,
+  Globe,
+  Pizza,
+  Fish,
+  Heart,
+  TrainFront,
+  Languages,
+} from "lucide-react";
 import {
   MapPin,
   Filter,
@@ -38,6 +108,7 @@ import {
   Divider,
   useMediaQuery,
 } from "@mui/material";
+import { Business } from "@mui/icons-material";
 
 const regions = [
   "Hokkaido",
@@ -52,23 +123,23 @@ const regions = [
 
 const generalTags = {
   season: [
-    { icon: <FaIcons.FaLeaf />, title: "Primavera" },
-    { icon: <FaIcons.FaSun />, title: "Verano" },
-    { icon: <FaIcons.FaTree />, title: "Otoño" },
-    { icon: <FaIcons.FaSnowflake />, title: "Invierno" },
-    { icon: <MdIcons.MdAllInclusive />, title: "Todo el año" },
+    { icon: <Flower2 />, title: "Primavera" },
+    { icon: <Sun />, title: "Verano" },
+    { icon: <Leaf />, title: "Otoño" },
+    { icon: <Snowflake />, title: "Invierno" },
+    { icon: <Infinity />, title: "Todo el año" },
   ],
   budget: [
-    { icon: <TbIcons.TbCoin />, title: "Gratis" },
-    { icon: <TbIcons.TbCoin />, title: "Económico" },
-    { icon: <TbIcons.TbCoin />, title: "Moderado" },
-    { icon: <TbIcons.TbCoin />, title: "Lujo" },
+    { icon: <HandHelping />, title: "Gratis" },
+    { icon: <PiggyBank />, title: "Económico" },
+    { icon: <CircleDollarSign />, title: "Moderado" },
+    { icon: <Coins />, title: "Lujo" },
   ],
   location: [
-    { icon: <FaIcons.FaTrain />, title: "Cerca de estaciones de tren o metro" },
-    { icon: <FaIcons.FaPlane />, title: "Cerca de aeropuertos" },
+    { icon: <TrainFront />, title: "Cerca de estaciones de tren o metro" },
+    { icon: <Plane />, title: "Cerca de aeropuertos" },
     {
-      icon: <FaIcons.FaMapMarkerAlt />,
+      icon: <MapPinHouse />,
       title: "Cerca de áreas de puntos de interés",
     },
   ],
@@ -76,102 +147,106 @@ const generalTags = {
 
 const hotelTags = {
   accommodations: [
-    { icon: <FaIcons.FaHotel />, title: "Hoteles de lujo" },
-    { icon: <MdIcons.MdOutlineSpa />, title: "Ryokan (tradicional)" },
-    { icon: <FaIcons.FaCapsules />, title: "Hoteles cápsula" },
-    { icon: <FaIcons.FaBuilding />, title: "Hoteles de negocios" },
-    { icon: <FaIcons.FaHome />, title: "Apartamentos" },
-    { icon: <GiIcons.GiBed />, title: "Hostales" },
+    { icon: <Hotel />, title: "Hoteles de lujo" },
+    { icon: <MdIcons.MdOutlineSpa size={24} />, title: "Ryokan (tradicional)" },
+    { icon: <BiCapsule size={26} />, title: "Hoteles cápsula" },
+    { icon: <BriefcaseBusiness />, title: "Hoteles de negocios" },
+    { icon: <Bed />, title: "Hostales" },
   ],
   hotelServices: [
-    { icon: <FaIcons.FaWifi />, title: "Wi-Fi gratis" },
-    { icon: <MdIcons.MdFreeBreakfast />, title: "Desayuno incluido" },
-    { icon: <FaIcons.FaParking />, title: "Aparcamiento gratuito" },
-    { icon: <MdIcons.MdAirportShuttle />, title: "Transporte al aeropuerto" },
-    { icon: <FaIcons.FaSwimmer />, title: "Piscina" },
-    { icon: <FaIcons.FaDumbbell />, title: "Gimnasio" },
-    { icon: <FaIcons.FaUtensils />, title: "Restaurante en el hotel" },
-    { icon: <FaIcons.FaWheelchair />, title: "Accesible" },
-    { icon: <FaIcons.FaDog />, title: "Admite mascotas" },
+    { icon: <Wifi />, title: "Wi-Fi gratis" },
+    { icon: <EggFried />, title: "Desayuno incluido" },
+    { icon: <CircleParking />, title: "Aparcamiento gratuito" },
+    { icon: <BusFront />, title: "Transporte al aeropuerto" },
+    { icon: <WavesLadder />, title: "Piscina" },
+    { icon: <Dumbbell />, title: "Gimnasio" },
+    { icon: <Utensils />, title: "Restaurante en el hotel" },
+    { icon: <Accessibility />, title: "Accesible" },
+    { icon: <Dog />, title: "Admite mascotas" },
   ],
   typeTrip: [
-    { icon: <FaIcons.FaChild />, title: "Familiar" },
-    { icon: <FaIcons.FaHeart />, title: "Luna de miel" },
-    { icon: <FaIcons.FaBriefcase />, title: "De negocios" },
-    { icon: <FaIcons.FaHiking />, title: "Amigable para mochileros" },
-    { icon: <FaIcons.FaMountain />, title: "Para aventureros" },
+    { icon: <Baby />, title: "Familiar" },
+    { icon: <Heart />, title: "Luna de miel" },
+    { icon: <BriefcaseBusiness />, title: "De negocios" },
+    {
+      icon: <Backpack />,
+      title: "Amigable para mochileros",
+    },
+    { icon: <MountainSnow />, title: "Para aventureros" },
   ],
 };
 
 const attractionTags = [
-  { icon: <MdIcons.MdOutlineForest />, title: "Naturaleza" },
-  { icon: <MdIcons.MdOutlineBeachAccess />, title: "Playa" },
-  { icon: <TbIcons.TbBuildingMonument />, title: "Monumento" },
-  { icon: <MdIcons.MdOutlineRamenDining />, title: "Gastronomía" },
-  { icon: <LiaIcons.LiaCocktailSolid />, title: "Noche" },
-  { icon: <GiIcons.GiGreekTemple />, title: "Museo" },
-  { icon: <MdIcons.MdOutlineCoffee />, title: "Cafés" },
-  { icon: <MdIcons.MdOutlineShoppingBag />, title: "Shopping" },
-  { icon: <FaIcons.FaRegStar />, title: "Ocio" },
-  { icon: <GiIcons.GiPartyPopper />, title: "Festival" },
-  { icon: <BsIcons.BsRobot />, title: "Tecnología" },
-  { icon: <LiaIcons.LiaGamepadSolid />, title: "Juegos" },
-  { icon: <VscIcons.VscOctoface />, title: "Anime" },
-  { icon: <LuIcons.LuFerrisWheel />, title: "Parques temáticos" },
-  { icon: <GiIcons.GiSamuraiHelmet />, title: "Samurai" },
-  { icon: <MdIcons.MdOutlineTempleBuddhist />, title: "Templo Budista" },
-  { icon: <PiIcons.PiBirdBold />, title: "Reserva de Aves" },
-  { icon: <MdIcons.MdOutlineCastle />, title: "Castillos" },
-  { icon: <PiIcons.PiCross />, title: "Templo Cristiano" },
-  { icon: <TbIcons.TbTorii />, title: "Templo Sintoísta" },
-  { icon: <MdIcons.MdOutlineTempleHindu />, title: "Templo Hindú" },
-  { icon: <MdIcons.MdOutlineHotTub />, title: "Aguas Termales" },
-  { icon: <GiIcons.GiGrapes />, title: "Viñedos" },
+  { icon: <Trees />, title: "Naturaleza" },
+  { icon: <TbBeach size={24} />, title: "Playa" },
+  { icon: <TbIcons.TbBuildingMonument size={24} />, title: "Monumento" },
+  { icon: <CookingPot />, title: "Gastronomía" },
+  { icon: <Martini />, title: "Noche" },
+  { icon: <Amphora />, title: "Museo" },
+  { icon: <Coffee />, title: "Cafés" },
+  { icon: <Store />, title: "Shopping" },
+  { icon: <Blocks />, title: "Ocio" },
+  { icon: <PartyPopper />, title: "Festival" },
+  { icon: <Bot />, title: "Tecnología" },
+  { icon: <Gamepad2 />, title: "Juegos" },
+  { icon: <Cat />, title: "Anime" },
+  { icon: <FerrisWheel />, title: "Parques temáticos" },
+  {
+    icon: <MdIcons.MdOutlineTempleBuddhist size={24} />,
+    title: "Templo Budista",
+  },
+  { icon: <PiIcons.PiBirdBold size={24} />, title: "Reserva de Aves" },
+  { icon: <Castle />, title: "Castillos" },
+  { icon: <Church />, title: "Templo Cristiano" },
+  { icon: <TbIcons.TbTorii size={24} />, title: "Templo Sintoísta" },
+  { icon: <MdIcons.MdOutlineTempleHindu size={24} />, title: "Templo Hindú" },
+  { icon: <Waves />, title: "Aguas Termales" },
+  { icon: <Grape />, title: "Viñedos" },
 ];
 
 const restaurantTags = {
   restaurantTypes: [
     {
-      icon: <MdIcons.MdOutlineFoodBank />,
+      icon: <ChefHat />,
       title: "Restaurantes tradicionales",
     },
-    { icon: <MdIcons.MdOutlineFoodBank />, title: "Cadenas de comida rápida" },
-    { icon: <MdIcons.MdOutlineFoodBank />, title: "Cafeterías y cafés" },
+    { icon: <Pizza />, title: "Cadenas de comida rápida" },
+    { icon: <Sandwich />, title: "Cafeterías y cafés" },
     {
-      icon: <MdIcons.MdOutlineFoodBank />,
+      icon: <Beef />,
       title: "Restaurantes de alta cocina",
     },
-    { icon: <MdIcons.MdOutlineFoodBank />, title: "Food trucks" },
-    { icon: <MdIcons.MdOutlineFoodBank />, title: "Ramen" },
-    { icon: <MdIcons.MdOutlineFoodBank />, title: "Sushi" },
+    { icon: <Microwave />, title: "Food trucks" },
+    { icon: <MdOutlineRamenDining size={25} />, title: "Ramen" },
+    { icon: <BiSushi size={25} />, title: "Sushi" },
   ],
   cuisines: [
-    { icon: <PiIcons.PiBowlFoodBold />, title: "Cocina japonesa tradicional" },
-    { icon: <PiIcons.PiBowlFoodBold />, title: "Internacional" },
-    { icon: <PiIcons.PiBowlFoodBold />, title: "Fusión" },
-    { icon: <PiIcons.PiBowlFoodBold />, title: "Cocina vegetariana/vegana" },
-    { icon: <PiIcons.PiBowlFoodBold />, title: "Cocina sin gluten" },
-    { icon: <PiIcons.PiBowlFoodBold />, title: "Cocina halal" },
-    { icon: <PiIcons.PiBowlFoodBold />, title: "Cocina kosher" },
-    { icon: <PiIcons.PiBowlFoodBold />, title: "Rápida" },
-    { icon: <PiIcons.PiBowlFoodBold />, title: "Cocina de autor" },
-    { icon: <PiIcons.PiBowlFoodBold />, title: "Con espectáculo" },
-    { icon: <PiIcons.PiBowlFoodBold />, title: "Familiar" },
-    { icon: <PiIcons.PiBowlFoodBold />, title: "Romántica" },
-    { icon: <PiIcons.PiBowlFoodBold />, title: "Negocios" },
-    { icon: <PiIcons.PiBowlFoodBold />, title: "Ocasiones especiales" },
+    { icon: <Carrot />, title: "Cocina vegetariana" },
+    { icon: <Vegan />, title: "Cocina vegana" },
+    { icon: <WheatOff />, title: "Cocina sin gluten" },
+    {
+      icon: <MdOutlineRamenDining size={25} />,
+      title: "Cocina japonesa tradicional",
+    },
+    { icon: <Eye />, title: "Con espectáculo" },
+    { icon: <Earth />, title: "Internacional" },
+    { icon: <Ham />, title: "Cocina halal" },
+    { icon: <Pizza />, title: "Rápida" },
+    { icon: <Baby />, title: "Familiar" },
+    { icon: <Heart />, title: "Romántica" },
+    { icon: <Business />, title: "Negocios" },
   ],
   restaurantServices: [
-    { icon: <FaIcons.FaWifi />, title: "Wi-Fi gratis" },
-    { icon: <FaIcons.FaUtensils />, title: "Menú en inglés" },
-    { icon: <FaIcons.FaUtensils />, title: "Reservas en línea" },
-    { icon: <FaIcons.FaUtensils />, title: "Entregas a domicilio" },
-    { icon: <FaIcons.FaUtensils />, title: "Terraza o comedor al aire libre" },
-    { icon: <FaIcons.FaUtensils />, title: "Opciones de comida para llevar" },
-    { icon: <FaIcons.FaDog />, title: "Admite mascotas" },
-    { icon: <FaIcons.FaLeaf />, title: "Ingredientes orgánicos" },
-    { icon: <FaIcons.FaFish />, title: "Mariscos frescos" },
-    { icon: <FaIcons.FaChild />, title: "Menús infantiles" },
+    { icon: <Wifi />, title: "Wi-Fi gratis" },
+    { icon: <Languages />, title: "Menú en inglés" },
+    { icon: <Globe />, title: "Reservas en línea" },
+    { icon: <Truck />, title: "Entregas a domicilio" },
+    { icon: <FaIcons.FaUtensils />, title: "Comedor al aire libre" },
+    { icon: <ShoppingBag />, title: "Comida para llevar" },
+    { icon: <Dog />, title: "Admite mascotas" },
+    { icon: <Leaf />, title: "Ingredientes orgánicos" },
+    { icon: <Fish />, title: "Mariscos frescos" },
+    { icon: <Baby />, title: "Menús infantiles" },
   ],
 };
 
@@ -228,12 +303,13 @@ const Aside = ({ onFilterChange, selectedFilter }) => {
           checked={isChecked}
           onChange={onChange}
           sx={{
+            marginRight: 1,
             color: theme.palette.primary.main,
             "&.Mui-checked": {
               color: theme.palette.primary.main,
             },
             "&:hover": {
-              backgroundColor: `${theme.palette.primary.main}10`,
+              backgroundColor: `${theme.palette.primary.light}`,
             },
           }}
         />
@@ -273,7 +349,7 @@ const Aside = ({ onFilterChange, selectedFilter }) => {
         margin: 0,
         padding: "4px 0",
         "&:hover": {
-          backgroundColor: `${theme.palette.primary.main}05`,
+          backgroundColor: `${theme.palette.primary.light}`,
           borderRadius: 1,
         },
         transition: "background-color 0.2s ease-in-out",
@@ -672,12 +748,12 @@ const Aside = ({ onFilterChange, selectedFilter }) => {
       >
         <Button
           variant="contained"
-          startIcon={<Check size={18} />}
+          startIcon={<CircleCheck size={24} />}
           onClick={applyFilters}
           fullWidth
           sx={{
             backgroundColor: theme.palette.secondary.medium,
-            color: "white",
+            color: theme.palette.primary.white,
             borderRadius: "25px",
             py: 1.5,
             textTransform: "none",
@@ -695,7 +771,7 @@ const Aside = ({ onFilterChange, selectedFilter }) => {
         </Button>{" "}
         <Button
           variant="outlined"
-          startIcon={<RefreshCw size={18} />}
+          startIcon={<RotateCcw size={24} />}
           onClick={clearFilters}
           fullWidth
           sx={{

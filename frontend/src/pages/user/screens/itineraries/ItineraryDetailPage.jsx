@@ -1,9 +1,17 @@
 // Complete ItineraryDetailPage.jsx with Permanent Auto-Favorites Fix
 import React, { useState, useEffect, useCallback } from "react";
-import { Box, useTheme, Typography } from "@mui/material";
+import { Box, useTheme, Typography, IconButton } from "@mui/material";
 import { toast } from "react-hot-toast";
 import { useNavigate, useParams } from "react-router-dom";
-
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
+import { Calendar, CalendarCheck } from "lucide-react";
+import es from "date-fns/locale/es";
+import DateChangeDialog from "./components/DateChangeDialog";
+import DateDisplay from "./components/DateDisplay";
+import OfflineManager from "./components/OfflineManager";
+import { Download } from "lucide-react";
 // DnD Kit imports
 import {
   DndContext,
@@ -44,11 +52,15 @@ import {
 import { getUserFriends } from "../../../../services/index/users";
 
 const ItineraryDetailPage = () => {
+  const [offlineModalOpen, setOfflineModalOpen] = useState(false);
+
   const theme = useTheme();
+  const [itinerary, setItinerary] = useState(null);
+  const [userRole, setUserRole] = useState("viewer");
+
   const { id } = useParams();
   const navigate = useNavigate();
   const { user, jwt } = useUser();
-
   // DnD Kit sensors
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -62,6 +74,8 @@ const ItineraryDetailPage = () => {
   );
 
   // Existing State
+  const [isPrivate, setIsPrivate] = useState(false);
+  const [isEditingDates, setIsEditingDates] = useState(false);
   const [friendsList, setFriendsList] = useState([]);
   const [name, setName] = useState("");
   const [travelDays, setTravelDays] = useState(0);
@@ -100,7 +114,16 @@ const ItineraryDetailPage = () => {
       return fav && fav._id && fav.experienceId && fav.experienceId._id;
     });
   };
+  // In your main itinerary component
+  const getItineraryUserRole = (itinerary, currentUserId) => {
+    if (!itinerary?.travelers || !currentUserId) return "viewer";
 
+    const traveler = itinerary.travelers.find(
+      (t) => t.userId.toString() === currentUserId.toString()
+    );
+
+    return traveler?.role || "viewer";
+  };
   // Computed values with null safety
   const groupedFavorites = drawerFavorites.reduce((groups, fav) => {
     if (!fav || !fav.experienceId) return groups;
@@ -243,7 +266,6 @@ const ItineraryDetailPage = () => {
     return { working: null };
   };
 
-  // NEW: Helper function to delete test favorites
   const deleteFavorite = async (favoriteId) => {
     const deleteEndpoints = [
       `/api/favorites/${favoriteId}`,
@@ -266,22 +288,54 @@ const ItineraryDetailPage = () => {
       }
     }
   };
+  // Add this handler function to your ItineraryDetailPage component
+  const handlePrivacyToggle = async (newPrivateStatus) => {
+    if (userRole !== "owner") {
+      toast.error(
+        "Solo el propietario puede cambiar la privacidad del itinerario"
+      );
+      return;
+    }
 
-  // TRULY AUTOMATIC SOLUTION - No user intervention required
+    const previousStatus = isPrivate;
 
-  // Enhanced handleAddExperienceToBoard that just works automatically
+    // Update UI immediately for better UX
+    setIsPrivate(newPrivateStatus);
+
+    try {
+      // Save to backend
+      await updateItinerary(id, { isPrivate: newPrivateStatus }, jwt);
+
+      toast.success(
+        newPrivateStatus
+          ? "Itinerario marcado como privado"
+          : "Itinerario marcado como público"
+      );
+    } catch (error) {
+      console.error("Error updating privacy:", error);
+      toast.error("Error al cambiar la privacidad del itinerario");
+
+      // Revert the change if it failed
+      setIsPrivate(previousStatus);
+    }
+  };
   const handleAddExperienceToBoard = async (
     experience,
     targetBoardIndex = null
   ) => {
+    if (!hasPermission("addExperience")) {
+      toast.error("No tienes permisos para añadir experiencias");
+      return;
+    }
+
     if (!isEditable) return;
 
     const boardIndex =
       targetBoardIndex !== null
         ? targetBoardIndex
         : selectedBoardIndex !== null
-        ? selectedBoardIndex
-        : 0;
+          ? selectedBoardIndex
+          : 0;
 
     if (!boards[boardIndex]) {
       toast.error("Selecciona un día válido para añadir la experiencia");
@@ -566,37 +620,63 @@ const ItineraryDetailPage = () => {
     }
   }, [user?._id]);
 
-  // Enhanced addExistingFavoriteToBoard that handles local favorites
+  // Add this debugging to your addExistingFavoriteToBoard function
   const addExistingFavoriteToBoard = async (
     favoriteDoc,
     experience,
     boardIndex
   ) => {
+    console.log("🎯 DEBUG addExistingFavoriteToBoard:");
+    console.log("📄 favoriteDoc:", favoriteDoc);
+    console.log("🎪 experience:", experience);
+    console.log("📍 boardIndex:", boardIndex);
+    console.log(
+      "🗂️ Current boards before:",
+      JSON.parse(JSON.stringify(boards))
+    );
+
     try {
       const newBoards = [...boards];
       const targetBoard = newBoards[boardIndex];
+
+      console.log(
+        "🎯 Target board before:",
+        JSON.parse(JSON.stringify(targetBoard))
+      );
 
       // Check for duplicates
       const isDuplicate = targetBoard.favorites?.some((boardFav) => {
         const boardFavId =
           typeof boardFav === "object" ? boardFav._id : boardFav;
+        console.log(
+          "🔍 Checking duplicate:",
+          boardFavId,
+          "vs",
+          favoriteDoc._id
+        );
         return boardFavId === favoriteDoc._id;
       });
 
       if (isDuplicate) {
+        console.log("❌ Duplicate found, aborting");
         toast.error("Esta experiencia ya está añadida en este día");
         return;
       }
 
       // Add to UI state
-      if (!targetBoard.favorites) targetBoard.favorites = [];
+      if (!targetBoard.favorites) {
+        console.log("📝 Creating new favorites array");
+        targetBoard.favorites = [];
+      }
 
       const uiFavorite = {
         _id: favoriteDoc._id,
         experienceId: experience,
         uniqueId: `${boardIndex}-${targetBoard.favorites.length}-${favoriteDoc._id}`,
-        isLocal: favoriteDoc.isLocal, // Preserve local flag
+        isLocal: favoriteDoc.isLocal,
       };
+
+      console.log("✨ Creating UI favorite:", uiFavorite);
 
       targetBoard.favorites.push(uiFavorite);
 
@@ -606,13 +686,26 @@ const ItineraryDetailPage = () => {
         0
       );
 
+      console.log("💰 Updated board budget:", targetBoard.dailyBudget);
+      console.log(
+        "🎯 Target board after:",
+        JSON.parse(JSON.stringify(targetBoard))
+      );
+
       setBoards(newBoards);
       updateTotalBudget(newBoards);
 
+      console.log(
+        "🚀 About to call saveBoardChanges with:",
+        JSON.parse(JSON.stringify(newBoards))
+      );
+
       // Save to backend (this will filter out local favorites automatically)
       await saveBoardChanges(newBoards);
+
+      console.log("✅ saveBoardChanges completed successfully");
     } catch (error) {
-      console.error("Error adding to board:", error);
+      console.error("❌ Error in addExistingFavoriteToBoard:", error);
       toast.error("Error al añadir la experiencia al día");
 
       // Revert changes on error
@@ -622,6 +715,7 @@ const ItineraryDetailPage = () => {
   };
 
   // Enhanced saveBoardChanges that handles local favorites
+  // 1. Enhanced saveBoardChanges function
   const saveBoardChanges = async (boardsToSave) => {
     const cleanBoards = boardsToSave.map((board, index) => {
       const cleanBoard = {
@@ -647,7 +741,7 @@ const ItineraryDetailPage = () => {
         cleanBoard.favorites = board.favorites
           .filter((fav) => fav && fav._id)
           .filter((fav) => !fav._id.toString().startsWith("temp-"))
-          .filter((fav) => !fav._id.toString().startsWith("local-")) // Exclude local favorites
+          .filter((fav) => !fav._id.toString().startsWith("local-"))
           .map((fav) => fav._id);
 
         cleanBoard.dailyBudget = board.favorites.reduce(
@@ -659,14 +753,195 @@ const ItineraryDetailPage = () => {
       return cleanBoard;
     });
 
-    console.log(
-      "Sending clean boards (excluding local favorites):",
-      JSON.stringify(cleanBoards, null, 2)
+    // Calculate the total budget from the clean boards
+    const calculatedTotalBudget = cleanBoards.reduce(
+      (sum, board) => sum + (board.dailyBudget || 0),
+      0
     );
-    await updateItinerary(id, { boards: cleanBoards }, jwt);
+
+    console.log("Sending clean boards:", JSON.stringify(cleanBoards, null, 2));
+    console.log("Calculated total budget:", calculatedTotalBudget);
+
+    // Include totalBudget in the update
+    await updateItinerary(
+      id,
+      {
+        boards: cleanBoards,
+        totalBudget: calculatedTotalBudget,
+      },
+      jwt
+    );
   };
 
-  // Fetch functions with error handling
+  // 2. NEWWWW Enhanced updateTotalBudget function that also saves to DB
+  const updateTotalBudget = async (boardsArray, shouldSave = false) => {
+    if (!Array.isArray(boardsArray)) return;
+
+    const total = boardsArray.reduce(
+      (sum, board) => sum + (board?.dailyBudget || 0),
+      0
+    );
+
+    setTotalBudget(total);
+
+    // Optionally save to database immediately
+    if (shouldSave) {
+      try {
+        await updateItinerary(id, { totalBudget: total }, jwt);
+        console.log("Total budget saved to database:", total);
+      } catch (error) {
+        console.error("Error saving total budget:", error);
+      }
+    }
+
+    return total;
+  };
+
+  // 3. NEW Enhanced handleAddBoard function
+  const handleAddBoard = async () => {
+    if (!hasPermission("edit")) {
+      toast.error("No tienes permisos para añadir días");
+      return;
+    }
+
+    const newBoard = {
+      id: `board-${Date.now()}`,
+      date: new Date(Date.now() + boards.length * 24 * 60 * 60 * 1000)
+        .toISOString()
+        .split("T")[0],
+      favorites: [],
+      dailyBudget: 0,
+    };
+
+    const updatedBoards = [...boards, newBoard];
+    setBoards(updatedBoards);
+    setTravelDays(updatedBoards.length);
+
+    // Calculate total budget
+    const newTotalBudget = await updateTotalBudget(updatedBoards);
+
+    try {
+      await saveBoardChanges(updatedBoards);
+      // Also update travel days - totalBudget is now included in saveBoardChanges
+      await updateItinerary(id, { travelDays: updatedBoards.length }, jwt);
+      toast.success("Nuevo día añadido");
+    } catch (error) {
+      console.error("Error adding new board", error);
+      toast.error("Error al añadir nuevo día");
+      setBoards(boards);
+      setTravelDays(boards.length);
+      updateTotalBudget(boards);
+    }
+  };
+
+  // 4. NEW Enhanced handleRemoveBoard function
+  const handleRemoveBoard = async (index) => {
+    if (!hasPermission("edit")) {
+      toast.error("No tienes permisos para eliminar días");
+      return;
+    }
+
+    const updatedBoards = boards.filter((_, i) => i !== index);
+    setBoards(updatedBoards);
+    setTravelDays(updatedBoards.length);
+
+    // Calculate total budget
+    const newTotalBudget = await updateTotalBudget(updatedBoards);
+
+    try {
+      await saveBoardChanges(updatedBoards);
+      // Also update travel days - totalBudget is now included in saveBoardChanges
+      await updateItinerary(id, { travelDays: updatedBoards.length }, jwt);
+      toast.success("Día eliminado");
+    } catch (error) {
+      console.error("Error removing board", error);
+      toast.error("Error al eliminar día");
+      setBoards(boards);
+      setTravelDays(boards.length);
+      updateTotalBudget(boards);
+    }
+  };
+  // FIXED: NEWWWWWW Enhanced handleUpdateItineraryDates with proper date handling
+  const handleUpdateItineraryDates = async (newStartDate) => {
+    if (!hasPermission("edit")) {
+      toast.error("No tienes permisos para cambiar las fechas");
+      return;
+    }
+
+    try {
+      console.log("🗓️ Original newStartDate:", newStartDate);
+      console.log("🗓️ newStartDate type:", typeof newStartDate);
+      console.log("🗓️ newStartDate ISO:", newStartDate.toISOString());
+
+      // FIXED: Create a clean date object and avoid timezone issues
+      const baseDate = new Date(newStartDate);
+      console.log("🗓️ Base date created:", baseDate);
+
+      // FIXED: Format the start date properly for local timezone
+      const startDateString = formatDateForLocal(baseDate);
+      console.log("🗓️ Start date string:", startDateString);
+
+      // FIXED: Update all board dates based on the new start date
+      const updatedBoards = boards.map((board, index) => {
+        // Create a new date for each board day (don't mutate the original)
+        const boardDate = new Date(baseDate);
+        boardDate.setDate(boardDate.getDate() + index);
+
+        const boardDateString = formatDateForLocal(boardDate);
+
+        console.log(`🗓️ Board ${index + 1} date: ${boardDateString}`);
+
+        return {
+          ...board,
+          date: boardDateString, // Use local formatted date
+        };
+      });
+
+      console.log("🗓️ Updated boards with new dates:", updatedBoards);
+
+      // Update local state first
+      setBoards(updatedBoards);
+      setStartDate(baseDate);
+
+      // Calculate total budget
+      const newTotalBudget = updatedBoards.reduce(
+        (sum, board) => sum + (board?.dailyBudget || 0),
+        0
+      );
+
+      // FIXED: Save to backend with proper date formatting
+      const updatePayload = {
+        date: baseDate.toISOString(), // Keep ISO for backend
+        boards: updatedBoards.map((board) => ({
+          ...board,
+          date: board.date, // This is now properly formatted
+        })),
+        totalBudget: newTotalBudget,
+      };
+
+      console.log("🗓️ Sending update payload:", updatePayload);
+
+      await updateItinerary(id, updatePayload, jwt);
+
+      toast.success("Fechas del itinerario actualizadas");
+      setIsEditingDates(false);
+    } catch (error) {
+      console.error("❌ Error updating itinerary dates:", error);
+      toast.error("Error al actualizar las fechas");
+      // Revert changes on error
+      fetchItinerary();
+    }
+  };
+
+  // NEWWW HELPER: Format date for local timezone (avoids timezone offset issues)
+  const formatDateForLocal = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
+  // NEWWW FIXED: Enhanced fetchItinerary to handle dates properly
   const fetchItinerary = useCallback(async () => {
     if (!user || !user._id) return;
 
@@ -676,32 +951,53 @@ const ItineraryDetailPage = () => {
       setTravelDays(data.travelDays || 0);
       setTotalBudget(data.totalBudget || 0);
 
+      // Add this line to set the privacy status
+      setIsPrivate(data.isPrivate || false);
+
       const boardsWithIds = (data.boards || []).map((board, index) => ({
         ...board,
         id: board.id || board._id || `board-${index}`,
+        date: board.date
+          ? board.date.split("T")[0]
+          : formatDateForLocal(
+              new Date(Date.now() + index * 24 * 60 * 60 * 1000)
+            ),
       }));
-      setBoards(boardsWithIds);
 
+      setBoards(boardsWithIds);
       setTravelers(data.travelers || []);
       setNotes(data.notes || []);
-      setStartDate(data.date ? new Date(data.date) : null);
+
+      const parsedStartDate = data.date
+        ? new Date(data.date + "T00:00:00")
+        : null;
+      setStartDate(parsedStartDate);
+
       setCreator(data.user || null);
 
-      const editable =
-        String(data.user?._id) === String(user._id) ||
-        (data.travelers &&
-          data.travelers.some(
-            (traveler) =>
-              String(traveler.userId?._id || traveler.userId) ===
-                String(user._id) && traveler.role === "editor"
-          ));
-      setIsEditable(editable);
+      // Determine user's role from travelers array
+      let role = "viewer";
+      if (String(data.user?._id) === String(user._id)) {
+        role = "owner";
+      } else {
+        const traveler = data.travelers?.find(
+          (t) => String(t.userId?._id || t.userId) === String(user._id)
+        );
+        if (traveler) {
+          role = traveler.role || "viewer";
+        }
+      }
 
-      const myTraveler = data.travelers?.find(
-        (traveler) =>
-          String(traveler.userId?._id || traveler.userId) === String(user._id)
+      setUserRole(role);
+      const editable = role === "owner" || role === "editor";
+      setIsEditable(editable);
+      setMyRole(
+        role === "owner"
+          ? "Propietario"
+          : role === "editor"
+            ? "Editor"
+            : "Invitado"
       );
-      setMyRole(myTraveler?.role || "Invitado");
     } catch (error) {
       console.error("Error fetching itinerary", error);
       toast.error("Error loading itinerary");
@@ -733,12 +1029,50 @@ const ItineraryDetailPage = () => {
 
     fetchFavorites();
   }, [user?._id, jwt]);
+  const hasPermission = (action) => {
+    const permissions = {
+      viewer: {
+        view: true,
+        viewMap: true,
+        edit: false,
+        delete: false,
+        addExperience: false,
+        removeExperience: false,
+        dragDrop: false,
+        manageTravelers: false,
+        addNotes: true,
+      },
+      editor: {
+        view: true,
+        viewMap: true,
+        edit: true,
+        delete: false,
+        addExperience: true,
+        removeExperience: true,
+        dragDrop: true,
+        manageTravelers: false,
+        addNotes: true,
+      },
+      owner: {
+        view: true,
+        viewMap: true,
+        edit: true,
+        delete: true,
+        addExperience: true,
+        removeExperience: true,
+        dragDrop: true,
+        manageTravelers: true,
+        addNotes: true,
+      },
+    };
 
+    return permissions[userRole]?.[action] || false;
+  };
   // Fetch experiences function
   const fetchAllExperiences = async () => {
     setLoadingExperiences(true);
     try {
-      const response = await fetch("/api/experiences", {
+      const response = await fetch("/api/experiences/modal", {
         headers: {
           Authorization: `Bearer ${jwt}`,
         },
@@ -749,6 +1083,8 @@ const ItineraryDetailPage = () => {
       }
 
       const data = await response.json();
+      console.log("🔍 Total experiences fetched:", data.length);
+
       setAllExperiences(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Error fetching experiences:", error);
@@ -758,7 +1094,6 @@ const ItineraryDetailPage = () => {
       setLoadingExperiences(false);
     }
   };
-
   useEffect(() => {
     const fetchFriends = async () => {
       if (!user?._id || !jwt) return;
@@ -820,15 +1155,6 @@ const ItineraryDetailPage = () => {
     }
   };
 
-  const updateTotalBudget = (boardsArray) => {
-    if (!Array.isArray(boardsArray)) return;
-    const total = boardsArray.reduce(
-      (sum, board) => sum + (board?.dailyBudget || 0),
-      0
-    );
-    setTotalBudget(total);
-  };
-
   const handleSaveName = async () => {
     if (!name.trim()) return;
     setIsEditingName(false);
@@ -862,6 +1188,10 @@ const ItineraryDetailPage = () => {
   };
 
   const handleAddTraveler = async (friendId, role) => {
+    if (!hasPermission("manageTravelers")) {
+      toast.error("Solo el propietario puede añadir compañeros");
+      return;
+    }
     try {
       await addTravelerToItinerary(id, { userId: friendId, role }, jwt);
       toast.success("Compañero añadido");
@@ -894,26 +1224,101 @@ const ItineraryDetailPage = () => {
     }
   };
 
+  // Add this new handler function
+  const handleToggleChecklistItem = async (itemId) => {
+    if (!hasPermission("addNotes")) {
+      toast.error("No tienes permisos para modificar la lista");
+      return;
+    }
+
+    try {
+      const updatedNotes = notes.map((note) =>
+        note._id === itemId ? { ...note, completed: !note.completed } : note
+      );
+
+      setNotes(updatedNotes);
+      await updateItinerary(id, { notes: updatedNotes }, jwt);
+      toast.success("Tarea actualizada");
+    } catch (error) {
+      console.error("Error updating checklist item:", error);
+      toast.error("Error al actualizar la tarea");
+
+      // Revert changes on error
+      fetchItinerary();
+    }
+  };
+  const handleDeleteChecklistItem = async (itemId) => {
+    if (!hasPermission("addNotes")) {
+      toast.error("No tienes permisos para eliminar tareas");
+      return;
+    }
+
+    try {
+      const updatedNotes = notes.filter((note) => note._id !== itemId);
+
+      // Update backend first
+      await updateItinerary(id, { notes: updatedNotes }, jwt);
+
+      // Then update local state
+      setNotes(updatedNotes);
+      toast.success("Tarea eliminada");
+    } catch (error) {
+      console.error("Error deleting checklist item:", error);
+      toast.error("Error al eliminar la tarea");
+    }
+  };
+  const handleEditChecklistItem = async (itemId, newText) => {
+    if (!hasPermission("addNotes")) {
+      toast.error("No tienes permisos para editar tareas");
+      return;
+    }
+
+    try {
+      const updatedNotes = notes.map((note) =>
+        note._id === itemId ? { ...note, text: newText } : note
+      );
+
+      // Update backend first
+      await updateItinerary(id, { notes: updatedNotes }, jwt);
+
+      // Then update local state
+      setNotes(updatedNotes);
+      toast.success("Tarea actualizada");
+    } catch (error) {
+      console.error("Error editing checklist item:", error);
+      toast.error("Error al editar la tarea");
+
+      // Optionally refetch to ensure consistency
+      fetchItinerary();
+    }
+  };
+  // Update the handleAddNote function to add checklist items
   const handleAddNote = async () => {
     if (!newNote.trim() || !user?._id) return;
 
-    const note = {
+    const checklistItem = {
       text: newNote,
-      date: new Date(),
-      author: { _id: user._id, name: user.name || "Unknown" },
+      completed: false,
+      author: user.name || user._id, // Use name if available, fallback to ID
     };
-    const updatedNotes = [...notes, note];
+
+    const updatedNotes = [...notes, checklistItem];
     setNotes(updatedNotes);
+
     try {
       await updateItinerary(id, { notes: updatedNotes }, jwt);
+      toast.success("Tarea añadida");
     } catch (error) {
-      console.error("Error adding note", error);
-      toast.error("Error adding note");
+      console.error("Error adding checklist item:", error);
+      toast.error("Error al añadir tarea");
+
+      // Revert changes on error
+      setNotes(notes);
     }
+
     setNewNote("");
     setNotesModalOpen(false);
   };
-
   const handleClearFilters = () => {
     setSelectedCategory("All");
     setSelectedRegion("All");
@@ -956,53 +1361,6 @@ const ItineraryDetailPage = () => {
     }
   };
 
-  const handleAddBoard = async () => {
-    const newBoard = {
-      id: `board-${Date.now()}`,
-      date: new Date(Date.now() + boards.length * 24 * 60 * 60 * 1000)
-        .toISOString()
-        .split("T")[0],
-      favorites: [],
-      dailyBudget: 0,
-    };
-
-    const updatedBoards = [...boards, newBoard];
-    setBoards(updatedBoards);
-    setTravelDays(updatedBoards.length);
-    updateTotalBudget(updatedBoards);
-
-    try {
-      await saveBoardChanges(updatedBoards);
-      await updateItinerary(id, { travelDays: updatedBoards.length }, jwt);
-      toast.success("Nuevo día añadido");
-    } catch (error) {
-      console.error("Error adding new board", error);
-      toast.error("Error al añadir nuevo día");
-      setBoards(boards);
-      setTravelDays(boards.length);
-      updateTotalBudget(boards);
-    }
-  };
-
-  const handleRemoveBoard = async (index) => {
-    const updatedBoards = boards.filter((_, i) => i !== index);
-    setBoards(updatedBoards);
-    setTravelDays(updatedBoards.length);
-    updateTotalBudget(updatedBoards);
-
-    try {
-      await saveBoardChanges(updatedBoards);
-      await updateItinerary(id, { travelDays: updatedBoards.length }, jwt);
-      toast.success("Día eliminado");
-    } catch (error) {
-      console.error("Error removing board", error);
-      toast.error("Error al eliminar día");
-      setBoards(boards);
-      setTravelDays(boards.length);
-      updateTotalBudget(boards);
-    }
-  };
-
   const handleDragEnd = async (event) => {
     const { active, over } = event;
 
@@ -1010,7 +1368,10 @@ const ItineraryDetailPage = () => {
     setActiveData(null);
 
     if (!over || !isEditable) return;
-
+    if (!over || !hasPermission("dragDrop")) {
+      // Exit silently if no permission
+      return;
+    }
     const activeId = active.id;
     const overId = over.id;
 
@@ -1031,10 +1392,28 @@ const ItineraryDetailPage = () => {
         );
 
         if (oldIndex !== newIndex && oldIndex !== -1 && newIndex !== -1) {
+          // Get the start date
+          const baseDate =
+            startDate ||
+            (boards[0]?.date ? new Date(boards[0].date) : new Date());
+
+          // Reorder the boards
           newBoards = arrayMove(boards, oldIndex, newIndex);
+
+          // Update dates to maintain chronological order
+          newBoards = newBoards.map((board, index) => {
+            const newDate = new Date(baseDate);
+            newDate.setDate(newDate.getDate() + index);
+
+            return {
+              ...board,
+              date: newDate.toISOString().split("T")[0], // Format as YYYY-MM-DD
+            };
+          });
+
           setBoards(newBoards);
           shouldSave = true;
-          toast.success("Días reordenados");
+          toast.success("Días reordenados y fechas actualizadas");
         }
       } else if (
         activeId.toString().startsWith("fav-") &&
@@ -1259,11 +1638,12 @@ const ItineraryDetailPage = () => {
   return (
     <Box>
       <ScrollHeader />
+
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
-        onDragStart={handleDragStart}
-        onDragEnd={handleDragEnd}
+        onDragStart={userRole !== "viewer" ? handleDragStart : undefined}
+        onDragEnd={userRole !== "viewer" ? handleDragEnd : undefined}
       >
         <Box
           sx={{
@@ -1290,7 +1670,7 @@ const ItineraryDetailPage = () => {
             <ItineraryHeader
               name={name}
               setName={setName}
-              isEditingName={isEditingName}
+              isEditingName={isEditingName && hasPermission("edit")}
               setIsEditingName={setIsEditingName}
               handleSaveName={handleSaveName}
               creator={creator}
@@ -1298,62 +1678,96 @@ const ItineraryDetailPage = () => {
               myRole={myRole}
               travelDays={travelDays}
               totalBudget={totalBudget}
+              onOfflineClick={() => setOfflineModalOpen(true)}
+              hasOfflinePermission={hasPermission("view")}
               travelers={travelers}
               friendsList={friendsList}
-              onAddTraveler={handleAddTraveler}
-              onUpdateTraveler={handleUpdateTraveler}
-              onRemoveTraveler={handleRemoveTraveler}
-              onNotesClick={() => setNotesModalOpen(true)}
+              startDate={startDate}
+              boards={boards}
+              onEditDates={() => setIsEditingDates(true)}
+              canEditDates={hasPermission("edit")}
               onBackClick={() => navigate(-1)}
+              onNotesClick={() => setNotesModalOpen(true)} // Add this if missing
+              onAddTraveler={
+                hasPermission("manageTravelers") ? handleAddTraveler : undefined
+              }
+              onUpdateTraveler={
+                hasPermission("manageTravelers")
+                  ? handleUpdateTraveler
+                  : undefined
+              }
+              onRemoveTraveler={
+                hasPermission("manageTravelers")
+                  ? handleRemoveTraveler
+                  : undefined
+              }
+              userRole={userRole}
+              currentUserId={user?._id}
+              // NEW PROPS FOR PRIVACY
+              isPrivate={isPrivate}
+              onPrivacyToggle={handlePrivacyToggle}
             />
 
-            {isEditable ? (
-              <SortableContext
-                items={boards.map(
-                  (board) => `board-${board.id || board._id || "temp"}`
-                )}
-                strategy={horizontalListSortingStrategy}
+            <SortableContext
+              items={boards.map(
+                (board) => `board-${board.id || board._id || "temp"}`
+              )}
+              strategy={horizontalListSortingStrategy}
+              disabled={userRole === "viewer"} // Disable sorting for viewers
+            >
+              <Box
+                sx={{
+                  display: "flex",
+                  gap: 2,
+                  overflowX: "auto",
+                  p: 1,
+                  paddingBottom: "20px",
+                  height: "min-content",
+                  whiteSpace: "nowrap",
+                  "&::-webkit-scrollbar": {
+                    height: "8px",
+                  },
+                  "&::-webkit-scrollbar-thumb": {
+                    backgroundColor: theme.palette.secondary.dark,
+                    borderRadius: "4px",
+                  },
+                }}
               >
-                <Box
-                  sx={{
-                    display: "flex",
-                    gap: 2,
-                    overflowX: "auto",
-                    p: 1,
-                    paddingBottom: "20px",
-                    height: "min-content",
-                    whiteSpace: "nowrap",
-                    "&::-webkit-scrollbar": {
-                      height: "8px",
-                    },
-                    "&::-webkit-scrollbar-thumb": {
-                      backgroundColor: theme.palette.secondary.dark,
-                      borderRadius: "4px",
-                    },
-                  }}
-                >
-                  {boards.map((board, boardIndex) => (
-                    <BoardCard
-                      key={board._id || board.id || `board-${boardIndex}`}
-                      board={board}
-                      boardIndex={boardIndex}
-                      onRemoveBoard={handleRemoveBoard}
-                      onRemoveFavorite={handleRemoveFavorite}
-                      onAddExperience={handleBoardAddExperience}
-                      isDragDisabled={
-                        activeId && !activeId.toString().startsWith("board-")
-                      }
-                    />
-                  ))}
+                {boards.map((board, boardIndex) => (
+                  <BoardCard
+                    key={board._id || board.id || `board-${boardIndex}`}
+                    board={board}
+                    boardIndex={boardIndex}
+                    onRemoveBoard={
+                      hasPermission("edit") ? handleRemoveBoard : undefined
+                    }
+                    onRemoveFavorite={
+                      hasPermission("removeExperience")
+                        ? handleRemoveFavorite
+                        : undefined
+                    }
+                    onAddExperience={
+                      hasPermission("addExperience")
+                        ? handleBoardAddExperience
+                        : undefined
+                    }
+                    isDragDisabled={
+                      !hasPermission("dragDrop") ||
+                      (activeId && !activeId.toString().startsWith("board-"))
+                    }
+                    userRole={userRole} // Pass the actual userRole
+                  />
+                ))}
+                {/* Only show AddBoardCard if user can edit */}
+                {hasPermission("edit") && (
                   <AddBoardCard onAddBoard={handleAddBoard} />
-                </Box>
-              </SortableContext>
-            ) : (
-              <Box>Vista de solo lectura</Box>
-            )}
+                )}
+              </Box>
+            </SortableContext>
           </Box>
 
-          {isEditable && (
+          {/* Only show FavoritesDrawer if user can edit */}
+          {hasPermission("edit") && (
             <FavoritesDrawer
               isOpen={isDrawerOpen}
               onToggle={() => setIsDrawerOpen(!isDrawerOpen)}
@@ -1365,41 +1779,77 @@ const ItineraryDetailPage = () => {
               selectedPrefecture={selectedPrefecture}
               setSelectedPrefecture={setSelectedPrefecture}
               onClearFilters={handleClearFilters}
+              userRole={userRole} // Pass userRole if needed
             />
           )}
         </Box>
 
-        <DragOverlay dropAnimation={null}>
-          {activeId && activeData ? (
-            <ExperienceDragPreview
-              experience={activeData.favorite?.experienceId}
-              category={
-                activeData.favorite?.experienceId?.categories || "Other"
-              }
-            />
-          ) : null}
-        </DragOverlay>
+        {/* Only show DragOverlay for non-viewers */}
+        {userRole !== "viewer" && (
+          <DragOverlay dropAnimation={null}>
+            {activeId && activeData ? (
+              <ExperienceDragPreview
+                experience={activeData.favorite?.experienceId}
+                category={
+                  activeData.favorite?.experienceId?.categories || "Other"
+                }
+              />
+            ) : null}
+          </DragOverlay>
+        )}
       </DndContext>
 
-      <AddExperienceModal
-        open={addExperienceModalOpen}
-        onClose={() => {
-          setAddExperienceModalOpen(false);
-          setSelectedBoardIndex(null);
+      <OfflineManager
+        itinerary={{
+          _id: id,
+          name,
+          totalBudget,
+          travelDays,
+          isPrivate,
+          creator,
+          travelers,
         }}
-        onAddExperience={handleAddExperienceWithBoardSelection}
-        allExperiences={allExperiences}
-        loading={loadingExperiences}
+        boards={boards}
+        startDate={startDate}
+        open={offlineModalOpen}
+        onClose={() => setOfflineModalOpen(false)}
       />
-
-      <NotesModal
-        open={notesModalOpen}
-        onClose={() => setNotesModalOpen(false)}
-        notes={notes}
-        newNote={newNote}
-        setNewNote={setNewNote}
-        onAddNote={handleAddNote}
-      />
+      {userRole !== "viewer" && (
+        <DateChangeDialog
+          open={isEditingDates}
+          onClose={() => setIsEditingDates(false)}
+          currentStartDate={startDate || new Date()}
+          boardCount={boards.length}
+          onConfirm={handleUpdateItineraryDates}
+        />
+      )}
+      {/* Only show AddExperienceModal if user can add experiences */}
+      {hasPermission("addExperience") && (
+        <AddExperienceModal
+          open={addExperienceModalOpen}
+          onClose={() => {
+            setAddExperienceModalOpen(false);
+            setSelectedBoardIndex(null);
+          }}
+          onAddExperience={handleAddExperienceWithBoardSelection}
+          allExperiences={allExperiences}
+          loading={loadingExperiences}
+        />
+      )}
+      {hasPermission("addNotes") && (
+        <NotesModal
+          open={notesModalOpen}
+          onClose={() => setNotesModalOpen(false)}
+          notes={notes}
+          newNote={newNote}
+          setNewNote={setNewNote}
+          onAddNote={handleAddNote}
+          onToggleCheck={handleToggleChecklistItem}
+          onDeleteItem={handleDeleteChecklistItem} // ✅ Add this
+          onEditItem={handleEditChecklistItem} // ✅ Add this
+          currentUser={user}
+        />
+      )}
     </Box>
   );
 };

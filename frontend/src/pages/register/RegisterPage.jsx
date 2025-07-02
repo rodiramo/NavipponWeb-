@@ -36,6 +36,21 @@ const RegisterPage = () => {
     onSuccess: (data) => {
       dispatch(userActions.setUserInfo(data));
       localStorage.setItem("account", JSON.stringify(data));
+
+      // Set flags for first-time user experience
+      sessionStorage.setItem("justRegistered", "true");
+      localStorage.removeItem("onboardingCompleted");
+
+      console.log("🟢 User registered successfully, setting first-time flags");
+      console.log(
+        "🟢 justRegistered flag set:",
+        sessionStorage.getItem("justRegistered")
+      );
+      console.log(
+        "🟢 onboardingCompleted cleared:",
+        localStorage.getItem("onboardingCompleted")
+      );
+
       toast.success("Registro completado con éxito. Por favor, inicia sesión.");
       navigate("/login");
     },
@@ -62,6 +77,7 @@ const RegisterPage = () => {
 
   const submitHandler = (data) => {
     const { name, email, password } = data;
+    console.log("🟢 Starting registration process for:", email);
     mutate({ name, email, password });
   };
 

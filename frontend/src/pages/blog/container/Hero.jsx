@@ -3,6 +3,7 @@ import { useTheme } from "@mui/material/styles";
 import { Box, Typography, Container, Button } from "@mui/material";
 import { Create, Explore } from "@mui/icons-material";
 import nube from "../../../assets/nube.png";
+import { Pencil } from "lucide-react";
 
 const Hero = ({ user, jwt, onOpenModal }) => {
   const theme = useTheme();
@@ -130,7 +131,7 @@ const Hero = ({ user, jwt, onOpenModal }) => {
               variant="contained"
               size="large"
               onClick={onOpenModal}
-              startIcon={<Create />}
+              startIcon={<Pencil />}
               sx={{
                 borderRadius: "50px",
                 padding: { xs: "12px 32px", sm: "16px 40px" },

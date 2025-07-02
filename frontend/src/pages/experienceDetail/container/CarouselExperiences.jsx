@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import StarRating from "../../../components/Stars";
-import { images, stables } from "../../../constants";
-import { Box, Typography, IconButton, Button, Chip } from "@mui/material";
+import { Box, Typography, IconButton } from "@mui/material";
 import { CircleArrowLeft, CircleArrowRight } from "lucide-react";
 import { useTheme } from "@mui/material/styles";
-import { Star } from "lucide-react";
+import ExperienceCard from "../../../components/ExperienceCard";
+
 const CarouselExperiences = ({
   className,
   header,
   experiences,
   currentExperience,
+  user,
+  token,
+  onFavoriteToggle,
 }) => {
   const theme = useTheme();
   const [currentPage, setCurrentPage] = useState(0);
@@ -68,162 +69,157 @@ const CarouselExperiences = ({
     startIndex + experiencesPerPage
   );
 
+  // Default empty function if onFavoriteToggle is not provided
+  const handleFavoriteToggle = onFavoriteToggle || (() => {});
+
   return (
     <Box className={`w-full rounded-lg p-4 ${className}`}>
       <Typography
         variant="h6"
-        sx={{ fontWeight: "bold", color: theme.palette.primary.main }}
+        sx={{
+          fontWeight: "bold",
+          color: theme.palette.primary.main,
+          mb: 3,
+          fontSize: "1.5rem",
+        }}
       >
         {header}
       </Typography>
+
       <Box
         sx={{
           display: "grid",
-          gap: 2,
-          gridTemplateColumns: { xs: "1fr", md: "1fr 1fr 1fr" },
-          marginTop: "16px",
+          gap: 3,
+          gridTemplateColumns: {
+            xs: "1fr",
+            sm: "1fr 1fr",
+            lg: "1fr 1fr 1fr",
+          },
+          marginBottom: 3,
         }}
       >
         {selectedExperiences.map((item) => (
-          <Box
-            key={item._id}
-            sx={{
-              position: "relative",
-              borderRadius: "16px",
-              height: "400px",
-              width: "100%",
-              display: "flex",
-              flexDirection: "column",
-              overflow: "hidden",
-              backgroundColor: theme.palette.primary.white,
-              boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
-              marginBottom: "20px",
-            }}
-          >
-            {/* 🔹 Badges Section */}
-            <Box
-              sx={{
-                position: "absolute",
-                top: "10px",
-                left: "10px",
-                display: "flex",
-                flexWrap: "wrap",
-                gap: "5px",
-              }}
-            >
-              {item.badges?.map((badge, index) => (
-                <Chip
-                  key={index}
-                  label={badge}
-                  sx={{
-                    backgroundColor: theme.palette.primary.main,
-                    color: theme.palette.primary.contrastText,
-                    fontSize: "0.75rem",
-                    height: "24px",
-                  }}
-                />
-              ))}
-            </Box>
-
-            {/* Image */}
-            <Box sx={{ width: "100%", height: "200px", overflow: "hidden" }}>
-              <img
-                src={
-                  item?.photo
-                    ? stables.UPLOAD_FOLDER_BASE_URL + item?.photo
-                    : images.sampleExperienceImage
-                }
-                alt={item.title}
-                style={{ width: "100%", height: "100%", objectFit: "cover" }}
-              />
-            </Box>
-            <Box
-              sx={{
-                padding: "0.5rem 2rem 2rem 2rem",
-                textAlign: "center",
-              }}
-            >
-              {" "}
-              <Typography
-                variant="p"
-                sx={{
-                  fontWeight: "100",
-                  fontSize: "0.90rem",
-                  color: theme.palette.secondary.medium,
-                }}
-              >
-                {item.categories}
-              </Typography>
-              <h1
-                className="text-3xl mb-2"
-                style={{
-                  display: "flex",
-                  flexDirection: "row",
-                  alignContent: "center",
-                  gap: 15,
-                  justifyContent: "center",
-                  flexWrap: "wrap",
-                  alignItems: "center",
-                }}
-              >
-                {item?.title}{" "}
-                <span
-                  style={{
-                    background: theme.palette.primary.light,
-                    color: theme.palette.primary.main,
-                  }}
-                  className="text-sm px-2 py-1 rounded-full"
-                >
-                  {item?.region}
-                </span>
-              </h1>{" "}
+          <Box key={item._id} sx={{ position: "relative" }}>
+            {/* Relationship Badges - displayed above the card */}
+            {item.badges && item.badges.length > 0 && (
               <Box
-                display="flex"
-                alignItems="center"
-                justifyContent="center"
-                gap={1}
-                mb={2}
-              >
-                <StarRating rating={item.ratings || 0} isEditable={false} />
-
-                <Typography variant="body1" sx={{}}>
-                  {item?.ratings || ""} ({item?.numReviews} Reseñas)
-                </Typography>
-              </Box>
-              <Button
-                variant="contained"
                 sx={{
-                  backgroundColor: theme.palette.secondary.medium,
-                  borderRadius: "10rem",
-                  color: theme.palette.primary.white,
-                  textTransform: "none",
-                  marginTop: "1rem",
+                  position: "absolute",
+                  bottom: -8,
+                  left: 8,
+                  right: 8,
+                  zIndex: 10,
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: 0.5,
+                  justifyContent: "center",
                 }}
-                component={Link}
-                to={`/experience/${item.slug}`}
               >
-                Ver Detalles
-              </Button>
-            </Box>
+                {item.badges.slice(0, 2).map((badge, index) => (
+                  <Box
+                    key={index}
+                    sx={{
+                      backgroundColor: theme.palette.primary.light,
+                      color: theme.palette.primary.main,
+                      fontSize: "0.7rem",
+                      fontWeight: 600,
+                      padding: "4px 8px",
+                      borderRadius: "12px",
+                      boxShadow: "0 2px 8px rgba(0, 0, 0, 0.15)",
+                      backdropFilter: "blur(10px)",
+                    }}
+                  >
+                    {badge}
+                  </Box>
+                ))}
+              </Box>
+            )}
+
+            {/* Use the consistent ExperienceCard component */}
+            <ExperienceCard
+              experience={item}
+              user={user}
+              token={token}
+              className="w-full h-full"
+              onFavoriteToggle={handleFavoriteToggle}
+            />
           </Box>
         ))}
       </Box>
 
       {/* Pagination Controls */}
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          marginTop: "16px",
-        }}
-      >
-        <IconButton onClick={handlePrevPage}>
-          <CircleArrowLeft size={32} />
-        </IconButton>
-        <IconButton onClick={handleNextPage}>
-          <CircleArrowRight size={32} />
-        </IconButton>
-      </Box>
+      {totalPages > 1 && (
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginTop: 2,
+          }}
+        >
+          <IconButton
+            onClick={handlePrevPage}
+            disabled={currentPage === 0}
+            sx={{
+              backgroundColor: theme.palette.primary.main,
+              color: theme.palette.primary.white,
+              "&:hover": {
+                backgroundColor: theme.palette.primary.dark,
+              },
+              "&.Mui-disabled": {
+                backgroundColor: theme.palette.grey[300],
+                color: theme.palette.grey[500],
+              },
+            }}
+          >
+            <CircleArrowLeft size={24} />
+          </IconButton>
+
+          {/* Page indicator */}
+          <Typography
+            variant="body2"
+            sx={{
+              color: theme.palette.text.secondary,
+              fontWeight: 500,
+            }}
+          >
+            {currentPage + 1} de {totalPages}
+          </Typography>
+
+          <IconButton
+            onClick={handleNextPage}
+            disabled={currentPage === totalPages - 1}
+            sx={{
+              backgroundColor: theme.palette.primary.main,
+              color: theme.palette.primary.white,
+              "&:hover": {
+                backgroundColor: theme.palette.primary.dark,
+              },
+              "&.Mui-disabled": {
+                backgroundColor: theme.palette.grey[300],
+                color: theme.palette.grey[500],
+              },
+            }}
+          >
+            <CircleArrowRight size={24} />
+          </IconButton>
+        </Box>
+      )}
+
+      {/* Show message if no related experiences found */}
+      {filteredExperiences.length === 0 && (
+        <Box
+          sx={{
+            textAlign: "center",
+            py: 4,
+            color: theme.palette.text.secondary,
+          }}
+        >
+          <Typography variant="body1">
+            No se encontraron experiencias relacionadas
+          </Typography>
+        </Box>
+      )}
     </Box>
   );
 };

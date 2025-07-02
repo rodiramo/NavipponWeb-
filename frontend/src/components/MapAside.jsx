@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Box } from "@mui/material";
 import { GoogleMap, LoadScript } from "@react-google-maps/api";
+import { useNavigate } from "react-router-dom";
 import { getGooglePlaceDetails, extractPlaceId } from "../services/index/map";
 
 // Set your container style and default center (Tokyo as fallback)
@@ -11,7 +12,19 @@ const mapContainerStyle = {
 const defaultCenter = { lat: 35.6895, lng: 139.6917 };
 
 const MapAside = ({ experiences = [] }) => {
+  const navigate = useNavigate();
   const [places, setPlaces] = useState([]);
+
+  // Create global navigation function for info window buttons
+  useEffect(() => {
+    window.navigateToExperience = (slug) => {
+      navigate(`/experience/${slug}`);
+    };
+
+    return () => {
+      delete window.navigateToExperience;
+    };
+  }, [navigate]);
 
   // Fetch and update experiences using your existing logic
   useEffect(() => {
@@ -90,6 +103,7 @@ const MapAside = ({ experiences = [] }) => {
   const onLoad = useCallback(
     (map) => {
       if (!window.google || validExperiences.length === 0) return;
+
       // Create an array of google.maps.Marker objects
       const markers = validExperiences.map((exp) => {
         const marker = new window.google.maps.Marker({
@@ -100,12 +114,91 @@ const MapAside = ({ experiences = [] }) => {
           title: exp.name,
           icon: getExperienceIcon(exp.categories),
         });
-        // Optionally add an info window for the marker
+
+        // Enhanced info window with image, address, description, rating, and button
         const infoWindow = new window.google.maps.InfoWindow({
-          content: `<div><strong>${exp.name}</strong><br>${
-            exp.location?.address || "No address available"
-          }</div>`,
+          content: `
+            <div style="max-width: 250px; font-family: Arial, sans-serif;">
+              ${
+                exp.image
+                  ? `
+                <img 
+                  src="${exp.image}" 
+                  alt="${exp.name}"
+                  style="
+                    width: 100%; 
+                    height: 120px; 
+                    object-fit: cover; 
+                    border-radius: 8px;
+                    margin-bottom: 8px;
+                  "
+                  onerror="this.style.display='none'"
+                />
+              `
+                  : ""
+              }
+              <div style="padding: 4px 0;">
+                <strong style="font-size: 16px; color: #333;">${
+                  exp.name
+                }</strong>
+                <br>
+                <span style="font-size: 14px; color: #666; line-height: 1.4;">
+                  ${exp.address || "No address available"}
+                </span>
+                ${
+                  exp.description
+                    ? `
+                  <br>
+                  <p style="
+                    font-size: 12px; 
+                    color: #888; 
+                    margin: 8px 0 0 0; 
+                    line-height: 1.3;
+                    max-height: 60px;
+                    overflow: hidden;
+                  ">
+                    ${exp.description.substring(0, 100)}${
+                      exp.description.length > 100 ? "..." : ""
+                    }
+                  </p>
+                `
+                    : ""
+                }
+                ${
+                  exp.rating
+                    ? `
+                  <div style="margin-top: 8px; font-size: 12px; color: rgb(224, 53, 101);">
+                    ⭐ ${exp.rating}/5
+                  </div>
+                `
+                    : ""
+                }
+                
+                <button 
+                  onclick="window.navigateToExperience('${exp.slug}')" 
+                  style="
+                    background: rgb(224, 53, 101);
+                    color: white;
+                    border: none;
+                    padding: 8px 16px;
+                    border-radius: 30px;
+                    font-size: 12px;
+                    font-weight: 500;
+                    cursor: pointer;
+                    margin-top: 12px;
+                    width: 100%;
+                    transition: background-color 0.2s;
+                  "
+                  onmouseover="this.style.background='rgb(200, 45, 85)'"
+                  onmouseout="this.style.background='rgb(224, 53, 101)'"
+                >
+                  Ver Detalles
+                </button>
+              </div>
+            </div>
+          `,
         });
+
         marker.addListener("click", () => {
           infoWindow.open(map, marker);
         });
@@ -114,8 +207,6 @@ const MapAside = ({ experiences = [] }) => {
 
       // Use the official MarkerClusterer from @googlemaps/markerclusterer
       // (Ensure you've installed it: npm install @googlemaps/markerclusterer)
-      // Note: Make sure MarkerClusterer is available on window if not import it directly.
-      // Here, we import it dynamically:
       import("@googlemaps/markerclusterer").then(({ MarkerClusterer }) => {
         // Before creating the clusterer, double-check that the google object is still available.
         if (!window.google) return;
