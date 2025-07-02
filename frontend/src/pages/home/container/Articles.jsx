@@ -113,7 +113,7 @@ const Articles = () => {
                 <ErrorMessage message="No se pudieron obtener los detalles de los artículos" />
               </div>
             </div>
-          ) : data?.data && data.data.length > 0 ? (
+          ) : data?.data && Array.isArray(data.data) && data.data.length > 0 ? (
             data.data.slice(0, 3).map((post, index) => (
               <div
                 key={post._id}
