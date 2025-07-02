@@ -65,7 +65,6 @@ import UserEditExperience from "./pages/user/screens/experiences/EditExperience"
 
 // Itineraries
 import ManageItineraries from "./pages/user/screens/itineraries/ManageItineraries";
-import EditItinerary from "./pages/user/screens/itineraries/EditItinerary";
 import CreateItinerary from "./pages/user/screens/itineraries/CreateItinerary";
 import ItineraryDetailPage from "./pages/user/screens/itineraries/ItineraryDetailPage";
 
@@ -193,10 +192,7 @@ function App() {
               path="itineraries/manage/create"
               element={<CreateItinerary />}
             />
-            <Route
-              path="itineraries/manage/edit/:id"
-              element={<EditItinerary />}
-            />
+
             <Route
               path="itineraries/manage/view/:id"
               element={<ItineraryDetailPage />}

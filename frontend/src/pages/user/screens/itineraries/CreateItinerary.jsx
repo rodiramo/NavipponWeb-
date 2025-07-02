@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { getUserFavorites } from "../../../../services/index/favorites";
-import { getUserFriends } from "../../../../services/index/users"; // Import your friends service
+import { getUserFriends } from "../../../../services/index/users";
 import { createItinerary } from "../../../../services/index/itinerary";
 import useUser from "../../../../hooks/useUser";
 import { toast } from "react-hot-toast";
@@ -24,7 +23,7 @@ import {
 } from "@mui/material";
 import { DateRange } from "react-date-range";
 import { format, addDays, differenceInDays } from "date-fns";
-import "react-date-range/dist/styles.css"; // Main styles
+import "react-date-range/dist/styles.css";
 import "react-date-range/dist/theme/default.css";
 import { es } from "date-fns/locale";
 
@@ -32,15 +31,9 @@ const CreateItinerary = () => {
   const [name, setName] = useState("");
   const theme = useTheme();
   const [travelDays, setTravelDays] = useState(0);
-  const [totalBudget, setTotalBudget] = useState(0);
   const [boards, setBoards] = useState([]);
   const [noteInput, setNoteInput] = useState("");
   const [notesArray, setNotesArray] = useState([]);
-  const [favorites, setFavorites] = useState([]);
-  const [filteredFavorites, setFilteredFavorites] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState("All");
-  const [selectedRegion, setSelectedRegion] = useState("All");
-  const [selectedPrefecture, setSelectedPrefecture] = useState("All");
   const { user, jwt } = useUser();
   const navigate = useNavigate();
 
@@ -81,26 +74,6 @@ const CreateItinerary = () => {
       )
     );
   };
-  useEffect(() => {
-    const fetchFavorites = async () => {
-      try {
-        console.log("Fetching favorites for user:", user);
-        console.log("JWT token:", jwt);
-
-        const data = await getUserFavorites({ userId: user._id, token: jwt });
-        const validFavorites = data.filter(
-          (favorite) => favorite.experienceId !== null
-        );
-        setFavorites(validFavorites);
-        setFilteredFavorites(validFavorites);
-      } catch (error) {
-        toast.error("Error obteniendo favoritos");
-        console.error("Error fetching favorites:", error);
-      }
-    };
-
-    fetchFavorites();
-  }, [user, jwt]);
 
   useEffect(() => {
     const fetchFriends = async () => {
@@ -115,30 +88,6 @@ const CreateItinerary = () => {
 
     fetchFriends();
   }, [user, jwt]);
-
-  useEffect(() => {
-    filterFavorites();
-  }, [selectedCategory, selectedRegion, selectedPrefecture]);
-
-  const filterFavorites = () => {
-    let filtered = favorites;
-    if (selectedCategory && selectedCategory !== "All") {
-      filtered = filtered.filter(
-        (favorite) => favorite.experienceId.categories === selectedCategory
-      );
-    }
-    if (selectedRegion && selectedRegion !== "All") {
-      filtered = filtered.filter(
-        (favorite) => favorite.experienceId.region === selectedRegion
-      );
-    }
-    if (selectedPrefecture && selectedPrefecture !== "All") {
-      filtered = filtered.filter(
-        (favorite) => favorite.experienceId.prefecture === selectedPrefecture
-      );
-    }
-    setFilteredFavorites(filtered);
-  };
 
   const handleDateChange = (ranges) => {
     const newRange = ranges.selection;
@@ -167,7 +116,6 @@ const CreateItinerary = () => {
     const itinerary = {
       name,
       travelDays,
-      totalBudget,
       boards,
       notes: notesArray,
       travelers,
@@ -437,9 +385,7 @@ const CreateItinerary = () => {
             <Typography>
               <strong>Total Días:</strong> {travelDays}
             </Typography>
-            <Typography>
-              <strong>Total Presupuesto:</strong> €{totalBudget}
-            </Typography>
+
             <Box mt={2}>
               <Typography variant="subtitle1" sx={{ mb: 2 }}>
                 Amigos Agregados:
@@ -454,31 +400,10 @@ const CreateItinerary = () => {
                 <Typography>Ningún amigo agregado.</Typography>
               )}
             </Box>
-            <Box mt={2}>
-              {boards.map((board, index) => (
-                <Box key={index} mb={2}>
-                  <Typography variant="subtitle1">
-                    Día {index + 1}: {board.date}
-                  </Typography>
-                  <Typography>
-                    <strong>Presupuesto diario:</strong> €{board.dailyBudget}
-                  </Typography>
-                  <Typography variant="body2">Favoritos:</Typography>
-                  <ul>
-                    {board.favorites.map((favorite, favIndex) => (
-                      <li key={favIndex}>
-                        {favorite.experienceId.title} - €
-                        {favorite.experienceId.price}
-                      </li>
-                    ))}
-                  </ul>
-                </Box>
-              ))}
-            </Box>
           </div>
         );
       default:
-        return <div>Unknown step</div>;
+        return <div>No hay más pasos.</div>;
     }
   };
 

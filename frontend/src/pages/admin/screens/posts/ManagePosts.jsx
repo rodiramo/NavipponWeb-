@@ -8,8 +8,6 @@ import {
 import { Link } from "react-router-dom";
 import { useDataTable } from "../../../../hooks/useDataTable";
 import DataTable from "../../components/DataTable";
-import { BsCheckLg } from "react-icons/bs";
-import { AiOutlineClose } from "react-icons/ai";
 import useUser from "../../../../hooks/useUser";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -17,7 +15,6 @@ import {
   Calendar,
   Tag,
   FolderOpen,
-  Image as ImageIcon,
   CheckCircle,
   XCircle,
   Eye,
@@ -41,11 +38,10 @@ import {
 } from "@mui/material";
 
 const ManagePosts = () => {
-  const { user, jwt } = useUser();
+  const { jwt } = useUser();
   const queryClient = useQueryClient();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-  const isTablet = useMediaQuery(theme.breakpoints.down("lg"));
 
   const toggleApproval = async (post) => {
     try {
