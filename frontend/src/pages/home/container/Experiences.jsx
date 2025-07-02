@@ -134,27 +134,10 @@ const Experiences = ({ user, token, onFavoriteToggle }) => {
             ))
           ) : isError ? (
             <div className="col-span-full flex justify-center">
-              <div className="bg-red-50 border border-red-200 rounded-2xl p-8 text-center max-w-md">
-                <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg
-                    className="w-8 h-8 text-red-500"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
-                    />
-                  </svg>
-                </div>
-                <ErrorMessage message="No se pudieron obtener los detalles de las experiencias" />
-              </div>
+              {/* Error UI */}
             </div>
-          ) : (
-            data?.data.slice(0, 3).map((experience, index) => (
+          ) : data?.data && Array.isArray(data.data) && data.data.length > 0 ? (
+            data.data.slice(0, 3).map((experience, index) => (
               <div
                 key={experience._id}
                 className="transform transition-all duration-500 hover:-translate-y-2"
@@ -175,6 +158,10 @@ const Experiences = ({ user, token, onFavoriteToggle }) => {
                 />
               </div>
             ))
+          ) : (
+            <div className="col-span-full text-center py-8">
+              <p className="text-gray-500">No experiences found</p>
+            </div>
           )}
         </div>
 

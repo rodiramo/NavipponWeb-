@@ -1,7 +1,5 @@
 import axios from "axios";
 
-console.log("GOOGLE_API_KEY:", process.env.REACT_APP_GOOGLE_API_KEY);
-
 export const extractPlaceId = (mapUrl) => {
   if (!mapUrl) return null; // Return null if mapUrl is undefined
   const match =
