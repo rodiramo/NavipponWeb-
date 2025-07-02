@@ -42,13 +42,6 @@ export default function useUser() {
         const userProfile = await getUserProfile({ token });
         setUser(userProfile);
         setState({ loading: false, error: false });
-
-        // Only redirect after login, but not force redirect every time
-        const lastPage =
-          window.sessionStorage.getItem("lastPage") || "/user/dashboard";
-        window.sessionStorage.removeItem("lastPage");
-
-        navigate(lastPage);
       } catch (error) {
         window.sessionStorage.removeItem("jwt");
         window.localStorage.removeItem("jwt");
@@ -56,7 +49,7 @@ export default function useUser() {
         console.error(error);
       }
     },
-    [setJWT, setUser, navigate]
+    [setJWT, setUser] // Remove 'navigate' from dependencies
   );
 
   const signup = useCallback(

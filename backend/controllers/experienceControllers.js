@@ -4,6 +4,8 @@ import Review from "../models/Review.js";
 import { fileRemover } from "../utils/fileRemover.js";
 import { v4 as uuidv4 } from "uuid";
 import cloudinary from "cloudinary";
+import Favorite from "../models/Favorite.js";
+import Itinerary from "../models/Itinerary.js";
 
 const createExperience = async (req, res, next) => {
   try {
@@ -241,14 +243,92 @@ const deleteExperience = async (req, res, next) => {
       return next(error);
     }
 
+    console.log(
+      `🗑️ Deleting experience: ${experience.title} (ID: ${experience._id})`
+    );
+
+    // Remove the photo file
     fileRemover(experience.photo);
 
+    // Delete all reviews for this experience
     await Review.deleteMany({ experience: experience._id });
+    console.log("✅ Reviews deleted");
+
+    // Find all favorites that reference this experience
+    const favoritesToDelete = await Favorite.find({
+      experienceId: experience._id,
+    });
+    const favoriteIds = favoritesToDelete.map((fav) => fav._id);
+
+    console.log(
+      `📋 Found ${favoritesToDelete.length} favorites to delete:`,
+      favoriteIds
+    );
+
+    // Remove these favorites from all itinerary boards
+    if (favoriteIds.length > 0) {
+      // Find all itineraries that contain these favorites in any board
+      const itinerariesWithFavorites = await Itinerary.find({
+        "boards.favorites": { $in: favoriteIds },
+      });
+
+      console.log(
+        `🗺️ Found ${itinerariesWithFavorites.length} itineraries containing these favorites`
+      );
+
+      // Update each itinerary to remove the favorites from all boards
+      for (const itinerary of itinerariesWithFavorites) {
+        let itineraryUpdated = false;
+
+        itinerary.boards.forEach((board, boardIndex) => {
+          const originalLength = board.favorites.length;
+
+          // Filter out the favorites that need to be deleted
+          board.favorites = board.favorites.filter(
+            (favId) =>
+              !favoriteIds.some(
+                (delId) => delId.toString() === favId.toString()
+              )
+          );
+
+          if (board.favorites.length !== originalLength) {
+            itineraryUpdated = true;
+            console.log(
+              `  📅 Removed ${
+                originalLength - board.favorites.length
+              } favorites from board ${boardIndex + 1} (${
+                board.date || "No date"
+              })`
+            );
+          }
+        });
+
+        // Save the itinerary if it was updated
+        if (itineraryUpdated) {
+          await itinerary.save();
+          console.log(`  ✅ Updated itinerary: ${itinerary.name}`);
+        }
+      }
+    }
+
+    // Delete all favorites that reference this experience
+    const deletedFavoritesCount = await Favorite.deleteMany({
+      experienceId: experience._id,
+    });
+    console.log(`✅ Deleted ${deletedFavoritesCount.deletedCount} favorites`);
+
+    console.log("🎉 Experience deletion completed successfully");
 
     return res.json({
       message: "Experiencia eliminada con éxito",
+      deletedFavorites: deletedFavoritesCount.deletedCount,
+      updatedItineraries:
+        favoriteIds.length > 0
+          ? "Itinerarios actualizados"
+          : "No hay itinerarios afectados",
     });
   } catch (error) {
+    console.error("❌ Error in deleteExperience:", error);
     next(error);
   }
 };

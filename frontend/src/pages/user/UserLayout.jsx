@@ -53,10 +53,24 @@ const UserLayout = () => {
       // Handle redirect to saved page after login
       if (!redirected) {
         const lastUserPage = sessionStorage.getItem("lastUserPage");
-        if (lastUserPage && lastUserPage !== location.pathname) {
+        const cameFromLogin = sessionStorage.getItem("cameFromLogin");
+
+        // Only redirect if:
+        // 1. There's a saved page
+        // 2. It's different from current page
+        // 3. User didn't just come from login page (fresh login should go to home)
+        if (
+          lastUserPage &&
+          lastUserPage !== location.pathname &&
+          !cameFromLogin
+        ) {
           sessionStorage.removeItem("lastUserPage");
           navigate(lastUserPage, { replace: true });
           setRedirected(true);
+        } else {
+          // Clear the flags since we're not redirecting
+          sessionStorage.removeItem("lastUserPage");
+          sessionStorage.removeItem("cameFromLogin");
         }
       }
       return;

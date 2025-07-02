@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import BgShape from "../../components/Shapes/BgShape.jsx";
 import MainLayout from "../../components/MainLayout";
 import Articles from "./container/Articles";
@@ -20,6 +20,7 @@ import {
 const HomePage = () => {
   const { user, jwt: token } = useUser();
   const navigate = useNavigate();
+  const location = useLocation();
   const [reload, setReload] = useState(false);
   const [filters, setFilters] = useState({ tags: [] });
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -27,12 +28,25 @@ const HomePage = () => {
 
   console.log("HomePage - user:", user);
   console.log("HomePage - token:", token);
+  console.log("HomePage - location state:", location.state);
 
-  // Check if user is new or hasn't seen onboarding
+  // Check for first-time login guide from navigation state
+  useEffect(() => {
+    if (location.state?.showGuide) {
+      console.log("🟢 First-time login detected, showing guide");
+      setShowOnboarding(true);
+
+      // Clear the navigation state to prevent guide from showing on refresh
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
+
+  // Check if user is new or hasn't seen onboarding (existing logic)
   useEffect(() => {
     if (user && !localStorage.getItem("onboardingCompleted")) {
       // Show onboarding after a short delay
       const timer = setTimeout(() => {
+        console.log("🟢 User hasn't seen onboarding, showing guide");
         setShowOnboarding(true);
       }, 1000);
       return () => clearTimeout(timer);
@@ -54,6 +68,12 @@ const HomePage = () => {
 
   const handleShowHelp = () => {
     setShowHelp(true);
+  };
+
+  const handleOnboardingClose = () => {
+    setShowOnboarding(false);
+    // Mark onboarding as completed
+    localStorage.setItem("onboardingCompleted", "true");
   };
 
   return (
@@ -81,7 +101,7 @@ const HomePage = () => {
       {/* Onboarding Guide Modal */}
       <OnboardingGuide
         open={showOnboarding}
-        onClose={() => setShowOnboarding(false)}
+        onClose={handleOnboardingClose}
         user={user}
       />
 
