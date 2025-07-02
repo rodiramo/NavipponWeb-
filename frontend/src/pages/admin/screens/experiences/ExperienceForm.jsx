@@ -77,7 +77,6 @@ const ExperienceForm = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [autocomplete, setAutocomplete] = useState(null);
-  const [placeId, setPlaceId] = useState("");
   const { jwt } = useUser();
   const isEditing = Boolean(slug);
   const [initialPhoto, setInitialPhoto] = useState(null);
@@ -86,7 +85,6 @@ const ExperienceForm = () => {
   const [body, setBody] = useState(null);
   const [categories, setCategories] = useState("");
   const [title, setTitle] = useState("");
-  const [tags, setTags] = useState([]);
   const [location, setLocation] = useState({
     type: "Point",
     coordinates: [],
@@ -95,7 +93,6 @@ const ExperienceForm = () => {
   // All your existing state variables...
   const [experienceSlug, setExperienceSlug] = useState("");
   const [caption, setCaption] = useState("");
-  const [approved, setApproved] = useState(false);
   const [region, setRegion] = useState("");
   const [prefecture, setPrefecture] = useState("");
   const [price, setPrice] = useState(0);
@@ -147,11 +144,6 @@ const ExperienceForm = () => {
     return DEFAULT_SCHEDULES[categories] || DEFAULT_SCHEDULES.Atractivos;
   };
 
-  // Check if we should show default image
-  const shouldShowDefaultImage = () => {
-    return !photo && !initialPhoto && useDefaultImage;
-  };
-
   // Get current image to display
   const getCurrentImageSrc = () => {
     if (photo) {
@@ -173,7 +165,7 @@ const ExperienceForm = () => {
       setUseDefaultImage(false);
       setTimeout(() => setUseDefaultImage(true), 10);
     }
-  }, [categories]);
+  }, [categories, useDefaultImage]);
 
   const handleTitleChange = (e) => {
     const titleValue = e.target.value;
@@ -227,10 +219,8 @@ const ExperienceForm = () => {
       setInitialPhoto(data.photo || null);
       setCategories(data.categories || "");
       setTitle(data.title || "");
-      setTags(data.tags || []);
       setBody(data.body || "");
       setCaption(data.caption || "");
-      setApproved(data.approved || false);
       setRegion(data.region || "");
       setPrefecture(data.prefecture || "");
       setPrice(data.price || 0);
@@ -311,7 +301,6 @@ const ExperienceForm = () => {
       const place = autocomplete.getPlace();
       console.log("Selected place:", place);
 
-      if (place.place_id) setPlaceId(place.place_id);
       if (place.formatted_address) setAddress(place.formatted_address);
       if (place.name) setTitle(place.name);
       if (place.formatted_phone_number) setPhone(place.formatted_phone_number);

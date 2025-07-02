@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { toast } from "react-hot-toast";
 import useUser from "../../../../hooks/useUser";
 import { Search, Download, CloudDownload } from "lucide-react";
@@ -52,12 +52,7 @@ const AdminImport = () => {
     "Miyagi",
     "Nara",
   ];
-
-  useEffect(() => {
-    loadStats();
-  }, []);
-
-  const loadStats = async () => {
+  const loadStats = useCallback(async () => {
     try {
       const response = await fetch(
         `${process.env.REACT_APP_API_URL || "http://localhost:5001"}/api/import/stats`,
@@ -75,7 +70,11 @@ const AdminImport = () => {
     } catch (error) {
       console.error("Error loading stats:", error);
     }
-  };
+  }, [jwt]);
+
+  useEffect(() => {
+    loadStats();
+  }, [loadStats]);
 
   const handleSearch = async () => {
     if (!searchQuery && selectedCategory === "all") {

@@ -118,39 +118,34 @@ const ItineraryDetailPage = () => {
 
   const isInvited = creator && user && String(creator._id) !== String(user._id);
 
-  // NEW: API Configuration Detection
-  useEffect(() => {
-    const detectFavoritesAPI = async () => {
-      if (!user?._id || !jwt || apiDetectionComplete) return;
+  const deleteFavorite = useCallback(
+    async (favoriteId) => {
+      const deleteEndpoints = [
+        `/api/favorites/${favoriteId}`,
+        `/api/users/${user._id}/favorites/${favoriteId}`,
+        `/api/user/favorites/${favoriteId}`,
+      ];
 
-      console.log("🔍 Detecting favorites API configuration...");
-
-      try {
-        // Test different API patterns to find the working one
-        const apiPatterns = await testAPIPatterns();
-
-        if (apiPatterns.working) {
-          setApiConfig(apiPatterns.working);
-          console.log("✅ API configuration detected:", apiPatterns.working);
-        } else {
-          console.warn(
-            "⚠️ No working API pattern found, will use manual favorites only"
-          );
-          setApiConfig({ manual: true });
+      for (const endpoint of deleteEndpoints) {
+        try {
+          const response = await fetch(endpoint, {
+            method: "DELETE",
+            headers: { Authorization: `Bearer ${jwt}` },
+          });
+          if (response.ok) {
+            console.log(`✅ Cleaned up test favorite via ${endpoint}`);
+            return;
+          }
+        } catch (error) {
+          // Continue to next endpoint
         }
-      } catch (error) {
-        console.error("❌ Error detecting API:", error);
-        setApiConfig({ manual: true });
-      } finally {
-        setApiDetectionComplete(true);
       }
-    };
-
-    detectFavoritesAPI();
-  }, [user?._id, jwt, allExperiences]);
+    },
+    [jwt, user._id]
+  );
 
   // NEW: Test different API patterns to find the working one
-  const testAPIPatterns = async () => {
+  const testAPIPatterns = useCallback(async () => {
     const patterns = [
       {
         name: "Standard Pattern",
@@ -247,30 +242,39 @@ const ItineraryDetailPage = () => {
     }
 
     return { working: null };
-  };
+  }, [allExperiences, deleteFavorite, jwt, user]);
 
-  const deleteFavorite = async (favoriteId) => {
-    const deleteEndpoints = [
-      `/api/favorites/${favoriteId}`,
-      `/api/users/${user._id}/favorites/${favoriteId}`,
-      `/api/user/favorites/${favoriteId}`,
-    ];
+  // NEW: API Configuration Detection
+  useEffect(() => {
+    const detectFavoritesAPI = async () => {
+      if (!user?._id || !jwt || apiDetectionComplete) return;
 
-    for (const endpoint of deleteEndpoints) {
+      console.log("🔍 Detecting favorites API configuration...");
+
       try {
-        const response = await fetch(endpoint, {
-          method: "DELETE",
-          headers: { Authorization: `Bearer ${jwt}` },
-        });
-        if (response.ok) {
-          console.log(`✅ Cleaned up test favorite via ${endpoint}`);
-          return;
+        // Test different API patterns to find the working one
+        const apiPatterns = await testAPIPatterns();
+
+        if (apiPatterns.working) {
+          setApiConfig(apiPatterns.working);
+          console.log("✅ API configuration detected:", apiPatterns.working);
+        } else {
+          console.warn(
+            "⚠️ No working API pattern found, will use manual favorites only"
+          );
+          setApiConfig({ manual: true });
         }
       } catch (error) {
-        // Continue to next endpoint
+        console.error("❌ Error detecting API:", error);
+        setApiConfig({ manual: true });
+      } finally {
+        setApiDetectionComplete(true);
       }
-    }
-  };
+    };
+
+    detectFavoritesAPI();
+  }, [user?._id, jwt, allExperiences, apiDetectionComplete, testAPIPatterns]);
+
   // Add this handler function to your ItineraryDetailPage component
   const handlePrivacyToggle = async (newPrivateStatus) => {
     if (userRole !== "owner") {
@@ -484,7 +488,6 @@ const ItineraryDetailPage = () => {
         method: "POST",
         bodyFormat: () => ({ experienceId: experience._id }),
       },
-      // Additional patterns to try
       {
         name: "Experience nested",
         endpoint: `/api/experiences/${experience._id}/favorite`,
@@ -800,9 +803,6 @@ const ItineraryDetailPage = () => {
     setBoards(updatedBoards);
     setTravelDays(updatedBoards.length);
 
-    // Calculate total budget
-    const newTotalBudget = await updateTotalBudget(updatedBoards);
-
     try {
       await saveBoardChanges(updatedBoards);
       // Also update travel days - totalBudget is now included in saveBoardChanges
@@ -827,9 +827,6 @@ const ItineraryDetailPage = () => {
     const updatedBoards = boards.filter((_, i) => i !== index);
     setBoards(updatedBoards);
     setTravelDays(updatedBoards.length);
-
-    // Calculate total budget
-    const newTotalBudget = await updateTotalBudget(updatedBoards);
 
     try {
       await saveBoardChanges(updatedBoards);
@@ -985,7 +982,7 @@ const ItineraryDetailPage = () => {
       console.error("Error fetching itinerary", error);
       toast.error("Error loading itinerary");
     }
-  }, [id, jwt, user?._id]);
+  }, [id, jwt, user]);
 
   // Effects
   useEffect(() => {
@@ -1052,7 +1049,7 @@ const ItineraryDetailPage = () => {
     return permissions[userRole]?.[action] || false;
   };
   // Fetch experiences function
-  const fetchAllExperiences = async () => {
+  const fetchAllExperiences = useCallback(async () => {
     setLoadingExperiences(true);
     try {
       const response = await fetch("/api/experiences/modal", {
@@ -1076,7 +1073,7 @@ const ItineraryDetailPage = () => {
     } finally {
       setLoadingExperiences(false);
     }
-  };
+  }, [jwt]);
   useEffect(() => {
     const fetchFriends = async () => {
       if (!user?._id || !jwt) return;
@@ -1313,7 +1310,7 @@ const ItineraryDetailPage = () => {
     if (addExperienceModalOpen && allExperiences.length === 0) {
       fetchAllExperiences();
     }
-  }, [addExperienceModalOpen]);
+  }, [addExperienceModalOpen, allExperiences.length, fetchAllExperiences]);
 
   const handleDragStart = (event) => {
     setActiveId(event.active.id);

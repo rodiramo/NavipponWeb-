@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import {
   getUserItineraries,
   getInvitedItineraries,
@@ -9,7 +9,6 @@ import { stables } from "../../../../constants";
 import useUser from "../../../../hooks/useUser";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
-import FavoriteContext from "../../../../context/FavoriteContext";
 import {
   useTheme,
   Box,
@@ -76,7 +75,6 @@ const ManageItineraries = () => {
   const [loading, setLoading] = useState(true);
   const { user, jwt } = useUser();
   const navigate = useNavigate();
-  const { favorites } = useContext(FavoriteContext);
   const theme = useTheme();
 
   useEffect(() => {
@@ -158,11 +156,6 @@ const ManageItineraries = () => {
     } catch (error) {
       toast.error("Error al copiar el enlace");
     }
-  };
-
-  const handleDuplicate = async (itinerary) => {
-    // This would need to be implemented in your backend
-    toast.info("Funcionalidad de duplicar próximamente");
   };
 
   // Filter and sort functions
