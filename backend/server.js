@@ -30,13 +30,28 @@ dotenv.config();
 connectDB();
 const app = express();
 app.use(express.json());
+// Update your CORS configuration in your Railway backend
 app.use(
   cors({
-    origin: [
-      "http://localhost:3001",
-      "https://navippon.netlify.app",
-      "https://navippon.netlify.app/",
-    ],
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl)
+      if (!origin) return callback(null, true);
+
+      const allowedOrigins = [
+        "http://localhost:3001",
+        "http://localhost:3000",
+        "https://navippon.netlify.app",
+      ];
+
+      // Allow any netlify.app subdomain (for preview deployments)
+      const isNetlifyDomain = origin.endsWith(".netlify.app");
+
+      if (allowedOrigins.includes(origin) || isNetlifyDomain) {
+        return callback(null, true);
+      }
+
+      return callback(new Error("Not allowed by CORS"));
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "x-access-token"],

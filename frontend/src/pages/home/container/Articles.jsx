@@ -14,14 +14,12 @@ const Articles = () => {
   const theme = useTheme();
   const { user, jwt } = useUser();
   const [isLoaded, setIsLoaded] = useState(false);
-// Add this to your Articles component temporarily
 useEffect(() => {
   console.log("=== DEBUGGING ENVIRONMENT ===");
   console.log("REACT_APP_API_URL:", process.env.REACT_APP_API_URL);
   console.log("NODE_ENV:", process.env.NODE_ENV);
   console.log("Window location:", window.location.href);
   
-  // Test direct API call
   const testAPI = async () => {
     const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
     console.log("Attempting to call:", `${apiUrl}/api/posts`);
