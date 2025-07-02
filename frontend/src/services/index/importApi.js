@@ -106,4 +106,5 @@ class ImportApiService {
   }
 }
 
-export default new ImportApiService();
+const importApiService = new ImportApiService();
+export default importApiService;

@@ -1,6 +1,9 @@
 // src/services/notifications.js
 import axios from "axios";
 
+// 🔥 CRITICAL: Add this line at the top
+const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
+
 export const getNotifications = async (token) => {
   try {
     const config = {
@@ -8,7 +11,7 @@ export const getNotifications = async (token) => {
         Authorization: `Bearer ${token}`,
       },
     };
-    const { data } = await axios.get("/api/notifications", config);
+    const { data } = await axios.get(`${API_URL}/api/notifications`, config);
     return data;
   } catch (error) {
     throw new Error(
@@ -25,7 +28,7 @@ export const markNotificationAsRead = async ({ token, notificationId }) => {
       },
     };
     const { data } = await axios.put(
-      `/api/notifications/${notificationId}/read`,
+      `${API_URL}/api/notifications/${notificationId}/read`,
       {},
       config
     );
@@ -46,7 +49,7 @@ export const deleteNotification = async ({ token, notificationId }) => {
     };
 
     const { data } = await axios.delete(
-      `/api/notifications/${notificationId}`,
+      `${API_URL}/api/notifications/${notificationId}`,
       config
     );
     return data;
@@ -67,7 +70,7 @@ export const clearAllNotifications = async (token) => {
       },
     };
 
-    const { data } = await axios.delete("/api/notifications", config);
+    const { data } = await axios.delete(`${API_URL}/api/notifications`, config);
     return data;
   } catch (error) {
     throw new Error(

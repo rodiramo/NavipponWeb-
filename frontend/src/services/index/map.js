@@ -1,5 +1,8 @@
 import axios from "axios";
 
+// 🔥 CRITICAL: Add this line at the top
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+
 export const extractPlaceId = (mapUrl) => {
   if (!mapUrl) return null; // Return null if mapUrl is undefined
   const match =
@@ -13,14 +16,14 @@ export const fetchPlaceDetails = async (coords) => {
   const [lng, lat] = coords;
   try {
     // Call your backend's nearby search endpoint
-    const nearbyResponse = await axios.get(`/api/places?lat=${lat}&lng=${lng}`);
+    const nearbyResponse = await axios.get(`${API_URL}/api/places?lat=${lat}&lng=${lng}`);
     const nearbyData = nearbyResponse.data;
 
     if (nearbyData.results && nearbyData.results.length > 0) {
       const place = nearbyData.results[0];
       // Call your backend's place details endpoint
       const detailsResponse = await axios.get(
-        `/api/place-details?placeId=${place.place_id}`
+        `${API_URL}/api/place-details?placeId=${place.place_id}`
       );
       const detailsData = detailsResponse.data;
 
@@ -69,7 +72,7 @@ export const fetchPlaceDetails = async (coords) => {
 export const getGooglePlaceDetails = async (placeId) => {
   if (!placeId) return null;
   try {
-    const { data } = await axios.get(`/api/place-details?placeId=${placeId}`);
+    const { data } = await axios.get(`${API_URL}/api/place-details?placeId=${placeId}`);
     if (data.status !== "OK") return null;
 
     const place = data.result;

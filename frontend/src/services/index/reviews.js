@@ -1,5 +1,8 @@
 import axios from "axios";
 
+// 🔥 CRITICAL: Add this line at the top
+const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
+
 export const createNewReview = async ({ token, desc, rating, title, slug }) => {
   try {
     const config = {
@@ -9,7 +12,7 @@ export const createNewReview = async ({ token, desc, rating, title, slug }) => {
     };
 
     const { data } = await axios.post(
-      "/api/reviews",
+      `${API_URL}/api/reviews`,
       {
         rating: rating,
         title: title,
@@ -46,7 +49,7 @@ export const updateReview = async ({
     };
 
     const { data } = await axios.put(
-      `/api/reviews/${reviewId}`,
+      `${API_URL}/api/reviews/${reviewId}`,
       { rating, title, desc, check },
       config
     );
@@ -66,7 +69,10 @@ export const deleteReview = async ({ token, reviewId }) => {
       },
     };
 
-    const { data } = await axios.delete(`/api/reviews/${reviewId}`, config);
+    const { data } = await axios.delete(
+      `${API_URL}/api/reviews/${reviewId}`,
+      config
+    );
     return data;
   } catch (error) {
     if (error.response && error.response.data.message)
@@ -89,7 +95,7 @@ export const getAllReviews = async (
     };
 
     const { data, headers } = await axios.get(
-      `/api/reviews?searchKeyword=${searchKeyword}&page=${page}&limit=${limit}`,
+      `${API_URL}/api/reviews?searchKeyword=${searchKeyword}&page=${page}&limit=${limit}`,
       config
     );
     return { data, headers };
@@ -107,7 +113,7 @@ export const getReviewCount = async (token) => {
         Authorization: `Bearer ${token}`,
       },
     };
-    const { data } = await axios.get("/api/reviews/count", config);
+    const { data } = await axios.get(`${API_URL}/api/reviews/count`, config);
     console.log("Review count data:", data);
     return data.count;
   } catch (error) {

@@ -1,5 +1,8 @@
 import axios from "axios";
 
+// 🔥 CRITICAL: Add this line at the top
+const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
+
 export const createNewComment = async ({
   token,
   desc,
@@ -15,7 +18,7 @@ export const createNewComment = async ({
     };
 
     const { data } = await axios.post(
-      "/api/comments",
+      `${API_URL}/api/comments`,
       {
         desc,
         slug,
@@ -41,7 +44,7 @@ export const updateComment = async ({ token, desc, check, commentId }) => {
     };
 
     const { data } = await axios.put(
-      `/api/comments/${commentId}`,
+      `${API_URL}/api/comments/${commentId}`,
       {
         desc,
         check,
@@ -64,7 +67,10 @@ export const deleteComment = async ({ token, commentId }) => {
       },
     };
 
-    const { data } = await axios.delete(`/api/comments/${commentId}`, config);
+    const { data } = await axios.delete(
+      `${API_URL}/api/comments/${commentId}`,
+      config
+    );
     return data;
   } catch (error) {
     if (error.response && error.response.data.message)
@@ -87,7 +93,7 @@ export const getAllComments = async (
     };
 
     const { data, headers } = await axios.get(
-      `/api/comments?searchKeyword=${searchKeyword}&page=${page}&limit=${limit}`,
+      `${API_URL}/api/comments?searchKeyword=${searchKeyword}&page=${page}&limit=${limit}`,
       config
     );
     return { data, headers };
@@ -105,8 +111,8 @@ export const getCommentCount = async (token) => {
         Authorization: `Bearer ${token}`,
       },
     };
-    const { data } = await axios.get('/api/comments/count', config);
-    console.log("Comment count data:", data);  
+    const { data } = await axios.get(`${API_URL}/api/comments/count`, config);
+    console.log("Comment count data:", data);
     return data.count;
   } catch (error) {
     console.error("Error fetching comment count:", error);

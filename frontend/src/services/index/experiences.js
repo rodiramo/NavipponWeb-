@@ -1,5 +1,8 @@
 import axios from "axios";
 
+// 🔥 CRITICAL: Add this line at the top
+const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
+
 export const getAllExperiences = async (
   searchKeyword = "",
   page = 1,
@@ -15,13 +18,13 @@ export const getAllExperiences = async (
       region: filters.region || "",
       tags:
         filters.tags && filters.tags.length > 0 ? filters.tags.join(",") : "",
-        sortBy: filters.sortBy || "",
+      sortBy: filters.sortBy || "",
     });
 
     console.log("Sending params:", queryParams.toString());
 
     const { data, headers } = await axios.get(
-      `/api/experiences?${queryParams.toString()}`
+      `${API_URL}/api/experiences?${queryParams.toString()}`
     );
     return { data, headers };
   } catch (error) {
@@ -33,7 +36,7 @@ export const getAllExperiences = async (
 
 export const getSingleExperience = async ({ slug }) => {
   try {
-    const { data } = await axios.get(`/api/experiences/${slug}`);
+    const { data } = await axios.get(`${API_URL}/api/experiences/${slug}`);
     return data;
   } catch (error) {
     if (error.response && error.response.data.message)
@@ -50,7 +53,10 @@ export const deleteExperience = async ({ slug, token }) => {
       },
     };
 
-    const { data } = await axios.delete(`/api/experiences/${slug}`, config);
+    const { data } = await axios.delete(
+      `${API_URL}/api/experiences/${slug}`,
+      config
+    );
     return data;
   } catch (error) {
     if (error.response && error.response.data.message)
@@ -68,7 +74,7 @@ export const updateExperience = async ({ updatedData, slug, token }) => {
     };
 
     const { data } = await axios.put(
-      `/api/experiences/${slug}`,
+      `${API_URL}/api/experiences/${slug}`,
       updatedData,
       config
     );
@@ -79,6 +85,7 @@ export const updateExperience = async ({ updatedData, slug, token }) => {
     throw new Error(error.message);
   }
 };
+
 export const createExperience = async ({ experienceData, token }) => {
   try {
     if (!(experienceData instanceof FormData)) {
@@ -98,7 +105,7 @@ export const createExperience = async ({ experienceData, token }) => {
     }
 
     const { data } = await axios.post(
-      "/api/experiences",
+      `${API_URL}/api/experiences`,
       experienceData,
       config
     );
@@ -116,7 +123,10 @@ export const getExperienceById = async (id, token) => {
         Authorization: `Bearer ${token}`,
       },
     };
-    const { data } = await axios.get(`/api/experiences/${id}`, config);
+    const { data } = await axios.get(
+      `${API_URL}/api/experiences/${id}`,
+      config
+    );
     return data;
   } catch (error) {
     if (error.response && error.response.data.message)
@@ -126,28 +136,31 @@ export const getExperienceById = async (id, token) => {
 };
 
 export const getExperienceCount = async (token) => {
-    try {
-      const config = {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      };
-      const { data } = await axios.get('/api/experiences/count', config);
-      console.log("Experience count data:", data);  
-      return data.count;
-    } catch (error) {
-      console.error("Error fetching experience count:", error);
-      throw new Error(error.message);
-    }
-  };
+  try {
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    const { data } = await axios.get(
+      `${API_URL}/api/experiences/count`,
+      config
+    );
+    console.log("Experience count data:", data);
+    return data.count;
+  } catch (error) {
+    console.error("Error fetching experience count:", error);
+    throw new Error(error.message);
+  }
+};
 
-  export const getTopExperiences = async () => {
-    try {
-      const { data } = await axios.get('/api/experiences/top');
-      console.log("Top experiences data:", data);  
-      return data;
-    } catch (error) {
-      console.error("Error fetching top experiences:", error);
-      throw new Error(error.message);
-    }
-  };
+export const getTopExperiences = async () => {
+  try {
+    const { data } = await axios.get(`${API_URL}/api/experiences/top`);
+    console.log("Top experiences data:", data);
+    return data;
+  } catch (error) {
+    console.error("Error fetching top experiences:", error);
+    throw new Error(error.message);
+  }
+};

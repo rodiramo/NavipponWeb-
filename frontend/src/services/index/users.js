@@ -1,7 +1,10 @@
 import axios from "axios";
+
+const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
+
 export const signup = async ({ name, email, password }) => {
   try {
-    const { data } = await axios.post("/api/users/register", {
+    const { data } = await axios.post(`${API_URL}/api/users/register`, {
       name,
       email,
       password,
@@ -16,7 +19,10 @@ export const signup = async ({ name, email, password }) => {
 
 export const login = async ({ email, password, rememberMe }) => {
   try {
-    const { data } = await axios.post("/api/users/login", { email, password });
+    const { data } = await axios.post(`${API_URL}/api/users/login`, {
+      email,
+      password,
+    });
     const token = data.token;
 
     if (rememberMe) {
@@ -42,7 +48,7 @@ export const getUserProfile = async ({ token }) => {
       },
     };
 
-    const { data } = await axios.get("/api/users/profile", config);
+    const { data } = await axios.get(`${API_URL}/api/users/profile`, config);
     return data;
   } catch (error) {
     if (error.response && error.response.data.message)
@@ -50,6 +56,7 @@ export const getUserProfile = async ({ token }) => {
     throw new Error(error.message);
   }
 };
+
 export const updateProfile = async (userId, userData, token) => {
   try {
     console.log("updateProfile called with:", {
@@ -66,7 +73,7 @@ export const updateProfile = async (userId, userData, token) => {
     };
 
     const { data } = await axios.put(
-      `/api/users/updateProfile/${userId}`,
+      `${API_URL}/api/users/updateProfile/${userId}`,
       userData,
       config
     );
@@ -84,7 +91,6 @@ export const updateProfile = async (userId, userData, token) => {
   }
 };
 
-// Alternative: If your backend expects a different format, try this:
 export const updateProfileAlt = async (userId, userData, token) => {
   try {
     const config = {
@@ -93,9 +99,8 @@ export const updateProfileAlt = async (userId, userData, token) => {
       },
     };
 
-    // Method 1: PUT with userId in URL
     const { data } = await axios.put(
-      `/api/users/updateProfile/${userId}`,
+      `${API_URL}/api/users/updateProfile/${userId}`,
       userData,
       config
     );
@@ -106,7 +111,6 @@ export const updateProfileAlt = async (userId, userData, token) => {
   }
 };
 
-// Debug: Check your JWT token
 export const debugToken = (token) => {
   if (!token) {
     console.error("❌ No token provided");
@@ -114,7 +118,6 @@ export const debugToken = (token) => {
   }
 
   try {
-    // Decode JWT to check expiration (don't do this in production)
     const payload = JSON.parse(atob(token.split(".")[1]));
     const isExpired = payload.exp * 1000 < Date.now();
 
@@ -143,7 +146,7 @@ export const updateProfilePicture = async ({ token, formData }) => {
     };
 
     const { data } = await axios.put(
-      "/api/users/updateProfilePicture", // Ensure this is correct
+      `${API_URL}/api/users/updateProfilePicture`,
       formData,
       config
     );
@@ -156,6 +159,7 @@ export const updateProfilePicture = async ({ token, formData }) => {
     throw new Error(error.message);
   }
 };
+
 export const updateCoverImg = async ({ token, formData }) => {
   try {
     const config = {
@@ -166,7 +170,7 @@ export const updateCoverImg = async ({ token, formData }) => {
     };
 
     const { data } = await axios.put(
-      "/api/users/updateCoverImg", // Ensure this is correct
+      `${API_URL}/api/users/updateCoverImg`,
       formData,
       config
     );
@@ -195,12 +199,12 @@ export const getAllUsers = async (
 
     console.log(
       "URL:",
-      `/api/users?searchKeyword=${searchKeyword}&page=${page}&limit=${limit}`
+      `${API_URL}/api/users?searchKeyword=${searchKeyword}&page=${page}&limit=${limit}`
     );
     console.log("Token:", token);
 
     const { data, headers } = await axios.get(
-      `/api/users?searchKeyword=${searchKeyword}&page=${page}&limit=${limit}`,
+      `${API_URL}/api/users?searchKeyword=${searchKeyword}&page=${page}&limit=${limit}`,
       config
     );
     return { data, headers };
@@ -219,7 +223,7 @@ export const deleteUser = async ({ slug, token }) => {
       },
     };
 
-    const { data } = await axios.delete(`/api/users/${slug}`, config);
+    const { data } = await axios.delete(`${API_URL}/api/users/${slug}`, config);
     return data;
   } catch (error) {
     if (error.response && error.response.data.message)
@@ -235,7 +239,10 @@ export const getUserFriends = async ({ userId, token }) => {
         Authorization: `Bearer ${token}`,
       },
     };
-    const { data } = await axios.get(`/api/users/${userId}/friends`, config);
+    const { data } = await axios.get(
+      `${API_URL}/api/users/${userId}/friends`,
+      config
+    );
 
     return data;
   } catch (error) {
@@ -248,9 +255,8 @@ export const toggleFriend = async ({ userId, token }) => {
   try {
     const config = { headers: { Authorization: `Bearer ${token}` } };
 
-    // ✅ Corrected: Include an empty object as the request body
     const { data } = await axios.post(
-      `/api/users/toggleFriend/${userId}`,
+      `${API_URL}/api/users/toggleFriend/${userId}`,
       {},
       config
     );
@@ -265,15 +271,18 @@ export const toggleFriend = async ({ userId, token }) => {
 
 export const getFriendProfile = async ({ friendId, token }) => {
   try {
-    console.log(`🔍 Fetching friend profile for: ${friendId}`); // ✅ Debug
+    console.log(`🔍 Fetching friend profile for: ${friendId}`);
     const config = {
       headers: {
         Authorization: `Bearer ${token}`,
       },
     };
 
-    const { data } = await axios.get(`/api/users/profile/${friendId}`, config);
-    console.log("✅ Friend Profile Data:", data); // ✅ Log successful response
+    const { data } = await axios.get(
+      `${API_URL}/api/users/profile/${friendId}`,
+      config
+    );
+    console.log("✅ Friend Profile Data:", data);
 
     return data;
   } catch (error) {
@@ -294,7 +303,7 @@ export const getUserCount = async (token) => {
         Authorization: `Bearer ${token}`,
       },
     };
-    const { data } = await axios.get("/api/users/count", config);
+    const { data } = await axios.get(`${API_URL}/api/users/count`, config);
     return data.count;
   } catch (error) {
     console.error("Error fetching user count:", error);
@@ -304,15 +313,18 @@ export const getUserCount = async (token) => {
 
 export const getUserProfileById = async ({ userId, token }) => {
   try {
-    console.log(`🔍 Fetching user profile for: ${userId}`); // Debug
+    console.log(`🔍 Fetching user profile for: ${userId}`);
     const config = {
       headers: {
         Authorization: `Bearer ${token}`,
       },
     };
 
-    const { data } = await axios.get(`/api/users/profile/${userId}`, config);
-    console.log("✅ User Profile Data:", data); // Log successful response
+    const { data } = await axios.get(
+      `${API_URL}/api/users/profile/${userId}`,
+      config
+    );
+    console.log("✅ User Profile Data:", data);
 
     return data;
   } catch (error) {
@@ -328,7 +340,9 @@ export const getUserProfileById = async ({ userId, token }) => {
 
 export const forgotPassword = async (email) => {
   try {
-    const { data } = await axios.post("/api/users/forgot-password", { email });
+    const { data } = await axios.post(`${API_URL}/api/users/forgot-password`, {
+      email,
+    });
     return data;
   } catch (error) {
     throw new Error(
@@ -339,7 +353,7 @@ export const forgotPassword = async (email) => {
 
 export const resetPassword = async ({ token, newPassword }) => {
   try {
-    const { data } = await axios.post("/api/users/reset-password", {
+    const { data } = await axios.post(`${API_URL}/api/users/reset-password`, {
       token,
       newPassword,
     });
@@ -353,7 +367,9 @@ export const resetPassword = async ({ token, newPassword }) => {
 
 export const verifyResetToken = async (token) => {
   try {
-    const { data } = await axios.get(`/api/users/verify-reset-token/${token}`);
+    const { data } = await axios.get(
+      `${API_URL}/api/users/verify-reset-token/${token}`
+    );
     return data;
   } catch (error) {
     throw new Error(
@@ -364,7 +380,7 @@ export const verifyResetToken = async (token) => {
 
 export const addItemToList = async (token) => {
   try {
-    const { data } = await axios.post(`/api/users/checklist`);
+    const { data } = await axios.post(`${API_URL}/api/users/checklist`);
     return data;
   } catch (error) {
     throw new Error(
@@ -372,8 +388,6 @@ export const addItemToList = async (token) => {
     );
   }
 };
-
-// Add these functions to your existing users service file
 
 export const getUserPosts = async ({ userId, token, page = 1, limit = 12 }) => {
   try {
@@ -384,7 +398,7 @@ export const getUserPosts = async ({ userId, token, page = 1, limit = 12 }) => {
     };
 
     const { data } = await axios.get(
-      `/api/users/${userId}/posts?page=${page}&limit=${limit}`,
+      `${API_URL}/api/users/${userId}/posts?page=${page}&limit=${limit}`,
       config
     );
 
@@ -415,7 +429,7 @@ export const getUserTrips = async ({
     };
 
     const { data } = await axios.get(
-      `/api/users/${userId}/trips?includePrivate=${includePrivate}&page=${page}&limit=${limit}`,
+      `${API_URL}/api/users/${userId}/trips?includePrivate=${includePrivate}&page=${page}&limit=${limit}`,
       config
     );
 
@@ -445,7 +459,7 @@ export const getUserFavorites = async ({
     };
 
     const { data } = await axios.get(
-      `/api/users/${userId}/favorites?page=${page}&limit=${limit}`,
+      `${API_URL}/api/users/${userId}/favorites?page=${page}&limit=${limit}`,
       config
     );
 

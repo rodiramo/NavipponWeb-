@@ -1,5 +1,8 @@
 import axios from "axios";
 
+// 🔥 CRITICAL: Add this line at the top
+const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
+
 export const getUserPosts = async (
   searchKeyword = "",
   page = 1,
@@ -14,7 +17,7 @@ export const getUserPosts = async (
     };
 
     const { data, headers } = await axios.get(
-      `/api/user-posts/user?searchKeyword=${searchKeyword}&page=${page}&limit=${limit}`,
+      `${API_URL}/api/user-posts/user?searchKeyword=${searchKeyword}&page=${page}&limit=${limit}`,
       config
     );
     return { data, headers };
@@ -33,7 +36,10 @@ export const getSingleUserPost = async ({ slug, token }) => {
       },
     };
 
-    const { data } = await axios.get(`/api/user-posts/${slug}`, config);
+    const { data } = await axios.get(
+      `${API_URL}/api/user-posts/${slug}`,
+      config
+    );
     return data;
   } catch (error) {
     if (error.response && error.response.data.message)
@@ -50,7 +56,10 @@ export const deleteUserPost = async ({ slug, token }) => {
       },
     };
 
-    const { data } = await axios.delete(`/api/user-posts/${slug}`, config);
+    const { data } = await axios.delete(
+      `${API_URL}/api/user-posts/${slug}`,
+      config
+    );
     return data;
   } catch (error) {
     if (error.response && error.response.data.message)
@@ -68,7 +77,7 @@ export const updateUserPost = async ({ updatedData, slug, token }) => {
     };
 
     const { data } = await axios.put(
-      `/api/user-posts/${slug}`,
+      `${API_URL}/api/user-posts/${slug}`,
       updatedData,
       config
     );
@@ -94,7 +103,7 @@ export const createUserPost = async ({ postData, token }) => {
       console.log(`✅ FormData Key: ${key}, Value:`, value);
     }
 
-    const { data } = await axios.post(`/api/posts`, postData, config);
+    const { data } = await axios.post(`${API_URL}/api/posts`, postData, config);
     return data;
   } catch (error) {
     console.error(

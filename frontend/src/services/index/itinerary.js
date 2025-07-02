@@ -1,5 +1,8 @@
 import axios from "axios";
 
+// 🔥 CRITICAL: Add this line at the top
+const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
+
 export const getUserItineraries = async (userId, token) => {
   try {
     const config = {
@@ -8,7 +11,7 @@ export const getUserItineraries = async (userId, token) => {
       },
     };
     const { data } = await axios.get(
-      `/api/itineraries?userId=${userId}`,
+      `${API_URL}/api/itineraries?userId=${userId}`,
       config
     );
     return data;
@@ -26,7 +29,10 @@ export const getSingleItinerary = async (id, token) => {
         Authorization: `Bearer ${token}`,
       },
     };
-    const { data } = await axios.get(`/api/itineraries/${id}`, config);
+    const { data } = await axios.get(
+      `${API_URL}/api/itineraries/${id}`,
+      config
+    );
     return data;
   } catch (error) {
     if (error.response && error.response.data.message)
@@ -42,7 +48,7 @@ export const deleteItinerary = async (id, token) => {
         Authorization: `Bearer ${token}`,
       },
     };
-    await axios.delete(`/api/itineraries/${id}`, config);
+    await axios.delete(`${API_URL}/api/itineraries/${id}`, config);
   } catch (error) {
     if (error.response && error.response.data.message)
       throw new Error(error.response.data.message);
@@ -58,7 +64,7 @@ export const updateItinerary = async (id, itinerary, token) => {
       },
     };
     const { data } = await axios.patch(
-      `/api/itineraries/${id}`,
+      `${API_URL}/api/itineraries/${id}`,
       itinerary,
       config
     );
@@ -68,6 +74,7 @@ export const updateItinerary = async (id, itinerary, token) => {
     throw error;
   }
 };
+
 export const createItinerary = async (itineraryData, token) => {
   try {
     const config = {
@@ -76,7 +83,7 @@ export const createItinerary = async (itineraryData, token) => {
       },
     };
     const { data } = await axios.post(
-      `/api/itineraries`,
+      `${API_URL}/api/itineraries`,
       itineraryData,
       config
     );
@@ -87,9 +94,13 @@ export const createItinerary = async (itineraryData, token) => {
     throw new Error(error.message);
   }
 };
+
 export const getInvitedItineraries = async (token) => {
   const config = { headers: { Authorization: `Bearer ${token}` } };
-  const { data } = await axios.get(`/api/itineraries/invited`, config);
+  const { data } = await axios.get(
+    `${API_URL}/api/itineraries/invited`,
+    config
+  );
   return data;
 };
 
@@ -101,7 +112,7 @@ export const leaveItinerary = async (itineraryId, token) => {
       },
     };
     const { data } = await axios.patch(
-      `/api/itineraries/leave/${itineraryId}`,
+      `${API_URL}/api/itineraries/leave/${itineraryId}`,
       {}, // no additional data is needed
       config
     );
@@ -112,12 +123,13 @@ export const leaveItinerary = async (itineraryId, token) => {
     throw new Error(error.message);
   }
 };
+
 // Get the itinerary data for editing (if different from getSingleItinerary)
 export const getSingleItineraryForEdit = async (itineraryId, token) => {
   try {
     const config = { headers: { Authorization: `Bearer ${token}` } };
     const { data } = await axios.get(
-      `/api/itineraries/${itineraryId}/edit`,
+      `${API_URL}/api/itineraries/${itineraryId}/edit`,
       config
     );
     return data;
@@ -132,7 +144,10 @@ export const getSingleItineraryForEdit = async (itineraryId, token) => {
 export const getUserFavorites = async ({ userId, token }) => {
   try {
     const config = { headers: { Authorization: `Bearer ${token}` } };
-    const { data } = await axios.get(`/api/favorites/user/${userId}`, config);
+    const { data } = await axios.get(
+      `${API_URL}/api/favorites/user/${userId}`,
+      config
+    );
     return data;
   } catch (error) {
     if (error.response && error.response.data.message)
@@ -155,7 +170,7 @@ export const addTravelerToItinerary = async (
     };
     // travelerData should be an object, e.g., { userId: "xxx", role: "editor" }
     const { data } = await axios.patch(
-      `/api/itineraries/addTraveler/${itineraryId}`,
+      `${API_URL}/api/itineraries/addTraveler/${itineraryId}`,
       travelerData,
       config
     );
@@ -181,7 +196,7 @@ export const updateTravelerRole = async (
       },
     };
     const { data } = await axios.patch(
-      `/api/itineraries/updateTravelerRole/${itineraryId}`,
+      `${API_URL}/api/itineraries/updateTravelerRole/${itineraryId}`,
       { travelerId, role: newRole },
       config
     );
@@ -205,7 +220,7 @@ export const removeTravelerFromItinerary = async (
       },
     };
     const { data } = await axios.patch(
-      `/api/itineraries/removeTraveler/${itineraryId}`,
+      `${API_URL}/api/itineraries/removeTraveler/${itineraryId}`,
       { travelerId },
       config
     );
@@ -216,6 +231,7 @@ export const removeTravelerFromItinerary = async (
     throw new Error(error.message);
   }
 };
+
 // Add these functions to your existing itinerary service file
 
 // Add an experience to an itinerary
@@ -232,7 +248,7 @@ export const addExperienceToItinerary = async ({
       },
     };
     const { data } = await axios.patch(
-      `/api/itineraries/${itineraryId}/experiences`,
+      `${API_URL}/api/itineraries/${itineraryId}/experiences`,
       { experienceId, boardDate },
       config
     );
@@ -260,8 +276,8 @@ export const removeExperienceFromItinerary = async ({
 
     // Add boardDate as query parameter if provided
     const url = boardDate
-      ? `/api/itineraries/${itineraryId}/experiences/${experienceId}?boardDate=${boardDate}`
-      : `/api/itineraries/${itineraryId}/experiences/${experienceId}`;
+      ? `${API_URL}/api/itineraries/${itineraryId}/experiences/${experienceId}?boardDate=${boardDate}`
+      : `${API_URL}/api/itineraries/${itineraryId}/experiences/${experienceId}`;
 
     const { data } = await axios.delete(url, config);
     return data;
@@ -285,7 +301,7 @@ export const checkExperienceInItinerary = async ({
       },
     };
     const { data } = await axios.get(
-      `/api/itineraries/${itineraryId}/experiences/${experienceId}/check`,
+      `${API_URL}/api/itineraries/${itineraryId}/experiences/${experienceId}/check`,
       config
     );
     return data; // Returns { exists: true/false, boards: [], itineraryId, experienceId, favoriteId }
@@ -305,7 +321,7 @@ export const getItineraryExperiences = async (itineraryId, token) => {
       },
     };
     const { data } = await axios.get(
-      `/api/itineraries/${itineraryId}/experiences`,
+      `${API_URL}/api/itineraries/${itineraryId}/experiences`,
       config
     );
     return data;
