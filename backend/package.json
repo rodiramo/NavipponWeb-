@@ -1,18 +1,28 @@
 {
-  "name": "backend-blog-app",
+  "name": "navippon-backend",
   "version": "1.0.0",
-  "description": "",
+  "description": "NavipponWeb Backend API for travel experiences",
   "main": "server.js",
   "scripts": {
-    "start": "node  server.js",
-    "dev": "nodemon server.js"
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "build": "npm install"
+  },
+  "engines": {
+    "node": "18.x",
+    "npm": ">=8.0.0"
   },
   "type": "module",
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "travel",
+    "experiences",
+    "api",
+    "nodejs",
+    "express"
+  ],
+  "author": "Your Name",
   "license": "ISC",
   "dependencies": {
-    "@react-google-maps/api": "^2.20.7",
     "bcrypt": "^6.0.0",
     "bcryptjs": "^2.4.3",
     "cloudinary": "^1.41.3",
@@ -26,8 +36,9 @@
     "multer-storage-cloudinary": "^4.0.0",
     "node-cron": "^4.1.0",
     "nodemailer": "^7.0.3",
-    "nodemon": "^3.1.9",
-    "recharts": "^2.15.3",
     "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
   }
 }
