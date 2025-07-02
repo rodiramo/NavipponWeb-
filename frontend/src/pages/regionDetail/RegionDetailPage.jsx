@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import MainLayout from "../../components/MainLayout.jsx";
 import BreadcrumbBack from "../../components/BreadcrumbBack.jsx";
@@ -212,38 +212,7 @@ const RegionDetail = () => {
   const [viewMode, setViewMode] = useState("grid"); // grid or list
 
   const region = regionData[regionName];
-
-  useEffect(() => {
-    if (!region) {
-      navigate("/404");
-      return;
-    }
-
-    // Fetch experiences for this region
-    fetchRegionExperiences();
-    fetchWeatherData();
-  }, [regionName, region]);
-
-  useEffect(() => {
-    // Filter experiences based on search and category
-    let filtered = experiences;
-
-    if (searchTerm) {
-      filtered = filtered.filter(
-        (exp) =>
-          exp.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          exp.description.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    if (categoryFilter) {
-      filtered = filtered.filter((exp) => exp.categories === categoryFilter);
-    }
-
-    setFilteredExperiences(filtered);
-  }, [experiences, searchTerm, categoryFilter]);
-
-  const fetchRegionExperiences = async () => {
+  const fetchRegionExperiences = useCallback(async () => {
     try {
       setLoading(true);
       // Replace with your actual API call
@@ -259,8 +228,9 @@ const RegionDetail = () => {
     } finally {
       setLoading(false);
     }
-  };
-  const fetchWeatherData = async () => {
+  }, [regionName]);
+
+  const fetchWeatherData = useCallback(async () => {
     try {
       setWeatherLoading(true);
 
@@ -287,7 +257,36 @@ const RegionDetail = () => {
     } finally {
       setWeatherLoading(false);
     }
-  };
+  }, [region.weatherCity]);
+
+  useEffect(() => {
+    if (!region) {
+      navigate("/404");
+      return;
+    }
+
+    // Fetch experiences for this region
+    fetchRegionExperiences();
+    fetchWeatherData();
+  }, [region, fetchRegionExperiences, fetchWeatherData, navigate]);
+  useEffect(() => {
+    // Filter experiences based on search and category
+    let filtered = experiences;
+
+    if (searchTerm) {
+      filtered = filtered.filter(
+        (exp) =>
+          exp.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          exp.description.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    if (categoryFilter) {
+      filtered = filtered.filter((exp) => exp.categories === categoryFilter);
+    }
+
+    setFilteredExperiences(filtered);
+  }, [experiences, searchTerm, categoryFilter]);
 
   const getWeatherIcon = (iconCode) => {
     const iconMap = {

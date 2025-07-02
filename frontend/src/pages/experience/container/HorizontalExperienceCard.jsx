@@ -5,7 +5,6 @@ import { toast } from "react-hot-toast";
 import {
   addFavorite as addFavoriteService,
   removeFavorite as removeFavoriteService,
-  getFavoritesCount as getFavoritesCountService,
   getUserFavorites,
 } from "../../../services/index/favorites";
 // Add itinerary service imports
@@ -105,7 +104,6 @@ const HorizontalExperienceCard = ({
   onItineraryAdd, // New callback for itinerary updates
 }) => {
   const [isFavorite, setIsFavorite] = useState(false);
-  const [favoritesCount, setFavoritesCount] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
   const [userItineraries, setUserItineraries] = useState([]);
   const [anchorEl, setAnchorEl] = useState(null);
@@ -125,19 +123,6 @@ const HorizontalExperienceCard = ({
       ? experience.photo
       : stables.UPLOAD_FOLDER_BASE_URL + experience.photo;
   };
-
-  useEffect(() => {
-    const fetchFavoritesCount = async () => {
-      try {
-        const response = await getFavoritesCountService(experience._id);
-        setFavoritesCount(response.favoritesCount);
-      } catch (error) {
-        console.error("Error fetching favorites count:", error);
-      }
-    };
-
-    fetchFavoritesCount();
-  }, [experience._id]);
 
   useEffect(() => {
     if (user && token) {
@@ -198,22 +183,20 @@ const HorizontalExperienceCard = ({
 
     try {
       if (isFavorite) {
-        const response = await removeFavoriteService({
+        await removeFavoriteService({
           userId: user._id,
           experienceId: experience._id,
           token,
         });
         setIsFavorite(false);
-        setFavoritesCount(response.favoritesCount);
         toast.success("Se eliminó de favoritos");
       } else {
-        const response = await addFavoriteService({
+        await addFavoriteService({
           userId: user._id,
           experienceId: experience._id,
           token,
         });
         setIsFavorite(true);
-        setFavoritesCount(response.favoritesCount);
         toast.success("Se agregó a favoritos");
       }
 

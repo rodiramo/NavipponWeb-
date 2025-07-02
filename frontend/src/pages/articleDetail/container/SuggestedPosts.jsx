@@ -1,4 +1,3 @@
-import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { images, stables } from "../../../constants";
 import { AccessTime, TrendingUp, ArrowForward } from "@mui/icons-material";
@@ -18,7 +17,6 @@ import {
 } from "@mui/material";
 
 const SuggestedPosts = ({ className, header, posts = [], tags }) => {
-  const [hoveredPost, setHoveredPost] = useState(null);
   const theme = useTheme();
 
   return (
@@ -71,8 +69,6 @@ const SuggestedPosts = ({ className, header, posts = [], tags }) => {
               <Card
                 component={Link}
                 to={`/blog/${item.slug}`}
-                onMouseEnter={() => setHoveredPost(item._id)}
-                onMouseLeave={() => setHoveredPost(null)}
                 sx={{
                   height: "100%",
                   display: "flex",

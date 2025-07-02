@@ -91,7 +91,6 @@ import {
   Chip,
   Stack,
   Divider,
-  useMediaQuery,
 } from "@mui/material";
 import { Business } from "@mui/icons-material";
 

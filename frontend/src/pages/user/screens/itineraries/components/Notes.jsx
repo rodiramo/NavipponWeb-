@@ -94,15 +94,6 @@ const Checklist = ({
     }
   };
 
-  const formatDate = (date) => {
-    return new Date(date).toLocaleDateString("es-ES", {
-      day: "numeric",
-      month: "short",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
   const isCurrentUser = (item) => {
     return (
       item.author === currentUser?.name || item.author === currentUser?._id

@@ -20,7 +20,6 @@ import {
 import { useTheme, useMediaQuery } from "@mui/material";
 import ExperienceDetailSkeleton from "./components/ExperienceDetailSkeleton";
 import ErrorMessage from "../../components/ErrorMessage";
-import parseJsonToHtml from "../../utils/parseJsonToHtml";
 import useUser from "../../hooks/useUser";
 import {
   addFavorite as addFavoriteService,
@@ -35,9 +34,7 @@ import CarouselExperiences from "./container/CarouselExperiences";
 
 const ExperienceDetailPage = () => {
   const { slug } = useParams();
-  const [isMapReady, setIsMapReady] = useState(false);
   const { user, jwt } = useUser();
-  const [body, setBody] = useState(null);
   const [isFavorite, setIsFavorite] = useState(false);
   const theme = useTheme(true);
 
@@ -60,23 +57,6 @@ const ExperienceDetailPage = () => {
     queryKey: ["experience", slug],
     onSuccess: async (data) => {
       console.log("Raw API Response:", data);
-
-      if (data?.body) {
-        try {
-          const parsedBody =
-            typeof data.body === "string" ? JSON.parse(data.body) : data.body;
-          console.log("Parsed Body for HTML:", parsedBody);
-          setBody(parseJsonToHtml(parsedBody));
-        } catch (error) {
-          console.error("Error parsing JSON body:", error);
-          setBody(null);
-        }
-      } else {
-        console.warn("No body content available.");
-        setBody(null);
-      }
-
-      setIsMapReady(true);
 
       if (user && jwt) {
         const favorites = await getUserFavorites({

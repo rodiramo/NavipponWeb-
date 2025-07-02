@@ -1,5 +1,5 @@
 import { useCallback, useContext, useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import Context from "../context/UserContext";
 import {
   login as loginService,
@@ -11,7 +11,6 @@ export default function useUser() {
   const { user, jwt, setUser, setJWT } = useContext(Context);
   const [state, setState] = useState({ loading: false, error: false });
   const navigate = useNavigate();
-  const location = useLocation(); // Get current URL location
 
   useEffect(() => {
     const token =

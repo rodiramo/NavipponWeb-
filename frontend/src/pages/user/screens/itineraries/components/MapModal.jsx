@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import React, { useEffect, useRef, useCallback } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -22,7 +22,6 @@ const mapContainerStyle = {
 const MapModal = ({ open, onClose, experiences, dayTitle }) => {
   const theme = useTheme();
   const navigate = useNavigate();
-  const [mapInstance, setMapInstance] = useState(null);
   const markersRef = useRef([]);
 
   // Create global navigation function for info window buttons
@@ -148,19 +147,136 @@ const MapModal = ({ open, onClose, experiences, dayTitle }) => {
       // Clean up markers
       markersRef.current.forEach((marker) => marker.setMap(null));
       markersRef.current = [];
-      setMapInstance(null);
     }
   }, [open]);
 
   const onLoad = useCallback(
     (map) => {
       console.log("🗺️ Map loaded successfully!");
-      setMapInstance(map);
 
       if (!locatedExperiences.length) {
         console.log("⚠️ No located experiences to display");
         return;
       }
+
+      // Move createInfoWindowContent function inside onLoad
+      const createInfoWindowContent = (experience, coordinates, number) => {
+        // Get the slug from the experience data
+        const experienceSlug = experience.slug || experience._id;
+
+        // Helper function for category colors (moved inside)
+        const getCategoryColor = (category) => {
+          const colors = {
+            Cultura: "#9C27B0",
+            Naturaleza: "#4CAF50",
+            Aventura: "#FF5722",
+            Gastronomía: "#FF9800",
+            Compras: "#2196F3",
+            Entretenimiento: "#E91E63",
+            Deportes: "#795548",
+            Other: "#607D8B",
+          };
+          return colors[category] || colors["Other"];
+        };
+
+        return `
+          <div style="max-width: 250px; padding: 8px; font-family: Arial, sans-serif;">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+              <div style="
+                background: ${getCategoryColor(experience.categories)};
+                color: white;
+                border-radius: 50%;
+                width: 24px;
+                height: 24px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: bold;
+                font-size: 12px;
+              ">${number}</div>
+              <h3 style="margin: 0; font-size: 16px; font-weight: 600; color: #333;">
+                ${experience.title}
+              </h3>
+            </div>
+            
+            <div style="display: flex; align-items: center; gap: 4px; margin-bottom: 8px; color: #666;">
+              <span style="font-size: 14px;">📍 ${
+                experience.prefecture || experience.address || "Ubicación"
+              }</span>
+            </div>
+            
+            ${
+              experience.description
+                ? `
+              <p style="margin: 0; font-size: 14px; color: #666; line-height: 1.4; margin-bottom: 8px;">
+                ${
+                  experience.description.length > 100
+                    ? experience.description.substring(0, 100) + "..."
+                    : experience.description
+                }
+              </p>
+            `
+                : ""
+            }
+            
+            ${
+              experience.price
+                ? `
+              <div style="margin-top: 8px; padding: 4px 8px; background: #f5f5f5; border-radius: 16px; display: inline-block;">
+                <span style="font-weight: 600; color: #333;">€${experience.price}</span>
+              </div>
+            `
+                : ""
+            }
+            
+            <div style="margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap;">
+              <button 
+                onclick="window.navigateToExperience('${experienceSlug}')"
+                style="
+                  background: rgb(224, 53, 101);
+                  color: white;
+                  border: none;
+                  padding: 8px 16px;
+                  border-radius: 20px;
+                  font-size: 12px;
+                  font-weight: 600;
+                  cursor: pointer;
+                  transition: background-color 0.2s;
+                  flex: 1;
+                  min-width: 100px;
+                "
+                onmouseover="this.style.background='rgb(200, 45, 85)'"
+                onmouseout="this.style.background='rgb(224, 53, 101)'"
+              >
+                Ver detalles
+              </button>
+              
+              <button 
+                onclick="window.open('https://www.google.com/maps/search/${encodeURIComponent(
+                  experience.title
+                )}/@${coordinates[1]},${coordinates[0]},15z', '_blank')"
+                style="
+                  background: #4285f4;
+                  color: white;
+                  border: none;
+                  padding: 8px 16px;
+                  border-radius: 20px;
+                  font-size: 12px;
+                  font-weight: 600;
+                  cursor: pointer;
+                  transition: background-color 0.2s;
+                  flex: 1;
+                  min-width: 100px;
+                "
+                onmouseover="this.style.background='#3367d6'"
+                onmouseout="this.style.background='#4285f4'"
+              >
+                Abrir en maps
+              </button>
+            </div>
+          </div>
+        `;
+      };
 
       console.log(
         "🎯 Creating markers for",
@@ -261,111 +377,8 @@ const MapModal = ({ open, onClose, experiences, dayTitle }) => {
         markersRef.current.length
       );
     },
-    [locatedExperiences]
+    [locatedExperiences] // Only locatedExperiences in dependency array
   );
-
-  const createInfoWindowContent = (experience, coordinates, number) => {
-    // Get the slug from the experience data
-    const experienceSlug = experience.slug || experience._id;
-
-    return `
-      <div style="max-width: 250px; padding: 8px; font-family: Arial, sans-serif;">
-        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-          <div style="
-            background: ${getCategoryColor(experience.categories)};
-            color: white;
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 12px;
-          ">${number}</div>
-          <h3 style="margin: 0; font-size: 16px; font-weight: 600; color: #333;">
-            ${experience.title}
-          </h3>
-        </div>
-        
-        <div style="display: flex; align-items: center; gap: 4px; margin-bottom: 8px; color: #666;">
-          <span style="font-size: 14px;">📍 ${
-            experience.prefecture || experience.address || "Ubicación"
-          }</span>
-        </div>
-        
-        ${
-          experience.description
-            ? `
-          <p style="margin: 0; font-size: 14px; color: #666; line-height: 1.4; margin-bottom: 8px;">
-            ${
-              experience.description.length > 100
-                ? experience.description.substring(0, 100) + "..."
-                : experience.description
-            }
-          </p>
-        `
-            : ""
-        }
-        
-        ${
-          experience.price
-            ? `
-          <div style="margin-top: 8px; padding: 4px 8px; background: #f5f5f5; border-radius: 16px; display: inline-block;">
-            <span style="font-weight: 600; color: #333;">€${experience.price}</span>
-          </div>
-        `
-            : ""
-        }
-        
-        <div style="margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap;">
-          <button 
-            onclick="window.navigateToExperience('${experienceSlug}')"
-            style="
-              background: rgb(224, 53, 101);
-              color: white;
-              border: none;
-              padding: 8px 16px;
-              border-radius: 20px;
-              font-size: 12px;
-              font-weight: 600;
-              cursor: pointer;
-              transition: background-color 0.2s;
-              flex: 1;
-              min-width: 100px;
-            "
-            onmouseover="this.style.background='rgb(200, 45, 85)'"
-            onmouseout="this.style.background='rgb(224, 53, 101)'"
-          >
-            Ver detalles
-          </button>
-          
-          <button 
-            onclick="window.open('https://www.google.com/maps/search/${encodeURIComponent(
-              experience.title
-            )}/@${coordinates[1]},${coordinates[0]},15z', '_blank')"
-            style="
-              background: #4285f4;
-              color: white;
-              border: none;
-              padding: 8px 16px;
-              border-radius: 20px;
-              font-size: 12px;
-              font-weight: 600;
-              cursor: pointer;
-              transition: background-color 0.2s;
-              flex: 1;
-              min-width: 100px;
-            "
-            onmouseover="this.style.background='#3367d6'"
-            onmouseout="this.style.background='#4285f4'"
-          >
-            Abrir en maps
-          </button>
-        </div>
-      </div>
-    `;
-  };
 
   const getCategoryColor = (category) => {
     const colors = {

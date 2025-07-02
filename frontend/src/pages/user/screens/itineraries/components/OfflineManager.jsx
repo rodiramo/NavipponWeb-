@@ -1,5 +1,5 @@
 // OfflineManager.jsx - Complete offline and PDF solution
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -27,7 +27,45 @@ const OfflineManager = ({ itinerary, boards, open, onClose, startDate }) => {
   const [storageUsed, setStorageUsed] = useState(0);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
 
-  // Check online/offline status
+  const calculateStorageUsed = useCallback(() => {
+    try {
+      let totalSize = 0;
+      for (let key in localStorage) {
+        if (key.startsWith("offline_itinerary_")) {
+          totalSize += localStorage[key].length;
+        }
+      }
+      setStorageUsed(Math.round(totalSize / 1024)); // KB
+    } catch (error) {
+      console.error("Error calculating storage:", error);
+    }
+  }, []);
+
+  const checkOfflineStatus = useCallback(async () => {
+    try {
+      const stored = localStorage.getItem(
+        `offline_itinerary_${itinerary?._id}`
+      );
+      if (stored) {
+        const data = JSON.parse(stored);
+        setOfflineData(data);
+        setIsOfflineEnabled(true);
+        calculateStorageUsed(); // This now works!
+      }
+    } catch (error) {
+      console.error("Error checking offline status:", error);
+    }
+  }, [itinerary?._id, calculateStorageUsed]);
+
+  const handleOfflineToggle = async () => {
+    if (isOfflineEnabled) {
+      // Remove from offline storage
+      removeFromOfflineStorage();
+    } else {
+      // Add to offline storage
+      await saveForOfflineUse();
+    }
+  };
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
@@ -41,50 +79,9 @@ const OfflineManager = ({ itinerary, boards, open, onClose, startDate }) => {
     };
   }, []);
 
-  // Check if itinerary is already stored offline
   useEffect(() => {
     checkOfflineStatus();
-  }, [itinerary]);
-
-  const checkOfflineStatus = async () => {
-    try {
-      const stored = localStorage.getItem(
-        `offline_itinerary_${itinerary?._id}`
-      );
-      if (stored) {
-        const data = JSON.parse(stored);
-        setOfflineData(data);
-        setIsOfflineEnabled(true);
-        calculateStorageUsed();
-      }
-    } catch (error) {
-      console.error("Error checking offline status:", error);
-    }
-  };
-
-  const calculateStorageUsed = () => {
-    try {
-      let totalSize = 0;
-      for (let key in localStorage) {
-        if (key.startsWith("offline_itinerary_")) {
-          totalSize += localStorage[key].length;
-        }
-      }
-      setStorageUsed(Math.round(totalSize / 1024)); // KB
-    } catch (error) {
-      console.error("Error calculating storage:", error);
-    }
-  };
-
-  const handleOfflineToggle = async () => {
-    if (isOfflineEnabled) {
-      // Remove from offline storage
-      removeFromOfflineStorage();
-    } else {
-      // Add to offline storage
-      await saveForOfflineUse();
-    }
-  };
+  }, [checkOfflineStatus]);
 
   const saveForOfflineUse = async () => {
     try {

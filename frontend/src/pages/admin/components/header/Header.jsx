@@ -1,6 +1,5 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { NavLink } from "react-router-dom";
-import { useWindowSize } from "@uidotdev/usehooks";
 import { images, stables } from "../../../../constants";
 import { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
@@ -30,16 +29,13 @@ import {
 } from "@mui/material";
 
 import NavItem from "./NavItem";
-import NavItemCollapse from "./NavItemCollapse";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import useUser from "../../../../hooks/useUser";
-import { createPost } from "../../../../services/index/posts";
 import { createExperience } from "../../../../services/index/experiences";
 
 const Header = ({ isMenuOpen, setIsMenuOpen }) => {
-  const navigate = useNavigate();
-  const { user, jwt } = useUser();
+  const { user } = useUser();
   const queryClient = useQueryClient();
   const theme = useTheme();
   const dispatch = useDispatch();
@@ -49,30 +45,8 @@ const Header = ({ isMenuOpen, setIsMenuOpen }) => {
   const isDarkMode = themeMode === "dark";
 
   const [activeNavName, setActiveNavName] = useState("dashboard");
-  const windowSize = useWindowSize();
 
-  const { mutate: mutateCreatePost, isLoading: isLoadingCreatePost } =
-    useMutation({
-      mutationFn: ({ token }) => {
-        return createPost({
-          token,
-        });
-      },
-      onSuccess: (data) => {
-        queryClient.invalidateQueries(["posts"]);
-        toast.success("¡Publicación creada, edítala ahora!");
-        navigate(`/admin/posts/manage/edit/${data.slug}`);
-      },
-      onError: (error) => {
-        toast.error(error.message);
-        console.log(error);
-      },
-    });
-
-  const {
-    mutate: mutateCreateExperience,
-    isLoading: isLoadingCreateExperience,
-  } = useMutation({
+  useMutation({
     mutationFn: ({ newExperienceData, token }) => {
       return createExperience({
         experienceData: newExperienceData,
@@ -88,22 +62,6 @@ const Header = ({ isMenuOpen, setIsMenuOpen }) => {
       console.log(error);
     },
   });
-
-  const handleCreateNewExperience = () => {
-    if (!jwt) {
-      toast.error("Debes estar logueado para crear una nueva experiencia");
-      return;
-    }
-    navigate("/admin/experiences/manage/create");
-  };
-
-  const handleCreateNewPost = () => {
-    if (jwt) {
-      mutateCreatePost({ token: jwt });
-    } else {
-      toast.error("Debes estar logueado para crear una nueva publicación");
-    }
-  };
 
   const handleThemeToggle = () => {
     dispatch(toggleMode());

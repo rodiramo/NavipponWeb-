@@ -17,7 +17,6 @@ import {
   Grid,
   Modal,
   IconButton,
-  Fab,
 } from "@mui/material";
 import { useSearchParams } from "react-router-dom";
 import MapAside from "../../components/MapAside";
@@ -46,7 +45,7 @@ const ExperiencePage = ({ filters: initialFilters }) => {
   const [isFiltersModalOpen, setIsFiltersModalOpen] = useState(false);
   const [isMapModalOpen, setIsMapModalOpen] = useState(false);
 
-  const { primary, text } = theme.palette;
+  const { primary } = theme.palette;
   const [selectedFilter, setSelectedFilter] = useState("todo");
 
   const categoryFilter = searchParams.get("category");
@@ -207,12 +206,10 @@ const ExperiencePage = ({ filters: initialFilters }) => {
     currentPage,
     refetch,
     refetchMap,
+    setSearchParams,
   ]);
 
   const totalPageCount = parseInt(data?.headers?.["x-totalpagecount"], 10);
-  const selectedSortOption = sortingOptions.find(
-    (option) => option.value === sortBy
-  );
 
   // Modal styles
   const modalStyle = {
