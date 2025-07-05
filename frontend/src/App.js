@@ -14,11 +14,11 @@ import ResetPasswordPage from "./pages/ResetPasswordPage";
 import RegionDetail from "./pages/regionDetail/RegionDetailPage";
 
 // Footer routes
-import FAQPage from "./pages/terms/FAQPage";
-import HelpCenterPage from "./pages/terms/HelpCenterPage";
-import TermsPage from "./pages/terms/TermsPage";
-import PrivacyPage from "./pages/terms/PrivacyPage";
-import AccessibilityPage from "./pages/terms/AccessibilityPage";
+import FAQPage from "./pages/terms/FAQPage.jsx";
+import HelpCenterPage from "./pages/terms/HelpCenterPage.jsx";
+import TermsPage from "./pages/terms/TermsPage.jsx";
+import PrivacyPage from "./pages/terms/PrivacyPage.jsx";
+import AccessibilityPage from "./pages/terms/AccessibilityPage.jsx";
 import SiteMapPage from "./pages/terms/SiteMapPage.jsx";
 
 // Main pages

@@ -231,7 +231,7 @@ const RegionDetail = () => {
     } finally {
       setLoading(false);
     }
-  }, [regionName]);
+  }, [regionName, API_URL]);
 
   const fetchWeatherData = useCallback(async () => {
     try {

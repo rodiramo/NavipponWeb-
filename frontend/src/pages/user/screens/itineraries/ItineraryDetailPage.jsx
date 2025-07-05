@@ -46,6 +46,7 @@ import { getUserFriends } from "../../../../services/index/users";
 
 const ItineraryDetailPage = () => {
   const [offlineModalOpen, setOfflineModalOpen] = useState(false);
+  const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
 
   const theme = useTheme();
   const [userRole, setUserRole] = useState("viewer");
@@ -122,9 +123,9 @@ const ItineraryDetailPage = () => {
   const deleteFavorite = useCallback(
     async (favoriteId) => {
       const deleteEndpoints = [
-        `/api/favorites/${favoriteId}`,
-        `/api/users/${user._id}/favorites/${favoriteId}`,
-        `/api/user/favorites/${favoriteId}`,
+        `${API_URL}/api/favorites/${favoriteId}`,
+        `${API_URL}/api/users/${user._id}/favorites/${favoriteId}`,
+        `${API_URL}/api/user/favorites/${favoriteId}`,
       ];
 
       for (const endpoint of deleteEndpoints) {
@@ -142,7 +143,7 @@ const ItineraryDetailPage = () => {
         }
       }
     },
-    [jwt, user._id]
+    [jwt, user._id, API_URL]
   );
 
   // NEW: Test different API patterns to find the working one
@@ -150,25 +151,25 @@ const ItineraryDetailPage = () => {
     const patterns = [
       {
         name: "Standard Pattern",
-        endpoint: "/api/favorites",
+        endpoint: `${API_URL}/api/favorites`,
         method: "POST",
         bodyFormat: (exp, usr) => ({ experienceId: exp._id, userId: usr._id }),
       },
       {
         name: "User-specific Pattern",
-        endpoint: `/api/users/${user._id}/favorites`,
+        endpoint: `${API_URL}/api/users/${user._id}/favorites`,
         method: "POST",
         bodyFormat: (exp, usr) => ({ experienceId: exp._id }),
       },
       {
         name: "Alternative Field Names",
-        endpoint: "/api/favorites",
+        endpoint: `${API_URL}/api/favorites`,
         method: "POST",
         bodyFormat: (exp, usr) => ({ experience: exp._id, user: usr._id }),
       },
       {
         name: "Snake Case Pattern",
-        endpoint: "/api/favorites",
+        endpoint: `${API_URL}/api/favorites`,
         method: "POST",
         bodyFormat: (exp, usr) => ({
           experience_id: exp._id,
@@ -177,13 +178,13 @@ const ItineraryDetailPage = () => {
       },
       {
         name: "Experience-centric Pattern",
-        endpoint: "/api/experiences/favorite",
+        endpoint: `${API_URL}/api/experiences/favorite`,
         method: "POST",
         bodyFormat: (exp, usr) => ({ experienceId: exp._id, userId: usr._id }),
       },
       {
         name: "Singular User Pattern",
-        endpoint: "/api/user/favorites",
+        endpoint: `${API_URL}/api/user/favorites`,
         method: "POST",
         bodyFormat: (exp, usr) => ({ experienceId: exp._id }),
       },
@@ -243,7 +244,7 @@ const ItineraryDetailPage = () => {
     }
 
     return { working: null };
-  }, [allExperiences, deleteFavorite, jwt, user]);
+  }, [allExperiences, deleteFavorite, jwt, user, API_URL]);
 
   // NEW: API Configuration Detection
   useEffect(() => {
@@ -501,25 +502,25 @@ const ItineraryDetailPage = () => {
       // Standard patterns
       {
         name: "Standard",
-        endpoint: "/api/favorites",
+        endpoint: `${API_URL}/api/favorites`,
         method: "POST",
         bodyFormat: () => ({ experienceId: experience._id, userId: user._id }),
       },
       {
         name: "User-specific",
-        endpoint: `/api/users/${user._id}/favorites`,
+        endpoint: `${API_URL}/api/users/${user._id}/favorites`,
         method: "POST",
         bodyFormat: () => ({ experienceId: experience._id }),
       },
       {
         name: "Alternative fields",
-        endpoint: "/api/favorites",
+        endpoint: `${API_URL}/api/favorites`,
         method: "POST",
         bodyFormat: () => ({ experience: experience._id, user: user._id }),
       },
       {
         name: "Snake case",
-        endpoint: "/api/favorites",
+        endpoint: `${API_URL}/api/favorites`,
         method: "POST",
         bodyFormat: () => ({
           experience_id: experience._id,
@@ -528,7 +529,7 @@ const ItineraryDetailPage = () => {
       },
       {
         name: "Experience-centric",
-        endpoint: "/api/experiences/favorite",
+        endpoint: `${API_URL}/api/experiences/favorite`,
         method: "POST",
         bodyFormat: () => ({ experienceId: experience._id, userId: user._id }),
       },
@@ -540,25 +541,25 @@ const ItineraryDetailPage = () => {
       },
       {
         name: "Experience nested",
-        endpoint: `/api/experiences/${experience._id}/favorite`,
+        endpoint: `${API_URL}/api/experiences/${experience._id}/favorite`,
         method: "POST",
         bodyFormat: () => ({ userId: user._id }),
       },
       {
         name: "User nested",
-        endpoint: `/api/users/${user._id}/favorites`,
+        endpoint: `${API_URL}/api/users/${user._id}/favorites`,
         method: "POST",
         bodyFormat: () => ({ experience: experience._id }),
       },
       {
         name: "Direct add",
-        endpoint: `/api/favorites/add`,
+        endpoint: `${API_URL}/api/favorites/add`,
         method: "POST",
         bodyFormat: () => ({ experienceId: experience._id, userId: user._id }),
       },
       {
         name: "Like endpoint",
-        endpoint: `/api/experiences/${experience._id}/like`,
+        endpoint: `${API_URL}/api/experiences/${experience._id}/like`,
         method: "POST",
         bodyFormat: () => ({}),
       },
@@ -1102,7 +1103,7 @@ const ItineraryDetailPage = () => {
   const fetchAllExperiences = useCallback(async () => {
     setLoadingExperiences(true);
     try {
-      const response = await fetch("/api/experiences/modal", {
+      const response = await fetch(`${API_URL}/api/experiences/modal`, {
         headers: {
           Authorization: `Bearer ${jwt}`,
         },
@@ -1123,7 +1124,7 @@ const ItineraryDetailPage = () => {
     } finally {
       setLoadingExperiences(false);
     }
-  }, [jwt]);
+  }, [jwt, API_URL]);
   useEffect(() => {
     const fetchFriends = async () => {
       if (!user?._id || !jwt) return;
