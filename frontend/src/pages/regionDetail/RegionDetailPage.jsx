@@ -210,13 +210,16 @@ const RegionDetail = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
   const [viewMode, setViewMode] = useState("grid"); // grid or list
+  const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
 
   const region = regionData[regionName];
   const fetchRegionExperiences = useCallback(async () => {
     try {
       setLoading(true);
       // Replace with your actual API call
-      const response = await fetch(`/api/experiences?region=${regionName}`);
+      const response = await fetch(
+        `${API_URL}/api/experiences?region=${regionName}`
+      );
       const data = await response.json();
       setExperiences(data);
       setFilteredExperiences(data);

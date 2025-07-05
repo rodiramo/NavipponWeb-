@@ -19,6 +19,7 @@ import { useTheme } from "@mui/material/styles";
 import MainLayout from "../../components/MainLayout";
 import { Send } from "lucide-react";
 import axios from "axios";
+const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
 
 const ContactPage = () => {
   const mode = useSelector((state) => state.theme.mode);
@@ -44,7 +45,7 @@ const ContactPage = () => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const response = await axios.post("/api/email", formData);
+      const response = await axios.post(`${API_URL}/api/email`, formData);
       if (response.status === 201) {
         alert("Mensaje enviado con éxito");
         setFormData({
