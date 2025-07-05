@@ -202,10 +202,7 @@ function App() {
           </Route>
           {/* 404 Not Found route */}
           <Route path="/404" element={<NotFound />} /> {/* direct visit */}
-          <Route
-            path="*"
-            element={<Navigate to={`${API_URL}/404`} replace />}
-          />
+          <Route path="*" element={<Navigate to={`/404`} replace />} />
         </Routes>
         <Toaster />
       </div>
