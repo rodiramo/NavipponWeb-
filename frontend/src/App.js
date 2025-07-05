@@ -4,6 +4,7 @@ import { Toaster } from "react-hot-toast";
 import "leaflet/dist/leaflet.css";
 import { useSelector } from "react-redux";
 import { useEffect } from "react";
+import { Navigate } from "react-router-dom";
 import "./App.css";
 import { ThemeProvider } from "@mui/material";
 import createTheme from "@mui/material/styles/createTheme";
@@ -77,6 +78,7 @@ import NotFound from "./pages/NotFound.jsx";
 function App() {
   const mode = useSelector((state) => state.theme.mode);
   const theme = useMemo(() => createTheme(themeSettings(mode)), [mode]);
+  const API_URL = process.env.FRONTEND_API_URL || "http://localhost:3001";
 
   useEffect(() => {
     document.body.style.setProperty(
@@ -101,19 +103,16 @@ function App() {
             path="/reset-password/:token"
             element={<ResetPasswordPage />}
           />
-
           {/* Blog Routes */}
           <Route path="/blog" element={<BlogPage />} />
           <Route path="/blog/:slug" element={<ArticleDetailPage />} />
           <Route path="/blog/edit/:slug" element={<PostFormPage />} />
           <Route path="/blog/create" element={<PostFormPage />} />
-
           {/* Other Public Routes */}
           <Route path="/region/:regionName" element={<RegionDetail />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/profile/:userId" element={<UserProfilePage />} />
-
           {/* Footer Pages */}
           <Route path="/faq" element={<FAQPage />} />
           <Route path="/accessibility" element={<AccessibilityPage />} />
@@ -121,14 +120,12 @@ function App() {
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/help" element={<HelpCenterPage />} />
           <Route path="/sitemap" element={<SiteMapPage />} />
-
           {/* Experience Management Routes (Public) */}
           <Route
             path="/experiences/manage/edit/:slug"
             element={<ExperienceForm />}
           />
           <Route path="/posts/manage/create" element={<PostFormPage />} />
-
           {/* Admin Routes */}
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<Admin />} />
@@ -156,7 +153,6 @@ function App() {
             <Route path="emailweb" element={<ManageEmails />} />
             <Route path="emailweb/:id" element={<EmailDetail />} />
           </Route>
-
           {/* User Dashboard Routes - CONSOLIDATED */}
           <Route path="/user" element={<UserLayout />}>
             <Route index element={<Dashboard />} />
@@ -204,9 +200,12 @@ function App() {
             {/* Comments */}
             <Route path="comments" element={<Comments />} />
           </Route>
-
           {/* 404 Not Found route */}
-          <Route path="*" element={<NotFound />} />
+          <Route path="/404" element={<NotFound />} /> {/* direct visit */}
+          <Route
+            path="*"
+            element={<Navigate to={`${API_URL}/404`} replace />}
+          />
         </Routes>
         <Toaster />
       </div>

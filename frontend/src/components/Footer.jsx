@@ -10,6 +10,7 @@ import { BookOpen, MessageCircle, FileQuestion } from "lucide-react";
 
 const Footer = ({ onShowGuide = null }) => {
   const theme = useTheme();
+  const API_URL = process.env.FRONTEND_API_URL || "http://localhost:3001";
 
   // Unified link style for all footer links
   const unifiedLinkStyle = {
@@ -185,7 +186,7 @@ const Footer = ({ onShowGuide = null }) => {
                 Guía de Inicio
               </FooterLink>
 
-              <FooterLink href="/faq">
+              <FooterLink href={`${API_URL}/faq`}>
                 <FileQuestion size={16} />
                 Preguntas Frecuentes
               </FooterLink>
@@ -245,8 +246,10 @@ const Footer = ({ onShowGuide = null }) => {
 
             {/* Additional Help Links */}
             <div className="pt-4 space-y-3 border-t border-gray-700/30">
-              <FooterLink href="/privacy">Política de Privacidad</FooterLink>
-              <FooterLink href="/terms">Términos de Uso</FooterLink>
+              <FooterLink href={`${API_URL}/privacy`}>
+                Política de Privacidad
+              </FooterLink>
+              <FooterLink href={`${API_URL}/terms`}>Términos de Uso</FooterLink>
             </div>
           </div>
         </div>
@@ -258,8 +261,12 @@ const Footer = ({ onShowGuide = null }) => {
               © 2025 Navippon. Todos los derechos reservados.
             </p>
             <div className="flex space-x-6 text-sm">
-              <FooterLink href="/sitemap">Mapa del Sitio</FooterLink>
-              <FooterLink href="/accessibility">Accesibilidad</FooterLink>
+              <FooterLink href={`${API_URL}/sitemap`}>
+                Mapa del Sitio
+              </FooterLink>
+              <FooterLink href={`${API_URL}/accessibility`}>
+                Accesibilidad
+              </FooterLink>
             </div>
           </div>
         </div>
