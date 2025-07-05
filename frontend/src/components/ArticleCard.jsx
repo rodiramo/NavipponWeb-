@@ -77,20 +77,23 @@ const ArticleCard = ({ post, className, currentUser, token, onEdit }) => {
 
   return (
     <div
-      className={`group relative overflow-hidden transition-all duration-500 ${className}`}
+      className={`group relative overflow-hidden transition-all duration-500 flex flex-col ${className}`}
       style={{
         borderRadius: "16px",
-        minHeight: "600px",
+        height: "700px", // Fixed height for all cards
         background: "rgba(255, 255, 255, 0.1)",
         backdropFilter: "blur(20px)",
         border: "1px solid rgba(255, 255, 255, 0.2)",
         boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)",
       }}
     >
-      {/* Image Section */}
+      {/* Image Section - Fixed Height */}
       <div
-        className="relative overflow-hidden"
-        style={{ borderRadius: "16px 16px 0 0" }}
+        className="relative overflow-hidden flex-shrink-0"
+        style={{
+          borderRadius: "16px 16px 0 0",
+          height: "280px", // Fixed image height
+        }}
       >
         <Link to={`/blog/${post.slug}`}>
           <img
@@ -100,7 +103,7 @@ const ArticleCard = ({ post, className, currentUser, token, onEdit }) => {
                 : images.samplePostImage
             }
             alt={post.title}
-            className="w-full h-64 sm:h-72 lg:h-64 object-cover transition-transform duration-700 group-hover:scale-110"
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
             loading="lazy"
           />
 
@@ -160,7 +163,7 @@ const ArticleCard = ({ post, className, currentUser, token, onEdit }) => {
               onClick={handleEdit}
               className="group/edit w-12 h-12 rounded-full backdrop-blur-md border border-white/20 flex items-center justify-center transition-all duration-300 hover:scale-110 hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/50"
               style={{
-                backgroundColor: `${theme.palette.info.main}20`,
+                backgroundColor: `${theme.palette.background.default}`,
                 borderColor: `${theme.palette.info.main}30`,
               }}
               title="Editar artículo"
@@ -190,35 +193,42 @@ const ArticleCard = ({ post, className, currentUser, token, onEdit }) => {
         </div>
       </div>
 
-      {/* Content Section */}
-      <div className="p-6 space-y-4">
-        <Link to={`/blog/${post.slug}`} className="block space-y-3">
-          {/* Date */}
-          <div className="flex items-center gap-2 text-sm ">
-            <Calendar size={14} />
-            <span>{formatDate(post.createdAt)}</span>
-          </div>
+      {/* Content Section - Flexible Height */}
+      <div className="flex flex-col flex-grow p-6">
+        {/* Main Content - Takes up available space */}
+        <div className="flex-grow">
+          <Link to={`/blog/${post.slug}`} className="block space-y-3">
+            {/* Date */}
+            <div className="flex items-center gap-2 text-sm">
+              <Calendar size={14} />
+              <span>{formatDate(post.createdAt)}</span>
+            </div>
 
-          {/* Title */}
-          <h2 className="text-xl sm:text-2xl font-bold leading-tight transition-colors duration-300">
-            <span className="bg-gradient-to-r bg-clip-text ">{post.title}</span>
-          </h2>
+            {/* Title */}
+            <h2 className="text-xl sm:text-2xl font-bold leading-tight transition-colors duration-300">
+              <span className="bg-gradient-to-r bg-clip-text">
+                {post.title}
+              </span>
+            </h2>
 
-          {/* Caption */}
-          <p
-            className="leading-relaxed line-clamp-3"
-            style={{
-              overflow: "hidden",
-              display: "-webkit-box",
-              WebkitLineClamp: 3,
-              WebkitBoxOrient: "vertical",
-            }}
-          >
-            {post.caption}
-          </p>
-        </Link>
-        {/* Author Section */}
-        <div className="flex items-center justify-between pt-4 border-t border-slate-200/20">
+            {/* Caption - Fixed height with line clamp */}
+            <p
+              className="leading-relaxed"
+              style={{
+                overflow: "hidden",
+                display: "-webkit-box",
+                WebkitLineClamp: 3,
+                WebkitBoxOrient: "vertical",
+                height: "4.5rem", // Fixed height for 3 lines
+              }}
+            >
+              {post.caption}
+            </p>
+          </Link>
+        </div>
+
+        {/* Author Section - Fixed Position */}
+        <div className="flex items-center justify-between pt-4 border-t border-slate-200/20 mt-4">
           <div className="flex items-center gap-3">
             {/* Author Avatar */}
             <div className="relative">
@@ -280,45 +290,39 @@ const ArticleCard = ({ post, className, currentUser, token, onEdit }) => {
             )}
           </div>
         </div>
-        {/* Tags Section - Optional */}
-        {post.tags && post.tags.length > 0 && (
-          <div className="flex flex-wrap gap-2 pt-2">
-            {post.tags.slice(0, 3).map((tag, index) => (
-              <span
-                key={index}
-                className="px-3 py-1 text-xs mb-5 font-medium rounded-full transition-all duration-300 hover:scale-105"
-                style={{
-                  backgroundColor: `${theme.palette.primary.main}10`,
-                  color: theme.palette.primary.main,
-                  border: `1px solid ${theme.palette.primary.main}20`,
-                }}
-              >
-                #{tag}
-              </span>
-            ))}
-          </div>
-        )}{" "}
-        {/* Edit Button for Bottom Section - Alternative placement */}
-        {currentUser && isOwnProfile && (
-          <button
-            onClick={handleEdit}
-            className="group/edit-bottom flex items-center gap-2 px-3 py-2 rounded-full transition-all duration-300 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2"
-            style={{
-              margin: " 0 auto",
 
-              backgroundColor: `${theme.palette.info.main}15`,
-              color: theme.palette.info.main,
-              border: `1px solid ${theme.palette.info.main}30`,
-            }}
-            title="Editar artículo"
-          >
-            <Edit
-              size={16}
-              className="transition-transform duration-300 group-hover/edit-bottom:scale-110"
-            />
-            <span className="text-sm font-medium hidden sm:inline">Editar</span>
-          </button>
-        )}
+        {/* Bottom Section - Fixed Height Area */}
+        <div
+          className="mt-4"
+          style={{
+            height: "80px",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-between",
+          }}
+        >
+          {/* Tags Section - Fixed position from bottom */}
+          <div className="flex flex-wrap gap-2">
+            {post.tags && post.tags.length > 0 ? (
+              post.tags.slice(0, 3).map((tag, index) => (
+                <span
+                  key={index}
+                  className="px-3 py-1 text-xs font-medium rounded-full transition-all duration-300 hover:scale-105"
+                  style={{
+                    backgroundColor: `${theme.palette.primary.main}10`,
+                    color: theme.palette.primary.main,
+                    border: `1px solid ${theme.palette.primary.main}20`,
+                  }}
+                >
+                  #{tag}
+                </span>
+              ))
+            ) : (
+              // Empty space to maintain consistent layout
+              <div style={{ height: "26px" }}></div>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Card shine effect */}

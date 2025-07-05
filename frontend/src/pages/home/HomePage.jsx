@@ -69,15 +69,6 @@ const HomePage = () => {
       <Hero />
       <BgShape />
 
-      {/* Add Quick Start Card after Hero for logged-in users */}
-      {user && (
-        <div
-          style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 20px" }}
-        >
-          <QuickStartCard onStartItinerary={handleStartItinerary} />
-        </div>
-      )}
-
       <InfoPill />
 
       <CTA />

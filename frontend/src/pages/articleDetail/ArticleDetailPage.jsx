@@ -21,7 +21,12 @@ import { PersonAddOutlined, PersonRemoveOutlined } from "@mui/icons-material";
 import { toggleFriend } from "../../services/index/users";
 import { toast } from "react-hot-toast";
 import { images, stables } from "../../constants";
-import { Favorite, Share, FavoriteBorder } from "@mui/icons-material";
+import {
+  Favorite,
+  Share,
+  FavoriteBorder,
+  ChatBubbleOutline,
+} from "@mui/icons-material";
 import { useDispatch } from "react-redux";
 import { useQuery } from "@tanstack/react-query";
 import { getAllPosts, getSinglePost } from "../../services/index/posts";
@@ -650,27 +655,39 @@ const ArticleDetailPage = (token) => {
     }
   };
 
-  // Mobile Sidebar Component
-  const SidebarContent = () => (
+  // Handle scroll to comments
+  const scrollToComments = () => {
+    const commentsElement = document.getElementById("comments-section");
+    if (commentsElement) {
+      commentsElement.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }
+  };
+
+  // Mobile Sidebar Component - Compact Version
+  const SidebarContent = ({ compact = false }) => (
     <>
       {/* Author Section */}
       <Paper
         elevation={0}
         sx={{
-          p: 3,
-          mb: 3,
-          borderRadius: 3,
+          p: compact ? { xs: 1.5, sm: 2 } : 3,
+          mb: compact ? { xs: 1.5, sm: 2 } : 3,
+          borderRadius: compact ? 2 : 3,
           backgroundColor: theme.palette.background.paper,
           border: `1px solid ${theme.palette.divider}`,
           background: `linear-gradient(135deg, ${theme.palette.background.paper} 0%, ${theme.palette.primary.main}05 100%)`,
         }}
       >
         <Typography
-          variant="h6"
+          variant={compact ? "subtitle1" : "h6"}
           sx={{
-            mb: 2,
+            mb: compact ? 1 : 2,
             color: theme.palette.primary.main,
             fontWeight: 700,
+            fontSize: compact ? { xs: "0.9rem", sm: "1rem" } : undefined,
           }}
         >
           Sobre el Autor
@@ -682,10 +699,12 @@ const ArticleDetailPage = (token) => {
             alignItems: "center",
             justifyContent: "space-between",
             flexWrap: "wrap",
-            gap: 2,
+            gap: compact ? 1 : 2,
           }}
         >
-          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+          <Box
+            sx={{ display: "flex", alignItems: "center", gap: compact ? 1 : 2 }}
+          >
             <Avatar
               src={
                 data?.user?.avatar
@@ -694,28 +713,32 @@ const ArticleDetailPage = (token) => {
               }
               alt={data?.user?.name}
               sx={{
-                width: { xs: 48, sm: 56 },
-                height: { xs: 48, sm: 56 },
-                border: `3px solid ${theme.palette.primary.main}`,
-                boxShadow: theme.shadows[3],
+                width: compact ? { xs: 32, sm: 40 } : { xs: 48, sm: 56 },
+                height: compact ? { xs: 32, sm: 40 } : { xs: 48, sm: 56 },
+                border: `2px solid ${theme.palette.primary.main}`,
+                boxShadow: theme.shadows[2],
               }}
             />
             <Box>
               <Typography
-                variant="h6"
+                variant={compact ? "body2" : "h6"}
                 sx={{
                   fontWeight: 600,
                   color: theme.palette.text.primary,
-                  fontSize: { xs: "1rem", sm: "1.125rem" },
+                  fontSize: compact
+                    ? { xs: "0.8rem", sm: "0.9rem" }
+                    : { xs: "1rem", sm: "1.125rem" },
                 }}
               >
                 {data?.user?.name || "Autor desconocido"}
               </Typography>
               <Typography
-                variant="body2"
+                variant="caption"
                 sx={{
                   color: theme.palette.text.secondary,
-                  fontSize: "0.875rem",
+                  fontSize: compact
+                    ? { xs: "0.7rem", sm: "0.75rem" }
+                    : "0.875rem",
                 }}
               >
                 {isOwnPost ? "Tu publicación" : "Contribuidor"}
@@ -739,8 +762,8 @@ const ArticleDetailPage = (token) => {
                   color: isPostAuthorFriend
                     ? theme.palette.error.main
                     : theme.palette.primary.main,
-                  width: { xs: 44, sm: 48 },
-                  height: { xs: 44, sm: 48 },
+                  width: compact ? { xs: 32, sm: 36 } : { xs: 44, sm: 48 },
+                  height: compact ? { xs: 32, sm: 36 } : { xs: 44, sm: 48 },
                   "&:hover": {
                     backgroundColor: isPostAuthorFriend
                       ? theme.palette.error.main
@@ -752,15 +775,19 @@ const ArticleDetailPage = (token) => {
                     backgroundColor: theme.palette.action.disabledBackground,
                   },
                   transition: "all 0.3s ease",
-                  boxShadow: theme.shadows[2],
+                  boxShadow: theme.shadows[1],
                 }}
               >
                 {processingFriends.has(data?.user?._id) ? (
-                  <CircularProgress size={20} />
+                  <CircularProgress size={compact ? 16 : 20} />
                 ) : isPostAuthorFriend ? (
-                  <PersonRemoveOutlined sx={{ fontSize: { xs: 20, sm: 24 } }} />
+                  <PersonRemoveOutlined
+                    sx={{ fontSize: compact ? 16 : { xs: 20, sm: 24 } }}
+                  />
                 ) : (
-                  <PersonAddOutlined sx={{ fontSize: { xs: 20, sm: 24 } }} />
+                  <PersonAddOutlined
+                    sx={{ fontSize: compact ? 16 : { xs: 20, sm: 24 } }}
+                  />
                 )}
               </IconButton>
             </Tooltip>
@@ -768,8 +795,71 @@ const ArticleDetailPage = (token) => {
         </Box>
       </Paper>
 
-      {/* Categories Section */}
-      {data?.categories && data.categories.length > 0 && (
+      {/* Categories and Tags Combined Section for Mobile */}
+      {compact && (data?.categories?.length > 0 || tags.length > 0) && (
+        <Paper
+          elevation={0}
+          sx={{
+            p: { xs: 1.5, sm: 2 },
+            mb: { xs: 1.5, sm: 2 },
+            borderRadius: 2,
+            backgroundColor: theme.palette.background.paper,
+            border: `1px solid ${theme.palette.divider}`,
+          }}
+        >
+          <Typography
+            variant="subtitle2"
+            sx={{
+              mb: 1,
+              color: theme.palette.primary.main,
+              fontWeight: 700,
+              fontSize: { xs: "0.8rem", sm: "0.9rem" },
+            }}
+          >
+            Categorías & Etiquetas
+          </Typography>
+          <Stack
+            direction="row"
+            spacing={0.5}
+            sx={{ flexWrap: "wrap", gap: 0.5 }}
+          >
+            {data?.categories?.slice(0, 2).map((category) => (
+              <Chip
+                key={category._id}
+                label={category.title}
+                color="primary"
+                variant="filled"
+                size="small"
+                sx={{
+                  borderRadius: "16px",
+                  fontWeight: 500,
+                  fontSize: { xs: "0.65rem", sm: "0.7rem" },
+                  height: { xs: 20, sm: 24 },
+                }}
+              />
+            ))}
+            {tags.slice(0, 3).map((tag, index) => (
+              <Chip
+                key={index}
+                label={`#${tag}`}
+                variant="outlined"
+                size="small"
+                sx={{
+                  borderRadius: "16px",
+                  fontWeight: 500,
+                  fontSize: { xs: "0.65rem", sm: "0.7rem" },
+                  height: { xs: 20, sm: 24 },
+                  borderColor: theme.palette.secondary.medium,
+                  color: theme.palette.secondary.medium,
+                }}
+              />
+            ))}
+          </Stack>
+        </Paper>
+      )}
+
+      {/* Full Categories Section for Desktop */}
+      {!compact && data?.categories && data.categories.length > 0 && (
         <Paper
           elevation={0}
           sx={{
@@ -807,8 +897,8 @@ const ArticleDetailPage = (token) => {
         </Paper>
       )}
 
-      {/* Tags Section */}
-      {tags.length > 0 && (
+      {/* Full Tags Section for Desktop */}
+      {!compact && tags.length > 0 && (
         <Paper
           elevation={0}
           sx={{
@@ -864,7 +954,7 @@ const ArticleDetailPage = (token) => {
         <Container
           maxWidth={false}
           sx={{
-            py: { xs: 6, sm: 8, md: 12 },
+            py: { xs: 10, sm: 10, md: 12 },
             px: { xs: 2, sm: 3, md: 12 },
             width: "100%",
           }}
@@ -877,7 +967,6 @@ const ArticleDetailPage = (token) => {
                 <Box sx={{ mb: 4 }}>
                   <BreadcrumbBack />
                 </Box>
-
                 {/* Article Header */}
                 <Box sx={{ mb: 5 }}>
                   {/* Date and Reading Time */}
@@ -968,20 +1057,19 @@ const ArticleDetailPage = (token) => {
                     {data?.caption}
                   </Typography>
                 </Box>
-
                 {/* ✅ Consistently Sized Post Image with Overlay Buttons */}
                 <Box
                   sx={{
                     position: "relative",
                     width: "100%",
                     height: {
-                      xs: "300px",
-                      sm: "400px",
+                      xs: "250px", // Reduced from 300px
+                      sm: "350px", // Reduced from 400px
                       md: "500px",
                       lg: "600px",
                     },
                     borderRadius: 3,
-                    mb: 5,
+                    mb: 3, // Reduced from 5
                   }}
                 >
                   <Box
@@ -1006,14 +1094,39 @@ const ArticleDetailPage = (token) => {
                     className="overlay-buttons"
                     sx={{
                       position: "absolute",
-                      bottom: 20,
-                      right: 20,
+                      bottom: { xs: 12, sm: 20 },
+                      right: { xs: 12, sm: 20 },
                       display: "flex",
-                      gap: 2,
+                      gap: { xs: 1, sm: 2 },
                       opacity: { xs: 1, md: 0.9 },
                       transition: "opacity 0.3s ease",
                     }}
                   >
+                    {/* Comments Button - New */}
+                    <IconButton
+                      onClick={scrollToComments}
+                      sx={{
+                        backgroundColor: theme.palette.background.default,
+                        backdropFilter: "blur(10px)",
+                        color: theme.palette.secondary.medium,
+                        width: { xs: 40, sm: 56 },
+                        height: { xs: 40, sm: 56 },
+                        boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3)",
+                        border: "1px solid rgba(255, 255, 255, 0.3)",
+                        "&:hover": {
+                          backgroundColor: theme.palette.secondary.main,
+                          color: "white",
+                          transform: "scale(1.1) translateY(-2px)",
+                          boxShadow: "0 12px 40px rgba(0, 0, 0, 0.4)",
+                        },
+                        transition: "all 0.3s ease",
+                      }}
+                    >
+                      <ChatBubbleOutline
+                        sx={{ fontSize: { xs: 18, sm: 24 } }}
+                      />
+                    </IconButton>
+
                     {/* Share Button */}
                     <IconButton
                       onClick={handleShare}
@@ -1022,8 +1135,8 @@ const ArticleDetailPage = (token) => {
                         backgroundColor: "rgba(255, 255, 255, 0.95)",
                         backdropFilter: "blur(10px)",
                         color: theme.palette.primary.main,
-                        width: { xs: 48, sm: 56 },
-                        height: { xs: 48, sm: 56 },
+                        width: { xs: 40, sm: 56 },
+                        height: { xs: 40, sm: 56 },
                         boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3)",
                         border: "1px solid rgba(255, 255, 255, 0.3)",
                         "&:hover": {
@@ -1039,7 +1152,7 @@ const ArticleDetailPage = (token) => {
                         transition: "all 0.3s ease",
                       }}
                     >
-                      <Share sx={{ fontSize: { xs: 20, sm: 24 } }} />
+                      <Share sx={{ fontSize: { xs: 18, sm: 24 } }} />
                     </IconButton>
 
                     {/* Favorite Button */}
@@ -1051,8 +1164,8 @@ const ArticleDetailPage = (token) => {
                         color: isFavorited
                           ? theme.palette.error.main
                           : theme.palette.grey[600],
-                        width: { xs: 48, sm: 56 },
-                        height: { xs: 48, sm: 56 },
+                        width: { xs: 40, sm: 56 },
+                        height: { xs: 40, sm: 56 },
                         boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3)",
                         border: "1px solid rgba(255, 255, 255, 0.3)",
                         "&:hover": {
@@ -1065,21 +1178,19 @@ const ArticleDetailPage = (token) => {
                       }}
                     >
                       {isFavorited ? (
-                        <Favorite sx={{ fontSize: { xs: 20, sm: 24 } }} />
+                        <Favorite sx={{ fontSize: { xs: 18, sm: 24 } }} />
                       ) : (
-                        <FavoriteBorder sx={{ fontSize: { xs: 20, sm: 24 } }} />
+                        <FavoriteBorder sx={{ fontSize: { xs: 18, sm: 24 } }} />
                       )}
                     </IconButton>
                   </Box>
                 </Box>
-
-                {/* Mobile Sidebar - Show above content on mobile */}
+                {/* Mobile Sidebar - Show above content on mobile with compact design */}
                 {isMobile && (
-                  <Box sx={{ mb: 5 }}>
-                    <SidebarContent />
+                  <Box sx={{ mb: 3 }}>
+                    <SidebarContent compact={true} />
                   </Box>
                 )}
-
                 {/* Post Content - Using Rich Text Renderer */}
                 <Box
                   sx={{
@@ -1097,7 +1208,6 @@ const ArticleDetailPage = (token) => {
                     />
                   )}
                 </Box>
-
                 {/* Divider */}
                 <Divider
                   sx={{
@@ -1105,21 +1215,27 @@ const ArticleDetailPage = (token) => {
                     borderColor: theme.palette.divider,
                   }}
                 />
-
                 {/* Comments Section */}
-                <CommentsContainer
-                  comments={data?.comments}
-                  logginedUserId={user?._id}
-                  postSlug={slug}
-                  jwt={jwt}
-                />
+                <Box id="comments-section">
+                  <CommentsContainer
+                    comments={data?.comments}
+                    logginedUserId={user?._id}
+                    postSlug={slug}
+                    jwt={jwt}
+                  />
+                </Box>
 
-                {/* Suggested Posts - Moved to bottom */}
+                {/* Suggested Posts - Smart filtering with current post exclusion */}
                 <Box sx={{ mt: 8 }}>
                   <SuggestedPosts
                     header="Más artículos interesantes"
                     posts={postsData?.data}
-                    tags={tags}
+                    currentUser={user}
+                    jwt={jwt}
+                    currentPostId={data?._id} // ✅ Current post ID
+                    currentPostSlug={slug} // ✅ Current post slug
+                    currentPostCategories={data?.categories || []} // ✅ Current post categories
+                    currentPostTags={tags} // ✅ Current post tags
                   />
                 </Box>
               </Box>
@@ -1147,7 +1263,7 @@ const ArticleDetailPage = (token) => {
                     },
                   }}
                 >
-                  <SidebarContent />
+                  <SidebarContent compact={false} />
                 </Box>
               </Grid>
             )}

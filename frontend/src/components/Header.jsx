@@ -97,7 +97,7 @@ const Header = () => {
               alt="Logo"
               className="h-16"
             />
-            <h1 className="font-bold pl-2 text-xl md:text-2xl text-white">
+            <h1 className="font-bold pl-2 text-xl md:text-2xl text-white hidden lg:block">
               Navippon
             </h1>
           </Link>

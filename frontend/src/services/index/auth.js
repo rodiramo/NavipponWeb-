@@ -1,6 +1,5 @@
 import axios from "axios";
 
-// 🔥 CRITICAL: Add this line at the top
 const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
 
 export const forgotPassword = async (email) => {

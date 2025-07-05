@@ -25,6 +25,21 @@ const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
 
+  // Theme-aware logo selection
+  const getLogoSrc = (isMobile = false) => {
+    const isDark = theme.palette.mode === "dark";
+
+    if (isMobile) {
+      return isDark
+        ? "/assets/navippon-logo-white.png"
+        : "/assets/navippon-icon.png";
+    } else {
+      return isDark
+        ? "/assets/navippon-logo-white.png"
+        : "/assets/navippon-icon.png";
+    }
+  };
+
   useEffect(() => {
     if (isLogged) {
       console.log("🔵 Login successful, user is logged in");
@@ -32,7 +47,6 @@ const LoginPage = () => {
       console.log("🔵 User data:", user);
 
       sessionStorage.setItem("cameFromLogin", "true");
-
       sessionStorage.removeItem("lastUserPage");
 
       console.log("🔵 About to navigate to /about (TEMPORARY TEST)");
@@ -54,8 +68,6 @@ const LoginPage = () => {
 
   const submitHandler = (data) => {
     const { email, password } = data;
-
-    // Don't pass redirectTo parameter, let useEffect handle navigation
     login({ email, password, rememberMe });
   };
 
@@ -95,9 +107,16 @@ const LoginPage = () => {
           >
             <Link to="/">
               <img
-                src="/assets/navippon-logo-white.png"
+                src={getLogoSrc(false)} // Desktop logo
                 alt="Navippon Logo"
-                style={{ width: "7rem", marginTop: "2rem", marginLeft: "2rem" }}
+                style={{
+                  width: "7rem",
+                  marginTop: "2rem",
+                  marginLeft: "2rem",
+                  // Add filter for white logo in dark mode if needed
+                  filter:
+                    theme.palette.mode === "dark" ? "brightness(1)" : "none",
+                }}
               />
             </Link>
           </Box>
@@ -111,9 +130,14 @@ const LoginPage = () => {
           mt={2}
         >
           <img
-            src="/assets/navippon-icon.png"
+            src={getLogoSrc(true)} // Mobile logo
             alt="Navippon Logo"
-            style={{ width: "7rem", marginTop: "3.5rem" }}
+            style={{
+              width: "7rem",
+              marginTop: "3.5rem",
+              // Add filter for white logo in dark mode if needed
+              filter: theme.palette.mode === "dark" ? "brightness(1)" : "none",
+            }}
           />
         </Box>
       )}
@@ -129,7 +153,7 @@ const LoginPage = () => {
         mt={isNonMobileScreens ? 0 : "2rem"}
       >
         <HomeButton />
-        <Box width="100%" maxWidth="60%">
+        <Box width="100%" sx={{ maxWidth: { xs: "100%", md: "60%" } }}>
           <Typography variant="h4" mb={2} textAlign="center">
             Iniciar sesión
           </Typography>
@@ -159,7 +183,7 @@ const LoginPage = () => {
               helperText={errors.email?.message}
               sx={{
                 borderRadius: "50px",
-                width: "450px",
+                width: { xs: "100%", md: "450px" }, // 100% on mobile, 450px on desktop
                 "& fieldset": { borderRadius: "50px" },
               }}
             />
@@ -170,7 +194,7 @@ const LoginPage = () => {
               type={showPassword ? "text" : "password"}
               sx={{
                 borderRadius: "50px",
-                width: "450px",
+                width: { xs: "100%", md: "450px" }, // 100% on mobile, 450px on desktop
                 "& fieldset": { borderRadius: "50px" },
               }}
               {...register("password", {

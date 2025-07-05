@@ -1,5 +1,6 @@
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import SideNav from "./components/header/SideNav";
+import MobileNav from "./components/header/MobileNav";
 import { useQuery } from "@tanstack/react-query";
 import { Box, Typography, useTheme, CircularProgress } from "@mui/material";
 import MainLayout from "../../components/MainLayout.jsx";
@@ -158,32 +159,67 @@ const UserLayout = () => {
 
   // Exclude UserLayout for Itinerary Detail Page
   if (location.pathname.startsWith("/user/itineraries/manage/view/")) {
-    return <Outlet />; // Just render the page without layout
+    return <Outlet />;
   }
 
   return (
     <MainLayout>
       <Box
-        className="flex lg:flex-row h-full min-h-screen"
         sx={{
+          display: "flex",
           backgroundColor: theme.palette.background.default,
-          paddingTop: 15,
+          minHeight: "100vh",
+          paddingTop: { xs: 15, lg: 15 },
+          paddingBottom: { xs: 10, lg: 0 },
         }}
       >
+        {/* Desktop SideNav - Hidden on mobile */}
         {!hideSideNav && (
-          <SideNav className="w-full lg:fixed lg:left-0 lg:top-0 lg:h-full border-l border-gray-200 bg-white shadow-md" />
+          <Box
+            sx={{
+              display: { xs: "none", lg: "block" },
+              position: "fixed",
+              left: 0,
+              top: 100,
+              height: "100vh",
+            }}
+          >
+            <SideNav />
+          </Box>
         )}
-        <main
-          className="flex-1 px-5 overflow-auto"
-          style={{
+
+        {/* Main Content */}
+        <Box
+          component="main"
+          sx={{
+            flex: 1,
+            width: "100%",
+            marginLeft: { xs: 0, lg: !hideSideNav ? "250px" : 0 }, // No margin on mobile
+            px: { xs: 2, sm: 3, lg: 5 }, // Responsive padding
+            overflow: "auto",
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            width: "100%",
           }}
         >
           <Outlet />
-        </main>
+        </Box>
+
+        {/* Mobile Bottom Navigation */}
+        {!hideSideNav && (
+          <Box
+            sx={{
+              display: { xs: "block", lg: "none" }, // Show only on mobile
+              position: "fixed",
+              bottom: 0,
+              left: 0,
+              right: 0,
+              zIndex: 1000,
+            }}
+          >
+            <MobileNav />
+          </Box>
+        )}
       </Box>
     </MainLayout>
   );

@@ -262,6 +262,7 @@ const PostForm = ({ slug: propSlug = null, open, onClose }) => {
         elevation={0}
         sx={{
           p: 3,
+          background: theme.palette.background.paper,
           mb: 3,
           borderRadius: 3,
           background: `linear-gradient(135deg, ${theme.palette.primary.main}15, ${theme.palette.secondary.main}10)`,
@@ -488,6 +489,8 @@ const PostForm = ({ slug: propSlug = null, open, onClose }) => {
                     fullWidth
                     required
                     placeholder="Escribe el título de tu publicación..."
+                    inputProps={{ maxLength: 65 }}
+                    helperText={`${title.length}/65 caracteres`}
                     sx={{
                       "& .MuiOutlinedInput-root": {
                         borderRadius: 2,
@@ -495,6 +498,13 @@ const PostForm = ({ slug: propSlug = null, open, onClose }) => {
                         "&:hover fieldset": {
                           borderColor: theme.palette.primary.main,
                         },
+                      },
+                      "& .MuiFormHelperText-root": {
+                        textAlign: "right",
+                        color:
+                          title.length > 100
+                            ? theme.palette.warning.main
+                            : theme.palette.text.secondary,
                       },
                     }}
                   />
@@ -533,8 +543,15 @@ const PostForm = ({ slug: propSlug = null, open, onClose }) => {
             </CardContent>
           </Card>
 
-          {/* Content Editor */}
-          <Card elevation={2} sx={{ borderRadius: 3, mt: 3 }}>
+          {/* Content Editor - Made Sticky */}
+          <Card
+            elevation={2}
+            sx={{
+              borderRadius: 3,
+              mt: 3,
+              zIndex: 100,
+            }}
+          >
             <CardContent sx={{ p: 3 }}>
               <Typography
                 variant="h6"
@@ -549,13 +566,15 @@ const PostForm = ({ slug: propSlug = null, open, onClose }) => {
                   borderRadius: 2,
                   overflow: "hidden",
                   minHeight: "300px",
+                  position: "sticky",
+                  maxHeight: "60vh",
+                  overflowY: "auto",
                 }}
               >
                 <Editor
                   content={body}
                   editable={true}
                   onDataChange={(data) => {
-                    console.log("📝 Editor content changed:", data);
                     setBody(data);
                   }}
                   key={`editor-${isEditing ? slug : "new"}-${dataLoaded}`}
@@ -725,7 +744,7 @@ const PostForm = ({ slug: propSlug = null, open, onClose }) => {
       </Grid>
 
       {/* Action Buttons */}
-      <Card elevation={2} sx={{ borderRadius: 3, mt: 3 }}>
+      <Card sx={{ border: "none", boxShadow: "none" }}>
         <CardContent sx={{ p: 3 }}>
           <Box display="flex" gap={2} justifyContent="flex-end">
             <Button
@@ -738,7 +757,7 @@ const PostForm = ({ slug: propSlug = null, open, onClose }) => {
               }}
               variant="outlined"
               sx={{
-                borderRadius: 3,
+                borderRadius: 30,
                 px: 4,
                 py: 1.5,
                 textTransform: "none",
@@ -752,7 +771,7 @@ const PostForm = ({ slug: propSlug = null, open, onClose }) => {
               variant="contained"
               disabled={isLoadingUpdate || isLoadingCreate}
               sx={{
-                borderRadius: 3,
+                borderRadius: 30,
                 px: 4,
                 py: 1.5,
                 textTransform: "none",

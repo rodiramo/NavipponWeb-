@@ -1,5 +1,12 @@
 import React, { useState } from "react";
-import { Box, Typography, IconButton, useTheme, Button } from "@mui/material";
+import {
+  Box,
+  Typography,
+  IconButton,
+  useTheme,
+  Button,
+  useMediaQuery,
+} from "@mui/material";
 import {
   useSortable,
   SortableContext,
@@ -7,7 +14,15 @@ import {
 } from "@dnd-kit/sortable";
 import { useDroppable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
-import { Trash2, Coins, Plus, Map, GripVertical } from "lucide-react";
+import {
+  Trash2,
+  Coins,
+  Plus,
+  Map,
+  GripVertical,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import ActivityCard from "./ItineraryActivity";
 import MapModal from "./MapModal";
 
@@ -17,10 +32,14 @@ const BoardCard = ({
   onRemoveBoard,
   onAddExperience,
   onRemoveFavorite,
+  onMoveActivity,
+  onMoveBoard, // New prop for mobile move functionality
+  totalBoards = 1, // New prop to know total number of boards
   userRole = "viewer",
   isDragDisabled = false,
 }) => {
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [mapModalOpen, setMapModalOpen] = useState(false);
 
   const {
@@ -33,20 +52,40 @@ const BoardCard = ({
   } = useSortable({
     id: `board-${board.id}`,
     disabled: isDragDisabled || userRole === "viewer",
+    // Enhanced touch configuration for mobile
+    activationConstraint: isMobile
+      ? {
+          delay: 200, // 200ms delay before drag starts on mobile
+          tolerance: 5, // 5px tolerance for movement
+        }
+      : undefined,
   });
 
   const { setNodeRef: setDropRef, isOver } = useDroppable({
     id: `board-${board.id}`,
   });
+
   const handleMapClick = (e) => {
-    e.stopPropagation(); // Prevent any parent click handlers
+    e.stopPropagation();
     setMapModalOpen(true);
   };
 
-  // ADD: Close map modal handler
   const handleCloseMap = () => {
     setMapModalOpen(false);
   };
+
+  const handleMoveLeft = () => {
+    if (onMoveBoard && boardIndex > 0) {
+      onMoveBoard(boardIndex, boardIndex - 1);
+    }
+  };
+
+  const handleMoveRight = () => {
+    if (onMoveBoard && boardIndex < totalBoards - 1) {
+      onMoveBoard(boardIndex, boardIndex + 1);
+    }
+  };
+
   const getDayTitle = () => {
     const date = new Date(board.date).toLocaleDateString("es-ES", {
       weekday: "long",
@@ -76,17 +115,21 @@ const BoardCard = ({
         borderRadius: 5,
         boxShadow: 2,
         backgroundColor: theme.palette.primary.white,
-        height: "calc(100vh)",
-        minWidth: "350px !important",
-        maxWidth: "350px",
+        height: "80vh",
+        minWidth: { xs: "300px", sm: "350px" },
+        maxWidth: { xs: "300px", sm: "350px" },
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
         border: isOver
           ? `2px dashed ${theme.palette.primary.main}`
-          : "2px solid transparent",
+          : isBoardDragging
+            ? `2px solid ${theme.palette.primary.main}`
+            : "2px solid transparent",
         transform: isOver ? "scale(1.02)" : "scale(1)",
         transition: "all 0.2s ease",
+        // Enhanced mobile touch styles
+        touchAction: isMobile ? "manipulation" : "auto",
       }}
     >
       <Box
@@ -106,28 +149,94 @@ const BoardCard = ({
             display: "flex",
             alignItems: "center",
             gap: 1,
-            p: 2,
-            minHeight: "80px", // Fixed height for header
-            flexShrink: 0, // Prevent shrinking
+            p: { xs: 1.5, sm: 2 },
+            minHeight: { xs: "70px", sm: "80px" },
+            flexShrink: 0,
           }}
         >
+          {/* Mobile Move Buttons OR Desktop Drag Handle */}
           {userRole !== "viewer" && (
-            <Box
-              {...boardAttributes}
-              {...boardListeners}
-              sx={{
-                cursor: isBoardDragging ? "grabbing" : "grab",
-                display: "flex",
-                alignItems: "center",
-                p: 0.5,
-                borderRadius: 1,
-                "&:hover": {
-                  backgroundColor: theme.palette.grey[100],
-                },
-              }}
-            >
-              <GripVertical size={20} color={theme.palette.grey[600]} />
-            </Box>
+            <>
+              {isMobile ? (
+                // Mobile: Left/Right buttons
+                <Box sx={{ display: "flex", flexDirection: "row", gap: 0.5 }}>
+                  <IconButton
+                    size="small"
+                    onClick={handleMoveLeft}
+                    disabled={boardIndex === 0}
+                    sx={{
+                      width: 28,
+                      height: 28,
+                      backgroundColor:
+                        boardIndex === 0
+                          ? theme.palette.grey[200]
+                          : theme.palette.primary.light,
+                      color:
+                        boardIndex === 0
+                          ? theme.palette.grey[400]
+                          : theme.palette.primary.main,
+                      "&:hover": {
+                        backgroundColor:
+                          boardIndex === 0
+                            ? theme.palette.grey[200]
+                            : theme.palette.primary.main,
+                        color:
+                          boardIndex === 0 ? theme.palette.grey[400] : "white",
+                      },
+                    }}
+                  >
+                    <ChevronLeft size={16} />
+                  </IconButton>
+                  <IconButton
+                    size="small"
+                    onClick={handleMoveRight}
+                    disabled={boardIndex === totalBoards - 1}
+                    sx={{
+                      width: 28,
+                      height: 28,
+                      backgroundColor:
+                        boardIndex === totalBoards - 1
+                          ? theme.palette.grey[200]
+                          : theme.palette.primary.light,
+                      color:
+                        boardIndex === totalBoards - 1
+                          ? theme.palette.grey[400]
+                          : theme.palette.primary.main,
+                      "&:hover": {
+                        backgroundColor:
+                          boardIndex === totalBoards - 1
+                            ? theme.palette.grey[200]
+                            : theme.palette.primary.main,
+                        color:
+                          boardIndex === totalBoards - 1
+                            ? theme.palette.grey[400]
+                            : "white",
+                      },
+                    }}
+                  >
+                    <ChevronRight size={16} />
+                  </IconButton>
+                </Box>
+              ) : (
+                // Desktop: Traditional drag handle
+                <Box
+                  {...boardAttributes}
+                  {...boardListeners}
+                  sx={{
+                    cursor: isBoardDragging ? "grabbing" : "grab",
+                    display: "flex",
+                    alignItems: "center",
+                    p: 0.5,
+                    borderRadius: 1,
+                    "&:hover": {
+                      backgroundColor: theme.palette.grey[100],
+                    },
+                  }}
+                >
+                  <GripVertical size={20} color={theme.palette.grey[600]} />
+                </Box>
+              )}
+            </>
           )}
 
           {/* Board info */}
@@ -138,7 +247,10 @@ const BoardCard = ({
               alignItems="center"
             >
               <Box display="flex" alignItems="center" gap={1}>
-                <Typography variant="h6" sx={{ fontWeight: "bold" }}>
+                <Typography
+                  variant={isMobile ? "subtitle1" : "h6"}
+                  sx={{ fontWeight: "bold" }}
+                >
                   Día {boardIndex + 1}
                 </Typography>
                 {board.date && (
@@ -146,7 +258,7 @@ const BoardCard = ({
                     component="span"
                     sx={{
                       color: theme.palette.primary.main,
-                      fontSize: "0.875rem",
+                      fontSize: { xs: "0.75rem", sm: "0.875rem" },
                     }}
                   >
                     - {new Date(board.date).toLocaleDateString()}
@@ -160,17 +272,25 @@ const BoardCard = ({
                     onRemoveBoard(boardIndex);
                   }}
                   size="small"
-                  sx={{ pointerEvents: "auto" }}
+                  sx={{
+                    pointerEvents: "auto",
+                    color: theme.palette.error.main,
+                    "&:hover": {
+                      backgroundColor: theme.palette.error.light,
+                    },
+                  }}
                 >
-                  <Trash2 size={18} color="red" />
+                  <Trash2 size={18} />
                 </IconButton>
               )}
             </Box>
 
             <Box display="flex" alignItems="center" mt={1} gap={1}>
-              <Coins size={18} color={theme.palette.secondary.medium} />
-              <Typography variant="body2">
-                {" "}
+              <Coins size={16} color={theme.palette.secondary.medium} />
+              <Typography
+                variant="body2"
+                sx={{ fontSize: { xs: "0.75rem", sm: "0.875rem" } }}
+              >
                 Presupuesto del día: ¥ {board.dailyBudget || 0}
               </Typography>
             </Box>
@@ -190,11 +310,12 @@ const BoardCard = ({
               flex: 1,
               overflowY: "auto",
               overflowX: "hidden",
-              px: 2,
+              px: { xs: 1.5, sm: 2 },
               py: 1,
-              // Custom scrollbar styling
+              // Enhanced mobile scrolling
+              WebkitOverflowScrolling: "touch",
               "&::-webkit-scrollbar": {
-                width: "6px",
+                width: isMobile ? "4px" : "6px",
               },
               "&::-webkit-scrollbar-track": {
                 backgroundColor: theme.palette.grey[100],
@@ -216,7 +337,7 @@ const BoardCard = ({
               <Box
                 sx={{
                   position: "relative",
-                  width: "25px",
+                  width: { xs: "20px", sm: "25px" },
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "center",
@@ -234,7 +355,7 @@ const BoardCard = ({
                     backgroundColor: theme.palette.secondary.main,
                     transform: "translateX(-50%)",
                     zIndex: 0,
-                    minHeight: "100px", // Ensure line is always visible
+                    minHeight: "100px",
                   }}
                 />
               </Box>
@@ -244,9 +365,7 @@ const BoardCard = ({
                 items={activityIds}
                 strategy={verticalListSortingStrategy}
               >
-                <Box sx={{ flex: 1, ml: 2, pb: 2 }}>
-                  {" "}
-                  {/* Added bottom padding */}
+                <Box sx={{ flex: 1, ml: { xs: 1.5, sm: 2 }, pb: 2 }}>
                   {board.favorites?.length > 0 ? (
                     board.favorites.map((fav, favIndex) => (
                       <ActivityCard
@@ -261,10 +380,11 @@ const BoardCard = ({
                         sortableId={
                           fav.uniqueId || `${boardIndex}-${favIndex}-${fav._id}`
                         }
+                        onMoveActivity={onMoveActivity} // ← Add this line
+                        totalActivities={board.favorites.length} // ← Add this line
                       />
                     ))
                   ) : (
-                    // Empty state for when no activities
                     <Box
                       sx={{
                         display: "flex",
@@ -276,11 +396,22 @@ const BoardCard = ({
                         color: theme.palette.text.secondary,
                       }}
                     >
-                      <Typography variant="body2" sx={{ mb: 1 }}>
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          mb: 1,
+                          fontSize: { xs: "0.8rem", sm: "0.875rem" },
+                        }}
+                      >
                         No hay experiencias programadas
                       </Typography>
-                      <Typography variant="caption">
-                        Arrastra experiencias desde favoritos
+                      <Typography
+                        variant="caption"
+                        sx={{ fontSize: { xs: "0.7rem", sm: "0.75rem" } }}
+                      >
+                        {isMobile
+                          ? "Usa los botones para añadir experiencias"
+                          : "Arrastra experiencias desde favoritos"}
                       </Typography>
                     </Box>
                   )}
@@ -290,49 +421,60 @@ const BoardCard = ({
           </Box>
         </Box>
 
-        {/* FIXED HEIGHT Bottom Buttons - Always visible */}
+        {/* Bottom Buttons - Mobile optimized */}
         <Box
           sx={{
             backgroundColor: theme.palette.primary.white,
-            p: 2,
+            p: { xs: 1.5, sm: 2 },
             textAlign: "center",
             boxShadow: `0px -2px 6px ${theme.palette.secondary.main}20`,
             borderTop: `1px solid ${theme.palette.secondary.light}`,
             borderRadius: "0 0 20px 20px",
             flexShrink: 0,
-            minHeight: "100px",
+            minHeight: { xs: "80px", sm: "100px" },
           }}
         >
           <Box
             sx={{
               background: `linear-gradient(135deg, ${theme.palette.background.paper}90, ${theme.palette.background.paper}70)`,
               backdropFilter: "blur(20px)",
-              p: 3,
+              p: { xs: 2, sm: 3 },
               borderTop: `1px solid ${theme.palette.divider}40`,
               borderRadius: "0 0 16px 16px",
               flexShrink: 0,
-              minHeight: "120px",
+              minHeight: { xs: "100px", sm: "120px" },
             }}
           >
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: isMobile ? "column" : "column",
+                gap: { xs: 1.5, sm: 2 },
+              }}
+            >
               {/* Add Experience Button */}
               {userRole !== "viewer" && (
                 <Button
                   variant="contained"
-                  startIcon={<Plus size={18} />}
+                  startIcon={<Plus size={isMobile ? 16 : 18} />}
                   onClick={() => onAddExperience?.(boardIndex)}
+                  size={isMobile ? "small" : "medium"}
                   sx={{
                     borderRadius: 30,
                     textTransform: "none",
                     fontWeight: 600,
                     background: `linear-gradient(135deg, ${theme.palette.primary.main})`,
                     color: "white",
-                    py: 1.5,
+                    py: { xs: 1, sm: 1.5 },
+                    fontSize: { xs: "0.8rem", sm: "0.875rem" },
                     boxShadow: `0 4px 16px ${theme.palette.primary.main}40`,
                     transition: "all 0.3s ease",
                     "&:hover": {
                       background: `linear-gradient(135deg, ${theme.palette.primary.dark})`,
                       boxShadow: `0 8px 24px ${theme.palette.primary.main}50`,
+                    },
+                    "&:active": {
+                      transform: "scale(0.98)",
                     },
                   }}
                 >
@@ -342,8 +484,9 @@ const BoardCard = ({
 
               <Button
                 variant="outlined"
-                startIcon={<Map size={18} />}
-                onClick={handleMapClick} // ADD: Click handler
+                startIcon={<Map size={isMobile ? 16 : 18} />}
+                onClick={handleMapClick}
+                size={isMobile ? "small" : "medium"}
                 disabled={
                   !board.favorites?.some(
                     (fav) =>
@@ -354,7 +497,8 @@ const BoardCard = ({
                   borderRadius: 30,
                   textTransform: "none",
                   fontWeight: 600,
-                  py: 1.5,
+                  py: { xs: 1, sm: 1.5 },
+                  fontSize: { xs: "0.8rem", sm: "0.875rem" },
                   background: `${theme.palette.secondary.medium}10`,
                   borderColor: `${theme.palette.secondary.medium}`,
                   color: theme.palette.secondary.medium,
@@ -367,6 +511,9 @@ const BoardCard = ({
                     opacity: 0.5,
                     cursor: "not-allowed",
                   },
+                  "&:active": {
+                    transform: "scale(0.98)",
+                  },
                 }}
               >
                 Ver en Mapa
@@ -375,7 +522,8 @@ const BoardCard = ({
           </Box>
         </Box>
       </Box>
-      {/* Drop zone indicator */}
+
+      {/* Enhanced Drop zone indicator */}
       {isOver && (
         <Box
           sx={{
@@ -398,16 +546,19 @@ const BoardCard = ({
             sx={{
               backgroundColor: theme.palette.primary.main,
               color: "white",
-              px: 3,
+              px: { xs: 2, sm: 3 },
               py: 1,
               borderRadius: 30,
               boxShadow: 2,
             }}
           >
-            <Typography variant="body1">Soltar aquí</Typography>
-          </Box>{" "}
+            <Typography variant={isMobile ? "body2" : "body1"}>
+              Soltar aquí
+            </Typography>
+          </Box>
         </Box>
-      )}{" "}
+      )}
+
       <MapModal
         open={mapModalOpen}
         onClose={handleCloseMap}

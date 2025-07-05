@@ -16,6 +16,7 @@ import {
   CardContent,
   InputAdornment,
   Chip,
+  useMediaQuery,
 } from "@mui/material";
 import { Search, Filter, Database } from "lucide-react";
 
@@ -36,6 +37,8 @@ const DataTable = ({
   headers,
 }) => {
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+
   let totalPageCount = 0;
   let totalCount = 0;
 
@@ -43,16 +46,11 @@ const DataTable = ({
     try {
       totalPageCount = JSON.parse(headers["x-totalpagecount"]);
     } catch (error) {
-      console.error("Error parsing total page count:", error);
+      // Try parsing as integer instead of JSON
+      totalPageCount = parseInt(headers["x-totalpagecount"], 10);
     }
-  }
-
-  if (headers && headers["x-totalcount"]) {
-    try {
-      totalCount = JSON.parse(headers["x-totalcount"]);
-    } catch (error) {
-      console.error("Error parsing total count:", error);
-    }
+  } else {
+    console.log("❌ No x-totalpagecount header found");
   }
 
   const LoadingState = () => (
@@ -131,8 +129,11 @@ const DataTable = ({
   return (
     <Box
       sx={{
-        minHeight: "100vh",
+        width: "100%",
+        maxWidth: "100%",
         backgroundColor: theme.palette.background.default,
+        padding: 0,
+        minHeight: { xs: "auto", md: "100vh" },
       }}
     >
       {/* Page Title */}
@@ -142,9 +143,10 @@ const DataTable = ({
           component="h1"
           sx={{
             fontWeight: 700,
-            mb: 3,
+            mb: { xs: 2, md: 3 },
             color: theme.palette.text.primary,
-            fontSize: { xs: "1.75rem", md: "2.125rem" },
+            fontSize: { xs: "1.5rem", sm: "1.75rem", md: "2.125rem" },
+            textAlign: { xs: "center", md: "left" },
           }}
         >
           {pageTitle}
@@ -154,15 +156,18 @@ const DataTable = ({
       <Card
         elevation={0}
         sx={{
-          borderRadius: "16px",
+          borderRadius: { xs: "12px", md: "16px" },
           overflow: "hidden",
           backgroundColor: theme.palette.background.default,
+          // Full width on mobile
+          width: "100%",
+          maxWidth: "100%",
         }}
       >
         {/* Header Section */}
         <CardContent
           sx={{
-            p: { xs: 2, md: 3 },
+            p: { xs: 0, sm: 0, md: 3 },
             pb: 0,
             backgroundColor: theme.palette.background.default,
           }}
@@ -170,15 +175,13 @@ const DataTable = ({
           <Box
             sx={{
               display: "flex",
-              flexDirection: { xs: "column", lg: "row" },
-              justifyContent: "space-between",
-              alignItems: { xs: "stretch", lg: "center" },
-              gap: 3,
-              mb: 3,
+              flexDirection: "column",
+              gap: { xs: 2, md: 3 },
+              mb: { xs: 2, md: 3 },
             }}
           >
             {/* Title and Stats */}
-            <Box>
+            <Box sx={{ textAlign: { xs: "center", md: "left" } }}>
               <Typography
                 variant="h5"
                 component="h2"
@@ -188,7 +191,10 @@ const DataTable = ({
                   color: theme.palette.text.primary,
                   display: "flex",
                   alignItems: "center",
+                  justifyContent: { xs: "center", md: "flex-start" },
+                  flexWrap: "wrap",
                   gap: 1,
+                  fontSize: { xs: "1.25rem", md: "1.5rem" },
                 }}
               >
                 {dataListName}
@@ -206,7 +212,11 @@ const DataTable = ({
                 )}
               </Typography>
               {totalCount > 0 && (
-                <Typography variant="body2" color="text.secondary">
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ fontSize: { xs: "0.8rem", md: "0.875rem" } }}
+                >
                   Página {currentPage} de {totalPageCount} • Mostrando{" "}
                   {data?.length || 0} registros
                 </Typography>
@@ -219,9 +229,10 @@ const DataTable = ({
               onSubmit={searchKeywordOnSubmitHandler}
               sx={{
                 display: "flex",
-                gap: 2,
-                alignItems: "center",
-                minWidth: { md: "400px" },
+                flexDirection: { xs: "column", sm: "row" },
+                gap: { xs: 1.5, sm: 2 },
+                alignItems: "stretch",
+                width: "100%",
               }}
             >
               <TextField
@@ -230,7 +241,7 @@ const DataTable = ({
                 placeholder={searchInputPlaceHolder}
                 onChange={searchKeywordOnChangeHandler}
                 value={searchKeyword}
-                size="medium"
+                size={isMobile ? "small" : "medium"}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -253,6 +264,7 @@ const DataTable = ({
                   },
                   "& .MuiInputBase-input": {
                     color: theme.palette.text.primary,
+                    fontSize: { xs: "0.875rem", md: "1rem" },
                   },
                   "& .MuiInputBase-input::placeholder": {
                     color: theme.palette.text.secondary,
@@ -264,15 +276,18 @@ const DataTable = ({
                 type="submit"
                 variant="contained"
                 startIcon={<Filter size={16} />}
+                size={isMobile ? "small" : "medium"}
                 sx={{
                   backgroundColor: theme.palette.primary.main,
                   color: "white",
                   borderRadius: "30px",
-                  px: 3,
-                  py: 1.5,
+                  px: { xs: 2, md: 3 },
+                  py: { xs: 1, md: 1.5 },
                   textTransform: "none",
                   fontWeight: 600,
+                  fontSize: { xs: "0.8rem", md: "0.875rem" },
                   boxShadow: "none",
+                  minWidth: { xs: "auto", sm: "120px" },
                   "&:hover": {
                     backgroundColor: theme.palette.primary.dark,
                     boxShadow: theme.shadows[4],
@@ -290,8 +305,8 @@ const DataTable = ({
         {/* Table Section */}
         <Box
           sx={{
-            mx: { xs: 2, md: 3 },
-            mb: 3,
+            mx: { xs: 1, sm: 1.5, md: 3 },
+            mb: { xs: 2, md: 3 },
             borderRadius: "12px",
             overflow: "hidden",
           }}
@@ -300,9 +315,21 @@ const DataTable = ({
             sx={{
               backgroundColor: theme.palette.background.default,
               borderRadius: "12px",
+              // Enable horizontal scroll on mobile
+              overflowX: "auto",
+              maxWidth: "100%",
             }}
           >
-            <Table sx={{ minWidth: 650 }}>
+            <Table
+              sx={{
+                minWidth: { xs: "100%", md: 650 },
+                // Make table more compact on mobile
+                "& .MuiTableCell-root": {
+                  padding: { xs: "8px 12px", md: "16px" },
+                  fontSize: { xs: "0.8rem", md: "0.875rem" },
+                },
+              }}
+            >
               {/* Table Header */}
               {tableHeaderTitleList.length > 0 && (
                 <TableHead>
@@ -316,14 +343,17 @@ const DataTable = ({
                         key={index}
                         sx={{
                           fontWeight: 700,
-                          fontSize: "0.875rem",
+                          fontSize: { xs: "0.75rem", md: "0.875rem" },
                           color: theme.palette.text.primary,
                           textTransform: "uppercase",
                           letterSpacing: "0.05em",
                           borderBottom: `2px solid ${theme.palette.divider}`,
-                          py: 2.5,
-                          px: 3,
                           backgroundColor: "transparent",
+                          // Hide some columns on mobile if needed
+                          display: {
+                            xs: index > 2 ? "none" : "table-cell",
+                            sm: "table-cell",
+                          },
                         }}
                       >
                         {title}
@@ -345,6 +375,10 @@ const DataTable = ({
                     "& .MuiTableCell-root": {
                       borderBottom: `1px solid ${theme.palette.divider}`,
                       backgroundColor: "transparent",
+                      // Responsive cell behavior
+                      whiteSpace: { xs: "nowrap", md: "normal" },
+                      overflow: { xs: "hidden", md: "visible" },
+                      textOverflow: { xs: "ellipsis", md: "clip" },
                     },
                   },
                 }}
@@ -365,9 +399,11 @@ const DataTable = ({
         {!isLoading && data?.length > 0 && (
           <Box
             sx={{
-              p: 3,
+              p: { xs: 2, md: 3 },
               borderTop: `1px solid ${theme.palette.divider}`,
               backgroundColor: theme.palette.background.default,
+              display: "flex",
+              justifyContent: "center",
             }}
           >
             <Pagination

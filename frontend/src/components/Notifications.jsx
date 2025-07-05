@@ -318,9 +318,9 @@ const Notifications = () => {
         {!isLoading && !error && notifications && notifications.length > 0 ? (
           <Box
             sx={{
-              maxHeight: 350,
+              maxHeight: 300, // Increased from 100 to 300px
               overflowY: "auto",
-              overflowX: "hidden", // Explicitly prevent horizontal scroll
+              overflowX: "hidden",
               width: "100%",
             }}
           >

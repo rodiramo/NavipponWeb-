@@ -18,6 +18,8 @@ import {
   CheckCircle,
   XCircle,
   Plus,
+  Eye,
+  Search, // Add Search icon for mobile search
 } from "lucide-react";
 import {
   useTheme,
@@ -35,6 +37,8 @@ import {
   Stack,
   Fade,
   Container,
+  TextField, // Add TextField for mobile search
+  CircularProgress, // Add CircularProgress for loading
 } from "@mui/material";
 
 const ManagePosts = () => {
@@ -193,13 +197,12 @@ const ManagePosts = () => {
     </Container>
   );
 
-  // Mobile Card Component
+  // Mobile Card Component with View Button
   const PostCard = ({ post }) => (
     <Card
       sx={{
         mb: 2,
         backgroundColor: theme.palette.background.default,
-
         borderRadius: 2,
         transition: "all 0.2s ease-in-out",
         "&:hover": {
@@ -352,15 +355,44 @@ const ManagePosts = () => {
           </Box>
         )}
 
-        {/* Actions */}
-        <Box sx={{ display: "flex", gap: 1, justifyContent: "flex-end" }}>
+        {/* Actions - Updated with View Button */}
+        <Box
+          sx={{
+            display: "flex",
+            gap: 1,
+            justifyContent: "flex-end",
+            flexWrap: "wrap",
+          }}
+        >
+          <Button
+            component={Link}
+            to={`/blog/${post?.slug}`}
+            startIcon={<Eye size={16} />}
+            sx={{
+              color: theme.palette.info.main,
+              borderColor: theme.palette.info.main,
+              textTransform: "none",
+              borderRadius: "30rem",
+              "&:hover": {
+                backgroundColor: theme.palette.info.light,
+                borderColor: theme.palette.info.dark,
+              },
+            }}
+            variant="outlined"
+            size="small"
+          >
+            Ver detalles
+          </Button>
+
           <Button
             component={Link}
             to={`/user/posts/manage/edit/${post?.slug}`}
             startIcon={<Edit size={16} />}
             sx={{
-              color: theme.palette.primary.main,
-              borderColor: theme.palette.primary.main,
+              color: theme.palette.primary.black,
+              borderColor: theme.palette.primary.black,
+              textTransform: "none",
+              borderRadius: "30rem",
               "&:hover": {
                 backgroundColor: theme.palette.primary.light,
                 borderColor: theme.palette.primary.dark,
@@ -378,6 +410,8 @@ const ManagePosts = () => {
             onClick={() => deleteDataHandler({ slug: post?.slug })}
             sx={{
               color: theme.palette.error.main,
+              textTransform: "none",
+              borderRadius: "30rem",
               borderColor: theme.palette.error.main,
               "&:hover": {
                 backgroundColor:
@@ -401,7 +435,6 @@ const ManagePosts = () => {
     return (
       <Box
         sx={{
-          backgroundColor: theme.palette.background.bg,
           minHeight: "100vh",
           py: 4,
         }}
@@ -416,7 +449,6 @@ const ManagePosts = () => {
       sx={{
         backgroundColor: theme.palette.background.default,
         minHeight: "100vh",
-        p: 3,
       }}
     >
       {/* Header */}
@@ -438,7 +470,7 @@ const ManagePosts = () => {
           sx={{
             backgroundColor: theme.palette.primary.main,
             color: "white",
-            borderRadius: "25px",
+            borderRadius: "30rem",
             px: 3,
             py: 1.5,
             textTransform: "none",
@@ -456,42 +488,32 @@ const ManagePosts = () => {
         </Button>
       </Box>
 
-      <DataTable
-        pageTitle=""
-        dataListName="Administrar  publicaciones"
-        searchInputPlaceHolder="Título de publicación..."
-        searchKeywordOnSubmitHandler={submitSearchKeywordHandler}
-        searchKeywordOnChangeHandler={searchKeywordHandler}
-        searchKeyword={searchKeyword}
-        tableHeaderTitleList={
-          isMobile
-            ? []
-            : [
-                "Post",
-                "Categorías",
-                "Creado",
-                "Etiquetas",
-                "Estado",
-                "Acciones",
-              ]
-        }
-        isLoading={isLoading}
-        isFetching={isFetching}
-        data={updatedPosts}
-        setCurrentPage={setCurrentPage}
-        currentPage={currentPage}
-        headers={postsData?.headers}
-      >
-        {isMobile ? (
-          // Mobile Card Layout
-          <Box sx={{ width: "100%" }}>
-            {updatedPosts.map((post) => (
-              <PostCard key={post._id} post={post} />
-            ))}
-          </Box>
-        ) : (
-          // Desktop Table Layout
-          updatedPosts.map((post) => (
+      {/* Desktop: DataTable with Table Layout */}
+      {!isMobile && (
+        <DataTable
+          pageTitle=""
+          dataListName="Administrar publicaciones"
+          searchInputPlaceHolder="Título de publicación..."
+          searchKeywordOnSubmitHandler={submitSearchKeywordHandler}
+          searchKeywordOnChangeHandler={searchKeywordHandler}
+          searchKeyword={searchKeyword}
+          tableHeaderTitleList={[
+            "Post",
+            "Categorías",
+            "Creado",
+            "Etiquetas",
+            "Estado",
+            "Acciones",
+          ]}
+          isLoading={isLoading}
+          isFetching={isFetching}
+          data={updatedPosts}
+          setCurrentPage={setCurrentPage}
+          currentPage={currentPage}
+          headers={postsData?.headers}
+        >
+          {/* Desktop Table Layout */}
+          {updatedPosts.map((post) => (
             <tr
               key={post._id}
               style={{
@@ -685,7 +707,7 @@ const ManagePosts = () => {
                 </Box>
               </td>
 
-              {/* Actions */}
+              {/* Actions - Updated with View Button */}
               <td
                 style={{
                   padding: "16px 24px",
@@ -694,14 +716,40 @@ const ManagePosts = () => {
                   }`,
                 }}
               >
-                <Stack direction="row" spacing={1}>
+                <Stack
+                  direction="row"
+                  spacing={1}
+                  sx={{ flexWrap: "wrap", gap: 1 }}
+                >
+                  <Button
+                    component={Link}
+                    to={`/blog/${post?.slug}`}
+                    startIcon={<Eye size={16} />}
+                    sx={{
+                      color: theme.palette.info.main,
+                      borderColor: theme.palette.info.main,
+                      textTransform: "none",
+                      borderRadius: "30rem",
+                      "&:hover": {
+                        backgroundColor: theme.palette.info.light,
+                        borderColor: theme.palette.info.dark,
+                        transform: "translateY(-1px)",
+                      },
+                      transition: "all 0.2s ease-in-out",
+                    }}
+                    variant="outlined"
+                    size="small"
+                  >
+                    Ver detalles
+                  </Button>
+
                   <Button
                     component={Link}
                     to={`/user/posts/manage/edit/${post?.slug}`}
                     startIcon={<Edit size={16} />}
                     sx={{
-                      color: theme.palette.primary.main,
-                      borderColor: theme.palette.primary.main,
+                      color: theme.palette.primary.black,
+                      borderColor: theme.palette.primary.black,
                       textTransform: "none",
                       borderRadius: "30rem",
                       "&:hover": {
@@ -743,9 +791,113 @@ const ManagePosts = () => {
                 </Stack>
               </td>
             </tr>
-          ))
-        )}
-      </DataTable>
+          ))}
+        </DataTable>
+      )}
+
+      {/* Mobile: Card Layout with Custom Search and Pagination */}
+      {isMobile && (
+        <Box>
+          {/* Mobile Search */}
+          <Box
+            component="form"
+            onSubmit={submitSearchKeywordHandler}
+            sx={{
+              display: "flex",
+              gap: 1,
+              mb: 3,
+              px: 2,
+            }}
+          >
+            <TextField
+              variant="outlined"
+              placeholder="Título de publicación..."
+              onChange={searchKeywordHandler}
+              value={searchKeyword}
+              size="small"
+              sx={{
+                flex: 1,
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: "30px",
+                },
+              }}
+            />
+            <Button
+              type="submit"
+              variant="contained"
+              startIcon={<Search size={16} />}
+              size="small"
+              sx={{
+                borderRadius: "30px",
+                px: 3,
+              }}
+            >
+              Buscar
+            </Button>
+          </Box>
+
+          {/* Mobile Cards */}
+          {isLoading || isFetching ? (
+            <Box sx={{ textAlign: "center", py: 4 }}>
+              <CircularProgress />
+              <Typography sx={{ mt: 2 }}>Cargando datos...</Typography>
+            </Box>
+          ) : (
+            <Box sx={{ px: 2 }}>
+              {updatedPosts.map((post) => (
+                <PostCard key={post._id} post={post} />
+              ))}
+            </Box>
+          )}
+
+          {/* Mobile Pagination */}
+          {!isLoading && updatedPosts.length > 0 && (
+            <Box
+              sx={{ mt: 3, display: "flex", justifyContent: "center", px: 2 }}
+            >
+              <Stack direction="row" spacing={1} alignItems="center">
+                <Button
+                  variant="outlined"
+                  size="small"
+                  disabled={currentPage <= 1}
+                  onClick={() => setCurrentPage(currentPage - 1)}
+                  sx={{
+                    minWidth: "auto",
+                    px: 2,
+                    textTransform: "none",
+                    borderRadius: 30,
+                  }}
+                >
+                  Anterior
+                </Button>
+
+                <Typography variant="body2" sx={{ mx: 2 }}>
+                  Página {currentPage} de{" "}
+                  {postsData?.headers?.["x-totalpagecount"] || 1}
+                </Typography>
+
+                <Button
+                  variant="outlined"
+                  size="small"
+                  disabled={
+                    currentPage >=
+                    parseInt(postsData?.headers?.["x-totalpagecount"] || "1")
+                  }
+                  onClick={() => setCurrentPage(currentPage + 1)}
+                  sx={{
+                    minWidth: "auto",
+                    px: 2,
+                    textTransform: "none",
+                    borderRadius: 30,
+                  }}
+                >
+                  Siguiente
+                </Button>
+              </Stack>
+            </Box>
+          )}
+        </Box>
+      )}
     </Box>
   );
 };

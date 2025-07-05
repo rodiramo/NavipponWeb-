@@ -32,7 +32,9 @@ const corsOptions = {
 
     const allowedOrigins = [
       "http://localhost:3001",
+      "http://localhost:5001",
       "http://localhost:3000",
+      "https://navippon.netlify.app/",
       "https://navippon.netlify.app",
     ];
 
@@ -49,6 +51,13 @@ const corsOptions = {
   },
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+  exposedHeaders: [
+    "x-totalcount",
+    "x-totalpagecount",
+    "x-currentpage",
+    "x-pagesize",
+    "x-filter",
+  ],
   allowedHeaders: ["Content-Type", "Authorization", "x-access-token"],
   optionsSuccessStatus: 200,
   preflightContinue: false,

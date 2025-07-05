@@ -9,15 +9,7 @@ import { Link, useNavigate } from "react-router-dom";
 import useUser from "../../../../hooks/useUser";
 import FavoriteContext from "../../../../context/FavoriteContext";
 import { toast } from "react-hot-toast";
-import {
-  Heart,
-  Calendar,
-  Tag,
-  FolderOpen,
-  Compass,
-  Eye,
-  MapPin,
-} from "lucide-react";
+import { Heart, Calendar, Tag, FolderOpen, Compass, Eye } from "lucide-react";
 import {
   useTheme,
   Box,
@@ -252,16 +244,10 @@ const ManageFavorites = () => {
     <Card
       sx={{
         mb: 2,
-        backgroundColor: theme.palette.background.default,
-        border: `1px solid ${
-          theme.palette.neutral?.light || theme.palette.grey[200]
-        }`,
-        borderRadius: 2,
+        borderRadius: 4,
+        border: `1.5px solid ${theme.palette.secondary.main}`,
+        boxShadow: "none",
         transition: "all 0.2s ease-in-out",
-        "&:hover": {
-          boxShadow: theme.shadows[4],
-          transform: "translateY(-2px)",
-        },
       }}
     >
       {/* Experience Image Header */}
@@ -394,19 +380,21 @@ const ManageFavorites = () => {
           <Button
             component={Link}
             to={`/experience/${favorite.experienceId.slug}`}
-            startIcon={<MapPin size={16} />}
+            startIcon={<Eye size={16} />}
             sx={{
-              color: theme.palette.primary.main,
-              borderColor: theme.palette.primary.main,
+              color: theme.palette.secondary.medium,
+              borderColor: theme.palette.secondary.medium,
               "&:hover": {
                 backgroundColor: theme.palette.primary.light,
                 borderColor: theme.palette.primary.dark,
               },
+              textTransform: "none",
+              borderRadius: 30,
             }}
             variant="outlined"
             size="small"
           >
-            Ver Experiencia
+            Ver experiencia
           </Button>
 
           <Tooltip title="Quitar de favoritos">
@@ -435,7 +423,7 @@ const ManageFavorites = () => {
     return (
       <Box
         sx={{
-          backgroundColor: theme.palette.background.bg,
+          backgroundColor: theme.palette.background.default,
           minHeight: "100vh",
           py: 4,
         }}
@@ -448,10 +436,9 @@ const ManageFavorites = () => {
   return (
     <Box
       sx={{
-        backgroundColor: theme.palette.background.bg,
+        backgroundColor: theme.palette.background.default,
         minHeight: "100vh",
         width: "100%",
-        p: 3,
       }}
     >
       {/* Header */}
@@ -482,7 +469,6 @@ const ManageFavorites = () => {
 
       <DataTable
         pageTitle=""
-        dataListName="Administrar favoritos"
         searchInputPlaceHolder="Buscar en favoritos..."
         searchKeywordOnSubmitHandler={submitSearchKeywordHandler}
         searchKeywordOnChangeHandler={searchKeywordHandler}
@@ -512,9 +498,6 @@ const ManageFavorites = () => {
               <td
                 style={{
                   padding: "16px 24px",
-                  borderBottom: `1px solid ${
-                    theme.palette.neutral?.light || theme.palette.grey[200]
-                  }`,
                   minWidth: "300px",
                 }}
               >
@@ -642,7 +625,6 @@ const ManageFavorites = () => {
                       borderColor: theme.palette.secondary.medium,
                       "&:hover": {
                         borderColor: theme.palette.secondary.medium,
-                        transform: "translateY(-1px)",
                       },
                       transition: "all 0.2s ease-in-out",
                     }}

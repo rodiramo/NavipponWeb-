@@ -248,7 +248,10 @@ const ExperiencePage = ({ filters: initialFilters }) => {
 
       <section className="mx-auto w-full px-4 sm:px-6 lg:px-2 py-8 m-3">
         {/* Mobile Action Buttons */}
-        <div className=" flex gap-3 mb-4">
+        <div
+          className="flex gap-3 mb-4"
+          style={{ display: { xs: "flex", md: "none" } }}
+        >
           <Button
             variant="contained"
             onClick={() => setIsFiltersModalOpen(true)}
@@ -257,8 +260,8 @@ const ExperiencePage = ({ filters: initialFilters }) => {
               backgroundColor: theme.palette.primary.main,
               color: theme.palette.primary.contrastText,
               borderRadius: "50px",
-              padding: "12px 24px",
-              fontSize: "0.875rem",
+              padding: "10px 20px", // Slightly reduced padding
+              fontSize: "0.75rem", // Reduced from 0.875rem
               fontWeight: 600,
               textTransform: "none",
               boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
@@ -270,6 +273,8 @@ const ExperiencePage = ({ filters: initialFilters }) => {
                 transform: "translateY(-1px)",
               },
               transition: "all 0.2s ease-in-out",
+              // Hide on medium screens and up
+              display: { xs: "flex", md: "none" },
             }}
           >
             Filtros
@@ -282,8 +287,8 @@ const ExperiencePage = ({ filters: initialFilters }) => {
               backgroundColor: theme.palette.secondary.main,
               color: theme.palette.secondary.contrastText,
               borderRadius: "50px",
-              padding: "12px 24px",
-              fontSize: "0.875rem",
+              padding: "10px 20px", // Slightly reduced padding
+              fontSize: "0.75rem", // Reduced from 0.875rem
               fontWeight: 600,
               textTransform: "none",
               boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
@@ -295,12 +300,13 @@ const ExperiencePage = ({ filters: initialFilters }) => {
                 transform: "translateY(-1px)",
               },
               transition: "all 0.2s ease-in-out",
+              // Hide on medium screens and up
+              display: { xs: "flex", md: "none" },
             }}
           >
             Mapa
           </Button>
         </div>
-
         {/* Filters Modal */}
         <Modal
           open={isFiltersModalOpen}
@@ -431,78 +437,104 @@ const ExperiencePage = ({ filters: initialFilters }) => {
                   </Button>
                 </div>
               )}
-
-              {/* Filter Tabs, Sort and View Toggle Row */}
-              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+              {/* Filter Tabs, Sort and View Toggle Row - Fully Responsive */}
+              <div className="flex flex-col space-y-4 lg:space-y-0 lg:flex-row lg:items-center lg:justify-between">
                 {/* Category Filter Tabs */}
-                <div className="flex overflow-x-auto pb-2">
-                  {filterTabs.map((tab, index) => (
-                    <Button
-                      key={tab.key}
-                      variant={
-                        selectedFilter === tab.key ? "contained" : "outlined"
-                      }
-                      onClick={() => handleFilterSelection(tab.key)}
-                      sx={{
-                        backgroundColor:
-                          selectedFilter === tab.key
-                            ? primary.main
-                            : primary.light,
-                        color:
-                          selectedFilter === tab.key
-                            ? primary.contrastText
-                            : primary.main,
-                        border: `1px solid ${primary.main}`,
-                        borderRadius:
-                          index === 0
-                            ? "30px 0px 0px 30px"
-                            : index === filterTabs.length - 1
-                              ? "0px 30px 30px 0px"
-                              : 0,
-                        textTransform: "none",
-                        fontSize: "0.875rem",
-                        fontWeight: 500,
-                        padding: "8px 16px",
-                        minWidth: "auto",
-                        whiteSpace: "nowrap",
-                        "&:hover": {
-                          backgroundColor:
+                <div className="w-full lg:flex-1 lg:max-w-2xl">
+                  <div className="flex overflow-x-auto pb-2 scrollbar-hide">
+                    <div className="flex min-w-max">
+                      {filterTabs.map((tab, index) => (
+                        <Button
+                          key={tab.key}
+                          variant={
                             selectedFilter === tab.key
-                              ? primary.dark
-                              : `${primary.main}10`,
-                        },
-                      }}
-                    >
-                      <span className="mr-2 hidden sm:inline">{tab.icon}</span>
-                      <span className="hidden sm:inline">{tab.label}</span>
-                      <span className="sm:hidden">
-                        {tab.label.split(" ")[0]}
-                      </span>
-                    </Button>
-                  ))}
+                              ? "contained"
+                              : "outlined"
+                          }
+                          onClick={() => handleFilterSelection(tab.key)}
+                          size="small"
+                          sx={{
+                            backgroundColor:
+                              selectedFilter === tab.key
+                                ? primary.main
+                                : primary.light,
+                            color:
+                              selectedFilter === tab.key
+                                ? primary.contrastText
+                                : primary.main,
+                            border: `1px solid ${primary.main}`,
+                            borderRadius:
+                              index === 0
+                                ? "30px 0px 0px 30px"
+                                : index === filterTabs.length - 1
+                                  ? "0px 30px 30px 0px"
+                                  : 0,
+                            textTransform: "none",
+                            fontSize: { xs: "0.75rem", sm: "0.875rem" },
+                            fontWeight: 500,
+                            padding: {
+                              xs: "4px 8px",
+                              sm: "6px 12px",
+                              md: "8px 16px",
+                            },
+                            minWidth: "auto",
+                            whiteSpace: "nowrap",
+                            borderRight:
+                              index === filterTabs.length - 1
+                                ? `1px solid ${primary.main}`
+                                : "none",
+                            "&:hover": {
+                              backgroundColor:
+                                selectedFilter === tab.key
+                                  ? primary.dark
+                                  : `${primary.main}10`,
+                            },
+                          }}
+                        >
+                          {/* Mobile: Shortened text */}
+                          <span className="sm:hidden">
+                            {tab.label.split(" ")[0]}
+                          </span>
+
+                          {/* Desktop: Full text */}
+                          <span className="hidden sm:inline">{tab.label}</span>
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
 
                 {/* Sort Dropdown and View Toggle */}
-                <div className="flex items-center gap-3">
-                  {/* Sort Dropdown */}
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 lg:flex-shrink-0">
+                  {/* Sort Section */}
                   <div className="flex items-center gap-2">
-                    <Typography variant="body2" className="hidden sm:block">
-                      Ordenar por:
-                    </Typography>
-                    <IconButton
+                    {/* Sort Button */}
+                    <Button
                       onClick={handleSortClick}
+                      variant="outlined"
+                      size="small"
                       sx={{
                         border: `1px solid ${theme.palette.primary.main}`,
                         borderRadius: "30px",
-                        padding: "8px",
+                        padding: { xs: "6px 12px", sm: "8px 16px" },
+                        textTransform: "none",
+                        color: theme.palette.primary.main,
+                        fontSize: { xs: "0.75rem", sm: "0.875rem" },
+
+                        gap: 1,
+                        minWidth: { xs: "auto", sm: "120px" },
+                        "&:hover": {
+                          backgroundColor: `${theme.palette.primary.main}08`,
+                        },
                       }}
                     >
-                      <ArrowDownNarrowWide
-                        size={20}
-                        color={theme.palette.primary.main}
-                      />
-                    </IconButton>
+                      <span className="hidden sm:inline">Ordenar</span>
+                      <span>
+                        <ArrowDownNarrowWide size={18} />
+                      </span>
+                    </Button>
 
+                    {/* Sort Menu */}
                     <Menu
                       anchorEl={anchorEl}
                       open={Boolean(anchorEl)}
@@ -511,9 +543,18 @@ const ExperiencePage = ({ filters: initialFilters }) => {
                         sx: {
                           borderRadius: "12px",
                           mt: 1,
-                          minWidth: "180px",
+                          minWidth: { xs: "140px", sm: "180px" },
+                          maxWidth: "90vw",
                           boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)",
                         },
+                      }}
+                      transformOrigin={{
+                        horizontal: "center",
+                        vertical: "top",
+                      }}
+                      anchorOrigin={{
+                        horizontal: "center",
+                        vertical: "bottom",
                       }}
                     >
                       {sortingOptions.map((option) => (
@@ -521,8 +562,8 @@ const ExperiencePage = ({ filters: initialFilters }) => {
                           key={option.value}
                           onClick={() => handleSortSelection(option.value)}
                           sx={{
-                            fontSize: "0.875rem",
-                            padding: "12px 20px",
+                            fontSize: { xs: "0.75rem", sm: "0.875rem" },
+                            padding: { xs: "8px 12px", sm: "12px 20px" },
                             "&:hover": {
                               backgroundColor: `${theme.palette.primary.main}10`,
                             },
@@ -535,13 +576,18 @@ const ExperiencePage = ({ filters: initialFilters }) => {
                   </div>
 
                   {/* View Mode Toggle */}
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1 justify-center sm:justify-start">
+                    {/* Grid View Button */}
                     <Button
                       variant={viewMode === "grid" ? "contained" : "outlined"}
                       onClick={() => setViewMode("grid")}
+                      size="small"
                       sx={{
-                        minWidth: "40px",
-                        borderRadius: "30px",
+                        minWidth: { xs: "32px", sm: "36px" },
+                        width: { xs: "32px", sm: "36px" },
+                        height: { xs: "32px", sm: "36px" },
+                        padding: 0,
+                        borderRadius: "38px",
                         border: `1px solid ${theme.palette.primary.main}`,
                         ...(viewMode === "grid"
                           ? {
@@ -560,15 +606,20 @@ const ExperiencePage = ({ filters: initialFilters }) => {
                             }),
                       }}
                     >
-                      <Grid3X3 size={24} />
+                      <Grid3X3 size={16} />
                     </Button>
 
+                    {/* List View Button */}
                     <Button
                       variant={viewMode === "list" ? "contained" : "outlined"}
                       onClick={() => setViewMode("list")}
+                      size="small"
                       sx={{
-                        minWidth: "40px",
-                        borderRadius: "30px",
+                        minWidth: { xs: "32px", sm: "36px" },
+                        width: { xs: "32px", sm: "36px" },
+                        height: { xs: "32px", sm: "36px" },
+                        padding: 0,
+                        borderRadius: "38px",
                         border: `1px solid ${theme.palette.primary.main}`,
                         ...(viewMode === "list"
                           ? {
@@ -587,11 +638,33 @@ const ExperiencePage = ({ filters: initialFilters }) => {
                             }),
                       }}
                     >
-                      <List size={24} />
+                      <List size={16} />
                     </Button>
                   </div>
                 </div>
               </div>
+
+              {/* Add this CSS for hiding scrollbars */}
+              <style jsx global>{`
+                .scrollbar-hide {
+                  -ms-overflow-style: none;
+                  scrollbar-width: none;
+                }
+                .scrollbar-hide::-webkit-scrollbar {
+                  display: none;
+                }
+              `}</style>
+
+              {/* Add this CSS for hiding scrollbars */}
+              <style jsx global>{`
+                .scrollbar-hide {
+                  -ms-overflow-style: none;
+                  scrollbar-width: none;
+                }
+                .scrollbar-hide::-webkit-scrollbar {
+                  display: none;
+                }
+              `}</style>
             </div>
 
             {/* Experience Cards */}
@@ -648,10 +721,10 @@ const ExperiencePage = ({ filters: initialFilters }) => {
                       {data?.data.map((experience) => (
                         <Grid
                           item
-                          xs={12} // 1 column on mobile (0px+)
-                          sm={6} // 2 columns on small screens (600px+)
-                          md={6} // 2 columns on medium screens (900px+)
-                          lg={6} // 2 columns on large screens (1200px+)
+                          xs={12}
+                          sm={6}
+                          md={6}
+                          lg={6}
                           xl={4}
                           key={experience._id}
                         >

@@ -8,6 +8,7 @@ import {
   IconButton,
   useTheme,
   Divider,
+  useMediaQuery,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { getUserFriends, toggleFriend } from "../../../services/index/users";
@@ -15,11 +16,13 @@ import { setFriends } from "../../../store/reducers/authSlice";
 import useUser from "../../../hooks/useUser";
 import { stables } from "../../../constants";
 import { PersonRemoveOutlined, PeopleOutlined } from "@mui/icons-material";
-import { Eye } from "lucide-react"; // Ensure you have react-feather installed
+import { Eye } from "lucide-react";
+
 const FriendsWidget = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md")); // screens smaller than 900px
   const { user, jwt: token } = useUser();
   const [localFriends, setLocalFriends] = useState(user?.friends || []);
 
@@ -57,14 +60,9 @@ const FriendsWidget = () => {
       sx={{
         width: "100%",
         borderRadius: "16px",
-        padding: "1.5rem",
-        backgroundColor: theme.palette.background.paper,
-        boxShadow: "0 2px 20px rgba(0, 0, 0, 0.08)",
+        padding: { xs: "1rem", sm: "1.5rem" },
         border: `1px solid ${theme.palette.divider}`,
         transition: "box-shadow 0.3s ease",
-        "&:hover": {
-          boxShadow: "0 4px 24px rgba(0, 0, 0, 0.12)",
-        },
       }}
     >
       {/* Header */}
@@ -73,13 +71,15 @@ const FriendsWidget = () => {
           sx={{
             backgroundColor: theme.palette.primary.main,
             borderRadius: "12px",
-            padding: "8px",
+            padding: { xs: "6px", sm: "8px" }, // Smaller on mobile
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
           }}
         >
-          <PeopleOutlined sx={{ color: "white", fontSize: "20px" }} />
+          <PeopleOutlined
+            sx={{ color: "white", fontSize: { xs: "18px", sm: "20px" } }}
+          />
         </Box>
         <Box>
           <Typography
@@ -87,7 +87,7 @@ const FriendsWidget = () => {
             fontWeight="600"
             sx={{
               color: theme.palette.text.primary,
-              fontSize: "1.1rem",
+              fontSize: { xs: "1rem", sm: "1.1rem" }, // Responsive font size
             }}
           >
             Mis amigos
@@ -96,7 +96,7 @@ const FriendsWidget = () => {
             variant="body2"
             sx={{
               color: theme.palette.text.secondary,
-              fontSize: "0.85rem",
+              fontSize: { xs: "0.8rem", sm: "0.85rem" },
             }}
           >
             {localFriends.length}{" "}
@@ -112,13 +112,13 @@ const FriendsWidget = () => {
         <Box
           sx={{
             textAlign: "center",
-            py: 4,
+            py: { xs: 3, sm: 4 }, // Responsive padding
             px: 2,
           }}
         >
           <PeopleOutlined
             sx={{
-              fontSize: "48px",
+              fontSize: { xs: "40px", sm: "48px" },
               color: theme.palette.text.disabled,
               mb: 1,
             }}
@@ -128,6 +128,7 @@ const FriendsWidget = () => {
             sx={{
               color: theme.palette.text.secondary,
               fontWeight: "500",
+              fontSize: { xs: "0.9rem", sm: "1rem" },
             }}
           >
             No tienes amigos agregados
@@ -137,29 +138,30 @@ const FriendsWidget = () => {
             sx={{
               color: theme.palette.text.disabled,
               mt: 0.5,
+              fontSize: { xs: "0.8rem", sm: "0.875rem" },
             }}
           >
             Comienza a conectar con otras personas
           </Typography>
         </Box>
       ) : (
-        <Box sx={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            gap: { xs: "8px", sm: "12px" },
+          }}
+        >
           {localFriends.map((friend, index) => (
             <Box
               key={friend._id}
               sx={{
                 display: "flex",
                 alignItems: "center",
-                gap: "12px",
-                padding: "12px",
+                gap: { xs: "8px", sm: "12px" }, // Responsive gap
+                padding: { xs: "8px", sm: "12px" }, // Responsive padding
                 borderRadius: "12px",
-                backgroundColor: theme.palette.action.hover,
                 transition: "all 0.2s ease",
-                "&:hover": {
-                  backgroundColor: theme.palette.action.selected,
-                  transform: "translateY(-1px)",
-                  boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
-                },
               }}
             >
               <Avatar
@@ -170,8 +172,8 @@ const FriendsWidget = () => {
                 }
                 alt={friend.name || "Amigo"}
                 sx={{
-                  width: "44px",
-                  height: "44px",
+                  width: { xs: "36px", sm: "44px" }, // Smaller on mobile
+                  height: { xs: "36px", sm: "44px" },
                   border: `2px solid ${theme.palette.background.paper}`,
                   boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
                 }}
@@ -183,7 +185,7 @@ const FriendsWidget = () => {
                   sx={{
                     fontWeight: "600",
                     color: theme.palette.text.primary,
-                    fontSize: "0.95rem",
+                    fontSize: { xs: "0.85rem", sm: "0.95rem" }, // Responsive font size
                     overflow: "hidden",
                     textOverflow: "ellipsis",
                     whiteSpace: "nowrap",
@@ -195,7 +197,8 @@ const FriendsWidget = () => {
                   variant="body2"
                   sx={{
                     color: theme.palette.text.secondary,
-                    fontSize: "0.8rem",
+                    fontSize: { xs: "0.75rem", sm: "0.8rem" },
+                    display: { xs: "none", sm: "block" }, // Hide on mobile to save space
                   }}
                 >
                   Amigo
@@ -203,34 +206,67 @@ const FriendsWidget = () => {
               </Box>
 
               {/* Action Buttons */}
-              <Box sx={{ display: "flex", gap: "8px", alignItems: "center" }}>
-                <Button
-                  size="small"
-                  startIcon={<Eye />}
-                  variant="outlined"
-                  onClick={() => navigate(`/profile/${friend._id}`)}
-                  sx={{
-                    borderRadius: "ropx",
-                    textTransform: "none",
-                    fontSize: "0.8rem",
-                    fontWeight: "500",
-                    minWidth: "80px",
-                    height: "32px",
-                    borderColor: theme.palette.primary.main,
-                    color: theme.palette.primary.main,
-                    "&:hover": {
-                      backgroundColor: theme.palette.primary.main,
-                      color: "white",
+              <Box
+                sx={{
+                  display: "flex",
+                  gap: { xs: "4px", sm: "8px" },
+                  alignItems: "center",
+                }}
+              >
+                {/* View Profile Button - Responsive design */}
+                {isMobile ? (
+                  // Mobile: Icon-only button with tooltip-like title
+                  <IconButton
+                    onClick={() => navigate(`/profile/${friend._id}`)}
+                    size="small"
+                    title="Ver perfil" // Tooltip on hover/touch
+                    sx={{
+                      width: "32px",
+                      height: "32px",
+                      border: `1px solid ${theme.palette.primary.main}`,
+                      color: theme.palette.primary.main,
+                      transition: "all 0.2s ease",
+                      "&:hover": {
+                        backgroundColor: theme.palette.primary.main,
+                        color: "white",
+                        transform: "scale(1.05)",
+                      },
+                    }}
+                  >
+                    <Eye size={16} />
+                  </IconButton>
+                ) : (
+                  // Desktop: Button with text
+                  <Button
+                    size="small"
+                    startIcon={<Eye />}
+                    variant="outlined"
+                    onClick={() => navigate(`/profile/${friend._id}`)}
+                    sx={{
+                      borderRadius: "30px",
+                      textTransform: "none",
+                      fontSize: "0.8rem",
+                      fontWeight: "500",
+                      minWidth: "80px",
+                      height: "32px",
                       borderColor: theme.palette.primary.main,
-                    },
-                  }}
-                >
-                  Ver perfil
-                </Button>
+                      color: theme.palette.primary.main,
+                      "&:hover": {
+                        backgroundColor: theme.palette.primary.main,
+                        color: "white",
+                        borderColor: theme.palette.primary.main,
+                      },
+                    }}
+                  >
+                    Ver perfil
+                  </Button>
+                )}
 
+                {/* Remove Friend Button */}
                 <IconButton
                   onClick={() => handleUnfollow(friend._id)}
                   size="small"
+                  title="Eliminar amigo" // Tooltip
                   sx={{
                     width: "32px",
                     height: "32px",

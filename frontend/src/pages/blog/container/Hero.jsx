@@ -17,7 +17,7 @@ const Hero = ({ user, jwt, onOpenModal }) => {
         justifyContent: "center",
         alignItems: "center",
         textAlign: "center",
-        paddingTop: { xs: 6, sm: 8, md: 20 },
+        paddingTop: { xs: 15, sm: 20, md: 20 },
         paddingX: { xs: 2, sm: 4 },
         borderRadius: {
           xs: "0 0 30px 30px",
@@ -36,6 +36,7 @@ const Hero = ({ user, jwt, onOpenModal }) => {
           right: "10%",
           width: "120px",
           height: "80px",
+          opacity: "50%",
           backgroundImage: `url(${nube})`,
           backgroundSize: "contain",
           backgroundRepeat: "no-repeat",
@@ -51,6 +52,7 @@ const Hero = ({ user, jwt, onOpenModal }) => {
         sx={{
           position: "absolute",
           bottom: "20%",
+          opacity: "50%",
           left: "10%",
           width: "120px",
           height: "80px",

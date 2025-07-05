@@ -1,6 +1,6 @@
 // Complete ItineraryDetailPage.jsx with Permanent Auto-Favorites Fix
 import React, { useState, useEffect, useCallback } from "react";
-import { Box, useTheme } from "@mui/material";
+import { Box, useTheme, useMediaQuery } from "@mui/material";
 import { toast } from "react-hot-toast";
 import { useNavigate, useParams } from "react-router-dom";
 import DateChangeDialog from "./components/DateChangeDialog";
@@ -49,6 +49,7 @@ const ItineraryDetailPage = () => {
 
   const theme = useTheme();
   const [userRole, setUserRole] = useState("viewer");
+  const isMobile = useMediaQuery(theme.breakpoints.down("md")); // Hide on tablet and mobile
 
   const { id } = useParams();
   const navigate = useNavigate();
@@ -274,6 +275,55 @@ const ItineraryDetailPage = () => {
 
     detectFavoritesAPI();
   }, [user?._id, jwt, allExperiences, apiDetectionComplete, testAPIPatterns]);
+
+  const handleMoveBoard = async (fromIndex, toIndex) => {
+    // Check permissions
+    if (!hasPermission("edit")) {
+      toast.error("No tienes permisos para reordenar días");
+      return;
+    }
+
+    // Validate indices
+    if (toIndex < 0 || toIndex >= boards.length || fromIndex === toIndex) {
+      return;
+    }
+
+    try {
+      // Get the start date for chronological ordering
+      const baseDate =
+        startDate || (boards[0]?.date ? new Date(boards[0].date) : new Date());
+
+      // Reorder the boards using arrayMove (same as drag & drop)
+      let newBoards = [...boards];
+      newBoards = arrayMove(newBoards, fromIndex, toIndex);
+
+      // Update dates to maintain chronological order
+      newBoards = newBoards.map((board, index) => {
+        const newDate = new Date(baseDate);
+        newDate.setDate(newDate.getDate() + index);
+
+        return {
+          ...board,
+          date: newDate.toISOString().split("T")[0], // Format as YYYY-MM-DD
+        };
+      });
+
+      // Update UI state immediately
+      setBoards(newBoards);
+      updateTotalBudget(newBoards);
+
+      // Save to backend
+      await saveBoardChanges(newBoards);
+
+      toast.success("Días reordenados y fechas actualizadas");
+    } catch (error) {
+      console.error("Error moving board:", error);
+      toast.error("Error al reordenar días");
+
+      // Revert changes on error
+      fetchItinerary();
+    }
+  };
 
   // Add this handler function to your ItineraryDetailPage component
   const handlePrivacyToggle = async (newPrivateStatus) => {
@@ -1340,7 +1390,54 @@ const ItineraryDetailPage = () => {
       }
     }
   };
+  const handleMoveActivity = async (boardIndex, fromIndex, toIndex) => {
+    // Check permissions
+    if (userRole === "viewer") {
+      toast.error("No tienes permisos para reordenar actividades");
+      return;
+    }
 
+    // Validate indices
+    if (toIndex < 0 || fromIndex === toIndex) {
+      return;
+    }
+
+    try {
+      const newBoards = [...boards];
+      const targetBoard = newBoards[boardIndex];
+
+      if (!targetBoard?.favorites || toIndex >= targetBoard.favorites.length) {
+        return;
+      }
+
+      // Reorder activities within the board using arrayMove
+      const reorderedActivities = arrayMove(
+        targetBoard.favorites,
+        fromIndex,
+        toIndex
+      );
+
+      // Update uniqueIds to maintain consistency
+      targetBoard.favorites = reorderedActivities.map((fav, idx) => ({
+        ...fav,
+        uniqueId: `${boardIndex}-${idx}-${fav._id}`,
+      }));
+
+      // Update UI state immediately
+      setBoards(newBoards);
+
+      // Save to backend
+      await saveBoardChanges(newBoards);
+
+      toast.success("Actividades reordenadas");
+    } catch (error) {
+      console.error("Error moving activity:", error);
+      toast.error("Error al reordenar actividades");
+
+      // Revert changes on error
+      fetchItinerary();
+    }
+  };
   const handleDragEnd = async (event) => {
     const { active, over } = event;
 
@@ -1718,6 +1815,13 @@ const ItineraryDetailPage = () => {
                     key={board._id || board.id || `board-${boardIndex}`}
                     board={board}
                     boardIndex={boardIndex}
+                    totalBoards={boards.length}
+                    onMoveBoard={
+                      hasPermission("edit") ? handleMoveBoard : undefined
+                    }
+                    onMoveActivity={
+                      hasPermission("edit") ? handleMoveActivity : undefined
+                    } // ← Add this line
                     onRemoveBoard={
                       hasPermission("edit") ? handleRemoveBoard : undefined
                     }
@@ -1735,7 +1839,7 @@ const ItineraryDetailPage = () => {
                       !hasPermission("dragDrop") ||
                       (activeId && !activeId.toString().startsWith("board-"))
                     }
-                    userRole={userRole} // Pass the actual userRole
+                    userRole={userRole}
                   />
                 ))}
                 {/* Only show AddBoardCard if user can edit */}
@@ -1747,7 +1851,7 @@ const ItineraryDetailPage = () => {
           </Box>
 
           {/* Only show FavoritesDrawer if user can edit */}
-          {hasPermission("edit") && (
+          {hasPermission("edit") && !isMobile && (
             <FavoritesDrawer
               isOpen={isDrawerOpen}
               onToggle={() => setIsDrawerOpen(!isDrawerOpen)}
@@ -1759,7 +1863,7 @@ const ItineraryDetailPage = () => {
               selectedPrefecture={selectedPrefecture}
               setSelectedPrefecture={setSelectedPrefecture}
               onClearFilters={handleClearFilters}
-              userRole={userRole} // Pass userRole if needed
+              userRole={userRole}
             />
           )}
         </Box>

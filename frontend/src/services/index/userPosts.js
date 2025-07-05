@@ -16,11 +16,52 @@ export const getUserPosts = async (
       },
     };
 
-    const { data, headers } = await axios.get(
-      `${API_URL}/api/user-posts/user?searchKeyword=${searchKeyword}&page=${page}&limit=${limit}`,
-      config
-    );
-    return { data, headers };
+    const url = `${API_URL}/api/user-posts/user?searchKeyword=${searchKeyword}&page=${page}&limit=${limit}`;
+
+    const response = await axios.get(url, config);
+
+    const headerKeys = Object.keys(response.headers);
+
+    headerKeys.forEach((key) => {
+      const lowerKey = key.toLowerCase();
+      if (
+        lowerKey.includes("total") ||
+        lowerKey.includes("page") ||
+        lowerKey.includes("count")
+      ) {
+        console.log(
+          `Found potential pagination header: ${key} = ${response.headers[key]}`
+        );
+      }
+    });
+
+    // Check if it's an AxiosHeaders object and try to normalize
+    let normalizedHeaders = {};
+    if (response.headers && typeof response.headers === "object") {
+      // Convert AxiosHeaders to plain object
+      for (const key in response.headers) {
+        if (response.headers.hasOwnProperty(key)) {
+          normalizedHeaders[key] = response.headers[key];
+        }
+      }
+
+      // Also try using Object.assign
+      try {
+        normalizedHeaders = {
+          ...normalizedHeaders,
+          ...Object.assign({}, response.headers),
+        };
+      } catch (e) {
+        console.log("Object.assign failed:", e.message);
+      }
+    }
+
+    const result = {
+      data: response.data,
+      headers: normalizedHeaders,
+    };
+
+    return result;
   } catch (error) {
     if (error.response && error.response.data.message)
       throw new Error(error.response.data.message);

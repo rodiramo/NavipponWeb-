@@ -69,7 +69,7 @@ const CustomPrevArrow = (props) => {
       {...props}
       className="slick-prev group"
       style={{
-        left: window.innerWidth < 640 ? "-10px" : "-50px", // Closer on mobile
+        left: window.innerWidth < 640 ? "-12px" : "-50px",
         zIndex: 10,
         cursor: "pointer",
         position: "absolute",
@@ -79,7 +79,7 @@ const CustomPrevArrow = (props) => {
     >
       <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center hover:bg-white/30 transition-all duration-300">
         <CircleArrowLeft
-          size={window.innerWidth < 640 ? 20 : 24} // Smaller icon on mobile
+          size={window.innerWidth < 640 ? 20 : 24}
           style={{ color: theme.palette.primary.main }}
           className="transition-transform duration-300"
         />
@@ -95,7 +95,7 @@ const CustomNextArrow = (props) => {
       {...props}
       className="slick-next group"
       style={{
-        right: window.innerWidth < 640 ? "-1px" : "-20px", // Closer on mobile
+        right: window.innerWidth < 640 ? "2px" : "-20px",
         zIndex: 10,
         cursor: "pointer",
         position: "absolute",
@@ -105,7 +105,7 @@ const CustomNextArrow = (props) => {
     >
       <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center  hover:bg-white/30 transition-all duration-300">
         <CircleArrowRight
-          size={window.innerWidth < 640 ? 20 : 24} // Smaller icon on mobile
+          size={window.innerWidth < 640 ? 20 : 24}
           style={{ color: theme.palette.primary.main }}
           className="transition-transform duration-300"
         />
@@ -256,7 +256,6 @@ const RegionCarousel = () => {
                     borderRadius: "30rem 30rem 2rem 2rem",
                   }}
                 >
-                  {/* Background Image with Blur Effect on Hover */}
                   <div
                     className="absolute inset-0 bg-cover bg-center transition-all group-hover:blur-sm"
                     style={{
@@ -281,9 +280,18 @@ const RegionCarousel = () => {
                   </div>
 
                   <div className="relative h-full p-6 text-white flex flex-col">
-                    <div></div>
-
-                    <div className="h-10 flex items-end mt-0 sm:mt-[100px]">
+                    <div
+                      className="h-10 flex items-end"
+                      style={{
+                        marginTop: "125px",
+                        "@media (min-width: 640px)": {
+                          marginTop: "1000px",
+                        },
+                        "@media (min-width: 1024px)": {
+                          marginTop: "5px",
+                        },
+                      }}
+                    >
                       <h3 className="text-2xl sm:text-3xl font-bold leading-tight">
                         {region.name}
                       </h3>

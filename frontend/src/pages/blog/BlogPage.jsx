@@ -16,6 +16,7 @@ import { ArrowDownNarrowWide } from "lucide-react";
 import {
   Button,
   Modal,
+  Tooltip,
   Box,
   Typography,
   MenuItem,
@@ -26,15 +27,23 @@ import {
   Paper,
   Chip,
   Menu,
+  useMediaQuery,
 } from "@mui/material";
-import { Close, PostAdd, PeopleOutlined } from "@mui/icons-material";
-
+import {
+  Close,
+  PostAdd,
+  PeopleOutlined,
+  ArrowForward,
+} from "@mui/icons-material";
+import { Users } from "lucide-react";
 let isFirstRun = true;
 
 const BlogPage = () => {
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("lg"));
   const [searchParams, setSearchParams] = useSearchParams();
   const [open, setOpen] = useState(false);
+  const [userListModalOpen, setUserListModalOpen] = useState(false); // New state for UserList modal
   const [anchorEl, setAnchorEl] = useState(null);
   const { user, jwt } = useUser();
 
@@ -109,6 +118,95 @@ const BlogPage = () => {
       {/* Hero Section */}
       <Hero user={user} jwt={jwt} onOpenModal={() => setOpen(true)} />
 
+      {user && isMobile && (
+        <Box
+          sx={{
+            py: 2,
+            px: 3,
+            borderBottom: `1px solid ${theme.palette.divider}`,
+            backgroundColor: theme.palette.background.default,
+          }}
+        >
+          <Container maxWidth="xl">
+            <Tooltip
+              title="Haz clic para explorar y conectar con otros usuarios"
+              arrow
+              placement="top"
+            >
+              <Button
+                variant="outlined"
+                onClick={() => setUserListModalOpen(true)}
+                startIcon={
+                  <Box
+                    sx={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: "50%",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                      position: "relative",
+                    }}
+                  >
+                    <Users
+                      size={20}
+                      color={theme.palette.primary.main}
+                      style={{
+                        transition: "all 0.3s ease-in-out",
+                      }}
+                    />
+                  </Box>
+                }
+                endIcon={
+                  <ArrowForward
+                    sx={{
+                      fontSize: 18,
+                      transition: "transform 0.2s ease-in-out",
+                    }}
+                  />
+                }
+                fullWidth
+                sx={{
+                  borderRadius: 30,
+                  py: 2,
+                  textTransform: "none",
+                  fontSize: "1rem",
+                  width: "fit-content",
+                  fontWeight: 600,
+                  border: "none",
+                  color: theme.palette.primary.main,
+                  backgroundColor: theme.palette.primary.light,
+                  "&:hover": {
+                    transform: "translateY(-2px)",
+                    boxShadow: `0 6px 20px ${theme.palette.primary.main}20`,
+                    "& .MuiButton-endIcon": {
+                      transform: "translateX(4px)",
+                    },
+                  },
+                  "&:active": {
+                    "& .MuiButton-startIcon": {
+                      "& > div": {
+                        transform: "scale(0.98)",
+                      },
+                      "& svg": {
+                        transform: "scale(1.05)",
+                      },
+                    },
+                    "& .MuiButton-endIcon": {
+                      transform: "translateX(2px) scale(0.95)",
+                    },
+                  },
+                  transition: "all 0.2s ease-in-out",
+                }}
+              >
+                Descubre usuarios de la comunidad
+              </Button>
+            </Tooltip>
+          </Container>
+        </Box>
+      )}
+
       {/* Main Content */}
       <Box
         sx={{
@@ -119,7 +217,7 @@ const BlogPage = () => {
         <Container maxWidth="xl">
           <Grid container spacing={4}>
             {/* Main Posts Section */}
-            <Grid item xs={12} lg={user ? 8.5 : 12}>
+            <Grid item xs={12} lg={user && !isMobile ? 8.5 : 12}>
               {/* Section Header */}
               <Paper
                 elevation={0}
@@ -171,7 +269,7 @@ const BlogPage = () => {
                     </Box>
                   </Box>
 
-                  {/* Sort Dropdown - New Style */}
+                  {/* Sort Dropdown */}
                   <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                     <Typography
                       variant="body2"
@@ -360,30 +458,21 @@ const BlogPage = () => {
                     <Box
                       sx={{ display: "flex", justifyContent: "center", mt: 4 }}
                     >
-                      <Paper
-                        elevation={0}
-                        sx={{
-                          p: 2,
-                          borderRadius: 3,
-                          border: `1px solid ${theme.palette.divider}`,
-                        }}
-                      >
-                        <Pagination
-                          onPageChange={handlePageChange}
-                          currentPage={currentPage}
-                          totalPageCount={JSON.parse(
-                            data?.headers?.["x-totalpagecount"] || "1"
-                          )}
-                        />
-                      </Paper>
+                      <Pagination
+                        onPageChange={handlePageChange}
+                        currentPage={currentPage}
+                        totalPageCount={JSON.parse(
+                          data?.headers?.["x-totalpagecount"] || "1"
+                        )}
+                      />
                     </Box>
                   </>
                 )}
               </Box>
             </Grid>
 
-            {/* Sidebar */}
-            {user && (
+            {/* Desktop Sidebar - Hidden on mobile */}
+            {user && !isMobile && (
               <Grid item xs={12} lg={3.5}>
                 <Box>
                   <Paper
@@ -398,7 +487,6 @@ const BlogPage = () => {
                       sx={{
                         p: 3,
                         background: theme.palette.background.default,
-
                         borderBottom: `1px solid ${theme.palette.divider}`,
                       }}
                     >
@@ -446,7 +534,7 @@ const BlogPage = () => {
         </Container>
       </Box>
 
-      {/* Enhanced Modal */}
+      {/* Post Creation Modal */}
       <Modal
         open={open}
         onClose={() => setOpen(false)}
@@ -495,6 +583,97 @@ const BlogPage = () => {
           </IconButton>
 
           <PostForm onClose={() => setOpen(false)} token={jwt} />
+        </Box>
+      </Modal>
+
+      {/* Mobile UserList Modal */}
+      <Modal
+        open={userListModalOpen}
+        onClose={() => setUserListModalOpen(false)}
+        sx={{
+          display: "flex",
+          alignItems: "flex-start",
+          justifyContent: "center",
+          pt: { xs: 2, sm: 4 },
+          px: 2,
+        }}
+      >
+        <Box
+          sx={{
+            position: "relative",
+            width: "100%",
+            maxWidth: { xs: "100%", sm: "500px" },
+            maxHeight: "80vh",
+            overflowY: "auto",
+            bgcolor: "background.paper",
+            boxShadow: theme.shadows[24],
+            borderRadius: { xs: 2, sm: 4 },
+            outline: "none",
+          }}
+        >
+          {/* Modal Header */}
+          <Box
+            sx={{
+              p: 3,
+              background: theme.palette.background.default,
+              borderBottom: `1px solid ${theme.palette.divider}`,
+              position: "sticky",
+              top: 0,
+              zIndex: 1,
+              borderRadius: "16px 16px 0 0",
+            }}
+          >
+            <Box
+              display="flex"
+              alignItems="center"
+              justifyContent="space-between"
+            >
+              <Box display="flex" alignItems="center" gap={1}>
+                <PeopleOutlined color="primary" />
+                <Typography
+                  variant="h6"
+                  sx={{
+                    fontWeight: 700,
+                    color: theme.palette.text.primary,
+                  }}
+                >
+                  Descubre usuarios
+                </Typography>
+              </Box>
+
+              <IconButton
+                onClick={() => setUserListModalOpen(false)}
+                sx={{
+                  backgroundColor: theme.palette.background.paper,
+                  color: theme.palette.text.secondary,
+                  border: `1px solid ${theme.palette.divider}`,
+                  "&:hover": {
+                    backgroundColor: theme.palette.error.light,
+                    color: theme.palette.error.main,
+                    borderColor: theme.palette.error.main,
+                    transform: "scale(1.1)",
+                  },
+                  transition: "all 0.2s ease-in-out",
+                }}
+              >
+                <Close />
+              </IconButton>
+            </Box>
+
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+              Conecta con otros miembros de la comunidad
+            </Typography>
+          </Box>
+
+          {/* Modal Content */}
+          <Box
+            sx={{
+              p: 3,
+              background: theme.palette.background.default,
+            }}
+          >
+            <UserList currentUser={user} token={jwt} />
+          </Box>
         </Box>
       </Modal>
     </MainLayout>

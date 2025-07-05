@@ -20,7 +20,6 @@ const Editor = ({ onDataChange, content = null, editable = true }) => {
       attributes: {
         class:
           "!prose !dark:prose-invert prose-sm sm:prose-base max-w-none mt-7 focus:outline-none prose-pre:bg-[#282c34] prose-pre:text-[#abb2bf]",
-        style: "color: rgba(0, 0, 0, 0.6);",
       },
     },
     onUpdate: ({ editor }) => {

@@ -4,7 +4,6 @@ import { useTheme } from "@mui/material/styles";
 const CustomShape = ({ color, size = 1 }) => {
   const theme = useTheme();
 
-  // Set the shape color to the passed prop or the theme's primary color
   const shapeColor = color || theme.palette.primary.main;
   const svgWidth = `${size * 100}px`;
 

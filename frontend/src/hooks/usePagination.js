@@ -8,11 +8,11 @@ export const usePagination = ({
   totalPageCount,
 }) => {
   const paginationRange = useMemo(() => {
-
     const totalPageNumbers = siblingCount + 5;
 
     if (totalPageNumbers >= totalPageCount) {
-      return range(1, totalPageCount);
+      const result = range(1, totalPageCount);
+      return result;
     }
 
     const leftSiblingIndex = Math.max(currentPage - siblingCount, 1);
@@ -21,33 +21,42 @@ export const usePagination = ({
       totalPageCount
     );
 
-    const shoudShowLeftDots = leftSiblingIndex > 2;
+    const shouldShowLeftDots = leftSiblingIndex > 2;
     const shouldShowRightDots = rightSiblingIndex < totalPageCount - 2;
 
     const firstPageIndex = 1;
     const lastPageIndex = totalPageCount;
-
-    if (!shoudShowLeftDots && shouldShowRightDots) {
+    // Case 1: No left dots, but right dots
+    if (!shouldShowLeftDots && shouldShowRightDots) {
       let leftItemCount = 3 + 2 * siblingCount;
-      let leftrange = range(1, leftItemCount);
-
-      return [...leftrange, DOTS, totalPageCount];
+      let leftRange = range(1, leftItemCount);
+      const result = [...leftRange, DOTS, totalPageCount];
+      return result;
     }
 
-    if (shoudShowLeftDots && !shouldShowRightDots) {
+    if (shouldShowLeftDots && !shouldShowRightDots) {
       let rightItemCount = 3 + 2 * siblingCount;
       let rightRange = range(
         totalPageCount - rightItemCount + 1,
         totalPageCount
       );
-
-      return [firstPageIndex, DOTS, ...rightRange];
+      const result = [firstPageIndex, DOTS, ...rightRange];
+      console.log("Case 2 result:", result);
+      return result;
     }
-
-    if (shoudShowLeftDots && shouldShowRightDots) {
+    if (shouldShowLeftDots && shouldShowRightDots) {
       let middleRange = range(leftSiblingIndex, rightSiblingIndex);
-      return [firstPageIndex, DOTS, middleRange, DOTS, lastPageIndex];
+      const result = [
+        firstPageIndex,
+        DOTS,
+        ...middleRange,
+        DOTS,
+        lastPageIndex,
+      ];
+      return result;
     }
+
+    return range(1, totalPageCount);
   }, [siblingCount, currentPage, totalPageCount]);
 
   return paginationRange;
@@ -56,5 +65,11 @@ export const usePagination = ({
 function range(start, end) {
   const length = end - start + 1;
 
-  return Array.from({ length }, (value, index) => index + start);
+  // Add validation to prevent invalid ranges
+  if (length <= 0) {
+    return [];
+  }
+
+  const result = Array.from({ length }, (_, index) => index + start);
+  return result;
 }

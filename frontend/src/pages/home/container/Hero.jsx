@@ -215,12 +215,6 @@ const Hero = () => {
               backgroundClip: "text",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
-              fontSize: {
-                xs: "2rem",
-                sm: "2.8rem",
-                md: "3.6rem",
-                lg: "4.4rem",
-              },
               fontWeight: 700,
               mt: 1,
             }}
@@ -234,16 +228,13 @@ const Hero = () => {
           sx={{
             color: "rgba(255, 255, 255, 0.9)",
             padding: "0.5rem 1rem",
-            borderRadius: "30px",
+            borderRadius: "10px",
             fontSize: { xs: "1.1rem", sm: "1.3rem", md: "1.5rem" },
             fontWeight: 400,
             maxWidth: "600px",
             lineHeight: 1.6,
             animation: "fadeInUp 1s ease-out 0.9s both",
-            textShadow: "0 2px 10px rgba(0,0,0,0.8)",
-            backdropFilter: "blur(90px)",
-            backgroundColor: "rgba(17, 1, 1, 0.1)",
-            border: "1px solid rgba(255, 255, 255, 0.2)",
+            backdropFilter: "blur(10px)",
 
             transition: "all 0.3s ease",
           }}

@@ -11,25 +11,29 @@ import {
   Typography,
   Button,
   IconButton,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   TextField,
+  useTheme,
+  CircularProgress,
+  Card,
+  CardContent,
+  Fade,
+  Chip,
+  useMediaQuery,
+  Stack,
+  Divider,
   Select,
   MenuItem,
-  useTheme,
   FormControl,
   InputLabel,
-  CircularProgress,
 } from "@mui/material";
-import FmdGoodOutlinedIcon from "@mui/icons-material/FmdGoodOutlined";
 import {
   EditOutlined,
-  Close,
   CameraAlt,
-  LocationOn,
-  Save,
+  Cancel,
+  Check,
+  PersonOutline,
+  EmailOutlined,
+  FmdGoodOutlined,
 } from "@mui/icons-material";
 import ProfilePicture from "../../../components/ProfilePicture";
 import { toast } from "react-hot-toast";
@@ -40,30 +44,22 @@ const User = () => {
   const dispatch = useDispatch();
   const queryClient = useQueryClient();
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const { user: reduxUser, jwt } = useUser();
   const [user, setUser] = useState(reduxUser || {});
-  const [isEditing, setIsEditing] = useState(false);
-  const [openLocation, setOpenLocation] = useState(false);
-  const [coverImage, setCoverImage] = useState(() => {
-    if (user?.coverImg) {
-      return `${stables.UPLOAD_FOLDER_BASE_URL}/${user.coverImg}`;
-    }
-    return "/assets/bg-home1.jpg";
+
+  // Editing states
+  const [editingField, setEditingField] = useState(null); // 'name', 'email', 'location', or null
+  const [tempValues, setTempValues] = useState({
+    name: "",
+    email: "",
+    city: "",
+    country: "",
   });
 
-  // Location form states
-  const [locationForm, setLocationForm] = useState({
-    city: user?.city || "",
-    country: user?.country || "",
-  });
+  // Location-specific states
   const [citySearchTerm, setCitySearchTerm] = useState("");
   const [filteredCities, setFilteredCities] = useState([]);
-
-  // Profile form states
-  const [profileForm, setProfileForm] = useState({
-    name: user?.name || "",
-    email: user?.email || "",
-  });
 
   // City-Country mapping (keeping your existing data)
   const cityCountryData = {
@@ -448,286 +444,104 @@ const User = () => {
     }
     return "";
   };
+
+  const [coverImage, setCoverImage] = useState(() => {
+    if (user?.coverImg) {
+      return `${stables.UPLOAD_FOLDER_BASE_URL}/${user.coverImg}`;
+    }
+    return "/assets/bg-home1.jpg";
+  });
+
   useEffect(() => {
-    console.log("🔄 Redux User Updated:", reduxUser);
     if (reduxUser) {
       setUser(reduxUser);
-
-      // ✅ Update cover image when user data changes
       if (reduxUser.coverImg) {
-        console.log(
-          "🖼️ Setting cover image from user data:",
-          reduxUser.coverImg
+        setCoverImage(
+          `${stables.UPLOAD_FOLDER_BASE_URL}/${reduxUser.coverImg}`
         );
-        const imageUrl = `${stables.UPLOAD_FOLDER_BASE_URL}/${reduxUser.coverImg}`;
-        console.log("🖼️ Converted image URL:", imageUrl);
-        setCoverImage(imageUrl);
       }
-
-      setLocationForm({
+      setTempValues({
+        name: reduxUser.name || "",
+        email: reduxUser.email || "",
         city: reduxUser.city || "",
         country: reduxUser.country || "",
       });
-      setProfileForm({
-        name: reduxUser.name || "",
-        email: reduxUser.email || "",
-      });
     }
   }, [reduxUser]);
-  useEffect(() => {
-    console.log("🔍 Auth Debug:", {
-      hasJWT: !!jwt,
-      jwtLength: jwt?.length,
-      jwtPrefix: jwt?.substring(0, 20) + "...",
-      userId: user?._id,
-      userEmail: user?.email,
-    });
 
+  useEffect(() => {
     if (!jwt) {
       navigate("/login");
       toast.error("Debes estar logueado para acceder al perfil");
     } else {
-      // Check if token is expired
       try {
         const payload = JSON.parse(atob(jwt.split(".")[1]));
         const isExpired = payload.exp * 1000 < Date.now();
-        console.log("🔍 Token Info:", {
-          isExpired,
-          expiresAt: new Date(payload.exp * 1000),
-          tokenUserId: payload.id,
-          currentTime: new Date(),
-        });
-
         if (isExpired) {
-          console.error("❌ Token is expired");
           navigate("/login");
           toast.error(
             "Tu sesión ha expirado. Por favor inicia sesión nuevamente."
           );
         }
       } catch (error) {
-        console.error("❌ Invalid token format:", error);
         navigate("/login");
         toast.error("Token inválido. Por favor inicia sesión nuevamente.");
       }
     }
-  }, [jwt, navigate, user]);
+  }, [jwt, navigate]);
 
-  // Mutation for updating profile
-  // Replace your updateProfileMutation with this fixed version:
+  // Mutations
   const updateProfileMutation = useMutation({
     mutationFn: async (data) => {
-      console.log("🔄 Updating profile:", {
-        userId: user._id,
+      const response = await axios.put(
+        `/api/users/updateProfile/${user._id}`,
         data,
-        hasJWT: !!jwt,
-      });
-
-      if (!jwt) {
-        throw new Error("No hay token de autenticación");
-      }
-
-      try {
-        // ✅ FIXED: Use the correct profile update endpoint
-        const response = await axios.put(
-          `/api/users/updateProfile/${user._id}`, // ✅ This matches your backend route
-          data,
-          {
-            headers: {
-              Authorization: `Bearer ${jwt}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
-        return response.data;
-      } catch (apiError) {
-        console.error("❌ Profile update API error:", {
-          status: apiError.response?.status,
-          data: apiError.response?.data,
-        });
-        throw apiError;
-      }
+        {
+          headers: {
+            Authorization: `Bearer ${jwt}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      return response.data;
     },
     onSuccess: (data) => {
-      console.log("✅ Profile updated successfully:", data);
       dispatch(setUserInfo(data));
       setUser(data);
       queryClient.invalidateQueries(["profile"]);
       toast.success("Perfil actualizado exitosamente");
-      setIsEditing(false);
+      setEditingField(null);
     },
     onError: (error) => {
-      console.error("❌ Profile update mutation error:", error);
-
-      let errorMessage = "Error al actualizar el perfil";
-
-      if (error.response?.status === 401) {
-        errorMessage = "Sesión expirada. Por favor inicia sesión nuevamente.";
-        setTimeout(() => navigate("/login"), 2000);
-      } else if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      }
-
-      toast.error(errorMessage);
-    },
-  });
-
-  // Mutation for updating location
-  const updateLocationMutation = useMutation({
-    mutationFn: async (data) => {
-      console.log("🔄 Updating location:", {
-        userId: user._id,
-        data,
-        hasJWT: !!jwt,
-      });
-
-      if (!jwt) {
-        throw new Error("No hay token de autenticación");
-      }
-
-      try {
-        const response = await axios.put(
-          `/api/users/updateProfile/${user._id}`,
-          data,
-          {
-            headers: {
-              Authorization: `Bearer ${jwt}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
-        return response.data;
-      } catch (apiError) {
-        console.error("❌ Location update API error:", {
-          status: apiError.response?.status,
-          data: apiError.response?.data,
-        });
-        throw apiError;
-      }
-    },
-    onSuccess: (data) => {
-      console.log("✅ Location updated successfully:", data);
-      dispatch(setUserInfo(data));
-      setUser(data);
-      queryClient.invalidateQueries(["profile"]);
-      toast.success("Ubicación actualizada exitosamente");
-      setOpenLocation(false);
-    },
-    onError: (error) => {
-      console.error("❌ Location update mutation error:", error);
-
-      let errorMessage = "Error al actualizar la ubicación";
-
-      if (error.response?.status === 401) {
-        errorMessage = "Sesión expirada. Por favor inicia sesión nuevamente.";
-        setTimeout(() => navigate("/login"), 2000);
-      } else if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      }
-
-      toast.error(errorMessage);
+      toast.error(
+        error.response?.data?.message || "Error al actualizar el perfil"
+      );
     },
   });
 
   const updateCoverMutation = useMutation({
     mutationFn: async (file) => {
-      console.log("🔄 Starting cover image upload:", {
-        fileName: file.name,
-        fileSize: file.size,
-        fileType: file.type,
-        hasJWT: !!jwt,
-      });
-
-      if (!jwt) {
-        throw new Error("No hay token de autenticación");
-      }
-
-      // Check if token is expired
-      try {
-        const payload = JSON.parse(atob(jwt.split(".")[1]));
-        const isExpired = payload.exp * 1000 < Date.now();
-        if (isExpired) {
-          throw new Error(
-            "Token expirado. Por favor inicia sesión nuevamente."
-          );
-        }
-      } catch (error) {
-        if (error.message.includes("Token expirado")) {
-          throw error;
-        }
-        throw new Error("Token inválido");
-      }
-
       const formData = new FormData();
-      // ✅ Use 'coverImg' to match your multer field name in backend
       formData.append("coverImg", file);
 
-      console.log("🔄 FormData contents:");
-      for (let [key, value] of formData.entries()) {
-        console.log(`${key}:`, value);
-      }
-
-      // ✅ Use the correct endpoint that matches your controller
-      console.log("🔄 Making API request to /api/users/updateCoverImg");
-
-      try {
-        const response = await axios.put(
-          "/api/users/updateCoverImg", // ✅ This should match your route
-          formData,
-          {
-            headers: {
-              Authorization: `Bearer ${jwt}`,
-              // Don't set Content-Type manually, let browser set it with boundary
-            },
-          }
-        );
-
-        console.log("✅ Cover image API response:", response.data);
-        return response.data;
-      } catch (apiError) {
-        console.error("❌ API Error Details:", {
-          status: apiError.response?.status,
-          statusText: apiError.response?.statusText,
-          data: apiError.response?.data,
-          headers: apiError.response?.headers,
-        });
-        throw apiError;
-      }
+      const response = await axios.put("/api/users/updateCoverImg", formData, {
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+        },
+      });
+      return response.data;
     },
     onSuccess: (data) => {
-      console.log("✅ Cover image updated successfully:", data);
       dispatch(setUserInfo(data));
       setUser(data);
       queryClient.invalidateQueries(["profile"]);
       toast.success("Imagen de portada actualizada");
-
-      // ✅ Update the cover image using the same pattern as ProfilePicture
       if (data.coverImg) {
-        // Since your controller returns the public_id, construct the Cloudinary URL
-        const imageUrl = `${stables.UPLOAD_FOLDER_BASE_URL}/${data.coverImg}`;
-        console.log("🖼️ Setting new cover image URL:", imageUrl);
-        setCoverImage(imageUrl);
+        setCoverImage(`${stables.UPLOAD_FOLDER_BASE_URL}/${data.coverImg}`);
       }
     },
     onError: (error) => {
-      console.error("❌ Cover image mutation error:", error);
-
-      let errorMessage = "Error al actualizar la imagen de portada";
-
-      if (error.response?.status === 401) {
-        errorMessage = "Sesión expirada. Por favor inicia sesión nuevamente.";
-        setTimeout(() => {
-          navigate("/login");
-        }, 2000);
-      } else if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-
-      toast.error(errorMessage);
-
-      // ✅ Reset to previous image on error
+      toast.error("Error al actualizar la imagen de portada");
       if (user?.coverImg) {
         setCoverImage(`${stables.UPLOAD_FOLDER_BASE_URL}/${user.coverImg}`);
       } else {
@@ -736,25 +550,75 @@ const User = () => {
     },
   });
 
-  // Handle Profile Edit
-  const handleEditProfile = () => {
-    setIsEditing(true);
+  // Handlers
+  const handleCoverImageChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Por favor selecciona un archivo de imagen válido");
+      return;
+    }
+
+    const maxSize = 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+      toast.error("La imagen debe ser menor a 5MB");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => setCoverImage(reader.result);
+    reader.readAsDataURL(file);
+
+    updateCoverMutation.mutate(file);
   };
 
-  // Handle location form changes
+  const startEditing = (field) => {
+    setEditingField(field);
+    if (field === "location") {
+      setTempValues((prev) => ({
+        ...prev,
+        city: user.city || "",
+        country: user.country || "",
+      }));
+      setCitySearchTerm(user.city || "");
+      setFilteredCities([]);
+    } else {
+      setTempValues((prev) => ({
+        ...prev,
+        [field]: user[field] || "",
+      }));
+    }
+  };
+
+  const cancelEditing = () => {
+    setEditingField(null);
+    setTempValues({
+      name: user.name || "",
+      email: user.email || "",
+      city: user.city || "",
+      country: user.country || "",
+    });
+    setCitySearchTerm("");
+    setFilteredCities([]);
+  };
+
   const handleLocationChange = (field, value) => {
     if (field === "country") {
-      setLocationForm({
+      setTempValues((prev) => ({
+        ...prev,
         country: value,
         city: "",
-      });
+      }));
       setCitySearchTerm("");
+      setFilteredCities([]);
     } else if (field === "city") {
       const detectedCountry = findCountryByCity(value);
-      setLocationForm({
+      setTempValues((prev) => ({
+        ...prev,
         city: value,
-        country: detectedCountry,
-      });
+        country: detectedCountry || prev.country,
+      }));
       setCitySearchTerm(value);
 
       if (value.length > 0) {
@@ -773,488 +637,479 @@ const User = () => {
 
   // Handle city selection from autocomplete
   const handleCitySelect = (selectedCity, selectedCountry) => {
-    setLocationForm({
+    setTempValues((prev) => ({
+      ...prev,
       city: selectedCity,
       country: selectedCountry,
-    });
+    }));
     setCitySearchTerm(selectedCity);
     setFilteredCities([]);
   };
 
-  // Handle profile form changes
-  const handleProfileChange = (field, value) => {
-    setProfileForm((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+  const saveField = (field) => {
+    if (field === "location") {
+      const city = tempValues.city?.trim();
+      const country = tempValues.country?.trim();
+
+      if (!city || !country) {
+        toast.error("Por favor completa la ciudad y el país");
+        return;
+      }
+
+      updateProfileMutation.mutate({
+        city: city,
+        country: country,
+      });
+    } else {
+      const value = tempValues[field]?.trim();
+      if (!value) {
+        toast.error("Este campo no puede estar vacío");
+        return;
+      }
+      updateProfileMutation.mutate({
+        [field]: value,
+      });
+    }
   };
 
-  // Submit location form
-  const handleLocationSubmit = () => {
-    if (!locationForm.city.trim() || !locationForm.country.trim()) {
-      toast.error("Por favor completa todos los campos");
-      return;
-    }
+  const EditableField = ({
+    field,
+    label,
+    value,
+    icon: Icon,
+    placeholder,
+    type = "text",
+    isLocation = false,
+  }) => {
+    const isEditing = editingField === field;
+    const isLoading = updateProfileMutation.isLoading && editingField === field;
 
-    console.log("Updating location:", {
-      userId: user._id,
-      city: locationForm.city.trim(),
-      country: locationForm.country.trim(),
-      jwt: jwt ? "Present" : "Missing",
-    });
-
-    updateLocationMutation.mutate({
-      city: locationForm.city.trim(),
-      country: locationForm.country.trim(),
-    });
-  };
-
-  // Submit profile form
-  const handleProfileSubmit = () => {
-    if (!profileForm.name.trim() || !profileForm.email.trim()) {
-      toast.error("Por favor completa todos los campos");
-      return;
-    }
-
-    console.log("Updating profile:", {
-      userId: user._id,
-      name: profileForm.name.trim(),
-      email: profileForm.email.trim(),
-      jwt: jwt ? "Present" : "Missing",
-    });
-
-    updateProfileMutation.mutate({
-      name: profileForm.name.trim(),
-      email: profileForm.email.trim(),
-    });
-  };
-
-  // ✅ Fixed cover image upload handler
-  const handleCoverImageChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    // Validate file type
-    if (!file.type.startsWith("image/")) {
-      toast.error("Por favor selecciona un archivo de imagen válido");
-      return;
-    }
-
-    // Validate file size (5MB limit)
-    const maxSize = 5 * 1024 * 1024;
-    if (file.size > maxSize) {
-      toast.error("La imagen debe ser menor a 5MB");
-      return;
-    }
-
-    console.log("Selected file:", {
-      name: file.name,
-      size: file.size,
-      type: file.type,
-    });
-
-    // ✅ Preview image immediately for better UX
-    const reader = new FileReader();
-    reader.onloadend = () => setCoverImage(reader.result);
-    reader.readAsDataURL(file);
-
-    // Upload to server
-    updateCoverMutation.mutate(file);
-  };
-
-  // List of countries for dropdown
-  const countries = Object.keys(cityCountryData);
-
-  return (
-    <Box width="100%">
-      <Box
+    return (
+      <Card
         sx={{
-          width: "100%",
-          height: "40vh",
-          borderRadius: "10px",
-          backgroundImage: `url(${coverImage})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          position: "relative",
+          mb: 2,
+          border: "none",
+          boxShadow: "none",
+          transition: "all 0.3s ease",
         }}
       >
-        {/* Cover Edit Button */}
-        <IconButton
-          sx={{
-            position: "absolute",
-            top: 15,
-            right: 15,
-            background: "rgba(0,0,0,0.5)",
-            color: "white",
-            "&:hover": { background: "rgba(0,0,0,0.7)" },
-          }}
-          component="label"
-          disabled={updateCoverMutation.isLoading}
-        >
-          <input
-            type="file"
-            hidden
-            accept="image/*"
-            onChange={handleCoverImageChange}
-          />
-          {updateCoverMutation.isLoading ? (
-            <CircularProgress size={20} color="inherit" />
-          ) : (
-            <CameraAlt fontSize="small" />
-          )}
-        </IconButton>
-      </Box>
-
-      {/* Profile Info Section - Overlapping Cover */}
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flexDirection: "column",
-          position: "relative",
-          marginTop: "-75px",
-          paddingBottom: "1rem",
-        }}
-      >
-        <ProfilePicture avatar={user?.avatar} size="150px" />
-        <Typography variant="h6" color={theme.palette.secondary.medium}>
-          @{user?.name}
-        </Typography>
-        <Box
-          display="flex"
-          alignItems="center"
-          gap={2}
-          sx={{ marginBottom: "10px" }}
-        >
-          <Typography variant="h4" fontWeight="500">
-            {user?.name}
-          </Typography>
-          <IconButton
-            size="small"
-            onClick={handleEditProfile}
-            sx={{
-              background: theme.palette.primary.light,
-              color: theme.palette.primary.dark,
-              "&:hover": {
-                background: theme.palette.primary.dark,
-                color: theme.palette.primary.light,
-              },
-            }}
-          >
-            <EditOutlined fontSize="small" />
-          </IconButton>
-        </Box>
-
-        {user.city && user.country ? (
-          <Box display="flex" alignItems="center" gap={1}>
-            <FmdGoodOutlinedIcon sx={{ color: theme.palette.primary.main }} />
-            <Typography>
-              {user.city}, {user.country}
-            </Typography>
-            <IconButton
-              size="small"
-              onClick={() => setOpenLocation(true)}
-              sx={{ ml: 1 }}
-            >
-              <EditOutlined fontSize="small" />
-            </IconButton>
-          </Box>
-        ) : (
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<LocationOn />}
-            onClick={() => setOpenLocation(true)}
-            sx={{
-              borderRadius: "50px",
-              px: 3,
-              py: 1,
-              textTransform: "none",
-              fontWeight: "600",
-            }}
-          >
-            Agrega tu Ubicación
-          </Button>
-        )}
-      </Box>
-
-      {/* Friends Widget */}
-      <FriendsWidget token={jwt} />
-
-      {/* Location Dialog */}
-      <Dialog
-        open={openLocation}
-        onClose={() => setOpenLocation(false)}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle>
-          <Box display="flex" alignItems="center" gap={1}>
-            <LocationOn color="primary" />
-            Actualizar Ubicación
-          </Box>
-          <IconButton
-            aria-label="close"
-            onClick={() => setOpenLocation(false)}
-            sx={{
-              position: "absolute",
-              right: 8,
-              top: 8,
-              color: theme.palette.grey[500],
-            }}
-          >
-            <Close />
-          </IconButton>
-        </DialogTitle>
-        <DialogContent>
-          <Box sx={{ pt: 1 }}>
-            {/* Country Selection First */}
-            <FormControl fullWidth variant="outlined" sx={{ mb: 2 }}>
-              <InputLabel>País (opcional)</InputLabel>
-              <Select
-                value={locationForm.country}
-                onChange={(e) =>
-                  handleLocationChange("country", e.target.value)
-                }
-                label="País (opcional)"
+        <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
+          <Box display="flex" alignItems="center" mb={2} gap={2}>
+            <Box display="flex" alignItems="center" gap={2}>
+              <Icon sx={{ color: theme.palette.primary.main, fontSize: 20 }} />
+              <Typography
+                variant="subtitle1"
+                fontWeight="600"
+                color="text.secondary"
               >
-                <MenuItem value="">
-                  <em>Selecciona un país primero...</em>
-                </MenuItem>
-                {countries.map((country) => (
-                  <MenuItem key={country} value={country}>
-                    {country}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            {/* City Input with Autocomplete */}
-            <Box sx={{ position: "relative" }}>
-              <TextField
-                margin="normal"
-                label={
-                  locationForm.country
-                    ? "Ciudad"
-                    : "Ciudad (escribe para buscar)"
-                }
-                fullWidth
-                variant="outlined"
-                value={citySearchTerm}
-                onChange={(e) => handleLocationChange("city", e.target.value)}
-                placeholder={
-                  locationForm.country
-                    ? `Ej: ${cityCountryData[locationForm.country]
-                        ?.slice(0, 3)
-                        .join(", ")}`
-                    : "Ej: Madrid, París, Tokio..."
-                }
-                sx={{ mb: 1 }}
-                helperText={
-                  locationForm.country && !locationForm.city
-                    ? `Ciudades disponibles en ${locationForm.country}`
-                    : locationForm.city && locationForm.country
-                      ? `✓ ${locationForm.city}, ${locationForm.country}`
-                      : "Escribe una ciudad o selecciona un país primero"
-                }
-                FormHelperTextProps={{
-                  sx: {
-                    color:
-                      locationForm.city && locationForm.country
-                        ? theme.palette.success.main
-                        : theme.palette.text.secondary,
-                  },
-                }}
-              />
-
-              {/* Autocomplete Dropdown */}
-              {filteredCities.length > 0 && (
-                <Box
-                  sx={{
-                    position: "absolute",
-                    top: "100%",
-                    left: 0,
-                    right: 0,
-                    backgroundColor: "white",
-                    border: `1px solid ${theme.palette.divider}`,
-                    borderRadius: "8px",
-                    boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                    zIndex: 1000,
-                    maxHeight: "200px",
-                    overflow: "auto",
-                  }}
-                >
-                  {filteredCities.map((item, index) => (
-                    <Box
-                      key={`${item.city}-${item.country}`}
-                      onClick={() => handleCitySelect(item.city, item.country)}
-                      sx={{
-                        p: 2,
-                        cursor: "pointer",
-                        borderBottom:
-                          index < filteredCities.length - 1
-                            ? `1px solid ${theme.palette.divider}`
-                            : "none",
-                        "&:hover": {
-                          backgroundColor: theme.palette.grey[50],
-                        },
-                      }}
-                    >
-                      <Typography variant="body2" fontWeight="500">
-                        {item.city}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {item.country}
-                      </Typography>
-                    </Box>
-                  ))}
-                </Box>
-              )}
+                {label}
+              </Typography>
             </Box>
 
-            {/* Cities available in selected country */}
-            {locationForm.country && cityCountryData[locationForm.country] && (
-              <Box
+            {!isEditing && (
+              <IconButton
+                size="small"
+                onClick={() => startEditing(field)}
                 sx={{
-                  mt: 2,
-                  p: 2,
-                  backgroundColor: theme.palette.grey[50],
-                  borderRadius: "8px",
+                  backgroundColor: theme.palette.action.hover,
+                  "&:hover": {
+                    backgroundColor: theme.palette.primary.light,
+                    color: theme.palette.primary.dark,
+                  },
                 }}
               >
-                <Typography variant="subtitle2" color="primary" sx={{ mb: 1 }}>
-                  Ciudades populares en {locationForm.country}:
-                </Typography>
-                <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-                  {cityCountryData[locationForm.country]
-                    .slice(0, 8)
-                    .map((city) => (
-                      <Button
-                        key={city}
-                        size="small"
-                        variant={
-                          locationForm.city === city ? "contained" : "outlined"
-                        }
-                        onClick={() =>
-                          handleCitySelect(city, locationForm.country)
-                        }
-                        sx={{
-                          borderRadius: "20px",
-                          textTransform: "none",
-                          fontSize: "0.75rem",
-                        }}
-                      >
-                        {city}
-                      </Button>
-                    ))}
-                </Box>
-              </Box>
+                <EditOutlined fontSize="small" />
+              </IconButton>
             )}
           </Box>
-        </DialogContent>
-        <DialogActions sx={{ p: 3 }}>
-          <Button
-            onClick={() => setOpenLocation(false)}
-            color="secondary"
-            variant="outlined"
-            sx={{ borderRadius: "50px" }}
-          >
-            Cancelar
-          </Button>
-          <Button
-            onClick={handleLocationSubmit}
-            color="primary"
-            variant="contained"
-            disabled={updateLocationMutation.isLoading}
-            startIcon={
-              updateLocationMutation.isLoading ? (
-                <CircularProgress size={16} />
-              ) : (
-                <Save />
-              )
-            }
-            sx={{ borderRadius: "50px" }}
-          >
-            {updateLocationMutation.isLoading ? "Guardando..." : "Guardar"}
-          </Button>
-        </DialogActions>
-      </Dialog>
 
-      {/* Edit Profile Modal */}
-      <Dialog
-        open={isEditing}
-        onClose={() => setIsEditing(false)}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle>
-          <Box display="flex" alignItems="center" gap={1}>
-            <EditOutlined color="primary" />
-            Editar Perfil
-          </Box>
+          <Fade in={!isEditing} unmountOnExit>
+            <Box>
+              {isLocation ? (
+                <Box>
+                  {user.city && user.country ? (
+                    <Typography variant="h6" sx={{ color: "text.primary" }}>
+                      {user.city}, {user.country}
+                    </Typography>
+                  ) : (
+                    <Typography
+                      variant="body1"
+                      color="text.secondary"
+                      fontStyle="italic"
+                    >
+                      Ubicación no configurada
+                    </Typography>
+                  )}
+                </Box>
+              ) : (
+                <Typography variant="h6" sx={{ color: "text.primary" }}>
+                  {value || (
+                    <span
+                      style={{
+                        fontStyle: "italic",
+                        color: theme.palette.text.secondary,
+                      }}
+                    >
+                      {placeholder}
+                    </span>
+                  )}
+                </Typography>
+              )}
+            </Box>
+          </Fade>
+
+          <Fade in={isEditing} unmountOnExit>
+            <Box>
+              {isLocation ? (
+                <Stack spacing={2}>
+                  {/* Country Selection */}
+                  <FormControl fullWidth size="small">
+                    <InputLabel>País</InputLabel>
+                    <Select
+                      value={tempValues.country}
+                      onChange={(e) =>
+                        handleLocationChange("country", e.target.value)
+                      }
+                      label="País"
+                    >
+                      <MenuItem value="">
+                        <em>Selecciona un país...</em>
+                      </MenuItem>
+                      {Object.keys(cityCountryData).map((country) => (
+                        <MenuItem key={country} value={country}>
+                          {country}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+
+                  {/* City Input with Autocomplete */}
+                  <Box sx={{ position: "relative" }}>
+                    <TextField
+                      fullWidth
+                      size="small"
+                      label={
+                        tempValues.country
+                          ? "Ciudad"
+                          : "Ciudad (escribe para buscar)"
+                      }
+                      value={citySearchTerm}
+                      onChange={(e) =>
+                        handleLocationChange("city", e.target.value)
+                      }
+                      placeholder={
+                        tempValues.country
+                          ? `Ej: ${cityCountryData[tempValues.country]?.slice(0, 3).join(", ")}`
+                          : "Ej: Madrid, París, Tokio..."
+                      }
+                      helperText={
+                        tempValues.country && !tempValues.city
+                          ? `Ciudades disponibles en ${tempValues.country}`
+                          : tempValues.city && tempValues.country
+                            ? `✓ ${tempValues.city}, ${tempValues.country}`
+                            : "Escribe una ciudad o selecciona un país primero"
+                      }
+                      FormHelperTextProps={{
+                        sx: {
+                          color:
+                            tempValues.city && tempValues.country
+                              ? theme.palette.success.main
+                              : theme.palette.text.secondary,
+                        },
+                      }}
+                    />
+
+                    {/* Autocomplete Dropdown */}
+                    {filteredCities.length > 0 && (
+                      <Box
+                        sx={{
+                          position: "absolute",
+                          top: "100%",
+                          left: 0,
+                          right: 0,
+                          backgroundColor: "white",
+                          border: `1px solid ${theme.palette.divider}`,
+                          borderRadius: "8px",
+                          boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                          zIndex: 1000,
+                          maxHeight: "200px",
+                          overflow: "auto",
+                          mt: 0.5,
+                        }}
+                      >
+                        {filteredCities.map((item, index) => (
+                          <Box
+                            key={`${item.city}-${item.country}`}
+                            onClick={() =>
+                              handleCitySelect(item.city, item.country)
+                            }
+                            sx={{
+                              p: 2,
+                              cursor: "pointer",
+                              borderBottom:
+                                index < filteredCities.length - 1
+                                  ? `1px solid ${theme.palette.divider}`
+                                  : "none",
+                              "&:hover": {
+                                backgroundColor: theme.palette.grey[50],
+                              },
+                            }}
+                          >
+                            <Typography variant="body2" fontWeight="500">
+                              {item.city}
+                            </Typography>
+                            <Typography
+                              variant="caption"
+                              color="text.secondary"
+                            >
+                              {item.country}
+                            </Typography>
+                          </Box>
+                        ))}
+                      </Box>
+                    )}
+                  </Box>
+
+                  {/* Cities available in selected country */}
+                  {tempValues.country &&
+                    cityCountryData[tempValues.country] && (
+                      <Box
+                        sx={{
+                          p: 2,
+                          backgroundColor: theme.palette.grey[50],
+                          borderRadius: "8px",
+                        }}
+                      >
+                        <Typography
+                          variant="subtitle2"
+                          color="primary"
+                          sx={{ mb: 1 }}
+                        >
+                          Ciudades populares en {tempValues.country}:
+                        </Typography>
+                        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+                          {cityCountryData[tempValues.country]
+                            .slice(0, 8)
+                            .map((city) => (
+                              <Button
+                                key={city}
+                                size="small"
+                                variant={
+                                  tempValues.city === city
+                                    ? "contained"
+                                    : "outlined"
+                                }
+                                onClick={() =>
+                                  handleCitySelect(city, tempValues.country)
+                                }
+                                sx={{
+                                  borderRadius: "20px",
+                                  textTransform: "none",
+                                  fontSize: "0.75rem",
+                                }}
+                              >
+                                {city}
+                              </Button>
+                            ))}
+                        </Box>
+                      </Box>
+                    )}
+                </Stack>
+              ) : (
+                <TextField
+                  fullWidth
+                  size="small"
+                  type={type}
+                  value={tempValues[field]}
+                  onChange={(e) =>
+                    setTempValues((prev) => ({
+                      ...prev,
+                      [field]: e.target.value,
+                    }))
+                  }
+                  placeholder={placeholder}
+                  autoFocus
+                />
+              )}
+
+              <Box display="flex" gap={1} mt={2} justifyContent="flex-end">
+                <Button
+                  size="small"
+                  onClick={cancelEditing}
+                  startIcon={<Cancel />}
+                  sx={{
+                    borderRadius: "20px",
+                    textTransform: "none",
+                  }}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  size="small"
+                  variant="contained"
+                  onClick={() => saveField(field)}
+                  disabled={isLoading}
+                  startIcon={
+                    isLoading ? <CircularProgress size={16} /> : <Check />
+                  }
+                  sx={{
+                    borderRadius: "20px",
+                    textTransform: "none",
+                  }}
+                >
+                  {isLoading ? "Guardando..." : "Guardar"}
+                </Button>
+              </Box>
+            </Box>
+          </Fade>
+        </CardContent>
+      </Card>
+    );
+  };
+
+  return (
+    <Box width="100%" mx="auto">
+      {/* Cover Image Section */}
+      <Card sx={{ mb: 3, overflow: "hidden", borderRadius: 4 }}>
+        <Box
+          sx={{
+            width: "100%",
+            height: { xs: "200px", sm: "300px" },
+            backgroundImage: `url(${coverImage})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            position: "relative",
+            display: "flex",
+            alignItems: "flex-end",
+            justifyContent: "center",
+            "&::before": {
+              content: '""',
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background:
+                "linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.3) 100%)",
+            },
+          }}
+        >
+          {/* Cover Edit Button */}
           <IconButton
-            aria-label="close"
-            onClick={() => setIsEditing(false)}
             sx={{
               position: "absolute",
-              right: 8,
-              top: 8,
-              color: theme.palette.grey[500],
+              top: 16,
+              right: 16,
+              background: "rgba(255,255,255,0.9)",
+              backdropFilter: "blur(10px)",
+              color: theme.palette.text.primary,
+              "&:hover": {
+                background: "rgba(255,255,255,1)",
+                transform: "scale(1.05)",
+              },
+              transition: "all 0.2s ease",
+            }}
+            component="label"
+            disabled={updateCoverMutation.isLoading}
+          >
+            <input
+              type="file"
+              hidden
+              accept="image/*"
+              onChange={handleCoverImageChange}
+            />
+            {updateCoverMutation.isLoading ? (
+              <CircularProgress size={20} color="inherit" />
+            ) : (
+              <CameraAlt fontSize="small" />
+            )}
+          </IconButton>
+
+          {/* Profile Picture - Overlapping */}
+          <Box
+            sx={{
+              position: "relative",
+              zIndex: 2,
+              transform: "translateY(50%)",
             }}
           >
-            <Close />
-          </IconButton>
-        </DialogTitle>
-        <DialogContent>
-          <Box sx={{ pt: 1 }}>
-            <TextField
-              margin="normal"
-              label="Nombre"
-              fullWidth
-              variant="outlined"
-              value={profileForm.name}
-              onChange={(e) => handleProfileChange("name", e.target.value)}
-              sx={{ mb: 2 }}
-            />
-            <TextField
-              margin="normal"
-              label="Email"
-              type="email"
-              fullWidth
-              variant="outlined"
-              value={profileForm.email}
-              onChange={(e) => handleProfileChange("email", e.target.value)}
+            <ProfilePicture
+              avatar={user?.avatar}
+              size={isMobile ? "120px" : "150px"}
+              sx={{
+                border: `4px solid ${theme.palette.background.default}`,
+                boxShadow: theme.shadows[8],
+              }}
             />
           </Box>
-        </DialogContent>
-        <DialogActions sx={{ p: 3 }}>
-          <Button
-            onClick={() => setIsEditing(false)}
-            color="secondary"
-            variant="outlined"
-            sx={{ borderRadius: "50px" }}
-          >
-            Cancelar
-          </Button>
-          <Button
-            onClick={handleProfileSubmit}
-            color="primary"
-            variant="contained"
-            disabled={updateProfileMutation.isLoading}
-            startIcon={
-              updateProfileMutation.isLoading ? (
-                <CircularProgress size={16} />
-              ) : (
-                <Save />
-              )
-            }
-            sx={{ borderRadius: "50px" }}
-          >
-            {updateProfileMutation.isLoading ? "Guardando..." : "Guardar"}
-          </Button>
-        </DialogActions>
-      </Dialog>
+        </Box>
+
+        {/* User Info */}
+        <CardContent sx={{ pt: { xs: 8, sm: 10 }, textAlign: "center" }}>
+          <Typography variant="h4" fontWeight="700" mb={1}>
+            {user?.name || "Usuario"}
+          </Typography>
+          <Chip
+            label={`@${user?.name || "usuario"}`}
+            size="small"
+            sx={{
+              backgroundColor: theme.palette.primary.light,
+              color: theme.palette.primary.dark,
+              fontWeight: "500",
+            }}
+          />
+        </CardContent>
+      </Card>
+
+      {/* Profile Information Section */}
+      <Typography
+        variant="h5"
+        fontWeight="600"
+        mb={3}
+        sx={{ color: "text.primary" }}
+      >
+        Información del Perfil
+      </Typography>
+
+      <EditableField
+        field="name"
+        label="Nombre completo"
+        value={user.name}
+        icon={PersonOutline}
+        placeholder="Ingresa tu nombre completo"
+      />
+
+      <EditableField
+        field="email"
+        label="Correo electrónico"
+        value={user.email}
+        icon={EmailOutlined}
+        placeholder="Ingresa tu email"
+        type="email"
+      />
+
+      <EditableField
+        field="location"
+        label="Ubicación"
+        value={`${user.city || ""}, ${user.country || ""}`}
+        icon={FmdGoodOutlined}
+        placeholder="Configura tu ubicación"
+        isLocation={true}
+      />
+
+      <Divider sx={{ my: 4 }} />
+
+      {/* Friends Section */}
+      <Typography
+        variant="h5"
+        fontWeight="600"
+        mb={3}
+        sx={{ color: "text.primary" }}
+      >
+        Mis Conexiones
+      </Typography>
+
+      <FriendsWidget token={jwt} />
     </Box>
   );
 };

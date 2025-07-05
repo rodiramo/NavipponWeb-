@@ -364,7 +364,6 @@ const ExperienceCard = ({
         transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
         position: "relative",
         "&:hover": {
-          transform: "translateY(-4px)",
           boxShadow: `0 12px 40px ${theme.palette.primary.main}15`,
           border: `2px solid ${theme.palette.primary.main}12`,
         },

@@ -63,14 +63,21 @@ const InfoPill = () => {
         </div>
 
         {/* Pills Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12 mt-20">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12 mt-10">
           {pills.map((pill, index) => (
             <div
               key={index}
-              className="group relative overflow-hidden rounded-3xl backdrop-blur-xl border border-white/20 transition-all duration-500 p-8 text-center"
+              className="group relative overflow-hidden rounded-3xl backdrop-blur-xl border transition-all duration-500 p-8 text-center"
+              style={{ border: `1.5px solid ${theme.palette.secondary.main}` }}
             >
               {/* Step Number */}
-              <div className="absolute top-6 right-6 w-8 h-8 rounded-full bg-gradient-to-r flex items-center justify-center text-white text-sm font-bold">
+              <div
+                style={{
+                  border: `1.5px solid ${theme.palette.secondary.main}`,
+                  color: theme.palette.secondary.dark,
+                }}
+                className="absolute top-6 right-6 w-8 h-8 rounded-full bg-gradient-to-r flex items-center justify-center  text-sm font-bold"
+              >
                 {index + 1}
               </div>
 
@@ -88,9 +95,8 @@ const InfoPill = () => {
                 {/* Title */}
                 <h4 className="text-xl sm:text-2xl font-bold leading-tight">
                   <span
-                    className="bg-clip-text text-transparent"
                     style={{
-                      backgroundImage: `linear-gradient(135deg, ${theme.palette.primary.main}`,
+                      color: theme.palette.primary.main,
                     }}
                   >
                     {pill.title}

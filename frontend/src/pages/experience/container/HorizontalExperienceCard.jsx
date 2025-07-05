@@ -643,18 +643,15 @@ const HorizontalExperienceCard = ({
             sx={{
               display: "flex",
               alignItems: "center",
+              flexDirection: "column",
               justifyContent: "flex-end",
             }}
           >
             <Box
               sx={{
-                backgroundColor:
-                  experience.price === 0
-                    ? theme.palette.secondary.medium
-                    : theme.palette.primary.white,
                 color:
                   experience.price === 0
-                    ? theme.palette.primary.white
+                    ? theme.palette.success.main
                     : theme.palette.primary.main,
                 padding: "8px 16px",
                 borderRadius: "30rem",
@@ -664,9 +661,21 @@ const HorizontalExperienceCard = ({
                 alignItems: "center",
               }}
             >
-              ¥{" "}
-              {experience.price === 0 ? <> Gratis</> : <>{experience.price}</>}
-            </Box>
+              {experience.price === 0 ? (
+                <> Gratis</>
+              ) : (
+                <> ¥ {experience.price}</>
+              )}
+            </Box>{" "}
+            <Typography
+              variant="caption"
+              sx={{
+                color: theme.palette.text.secondary,
+                fontSize: "0.75rem",
+              }}
+            >
+              por persona
+            </Typography>
           </Box>
         </Box>
 

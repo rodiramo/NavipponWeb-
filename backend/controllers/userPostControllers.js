@@ -326,11 +326,16 @@ const deletePost = async (req, res, next) => {
 
 const getUserPosts = async (req, res, next) => {
   try {
+    console.log("=== getUserPosts API called ===");
+    console.log("Query params:", req.query);
+    console.log("User ID:", req.user._id);
+
     const filter = req.query.searchKeyword;
     let where = { user: req.user._id };
     if (filter) {
       where.title = { $regex: filter, $options: "i" };
     }
+
     let query = Post.find(where);
     const page = parseInt(req.query.page) || 1;
     const pageSize = parseInt(req.query.limit) || 10;
@@ -338,15 +343,39 @@ const getUserPosts = async (req, res, next) => {
     const total = await Post.find(where).countDocuments();
     const pages = Math.ceil(total / pageSize);
 
-    res.header({
-      "x-filter": filter,
-      "x-totalcount": JSON.stringify(total),
-      "x-currentpage": JSON.stringify(page),
-      "x-pagesize": JSON.stringify(pageSize),
-      "x-totalpagecount": JSON.stringify(pages),
-    });
+    console.log("=== Pagination calculations ===");
+    console.log("Filter:", filter);
+    console.log("Page:", page);
+    console.log("Page size:", pageSize);
+    console.log("Total posts:", total);
+    console.log("Total pages:", pages);
+    console.log("Skip:", skip);
+
+    // 🚨 FIX: Set headers as strings (not JSON.stringify)
+    // The frontend expects these as regular strings, not JSON strings
+    res.setHeader("x-filter", filter || "");
+    res.setHeader("x-totalcount", total.toString());
+    res.setHeader("x-currentpage", page.toString());
+    res.setHeader("x-pagesize", pageSize.toString());
+    res.setHeader("x-totalpagecount", pages.toString());
+
+    // Alternative: You can also use res.header() but without JSON.stringify
+    // res.header({
+    //   "x-filter": filter || "",
+    //   "x-totalcount": total.toString(),
+    //   "x-currentpage": page.toString(),
+    //   "x-pagesize": pageSize.toString(),
+    //   "x-totalpagecount": pages.toString(),
+    // });
+
+    console.log("=== Headers being set ===");
+    console.log("x-totalcount:", total.toString());
+    console.log("x-totalpagecount:", pages.toString());
 
     if (page > pages) {
+      console.log(
+        "⚠️ Requested page exceeds total pages, returning empty array"
+      );
       return res.json([]);
     }
 
@@ -365,8 +394,10 @@ const getUserPosts = async (req, res, next) => {
       ])
       .sort({ updatedAt: "desc" });
 
+    console.log("✅ Returning", result.length, "posts");
     return res.json(result);
   } catch (error) {
+    console.error("❌ Error in getUserPosts:", error);
     next(error);
   }
 };

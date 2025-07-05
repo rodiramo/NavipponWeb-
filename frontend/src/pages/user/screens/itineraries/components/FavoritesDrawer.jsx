@@ -12,6 +12,8 @@ import {
   Tooltip,
   Button,
   Zoom,
+  useMediaQuery,
+  SwipeableDrawer,
 } from "@mui/material";
 import { useDraggable, useDroppable } from "@dnd-kit/core";
 import {
@@ -28,13 +30,13 @@ import {
 import { MdOutlineTempleBuddhist, MdOutlineRamenDining } from "react-icons/md";
 import { stables, images } from "../../../../../constants";
 
-const DraggableFavorite = ({ fav, index, userRole }) => {
+const DraggableFavorite = ({ fav, index, userRole, isMobile }) => {
   const theme = useTheme();
 
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({
       id: `fav-${fav._id}`,
-      disabled: userRole === "viewer", // Disable dragging for viewers
+      disabled: userRole === "viewer" || isMobile, // Disable dragging on mobile
     });
 
   const style = transform
@@ -50,28 +52,28 @@ const DraggableFavorite = ({ fav, index, userRole }) => {
       <Paper
         ref={setNodeRef}
         style={style}
-        {...(userRole !== "viewer" ? listeners : {})}
+        {...(userRole !== "viewer" && !isMobile ? listeners : {})}
         {...attributes}
         sx={{
           display: "flex",
           alignItems: "center",
-          gap: 2,
-          mb: 2,
-          p: 2,
-          borderRadius: 3,
+          gap: { xs: 1.5, sm: 2 },
+          mb: { xs: 1.5, sm: 2 },
+          p: { xs: 1.5, sm: 2 },
+          borderRadius: { xs: 2, sm: 3 },
           background: `linear-gradient(135deg, ${theme.palette.background.paper}95, ${theme.palette.background.paper}85)`,
           backdropFilter: "blur(20px)",
           border: `1px solid ${theme.palette.divider}40`,
           boxShadow: isDragging
             ? "0 20px 40px rgba(0,0,0,0.3)"
             : "0 4px 20px rgba(0,0,0,0.08)",
-          cursor: isDragging ? "grabbing" : "grab",
+          cursor: isDragging ? "grabbing" : isMobile ? "default" : "grab",
           transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
           position: "relative",
           overflow: "hidden",
           "&:hover": {
             boxShadow: "0 8px 32px rgba(0,0,0,0.12)",
-            transform: "translateY(-2px)",
+            transform: isMobile ? "none" : "translateY(-2px)",
             borderColor: theme.palette.primary.main,
           },
           "&::before": {
@@ -91,8 +93,8 @@ const DraggableFavorite = ({ fav, index, userRole }) => {
           },
         }}
       >
-        {/* Drag Handle */}
-        {userRole !== "viewer" && (
+        {/* Drag Handle - Hidden on mobile */}
+        {userRole !== "viewer" && !isMobile && (
           <Box
             sx={{
               display: "flex",
@@ -111,15 +113,17 @@ const DraggableFavorite = ({ fav, index, userRole }) => {
             <Grip size={16} />
           </Box>
         )}
+
         {/* Experience Image */}
         <Box
           sx={{
             position: "relative",
-            width: 56,
-            height: 56,
-            borderRadius: 2,
+            width: { xs: 48, sm: 56 },
+            height: { xs: 48, sm: 56 },
+            borderRadius: { xs: 1.5, sm: 2 },
             overflow: "hidden",
             boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+            flexShrink: 0,
           }}
         >
           <img
@@ -161,10 +165,10 @@ const DraggableFavorite = ({ fav, index, userRole }) => {
           <Box
             sx={{
               position: "absolute",
-              top: 4,
-              right: 4,
-              width: 20,
-              height: 20,
+              top: { xs: 2, sm: 4 },
+              right: { xs: 2, sm: 4 },
+              width: { xs: 16, sm: 20 },
+              height: { xs: 16, sm: 20 },
               borderRadius: "50%",
               background: "rgba(255,255,255,0.9)",
               display: "flex",
@@ -173,7 +177,7 @@ const DraggableFavorite = ({ fav, index, userRole }) => {
             }}
           >
             <Heart
-              size={12}
+              size={isMobile ? 10 : 12}
               fill={theme.palette.error.main}
               color={theme.palette.error.main}
             />
@@ -183,7 +187,7 @@ const DraggableFavorite = ({ fav, index, userRole }) => {
         {/* Experience Details */}
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Typography
-            variant="subtitle2"
+            variant={isMobile ? "body2" : "subtitle2"}
             sx={{
               fontWeight: 600,
               mb: 0.5,
@@ -191,12 +195,16 @@ const DraggableFavorite = ({ fav, index, userRole }) => {
               overflow: "hidden",
               textOverflow: "ellipsis",
               whiteSpace: "nowrap",
+              fontSize: { xs: "0.875rem", sm: "0.925rem" },
             }}
           >
             {fav.experienceId?.title || "Untitled Experience"}
           </Typography>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <MapPin size={12} color={theme.palette.text.secondary} />
+          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+            <MapPin
+              size={isMobile ? 10 : 12}
+              color={theme.palette.text.secondary}
+            />
             <Typography
               variant="caption"
               sx={{
@@ -204,6 +212,7 @@ const DraggableFavorite = ({ fav, index, userRole }) => {
                 overflow: "hidden",
                 textOverflow: "ellipsis",
                 whiteSpace: "nowrap",
+                fontSize: { xs: "0.7rem", sm: "0.75rem" },
               }}
             >
               {fav.experienceId?.prefecture || "Unknown Location"}
@@ -216,7 +225,7 @@ const DraggableFavorite = ({ fav, index, userRole }) => {
 };
 
 // Enhanced Droppable Drawer Container Component
-const DroppableDrawer = ({ children }) => {
+const DroppableDrawer = ({ children, isMobile }) => {
   const theme = useTheme();
   const { setNodeRef, isOver } = useDroppable({
     id: "drawer",
@@ -228,12 +237,12 @@ const DroppableDrawer = ({ children }) => {
       sx={{
         overflowY: "auto",
         flex: 1,
-        p: 3,
+        p: { xs: 2, sm: 3 },
         background: isOver ? `${theme.palette.primary.main}10` : "transparent",
         borderRadius: isOver ? 2 : 0,
         transition: "all 0.3s ease",
         "&::-webkit-scrollbar": {
-          width: 6,
+          width: isMobile ? 4 : 6,
         },
         "&::-webkit-scrollbar-track": {
           background: "transparent",
@@ -263,6 +272,7 @@ const EnhancedFilters = ({
   onClearFilters,
   totalFavorites,
   filteredCount,
+  isMobile,
 }) => {
   const theme = useTheme();
   const [isExpanded, setIsExpanded] = useState(false);
@@ -327,7 +337,7 @@ const EnhancedFilters = ({
       sx={{
         background: `linear-gradient(135deg, ${theme.palette.background.paper}90, ${theme.palette.background.paper}70)`,
         backdropFilter: "blur(20px)",
-        borderRadius: 3,
+        borderRadius: { xs: 2, sm: 3 },
         border: `1px solid ${theme.palette.divider}40`,
         overflow: "hidden",
       }}
@@ -338,7 +348,7 @@ const EnhancedFilters = ({
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          p: 2,
+          p: { xs: 1.5, sm: 2 },
           cursor: "pointer",
           transition: "all 0.2s ease",
           "&:hover": {
@@ -347,34 +357,61 @@ const EnhancedFilters = ({
         }}
         onClick={() => setIsExpanded(!isExpanded)}
       >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+        <Box
+          sx={{ display: "flex", alignItems: "center", gap: { xs: 1, sm: 2 } }}
+        >
           <Badge badgeContent={activeFiltersCount} color="primary">
-            <Filter size={20} color={theme.palette.primary.main} />
+            <Filter
+              size={isMobile ? 18 : 20}
+              color={theme.palette.primary.main}
+            />
           </Badge>
           <Box>
-            <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+            <Typography
+              variant={isMobile ? "body2" : "subtitle2"}
+              sx={{ fontWeight: 600 }}
+            >
               Filtros
             </Typography>
-            <Typography variant="caption" color="text.secondary">
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ fontSize: { xs: "0.7rem", sm: "0.75rem" } }}
+            >
               {filteredCount} de {totalFavorites} favoritos
             </Typography>
           </Box>
         </Box>
-        {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+        {isExpanded ? (
+          <ChevronUp size={isMobile ? 18 : 20} />
+        ) : (
+          <ChevronDown size={isMobile ? 18 : 20} />
+        )}
       </Box>
 
       {/* Filter Content */}
       <Collapse in={isExpanded}>
-        <Box sx={{ p: 2, pt: 0 }}>
+        <Box sx={{ p: { xs: 1.5, sm: 2 }, pt: 0 }}>
           {/* Category Filter */}
-          <Box sx={{ mb: 3 }}>
+          <Box sx={{ mb: { xs: 2, sm: 3 } }}>
             <Typography
               variant="caption"
-              sx={{ fontWeight: 600, mb: 1, display: "block" }}
+              sx={{
+                fontWeight: 600,
+                mb: 1,
+                display: "block",
+                fontSize: { xs: "0.7rem", sm: "0.75rem" },
+              }}
             >
               Categoría
             </Typography>
-            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+            <Box
+              sx={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: { xs: 0.5, sm: 1 },
+              }}
+            >
               <Chip
                 label="Todos"
                 variant={
@@ -385,6 +422,8 @@ const EnhancedFilters = ({
                 onClick={() => setSelectedCategory("All")}
                 size="small"
                 sx={{
+                  fontSize: { xs: "0.7rem", sm: "0.75rem" },
+                  height: { xs: 24, sm: 28 },
                   background:
                     !selectedCategory || selectedCategory === "All"
                       ? `linear-gradient(135deg, ${theme.palette.primary.main})`
@@ -412,6 +451,8 @@ const EnhancedFilters = ({
                   onClick={() => setSelectedCategory(category)}
                   size="small"
                   sx={{
+                    fontSize: { xs: "0.7rem", sm: "0.75rem" },
+                    height: { xs: 24, sm: 28 },
                     background:
                       selectedCategory === category
                         ? `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`
@@ -434,14 +475,25 @@ const EnhancedFilters = ({
           </Box>
 
           {/* Region Filter */}
-          <Box sx={{ mb: 3 }}>
+          <Box sx={{ mb: { xs: 2, sm: 3 } }}>
             <Typography
               variant="caption"
-              sx={{ fontWeight: 600, mb: 1, display: "block" }}
+              sx={{
+                fontWeight: 600,
+                mb: 1,
+                display: "block",
+                fontSize: { xs: "0.7rem", sm: "0.75rem" },
+              }}
             >
               Región
             </Typography>
-            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+            <Box
+              sx={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: { xs: 0.5, sm: 1 },
+              }}
+            >
               <Chip
                 label="Todas"
                 variant={
@@ -452,6 +504,8 @@ const EnhancedFilters = ({
                 onClick={() => handleRegionChange("All")}
                 size="small"
                 sx={{
+                  fontSize: { xs: "0.7rem", sm: "0.75rem" },
+                  height: { xs: 24, sm: 28 },
                   background:
                     !selectedRegion || selectedRegion === "All"
                       ? `linear-gradient(135deg, ${theme.palette.secondary.medium})`
@@ -470,7 +524,7 @@ const EnhancedFilters = ({
                 }}
               />
               {Object.keys(regions)
-                .slice(0, 4)
+                .slice(0, isMobile ? 3 : 4)
                 .map((region) => (
                   <Chip
                     key={region}
@@ -479,6 +533,8 @@ const EnhancedFilters = ({
                     onClick={() => handleRegionChange(region)}
                     size="small"
                     sx={{
+                      fontSize: { xs: "0.7rem", sm: "0.75rem" },
+                      height: { xs: 24, sm: 28 },
                       background:
                         selectedRegion === region
                           ? `linear-gradient(135deg, ${theme.palette.secondary.medium})`
@@ -505,11 +561,22 @@ const EnhancedFilters = ({
             <Box sx={{ mb: 2 }}>
               <Typography
                 variant="caption"
-                sx={{ fontWeight: 600, mb: 1, display: "block" }}
+                sx={{
+                  fontWeight: 600,
+                  mb: 1,
+                  display: "block",
+                  fontSize: { xs: "0.7rem", sm: "0.75rem" },
+                }}
               >
                 Prefectura
               </Typography>
-              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: { xs: 0.5, sm: 1 },
+                }}
+              >
                 <Chip
                   label="Todas"
                   variant={
@@ -520,6 +587,8 @@ const EnhancedFilters = ({
                   onClick={() => setSelectedPrefecture("All")}
                   size="small"
                   sx={{
+                    fontSize: { xs: "0.7rem", sm: "0.75rem" },
+                    height: { xs: 24, sm: 28 },
                     background:
                       !selectedPrefecture || selectedPrefecture === "All"
                         ? `linear-gradient(135deg, ${theme.palette.warning.main}, ${theme.palette.warning.dark})`
@@ -531,28 +600,34 @@ const EnhancedFilters = ({
                     border: `1px solid ${theme.palette.warning.main}30`,
                   }}
                 />
-                {availablePrefectures.slice(0, 3).map((prefecture) => (
-                  <Chip
-                    key={prefecture}
-                    label={prefecture}
-                    variant={
-                      selectedPrefecture === prefecture ? "filled" : "outlined"
-                    }
-                    onClick={() => setSelectedPrefecture(prefecture)}
-                    size="small"
-                    sx={{
-                      background:
+                {availablePrefectures
+                  .slice(0, isMobile ? 2 : 3)
+                  .map((prefecture) => (
+                    <Chip
+                      key={prefecture}
+                      label={prefecture}
+                      variant={
                         selectedPrefecture === prefecture
-                          ? `linear-gradient(135deg, ${theme.palette.warning.main}, ${theme.palette.warning.dark})`
-                          : "transparent",
-                      color:
-                        selectedPrefecture === prefecture
-                          ? "white"
-                          : theme.palette.text.primary,
-                      border: `1px solid ${theme.palette.warning.main}30`,
-                    }}
-                  />
-                ))}
+                          ? "filled"
+                          : "outlined"
+                      }
+                      onClick={() => setSelectedPrefecture(prefecture)}
+                      size="small"
+                      sx={{
+                        fontSize: { xs: "0.7rem", sm: "0.75rem" },
+                        height: { xs: 24, sm: 28 },
+                        background:
+                          selectedPrefecture === prefecture
+                            ? `linear-gradient(135deg, ${theme.palette.warning.main}, ${theme.palette.warning.dark})`
+                            : "transparent",
+                        color:
+                          selectedPrefecture === prefecture
+                            ? "white"
+                            : theme.palette.text.primary,
+                        border: `1px solid ${theme.palette.warning.main}30`,
+                      }}
+                    />
+                  ))}
               </Box>
             </Box>
           )}
@@ -563,12 +638,13 @@ const EnhancedFilters = ({
               onClick={onClearFilters}
               variant="outlined"
               size="small"
-              startIcon={<XCircle size={16} />}
+              startIcon={<XCircle size={14} />}
               sx={{
                 borderRadius: 2,
                 textTransform: "none",
                 color: theme.palette.text.secondary,
                 borderColor: theme.palette.divider,
+                fontSize: { xs: "0.7rem", sm: "0.75rem" },
                 "&:hover": {
                   borderColor: theme.palette.error.main,
                   color: theme.palette.error.main,
@@ -599,9 +675,18 @@ const FavoritesDrawer = ({
   userRole,
 }) => {
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const isTablet = useMediaQuery(theme.breakpoints.down("md"));
+
+  // Responsive drawer width
+  const responsiveDrawerWidth = isMobile
+    ? "100vw"
+    : isTablet
+      ? 350
+      : drawerWidth;
 
   const getCategoryIcon = (category) => {
-    const iconProps = { size: 24 };
+    const iconProps = { size: isMobile ? 20 : 24 };
     if (category === "Hoteles")
       return <BedSingle color={theme.palette.primary.main} {...iconProps} />;
     if (category === "Atractivos")
@@ -727,21 +812,40 @@ const FavoritesDrawer = ({
   const filteredCount = Object.values(filteredFavorites).flat().length;
   const favoriteEntries = Object.entries(filteredFavorites);
 
+  // Use SwipeableDrawer for mobile, regular Drawer for desktop
+  const DrawerComponent = isMobile ? SwipeableDrawer : Drawer;
+
+  const drawerProps = isMobile
+    ? {
+        onOpen: () => {}, // Required for SwipeableDrawer
+        onClose: onToggle,
+        variant: "temporary",
+        anchor: "right",
+        open: isOpen,
+      }
+    : {
+        variant: "persistent",
+        anchor: "right",
+        open: isOpen,
+      };
+
   return (
     <>
-      <Drawer
-        variant="persistent"
-        anchor="right"
-        open={isOpen}
+      <DrawerComponent
+        {...drawerProps}
         PaperProps={{
           sx: {
-            width: drawerWidth,
+            width: responsiveDrawerWidth,
             border: "none",
-            transform: isOpen
-              ? "translateX(0)"
-              : `translateX(${drawerWidth - 5}px)`,
+            transform:
+              !isMobile && isOpen
+                ? "translateX(0)"
+                : !isMobile
+                  ? `translateX(${responsiveDrawerWidth - 5}px)`
+                  : "translateX(0)",
             transition: "transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
-            top: "0rem",
+            top: isMobile ? 0 : "0rem",
+            height: isMobile ? "100vh" : "auto",
             background: `linear-gradient(135deg, ${theme.palette.background.paper}95)`,
             backdropFilter: "blur(20px)",
           },
@@ -755,7 +859,7 @@ const FavoritesDrawer = ({
             zIndex: 10,
             background: `linear-gradient(135deg, ${theme.palette.secondary.medium})`,
             color: "white",
-            p: 3,
+            p: { xs: 2, sm: 3 },
             "&::before": {
               content: '""',
               position: "absolute",
@@ -773,11 +877,18 @@ const FavoritesDrawer = ({
               color: theme.palette.primary.white,
             }}
           >
-            <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: { xs: 1.5, sm: 2 },
+                mb: { xs: 1.5, sm: 2 },
+              }}
+            >
               <Box
                 sx={{
-                  width: 48,
-                  height: 48,
+                  width: { xs: 40, sm: 48 },
+                  height: { xs: 40, sm: 48 },
                   borderRadius: "50%",
                   background: "rgba(255,255,255,0.2)",
                   backdropFilter: "blur(10px)",
@@ -787,22 +898,46 @@ const FavoritesDrawer = ({
                   border: "2px solid rgba(255,255,255,0.3)",
                 }}
               >
-                <Heart size={24} />
+                <Heart size={isMobile ? 20 : 24} />
               </Box>
-              <Box>
-                <Typography variant="h5" sx={{ fontWeight: 800, mb: 0.5 }}>
+              <Box sx={{ flex: 1 }}>
+                <Typography
+                  variant={isMobile ? "h6" : "h5"}
+                  sx={{ fontWeight: 800, mb: 0.5 }}
+                >
                   Mis Favoritos
                 </Typography>
-                <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    opacity: 0.9,
+                    fontSize: { xs: "0.8rem", sm: "0.875rem" },
+                  }}
+                >
                   Organiza tus lugares especiales
                 </Typography>
               </Box>
+              {/* Close button for mobile */}
+              {isMobile && (
+                <IconButton
+                  onClick={onToggle}
+                  sx={{
+                    color: "white",
+                    backgroundColor: "rgba(255,255,255,0.2)",
+                    "&:hover": {
+                      backgroundColor: "rgba(255,255,255,0.3)",
+                    },
+                  }}
+                >
+                  <XCircle size={20} />
+                </IconButton>
+              )}
             </Box>
           </Box>
         </Box>
 
         {/* Enhanced Filters */}
-        <Box sx={{ p: 3, pb: 2 }}>
+        <Box sx={{ p: { xs: 2, sm: 3 }, pb: { xs: 1, sm: 2 } }}>
           <EnhancedFilters
             selectedCategory={selectedCategory}
             setSelectedCategory={setSelectedCategory}
@@ -813,34 +948,36 @@ const FavoritesDrawer = ({
             onClearFilters={onClearFilters}
             totalFavorites={totalFavorites}
             filteredCount={filteredCount}
+            isMobile={isMobile}
           />
         </Box>
 
         {/* Enhanced Favorites List */}
         {favoriteEntries.length > 0 ? (
-          <DroppableDrawer>
+          <DroppableDrawer isMobile={isMobile}>
             {favoriteEntries.map(([category, favs]) => (
-              <Box key={category} sx={{ mb: 4 }}>
+              <Box key={category} sx={{ mb: { xs: 3, sm: 4 } }}>
                 {/* Enhanced Category Header */}
                 <Box
                   sx={{
                     display: "flex",
                     alignItems: "center",
-                    gap: 2,
-                    mb: 3,
-                    p: 2,
-                    borderRadius: 3,
+                    gap: { xs: 1.5, sm: 2 },
+                    mb: { xs: 2, sm: 3 },
+                    p: { xs: 1.5, sm: 2 },
+                    borderRadius: { xs: 2, sm: 3 },
                     background: `linear-gradient(135deg, ${theme.palette.primary.main}15)`,
                     border: `1px solid ${theme.palette.primary.main}30`,
                   }}
                 >
                   {getCategoryIcon(category)}
                   <Typography
-                    variant="h6"
+                    variant={isMobile ? "subtitle1" : "h6"}
                     sx={{
                       fontWeight: 700,
                       color: theme.palette.primary.main,
                       flex: 1,
+                      fontSize: { xs: "1rem", sm: "1.25rem" },
                     }}
                   >
                     {category}
@@ -852,6 +989,8 @@ const FavoritesDrawer = ({
                       background: `linear-gradient(135deg, ${theme.palette.primary.main})`,
                       color: "white",
                       fontWeight: 600,
+                      fontSize: { xs: "0.7rem", sm: "0.75rem" },
+                      height: { xs: 20, sm: 24 },
                     }}
                   />
                 </Box>
@@ -868,6 +1007,8 @@ const FavoritesDrawer = ({
                         key={fav._id}
                         fav={fav}
                         index={index}
+                        userRole={userRole}
+                        isMobile={isMobile}
                       />
                     );
                   })}
@@ -883,20 +1024,20 @@ const FavoritesDrawer = ({
               alignItems: "center",
               justifyContent: "center",
               flexDirection: "column",
-              p: 4,
+              p: { xs: 3, sm: 4 },
               textAlign: "center",
             }}
           >
             <Box
               sx={{
-                width: 120,
-                height: 120,
+                width: { xs: 80, sm: 120 },
+                height: { xs: 80, sm: 120 },
                 borderRadius: "50%",
                 background: `linear-gradient(135deg, ${theme.palette.primary.main}20)`,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                mb: 3,
+                mb: { xs: 2, sm: 3 },
                 animation: "pulse 2s infinite",
                 "@keyframes pulse": {
                   "0%, 100%": { opacity: 1, transform: "scale(1)" },
@@ -904,9 +1045,15 @@ const FavoritesDrawer = ({
                 },
               }}
             >
-              <Heart size={48} color={theme.palette.primary.main} />
+              <Heart
+                size={isMobile ? 32 : 48}
+                color={theme.palette.primary.main}
+              />
             </Box>
-            <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+            <Typography
+              variant={isMobile ? "subtitle1" : "h6"}
+              sx={{ mb: 2, fontWeight: 600 }}
+            >
               {totalFavorites === 0
                 ? "No tienes favoritos aún"
                 : "No se encontraron favoritos"}
@@ -914,7 +1061,11 @@ const FavoritesDrawer = ({
             <Typography
               variant="body2"
               color="text.secondary"
-              sx={{ maxWidth: 280, lineHeight: 1.5 }}
+              sx={{
+                maxWidth: { xs: 240, sm: 280 },
+                lineHeight: 1.5,
+                fontSize: { xs: "0.8rem", sm: "0.875rem" },
+              }}
             >
               {totalFavorites === 0
                 ? "Empieza a guardar tus lugares favoritos para verlos aquí organizados por categoría"
@@ -924,6 +1075,7 @@ const FavoritesDrawer = ({
               <Button
                 onClick={onClearFilters}
                 variant="outlined"
+                size={isMobile ? "small" : "medium"}
                 sx={{ mt: 2, borderRadius: 3 }}
               >
                 Limpiar filtros
@@ -931,13 +1083,17 @@ const FavoritesDrawer = ({
             )}
           </Box>
         )}
-      </Drawer>
+      </DrawerComponent>
 
+      {/* Responsive Floating Button */}
       <Box
         sx={{
           position: "fixed",
-          right: isOpen ? drawerWidth - 30 : 20,
-          bottom: "2rem",
+          right:
+            isOpen && !isMobile
+              ? responsiveDrawerWidth - 30
+              : { xs: 16, sm: 20 },
+          bottom: { xs: "1rem", sm: "2rem" },
           zIndex: 1300,
           transition: "right 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
         }}
@@ -946,8 +1102,8 @@ const FavoritesDrawer = ({
           <IconButton
             onClick={onToggle}
             sx={{
-              width: 60,
-              height: 60,
+              width: { xs: 56, sm: 60 },
+              height: { xs: 56, sm: 60 },
               background: `linear-gradient(135deg, ${theme.palette.primary.main})`,
               color: "white",
               backdropFilter: "blur(10px)",
@@ -955,20 +1111,25 @@ const FavoritesDrawer = ({
               transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
               "&:hover": {
                 background: `linear-gradient(135deg, ${theme.palette.primary.dark})`,
+                transform: "scale(1.05)",
               },
               "&:active": {
                 transform: "scale(0.95)",
               },
             }}
           >
-            {isOpen ? <XCircle size={28} /> : <Heart size={28} />}
+            {isOpen ? (
+              <XCircle size={isMobile ? 24 : 28} />
+            ) : (
+              <Heart size={isMobile ? 24 : 28} />
+            )}
           </IconButton>
         </Tooltip>
 
         {/* Badge for favorites count */}
         {totalFavorites > 0 && !isOpen && (
           <Badge
-            badgeContent={totalFavorites}
+            badgeContent={totalFavorites > 99 ? "99+" : totalFavorites}
             color="error"
             sx={{
               position: "absolute",
@@ -978,9 +1139,9 @@ const FavoritesDrawer = ({
                 background: `linear-gradient(135deg, ${theme.palette.error.main})`,
                 color: "white",
                 fontWeight: 600,
-                fontSize: "0.75rem",
-                minWidth: 24,
-                height: 24,
+                fontSize: { xs: "0.7rem", sm: "0.75rem" },
+                minWidth: { xs: 20, sm: 24 },
+                height: { xs: 20, sm: 24 },
                 borderRadius: "50%",
                 border: "2px solid white",
                 boxShadow: "0 4px 12px rgba(0,0,0,0.3)",

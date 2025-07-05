@@ -1,4 +1,4 @@
-// Enhanced ActivityCard.jsx with Details Modal
+// Enhanced ActivityCard.jsx with Mobile Responsive Design
 import React, { useState } from "react";
 import {
   Box,
@@ -14,6 +14,7 @@ import {
   Rating,
   Divider,
   Fade,
+  useMediaQuery,
 } from "@mui/material";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -27,30 +28,39 @@ import {
   Phone,
   Sparkles,
   ExternalLink,
+  ChevronUp,
+  ChevronDown,
 } from "lucide-react";
 import { MdOutlineTempleBuddhist, MdOutlineRamenDining } from "react-icons/md";
 import { stables, images } from "../../../../../constants";
 
 const ExperienceDetailsModal = ({ open, onClose, experience, category }) => {
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   if (!experience) return null;
 
   const getCategoryIcon = (cat) => {
+    const iconSize = isMobile ? 16 : 20;
     if (cat === "Hoteles")
-      return <BedSingle size={20} color={theme.palette.secondary.light} />;
+      return (
+        <BedSingle size={iconSize} color={theme.palette.secondary.light} />
+      );
     if (cat === "Atractivos")
       return (
         <MdOutlineTempleBuddhist
-          size={20}
+          size={iconSize}
           color={theme.palette.secondary.light}
         />
       );
     if (cat === "Restaurantes")
       return (
-        <MdOutlineRamenDining size={20} color={theme.palette.secondary.light} />
+        <MdOutlineRamenDining
+          size={iconSize}
+          color={theme.palette.secondary.light}
+        />
       );
-    return <Sparkles size={20} />;
+    return <Sparkles size={iconSize} />;
   };
 
   const getCategoryColor = (cat) => {
@@ -66,14 +76,16 @@ const ExperienceDetailsModal = ({ open, onClose, experience, category }) => {
       onClose={onClose}
       maxWidth="md"
       fullWidth
+      fullScreen={isMobile}
       TransitionComponent={Fade}
       PaperProps={{
         sx: {
-          borderRadius: 4,
+          borderRadius: isMobile ? 0 : 4,
           background: `linear-gradient(135deg, ${theme.palette.background.paper}95)`,
           backdropFilter: "blur(20px)",
           border: `1px solid ${theme.palette.divider}40`,
           overflow: "hidden",
+          m: isMobile ? 0 : 2,
         },
       }}
     >
@@ -81,7 +93,7 @@ const ExperienceDetailsModal = ({ open, onClose, experience, category }) => {
       <Box
         sx={{
           position: "relative",
-          height: 300,
+          height: { xs: 250, sm: 300 },
           background: `linear-gradient(135deg, ${getCategoryColor(
             category
           )}20)`,
@@ -96,14 +108,12 @@ const ExperienceDetailsModal = ({ open, onClose, experience, category }) => {
             backgroundImage: `url(${(() => {
               const photo = experience?.photo;
 
-              // If has photo, handle URL type
               if (photo) {
                 return photo.startsWith("http")
                   ? photo
                   : `${stables.UPLOAD_FOLDER_BASE_URL}${photo}`;
               }
 
-              // Category-based fallback
               switch (experience?.categories) {
                 case "Hoteles":
                   return images.sampleHotelImage;
@@ -136,7 +146,7 @@ const ExperienceDetailsModal = ({ open, onClose, experience, category }) => {
             display: "flex",
             flexDirection: "column",
             justifyContent: "flex-end",
-            p: 4,
+            p: { xs: 3, sm: 4 },
             background: "linear-gradient(transparent, rgba(0,0,0,0.7))",
           }}
         >
@@ -144,22 +154,25 @@ const ExperienceDetailsModal = ({ open, onClose, experience, category }) => {
             <Chip
               icon={getCategoryIcon(category)}
               label={category}
+              size={isMobile ? "small" : "medium"}
               sx={{
                 background: theme.palette.secondary.medium,
                 color: theme.palette.primary.white,
                 fontWeight: 600,
                 backdropFilter: "blur(10px)",
+                fontSize: { xs: "0.7rem", sm: "0.875rem" },
               }}
             />
           </Box>
 
           <Typography
-            variant="h4"
+            variant={isMobile ? "h5" : "h4"}
             sx={{
               color: "white",
               fontWeight: 800,
               mb: 1,
               textShadow: "0 2px 8px rgba(0,0,0,0.5)",
+              fontSize: { xs: "1.5rem", sm: "2rem" },
             }}
           >
             {experience.title || "Experiencia sin título"}
@@ -178,7 +191,11 @@ const ExperienceDetailsModal = ({ open, onClose, experience, category }) => {
               />
               <Typography
                 variant="caption"
-                sx={{ color: "white", fontWeight: 600 }}
+                sx={{
+                  color: "white",
+                  fontWeight: 600,
+                  fontSize: { xs: "0.7rem", sm: "0.75rem" },
+                }}
               >
                 ({experience.rating})
               </Typography>
@@ -186,10 +203,14 @@ const ExperienceDetailsModal = ({ open, onClose, experience, category }) => {
           )}
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <MapPin size={16} color="white" />
+              <MapPin size={isMobile ? 14 : 16} color="white" />
               <Typography
                 variant="body1"
-                sx={{ color: "white", fontWeight: 500 }}
+                sx={{
+                  color: "white",
+                  fontWeight: 500,
+                  fontSize: { xs: "0.875rem", sm: "1rem" },
+                }}
               >
                 {experience.prefecture || "Ubicación desconocida"}
               </Typography>
@@ -197,14 +218,14 @@ const ExperienceDetailsModal = ({ open, onClose, experience, category }) => {
             {experience.price !== null && experience.price !== undefined ? (
               <Box>
                 <Typography
-                  variant="h6"
+                  variant={isMobile ? "subtitle1" : "h6"}
                   sx={{
                     fontWeight: 700,
                     color:
                       experience.price === 0
                         ? theme.palette.success.main
                         : theme.palette.primary.main,
-                    fontSize: "1.25rem",
+                    fontSize: { xs: "1rem", sm: "1.25rem" },
                   }}
                 >
                   ¥ {experience.price}
@@ -217,6 +238,7 @@ const ExperienceDetailsModal = ({ open, onClose, experience, category }) => {
                   color: theme.palette.text.secondary,
                   background: `${theme.palette.warning.main}15`,
                   fontStyle: "italic",
+                  fontSize: { xs: "0.75rem", sm: "0.875rem" },
                 }}
               >
                 Precio a consultar
@@ -227,13 +249,19 @@ const ExperienceDetailsModal = ({ open, onClose, experience, category }) => {
       </Box>
 
       {/* Details Content */}
-      <DialogContent sx={{ p: 4 }}>
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+      <DialogContent sx={{ p: { xs: 3, sm: 4 } }}>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            gap: { xs: 2, sm: 3 },
+          }}
+        >
           {/* Description */}
           {experience.description && (
             <Box>
               <Typography
-                variant="h6"
+                variant={isMobile ? "subtitle1" : "h6"}
                 sx={{
                   fontWeight: 700,
                   mb: 2,
@@ -242,7 +270,10 @@ const ExperienceDetailsModal = ({ open, onClose, experience, category }) => {
                   gap: 1,
                 }}
               >
-                <Info size={20} color={theme.palette.primary.main} />
+                <Info
+                  size={isMobile ? 18 : 20}
+                  color={theme.palette.primary.main}
+                />
                 Descripción
               </Typography>
               <Typography
@@ -250,6 +281,7 @@ const ExperienceDetailsModal = ({ open, onClose, experience, category }) => {
                 sx={{
                   lineHeight: 1.6,
                   color: theme.palette.text.secondary,
+                  fontSize: { xs: "0.875rem", sm: "1rem" },
                 }}
               >
                 {experience.description}
@@ -260,7 +292,10 @@ const ExperienceDetailsModal = ({ open, onClose, experience, category }) => {
           <Box
             sx={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+              gridTemplateColumns: {
+                xs: "1fr",
+                sm: "repeat(auto-fit, minmax(200px, 1fr))",
+              },
               gap: 2,
             }}
           >
@@ -268,8 +303,8 @@ const ExperienceDetailsModal = ({ open, onClose, experience, category }) => {
             {experience.duration && (
               <Box
                 sx={{
-                  p: 2,
-                  borderRadius: 3,
+                  p: { xs: 1.5, sm: 2 },
+                  borderRadius: { xs: 2, sm: 3 },
                   background: `${theme.palette.info.main}15`,
                   border: `1px solid ${theme.palette.info.main}30`,
                 }}
@@ -277,32 +312,52 @@ const ExperienceDetailsModal = ({ open, onClose, experience, category }) => {
                 <Box
                   sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}
                 >
-                  <Clock size={18} color={theme.palette.info.main} />
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                  <Clock
+                    size={isMobile ? 16 : 18}
+                    color={theme.palette.info.main}
+                  />
+                  <Typography
+                    variant="subtitle2"
+                    sx={{
+                      fontWeight: 600,
+                      fontSize: { xs: "0.8rem", sm: "0.875rem" },
+                    }}
+                  >
                     Duración
                   </Typography>
                 </Box>
-                <Typography variant="body2" color="text.secondary">
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ fontSize: { xs: "0.75rem", sm: "0.875rem" } }}
+                >
                   {experience.duration}
                 </Typography>
               </Box>
             )}
 
-            {/* Capacity */}
+            {/* Caption */}
             {experience.caption && (
               <Box
                 sx={{
-                  borderRadius: 3,
+                  borderRadius: { xs: 2, sm: 3 },
                 }}
               >
                 <Box
                   sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}
                 >
-                  <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
+                  <Typography
+                    variant={isMobile ? "subtitle1" : "h6"}
+                    sx={{ fontWeight: 700, mb: 2 }}
+                  >
                     Descripción
                   </Typography>
                 </Box>
-                <Typography variant="body2" color="text.secondary">
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ fontSize: { xs: "0.75rem", sm: "0.875rem" } }}
+                >
                   {experience.caption}
                 </Typography>
               </Box>
@@ -314,21 +369,26 @@ const ExperienceDetailsModal = ({ open, onClose, experience, category }) => {
             <>
               <Divider sx={{ opacity: 0.3 }} />
               <Box>
-                <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
+                <Typography
+                  variant={isMobile ? "subtitle1" : "h6"}
+                  sx={{ fontWeight: 700, mb: 2 }}
+                >
                   Información de Contacto
                 </Typography>
                 <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
                   {experience.website && (
                     <Button
                       variant="outlined"
-                      startIcon={<ExternalLink size={16} />}
+                      startIcon={<ExternalLink size={14} />}
                       href={experience.website}
                       target="_blank"
                       rel="noopener noreferrer"
+                      size={isMobile ? "small" : "medium"}
                       sx={{
                         justifyContent: "flex-start",
                         borderRadius: 2,
                         textTransform: "none",
+                        fontSize: { xs: "0.8rem", sm: "0.875rem" },
                       }}
                     >
                       Visitar sitio web
@@ -338,9 +398,17 @@ const ExperienceDetailsModal = ({ open, onClose, experience, category }) => {
                     <Typography
                       variant="body2"
                       color="text.secondary"
-                      sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1,
+                        fontSize: { xs: "0.75rem", sm: "0.875rem" },
+                      }}
                     >
-                      <Phone size={20} color={theme.palette.primary.main} />{" "}
+                      <Phone
+                        size={isMobile ? 16 : 20}
+                        color={theme.palette.primary.main}
+                      />{" "}
                       {experience.phone}
                     </Typography>
                   )}
@@ -348,9 +416,17 @@ const ExperienceDetailsModal = ({ open, onClose, experience, category }) => {
                     <Typography
                       variant="body2"
                       color="text.secondary"
-                      sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1,
+                        fontSize: { xs: "0.75rem", sm: "0.875rem" },
+                      }}
                     >
-                      <Map size={20} color={theme.palette.primary.main} />{" "}
+                      <Map
+                        size={isMobile ? 16 : 20}
+                        color={theme.palette.primary.main}
+                      />{" "}
                       {experience.address}
                     </Typography>
                   )}
@@ -362,17 +438,19 @@ const ExperienceDetailsModal = ({ open, onClose, experience, category }) => {
       </DialogContent>
 
       {/* Actions */}
-      <DialogActions sx={{ p: 4, pt: 0 }}>
+      <DialogActions sx={{ p: { xs: 3, sm: 4 }, pt: 0 }}>
         <Button
           onClick={onClose}
           variant="outlined"
+          size={isMobile ? "small" : "medium"}
           sx={{
             borderRadius: 30,
             textTransform: "none",
-            px: 4,
+            px: { xs: 3, sm: 4 },
             fontWeight: 600,
             borderColor: theme.palette.grey[300],
             color: theme.palette.text.primary,
+            fontSize: { xs: "0.8rem", sm: "0.875rem" },
           }}
         >
           Cerrar
@@ -389,9 +467,12 @@ const ActivityCard = ({
   onRemove,
   sortableId,
   userRole,
+  onMoveActivity, // New prop for mobile move functionality
+  totalActivities = 1, // New prop for total activities count
 }) => {
   const theme = useTheme();
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   // Use sortable for both reordering within board and dragging between boards
   const {
@@ -409,6 +490,7 @@ const ActivityCard = ({
       favIndex,
       favorite: fav,
     },
+    disabled: isMobile, // Disable drag on mobile
   });
 
   const style = {
@@ -419,15 +501,22 @@ const ActivityCard = ({
   };
 
   const getCategoryIcon = (category) => {
+    const iconSize = isMobile ? 18 : 24;
     if (category === "Hoteles")
-      return <BedSingle color={theme.palette.primary.main} size={24} />;
+      return <BedSingle color={theme.palette.primary.main} size={iconSize} />;
     if (category === "Atractivos")
       return (
-        <MdOutlineTempleBuddhist color={theme.palette.primary.main} size={24} />
+        <MdOutlineTempleBuddhist
+          color={theme.palette.primary.main}
+          size={iconSize}
+        />
       );
     if (category === "Restaurantes")
       return (
-        <MdOutlineRamenDining color={theme.palette.primary.main} size={24} />
+        <MdOutlineRamenDining
+          color={theme.palette.primary.main}
+          size={iconSize}
+        />
       );
     return null;
   };
@@ -439,31 +528,48 @@ const ActivityCard = ({
     setDetailsOpen(true);
   };
 
+  const handleMoveUp = () => {
+    if (onMoveActivity && favIndex > 0) {
+      onMoveActivity(boardIndex, favIndex, favIndex - 1);
+    }
+  };
+
+  const handleMoveDown = () => {
+    if (onMoveActivity && favIndex < totalActivities - 1) {
+      onMoveActivity(boardIndex, favIndex, favIndex + 1);
+    }
+  };
+
   return (
     <>
       <Paper
         ref={setNodeRef}
         style={style}
-        {...attributes}
-        {...listeners}
+        {...(!isMobile ? attributes : {})}
+        {...(!isMobile ? listeners : {})}
         className="no-scroll"
         sx={{
           position: "relative",
-          mb: 3,
-          mt: 2,
-          borderRadius: 3,
+          mb: { xs: 2, sm: 3 },
+          mt: { xs: 1.5, sm: 2 },
+          borderRadius: { xs: 2, sm: 3 },
           boxShadow: isDragging
             ? "0 12px 40px rgba(0,0,0,0.25)"
-            : "0 4px 20px rgba(0,0,0,0.08)",
+            : {
+                xs: "0 2px 12px rgba(0,0,0,0.08)",
+                sm: "0 4px 20px rgba(0,0,0,0.08)",
+              },
           overflow: "visible",
           background: `linear-gradient(135deg, ${theme.palette.background.paper}95, ${theme.palette.background.paper}85)`,
           backdropFilter: "blur(10px)",
           border: `1px solid ${theme.palette.divider}40`,
-          cursor: isDragging ? "grabbing" : "grab",
+          cursor: isDragging ? "grabbing" : isMobile ? "default" : "grab",
           transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
           "&:hover": {
-            boxShadow: "0 8px 32px rgba(0,0,0,0.15)",
-            transform: "translateY(-4px)",
+            boxShadow: isMobile
+              ? "0 4px 16px rgba(0,0,0,0.12)"
+              : "0 8px 32px rgba(0,0,0,0.15)",
+            transform: isMobile ? "none" : "translateY(-4px)",
             borderColor: theme.palette.primary.main,
           },
           ...(isDragging && {
@@ -474,11 +580,12 @@ const ActivityCard = ({
         }}
       >
         <Box sx={{ display: "flex", flexDirection: "row" }}>
+          {/* Category Icon - Always visible */}
           <Box
             sx={{
               position: "absolute",
-              top: "12px",
-              marginLeft: "-50px",
+              top: { xs: "8px", sm: "12px" },
+              marginLeft: { xs: "-36px", sm: "-50px" },
               zIndex: 2,
               display: "flex",
               flexDirection: "column",
@@ -491,7 +598,7 @@ const ActivityCard = ({
                 backgroundColor: theme.palette.background.paper,
                 border: `2px solid ${theme.palette.primary.main}`,
                 borderRadius: "50%",
-                p: 1,
+                p: { xs: 0.5, sm: 1 },
                 boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
                 transition: "all 0.3s ease",
                 "&:hover": {
@@ -503,14 +610,14 @@ const ActivityCard = ({
             </Box>
           </Box>
 
-          <Box sx={{ flex: 1, p: 2 }}>
+          <Box sx={{ flex: 1, p: { xs: 1, sm: 2 } }}>
             {/* Enhanced Image */}
             <Box
               sx={{
                 width: "100%",
-                height: 120,
+                height: { xs: 70, sm: 120 },
                 overflow: "hidden",
-                borderRadius: 4,
+                borderRadius: { xs: 2, sm: 4 },
                 position: "relative",
               }}
             >
@@ -519,14 +626,12 @@ const ActivityCard = ({
                   const experience = fav?.experienceId;
                   const photo = experience?.photo;
 
-                  // If has photo, handle URL type
                   if (photo) {
                     return photo.startsWith("http")
                       ? photo
                       : `${stables.UPLOAD_FOLDER_BASE_URL}${photo}`;
                   }
 
-                  // Category-based fallback
                   switch (experience?.categories) {
                     case "Hoteles":
                       return images.sampleHotelImage;
@@ -558,66 +663,162 @@ const ActivityCard = ({
                   right: 0,
                   height: "50%",
                   background: "linear-gradient(transparent, rgba(0,0,0,0.6))",
-                  borderRadius: "0 0 12px 12px",
+                  borderRadius: { xs: "0 0 6px 6px", sm: "0 0 12px 12px" },
                 }}
               />
             </Box>
 
             {/* Enhanced Content */}
-            <Box sx={{ p: 2, pt: 2 }}>
-              <Typography
-                variant="h6"
+            <Box sx={{ p: { xs: 1, sm: 2 }, pt: { xs: 1, sm: 2 } }}>
+              <Box
                 sx={{
-                  fontWeight: 700,
-                  mb: 1,
-                  color: theme.palette.text.primary,
-                  maxWidth: "200px", // Use maxWidth instead of fixed width
-                  width: "100%",
-                  display: "-webkit-box",
-                  WebkitBoxOrient: "vertical",
-                  WebkitLineClamp: 2,
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  lineHeight: 1.2,
-                  wordBreak: "break-word", // Handle very long words
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "flex-start",
+                  mb: { xs: 0.5, sm: 1 },
                 }}
               >
-                {fav?.experienceId?.title || "Actividad sin título"}
-              </Typography>
+                <Typography
+                  variant={isMobile ? "body2" : "h6"}
+                  sx={{
+                    fontWeight: 700,
+                    color: theme.palette.text.primary,
+                    maxWidth: { xs: "120px", sm: "180px" },
+                    width: "100%",
+                    display: "-webkit-box",
+                    WebkitBoxOrient: "vertical",
+                    WebkitLineClamp: 2,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    lineHeight: 1.2,
+                    wordBreak: "break-word",
+                    fontSize: { xs: "0.8rem", sm: "1.25rem" },
+                  }}
+                >
+                  {fav?.experienceId?.title || "Actividad sin título"}
+                </Typography>
+
+                {/* Mobile Up/Down Arrows - Inside card */}
+                {isMobile && userRole !== "viewer" && (
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 0.25,
+                      ml: 1,
+                    }}
+                  >
+                    <IconButton
+                      size="small"
+                      onClick={handleMoveUp}
+                      disabled={favIndex === 0}
+                      sx={{
+                        width: 20,
+                        height: 20,
+                        backgroundColor:
+                          favIndex === 0
+                            ? theme.palette.grey[200]
+                            : theme.palette.primary.light,
+                        color:
+                          favIndex === 0
+                            ? theme.palette.grey[400]
+                            : theme.palette.primary.main,
+                        "&:hover": {
+                          backgroundColor:
+                            favIndex === 0
+                              ? theme.palette.grey[200]
+                              : theme.palette.primary.main,
+                          color:
+                            favIndex === 0 ? theme.palette.grey[400] : "white",
+                        },
+                      }}
+                    >
+                      <ChevronUp size={12} />
+                    </IconButton>
+                    <IconButton
+                      size="small"
+                      onClick={handleMoveDown}
+                      disabled={favIndex === totalActivities - 1}
+                      sx={{
+                        width: 20,
+                        height: 20,
+                        backgroundColor:
+                          favIndex === totalActivities - 1
+                            ? theme.palette.grey[200]
+                            : theme.palette.primary.light,
+                        color:
+                          favIndex === totalActivities - 1
+                            ? theme.palette.grey[400]
+                            : theme.palette.primary.main,
+                        "&:hover": {
+                          backgroundColor:
+                            favIndex === totalActivities - 1
+                              ? theme.palette.grey[200]
+                              : theme.palette.primary.main,
+                          color:
+                            favIndex === totalActivities - 1
+                              ? theme.palette.grey[400]
+                              : "white",
+                        },
+                      }}
+                    >
+                      <ChevronDown size={12} />
+                    </IconButton>
+                  </Box>
+                )}
+              </Box>
 
               <Box
-                sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: { xs: 0.5, sm: 1 },
+                  mb: { xs: 1, sm: 2 },
+                }}
               >
-                <MapPin size={14} color={theme.palette.text.secondary} />
-                <Typography variant="body2" color="text.secondary">
+                <MapPin
+                  size={isMobile ? 10 : 14}
+                  color={theme.palette.text.secondary}
+                />
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ fontSize: { xs: "0.65rem", sm: "0.875rem" } }}
+                >
                   {fav?.experienceId?.prefecture || "Ubicación desconocida"}
                 </Typography>
               </Box>
+
               {/* Enhanced Details Button */}
               <Button
                 variant="outlined"
                 size="small"
-                startIcon={<Info size={16} />}
+                startIcon={<Info size={isMobile ? 12 : 16} />}
                 onClick={handleDetailsClick}
                 sx={{
-                  borderRadius: 30,
+                  borderRadius: { xs: 15, sm: 30 },
                   textTransform: "none",
                   fontWeight: 600,
                   width: "fit-content",
-                  mb: 1,
+                  mb: { xs: 0.5, sm: 1 },
                   background: `${theme.palette.primary.main}10`,
                   borderColor: `${theme.palette.primary.main}30`,
                   color: theme.palette.primary.main,
                   transition: "all 0.3s ease",
+                  fontSize: { xs: "0.65rem", sm: "0.875rem" },
+                  py: { xs: 0.25, sm: 1 },
+                  px: { xs: 1, sm: 2 },
+                  minHeight: { xs: "24px", sm: "auto" },
                   "&:hover": {
                     background: `${theme.palette.primary.main}20`,
                     borderColor: theme.palette.primary.main,
-                    transform: "translateY(-1px)",
+                    transform: isMobile ? "none" : "translateY(-1px)",
                   },
                 }}
               >
                 Ver detalles
               </Button>
+
               {fav?.experienceId?.price != null &&
                 fav.experienceId.price !== "" &&
                 fav.experienceId.price !== 0 && (
@@ -627,18 +828,19 @@ const ActivityCard = ({
                       alignItems: "center",
                       gap: 1,
                       width: "fit-content",
-                      py: 1,
-                      px: 2,
-                      borderRadius: 30,
+                      py: { xs: 0.25, sm: 1 },
+                      px: { xs: 1, sm: 2 },
+                      borderRadius: { xs: 15, sm: 30 },
                       background: `${theme.palette.secondary.medium}15`,
                       border: `1px solid ${theme.palette.secondary.medium}30`,
                     }}
                   >
                     <Typography
-                      variant="subtitle2"
+                      variant="caption"
                       sx={{
                         color: theme.palette.secondary.medium,
                         fontWeight: 700,
+                        fontSize: { xs: "0.65rem", sm: "0.875rem" },
                       }}
                     >
                       ¥ {fav?.experienceId?.price}
@@ -656,12 +858,13 @@ const ActivityCard = ({
               e.stopPropagation();
               onRemove(boardIndex, favIndex);
             }}
+            size="small"
             sx={{
               position: "absolute",
-              top: 12,
-              right: 12,
-              width: 36,
-              height: 36,
+              top: { xs: 6, sm: 12 },
+              right: { xs: 6, sm: 12 },
+              width: { xs: 24, sm: 36 },
+              height: { xs: 24, sm: 36 },
               background: "rgba(255,255,255,0.95)",
               backdropFilter: "blur(10px)",
               border: `1px solid ${theme.palette.error.main}30`,
@@ -670,46 +873,49 @@ const ActivityCard = ({
               "&:hover": {
                 background: theme.palette.error.main,
                 color: "white",
-                transform: "scale(1.1)",
+                transform: isMobile ? "none" : "scale(1.1)",
                 boxShadow: `0 4px 16px ${theme.palette.error.main}40`,
               },
               pointerEvents: "auto",
               zIndex: 10,
             }}
           >
-            <Trash2 size={18} />
+            <Trash2 size={isMobile ? 12 : 18} />
           </IconButton>
         )}
-        {/* Enhanced Drag Indicator */}
-        <Box
-          sx={{
-            position: "absolute",
-            top: 12,
-            left: 12,
-            opacity: isDragging ? 1 : 0.3,
-            transition: "opacity 0.2s ease",
-            "&:hover": {
-              opacity: 1,
-            },
-          }}
-        >
+
+        {/* Enhanced Drag Indicator - Hidden on mobile */}
+        {!isMobile && (
           <Box
             sx={{
-              width: 24,
-              height: 24,
-              borderRadius: 1,
-              background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "white",
-              fontSize: "12px",
-              fontWeight: 600,
+              position: "absolute",
+              top: 12,
+              left: 12,
+              opacity: isDragging ? 1 : 0.3,
+              transition: "opacity 0.2s ease",
+              "&:hover": {
+                opacity: 1,
+              },
             }}
           >
-            ⋮⋮
+            <Box
+              sx={{
+                width: 24,
+                height: 24,
+                borderRadius: 1,
+                background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "white",
+                fontSize: "12px",
+                fontWeight: 600,
+              }}
+            >
+              ⋮⋮
+            </Box>
           </Box>
-        </Box>
+        )}
       </Paper>
 
       {/* Experience Details Modal */}

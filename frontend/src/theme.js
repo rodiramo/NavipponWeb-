@@ -28,7 +28,7 @@ export const colorTokens = {
     700: "#CC2D69",
     800: "#B3245D",
     900: "#991B51",
-    1000: "#660F34",
+    1000: "#3D091F",
   },
   success: {
     50: "#E6F4EA",
@@ -115,9 +115,9 @@ export const themeSettings = (mode) => {
               light: colorTokens.darkBlue[800],
             },
             success: {
-              dark: colorTokens.success[700],
+              dark: colorTokens.success[900],
               main: colorTokens.success[500],
-              light: colorTokens.success[300],
+              light: colorTokens.success[200],
             },
             error: {
               dark: colorTokens.error[700],

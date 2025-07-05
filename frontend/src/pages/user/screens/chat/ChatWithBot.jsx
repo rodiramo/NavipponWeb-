@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Send, X, User, Sparkles } from "lucide-react";
+import { Send, X, User, Sparkles, RotateCcw } from "lucide-react";
 import { useTheme } from "@mui/material";
-
 const ModernChatBot = ({ onClose, user }) => {
   const theme = useTheme();
   const [messages, setMessages] = useState([
@@ -81,7 +80,6 @@ const ModernChatBot = ({ onClose, user }) => {
 ¿Te interesa alguna estación en particular?`;
     }
 
-    // Comida
     if (
       ["comida", "gastronomía", "comer", "platos", "sushi", "ramen"].some(
         (word) => message.includes(word)
@@ -383,6 +381,21 @@ Puedo ayudarte con información detallada sobre:
     }
   };
 
+  const restartConversation = () => {
+    setMessages([
+      {
+        id: 1,
+        type: "bot",
+        content: `こんにちは！ ${
+          user?.name ? user.name + "-san" : ""
+        } 🌸 Soy NaviBot, tu asistente personal de viaje para Japón. ¿En qué puedo ayudarte hoy?`,
+        timestamp: new Date(),
+      },
+    ]);
+    setInputValue("");
+    setIsTyping(false);
+  };
+
   const quickActions = [
     {
       label: "🗓️ Planificar viaje",
@@ -403,13 +416,10 @@ Puedo ayudarte con información detallada sobre:
 
   return (
     <div
-      className="fixed right-6 bottom-6 w-96 h-[600px] rounded-2xl shadow-2xl border flex flex-col overflow-hidden z-50"
+      className="fixed right-1 bottom-20 sm:left-auto w-96 max-w-[calc(100vw-1rem)] h-[600px] max-h-[calc(100vh-5rem)] rounded-2xl shadow-2xl border flex flex-col overflow-hidden z-50"
       style={{
         backgroundColor: theme.palette.background.default,
-        borderColor:
-          theme.palette.mode === "dark"
-            ? theme.palette.grey[700]
-            : theme.palette.grey[300],
+        borderColor: theme.palette.grey[300],
       }}
     >
       {/* Header */}
@@ -418,34 +428,44 @@ Puedo ayudarte con información detallada sobre:
         style={{ backgroundColor: theme.palette.primary.main }}
       >
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+          <div className="w-10 h-10 rounded-full flex items-center justify-center">
             <img
               src="/assets/botIcon.png"
               alt="NaviBot"
-              className="w-6 h-6 rounded-full"
+              className="w-10 h-10 rounded-full"
             />
           </div>
           <div>
-            <h3 className="font-bold text-lg">NaviBot 🌸</h3>
+            <h3 className="font-bold text-lg">NaviBot</h3>
             <p className="text-sm opacity-90">Tu asistente de viajes a Japón</p>
           </div>
         </div>
-        <button
-          onClick={onClose}
-          className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition-colors"
-        >
-          <X className="w-5 h-5" />
-        </button>
+        <div className="flex items-center space-x-2">
+          {/* Restart conversation */}
+          <button
+            onClick={restartConversation}
+            className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition-colors"
+            title="Reiniciar conversación"
+          >
+            <RotateCcw className="w-4 h-4" />
+          </button>
+
+          {/* Close */}
+          <button
+            onClick={onClose}
+            className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition-colors"
+            title="Cerrar"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
       {/* Messages Area */}
       <div
         className="flex-1 overflow-y-auto p-4 space-y-4"
         style={{
-          backgroundColor:
-            theme.palette.mode === "dark"
-              ? theme.palette.grey[900]
-              : theme.palette.grey[50],
+          backgroundColor: theme.palette.background.default,
         }}
       >
         {messages.map((message) => (
@@ -456,7 +476,7 @@ Puedo ayudarte con información detallada sobre:
             }`}
           >
             <div
-              className={`flex items-start space-x-2 max-w-[80%] ${
+              className={`flex items-start space-x-2 max-w-[85%] ${
                 message.type === "user"
                   ? "flex-row-reverse space-x-reverse"
                   : ""
@@ -467,13 +487,11 @@ Puedo ayudarte con información detallada sobre:
                 style={{
                   backgroundColor:
                     message.type === "user"
-                      ? theme.palette.secondary.main
-                      : theme.palette.mode === "dark"
-                        ? theme.palette.grey[700]
-                        : theme.palette.grey[100],
+                      ? theme.palette.secondary.light
+                      : theme.palette.grey[100],
                   color:
                     message.type === "user"
-                      ? theme.palette.secondary.contrastText
+                      ? theme.palette.secondary.dark
                       : theme.palette.primary.main,
                 }}
               >
@@ -482,8 +500,8 @@ Puedo ayudarte con información detallada sobre:
                 ) : (
                   <img
                     src="/assets/botIcon.png"
-                    alt="Bot"
-                    className="w-4 h-4 rounded-full"
+                    alt="NaviBot"
+                    className="w-6 h-6 rounded-full"
                   />
                 )}
               </div>
@@ -502,10 +520,6 @@ Puedo ayudarte con información detallada sobre:
                     message.type === "user"
                       ? theme.palette.secondary.contrastText
                       : theme.palette.text.primary,
-                  borderColor:
-                    theme.palette.mode === "dark"
-                      ? theme.palette.grey[600]
-                      : theme.palette.grey[300],
                 }}
               >
                 <div className="whitespace-pre-wrap text-sm leading-relaxed">
@@ -532,21 +546,18 @@ Puedo ayudarte con información detallada sobre:
 
         {isTyping && (
           <div className="flex justify-start">
-            <div className="flex items-start space-x-2 max-w-[80%]">
+            <div className="flex items-start space-x-2 max-w-[85%]">
               <div
                 className="w-8 h-8 rounded-full flex items-center justify-center"
                 style={{
-                  backgroundColor:
-                    theme.palette.mode === "dark"
-                      ? theme.palette.grey[700]
-                      : theme.palette.grey[100],
+                  backgroundColor: theme.palette.grey[100],
                   color: theme.palette.primary.main,
                 }}
               >
                 <img
                   src="/assets/botIcon.png"
-                  alt="Bot"
-                  className="w-4 h-4 rounded-full"
+                  alt="NaviBot"
+                  className="w-6 h-6 rounded-full"
                 />
               </div>
               <div
@@ -554,10 +565,7 @@ Puedo ayudarte con información detallada sobre:
                 style={{
                   backgroundColor: theme.palette.background.paper,
                   color: theme.palette.text.primary,
-                  borderColor:
-                    theme.palette.mode === "dark"
-                      ? theme.palette.grey[600]
-                      : theme.palette.grey[300],
+                  borderColor: theme.palette.grey[300],
                 }}
               >
                 <div className="flex space-x-1">
@@ -593,10 +601,7 @@ Puedo ayudarte con información detallada sobre:
           className="p-4 border-t"
           style={{
             backgroundColor: theme.palette.background.paper,
-            borderColor:
-              theme.palette.mode === "dark"
-                ? theme.palette.grey[600]
-                : theme.palette.grey[300],
+            borderColor: theme.palette.grey[300],
           }}
         >
           <div
@@ -610,25 +615,16 @@ Puedo ayudarte con información detallada sobre:
               <button
                 key={index}
                 onClick={() => handleQuickAction(action.action)}
-                className="text-xs p-2 rounded-lg transition-colors text-left"
+                className="text-xs p-2 rounded-full transition-all text-left hover:scale-105 hover:shadow-md"
                 style={{
-                  backgroundColor:
-                    theme.palette.mode === "dark"
-                      ? theme.palette.grey[700]
-                      : theme.palette.grey[100],
+                  backgroundColor: theme.palette.secondary.light,
                   color: theme.palette.text.primary,
                 }}
                 onMouseEnter={(e) => {
-                  e.target.style.backgroundColor =
-                    theme.palette.mode === "dark"
-                      ? theme.palette.grey[600]
-                      : theme.palette.grey[200];
+                  e.target.style.backgroundColor = theme.palette.secondary.main;
                 }}
                 onMouseLeave={(e) => {
-                  e.target.style.backgroundColor =
-                    theme.palette.mode === "dark"
-                      ? theme.palette.grey[700]
-                      : theme.palette.grey[100];
+                  e.target.style.backgroundColor = theme.palette.secondary.main;
                 }}
               >
                 {action.label}
@@ -643,10 +639,6 @@ Puedo ayudarte con información detallada sobre:
         className="p-4 border-t"
         style={{
           backgroundColor: theme.palette.background.paper,
-          borderColor:
-            theme.palette.mode === "dark"
-              ? theme.palette.grey[600]
-              : theme.palette.grey[300],
         }}
       >
         <div className="flex items-end space-x-2">
@@ -657,32 +649,20 @@ Puedo ayudarte con información detallada sobre:
               onChange={(e) => setInputValue(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder="Pregúntame sobre Japón..."
-              className="w-full p-3 rounded-xl resize-none focus:outline-none focus:ring-2 focus:border-transparent"
-              rows="1"
+              className="w-full p-3 rounded-xl resize-none focus:outline-none focus:ring-2 focus:border-transparent transition-all"
               style={{
-                minHeight: "44px",
-                maxHeight: "120px",
-                backgroundColor:
-                  theme.palette.mode === "dark"
-                    ? theme.palette.grey[800]
-                    : theme.palette.background.default,
+                minHeight: "70px",
+                maxHeight: "100px",
+                backgroundColor: theme.palette.background.default,
                 color: theme.palette.text.primary,
-                border: `1px solid ${
-                  theme.palette.mode === "dark"
-                    ? theme.palette.grey[600]
-                    : theme.palette.grey[300]
-                }`,
-                "--focus-ring-color": theme.palette.primary.main + "50",
+                border: `1px solid ${theme.palette.grey[300]}`,
               }}
               onFocus={(e) => {
                 e.target.style.borderColor = theme.palette.primary.main;
                 e.target.style.boxShadow = `0 0 0 2px ${theme.palette.primary.main}25`;
               }}
               onBlur={(e) => {
-                e.target.style.borderColor =
-                  theme.palette.mode === "dark"
-                    ? theme.palette.grey[600]
-                    : theme.palette.grey[300];
+                e.target.style.borderColor = theme.palette.grey[300];
                 e.target.style.boxShadow = "none";
               }}
             />
@@ -690,7 +670,7 @@ Puedo ayudarte con información detallada sobre:
           <button
             onClick={handleSendMessage}
             disabled={!inputValue.trim()}
-            className="w-11 h-11 text-white rounded-xl flex items-center justify-center transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-11 h-11 text-white rounded-xl flex items-center justify-center transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 active:scale-95"
             style={{ backgroundColor: theme.palette.primary.main }}
             onMouseEnter={(e) => {
               if (!e.target.disabled) {
@@ -711,7 +691,8 @@ Puedo ayudarte con información detallada sobre:
           style={{ color: theme.palette.text.secondary }}
         >
           <Sparkles className="w-3 h-3 inline mr-1" />
-          Presiona Enter para enviar
+          Presiona Enter para enviar •{" "}
+          {messages.length > 1 && `${messages.length - 1} mensajes`}
         </div>
       </div>
     </div>

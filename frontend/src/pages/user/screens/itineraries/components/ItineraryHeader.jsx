@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Box,
   Typography,
@@ -10,8 +10,13 @@ import {
   Container,
   Tooltip,
   Switch,
-  FormControlLabel,
-  Paper,
+  useMediaQuery,
+  Menu,
+  MenuItem,
+  Divider,
+  ListItemIcon,
+  ListItemText,
+  Fade,
 } from "@mui/material";
 import {
   Save,
@@ -24,9 +29,10 @@ import {
   Crown,
   Lock,
   Globe,
+  MoreVertical,
+  Users,
 } from "lucide-react";
 import Travelers from "./Travelers";
-import DateDisplay from "./DateDisplay";
 
 const ItineraryHeader = ({
   name,
@@ -59,6 +65,11 @@ const ItineraryHeader = ({
   onPrivacyToggle,
 }) => {
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [showTravelers, setShowTravelers] = useState(false);
+  const open = Boolean(anchorEl);
+
   const endDate =
     startDate && boards?.length > 0
       ? new Date(
@@ -68,12 +79,18 @@ const ItineraryHeader = ({
         )
       : null;
 
-  // Check if user can edit (owners and editors)
+  // Check permissions
   const canEdit = userRole === "owner" || userRole === "editor";
-  // Check if user can manage travelers (only owners)
   const canManageTravelers = userRole === "owner";
-  // Only owners can change privacy settings
   const canChangePrivacy = userRole === "owner";
+
+  const handleMenuClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(false);
+  };
 
   const handleNameClick = () => {
     if (canEdit) {
@@ -95,55 +112,73 @@ const ItineraryHeader = ({
     if (canChangePrivacy && onPrivacyToggle) {
       onPrivacyToggle(event.target.checked);
     }
+    handleMenuClose();
+  };
+
+  const handleOfflineClick = () => {
+    onOfflineClick();
+    handleMenuClose();
+  };
+
+  const handleTravelersClick = () => {
+    setShowTravelers(true);
+    handleMenuClose();
   };
 
   return (
-    <Box
-      sx={{
-        background: theme.palette.background.nav,
-        position: "relative",
-        overflow: "hidden",
-      }}
-    >
-      <Container maxWidth="xl" sx={{ position: "relative", zIndex: 1 }}>
-        <Box sx={{ py: { xs: 3, md: 4 } }}>
-          <Box sx={{ mb: 3 }}>
+    <>
+      <Box
+        sx={{
+          background: theme.palette.background.nav,
+          position: "relative",
+          overflow: "hidden",
+        }}
+      >
+        <Container maxWidth="xl" sx={{ position: "relative", zIndex: 1 }}>
+          <Box sx={{ py: { xs: 2.5, sm: 1.5 } }}>
+            {/* Left: Back Button */}
             <Button
               variant="outlined"
               onClick={onBackClick}
-              startIcon={<ArrowLeft size={18} />}
+              startIcon={<ArrowLeft size={16} />}
+              size="small"
               sx={{
                 borderColor: "rgba(255,255,255,0.3)",
                 color: "white",
-                borderRadius: "25px",
+                borderRadius: "20px",
                 textTransform: "none",
                 backdropFilter: "blur(10px)",
                 backgroundColor: "rgba(255,255,255,0.1)",
+                fontSize: "0.75rem",
+                px: 2,
+                py: 0.5,
+                minWidth: "auto",
                 "&:hover": {
                   borderColor: "rgba(255,255,255,0.5)",
                   backgroundColor: "rgba(255,255,255,0.2)",
                 },
               }}
             >
-              Volver
+              {isMobile ? "" : "Volver"}
             </Button>
-          </Box>
-
-          {/* Main Header Content */}
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: { xs: "column", lg: "row" },
-              alignItems: { xs: "flex-start", lg: "center" },
-              justifyContent: "space-between",
-              gap: { xs: 3, lg: 2 },
-            }}
-          >
-            {/* Left Section - Title and Creator Info */}
-            <Box sx={{ flex: 1, minWidth: 0 }}>
-              {/* Title Section */}
+            <Box
+              sx={{
+                display: "flex",
+                pt: 2,
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 1,
+              }}
+            >
+              {/* Center: Title */}
               <Box
-                sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}
+                sx={{
+                  flex: 1,
+
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                }}
               >
                 {isEditingName && canEdit ? (
                   <TextField
@@ -161,28 +196,23 @@ const ItineraryHeader = ({
                     autoFocus
                     variant="outlined"
                     placeholder="Nombre del itinerario..."
+                    size="small"
                     sx={{
+                      flex: 1,
                       "& .MuiOutlinedInput-root": {
                         backgroundColor: "rgba(255,255,255,0.98)",
                         backdropFilter: "blur(20px)",
-                        borderRadius: 30,
+                        borderRadius: 20,
                         border: "none",
-                        fontSize: { xs: "1rem", md: "1.5rem" },
-                        fontWeight: 700,
+                        fontSize: { xs: "1rem", sm: "1.25rem" },
+                        fontWeight: 600,
                         color: theme.palette.text.primary,
-                        transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                        "&:hover": {
-                          backgroundColor: "rgba(255,255,255,1)",
-                        },
-                        "&.Mui-focused": {
-                          backgroundColor: "rgba(255,255,255,1)",
-                        },
                         "& fieldset": {
                           border: "none",
                         },
                       },
                       "& .MuiOutlinedInput-input": {
-                        padding: "10px 15px",
+                        padding: "8px 12px",
                         "&::placeholder": {
                           color: theme.palette.text.secondary,
                           opacity: 0.7,
@@ -193,14 +223,18 @@ const ItineraryHeader = ({
                   />
                 ) : (
                   <Typography
-                    variant="h3"
+                    variant={isMobile ? "h4" : "h3"}
                     component="h1"
                     sx={{
                       fontWeight: "bold",
                       color: "white",
                       cursor: canEdit ? "pointer" : "default",
-                      fontSize: { xs: "1.75rem", md: "2.5rem" },
+                      fontSize: { xs: "1.75rem", sm: "2rem", md: "2.25rem" },
                       lineHeight: 1.2,
+                      textAlign: "center",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
                       "&:hover": canEdit
                         ? {
                             opacity: 0.8,
@@ -213,304 +247,268 @@ const ItineraryHeader = ({
                   </Typography>
                 )}
 
-                {/* Only show edit button for users who can edit */}
                 {canEdit && (
-                  <Tooltip title={isEditingName ? "Guardar" : "Editar nombre"}>
-                    <IconButton
-                      onClick={handleEditClick}
-                      sx={{
-                        position: "relative",
-                        zIndex: 1,
-                        width: 48,
-                        height: 48,
-                        color: isEditingName
-                          ? theme.palette.success.dark
-                          : "white",
-                        background: isEditingName
-                          ? `linear-gradient(135deg, ${theme.palette.success.light})`
-                          : "rgba(255,255,255,0.15)",
-                        backdropFilter: "blur(20px)",
-                        border: "1px solid rgba(255,255,255,0.2)",
-                        transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                        "&:hover": {
-                          color: isEditingName ? "white" : "white",
-                          background: isEditingName
-                            ? `linear-gradient(135deg, ${theme.palette.success.main})`
-                            : "rgba(255,255,255,0.25)",
-                        },
-                      }}
-                    >
-                      {isEditingName ? <Save size={22} /> : <Edit size={22} />}
-                    </IconButton>
-                  </Tooltip>
-                )}
-              </Box>
-
-              {/* Creator and Role Info */}
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 2,
-                  flexWrap: "wrap",
-                }}
-              >
-                {creator && (
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                    <Crown size={16} color="gold" />
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        color: "rgba(255,255,255,0.9)",
-                        fontWeight: 500,
-                      }}
-                    >
-                      Creado por: {creator.name}
-                    </Typography>
-                  </Box>
-                )}
-
-                <Chip
-                  label={`Tu rol: ${myRole}`}
-                  size="small"
-                  sx={{
-                    backgroundColor:
-                      userRole === "owner"
-                        ? theme.palette.primary.main
-                        : userRole === "editor"
-                          ? theme.palette.primary.main
-                          : "rgba(255,255,255,0.2)",
-                    color: "white",
-                    fontWeight: 500,
-                    backdropFilter: "blur(10px)",
-                  }}
-                />
-
-                {/* NEW: Privacy Status Chip */}
-                <Chip
-                  icon={isPrivate ? <Lock size={16} /> : <Globe size={16} />}
-                  label={isPrivate ? "Privado" : "Público"}
-                  size="small"
-                  sx={{
-                    backgroundColor: isPrivate
-                      ? "rgba(255, 152, 0, 0.8)" // Orange for private
-                      : "rgba(76, 175, 80, 0.8)", // Green for public
-                    color: "white",
-                    fontWeight: 500,
-                    backdropFilter: "blur(10px)",
-                    "& .MuiChip-icon": {
-                      color: "white",
-                    },
-                  }}
-                />
-              </Box>
-            </Box>
-
-            {/* Center Section - Stats and Privacy Toggle */}
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                gap: 2,
-                order: { xs: 3, lg: 2 },
-                alignItems: { xs: "flex-start", lg: "center" },
-              }}
-            >
-              {/* Stats Row */}
-              <Box
-                sx={{
-                  display: "flex",
-                  gap: 2,
-                }}
-              >
-                <DateDisplay
-                  startDate={startDate}
-                  endDate={endDate}
-                  onEditClick={onEditDates}
-                  canEdit={canEditDates}
-                  boardCount={boards?.length || 0}
-                />
-                <Chip
-                  icon={
-                    <CalendarDays
-                      size={18}
-                      color={theme.palette.primary.dark}
-                    />
-                  }
-                  label={`${travelDays} ${travelDays === 1 ? "Día" : "Días"}`}
-                  sx={{
-                    borderRadius: "30px",
-                    color: theme.palette.primary.dark,
-                    fontWeight: "bold",
-                    fontSize: "0.875rem",
-                    height: 40,
-                    backgroundColor: theme.palette.primary.light,
-                    backdropFilter: "blur(10px)",
-                    "& .MuiChip-icon": {
-                      color: theme.palette.primary.dark,
-                    },
-                  }}
-                />
-
-                <Chip
-                  icon={
-                    <HandCoins size={18} color={theme.palette.success.dark} />
-                  }
-                  label={`¥ ${totalBudget.toLocaleString()}`}
-                  sx={{
-                    borderRadius: "30px",
-                    color: theme.palette.success.dark,
-                    fontWeight: "bold",
-                    fontSize: "0.875rem",
-                    height: 40,
-                    backgroundColor: theme.palette.success.lightest,
-                    backdropFilter: "blur(10px)",
-                    boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                    "& .MuiChip-icon": {
-                      color: theme.palette.secondary.main,
-                    },
-                  }}
-                />
-              </Box>
-
-              {/* NEW: Privacy Toggle - Only visible to owners */}
-              {canChangePrivacy && (
-                <Paper
-                  elevation={0}
-                  sx={{
-                    backgroundColor: "rgba(255,255,255,0.15)",
-                    backdropFilter: "blur(20px)",
-                    borderRadius: "25px",
-                    border: "1px solid rgba(255,255,255,0.2)",
-                    px: 2,
-                    py: 0.5,
-                  }}
-                >
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        checked={isPrivate}
-                        onChange={handlePrivacyChange}
-                        size="small"
-                        sx={{
-                          "& .MuiSwitch-switchBase": {
-                            color: "white",
-                            "&.Mui-checked": {
-                              color: theme.palette.warning.main,
-                              "& + .MuiSwitch-track": {
-                                backgroundColor: theme.palette.warning.main,
-                                opacity: 0.8,
-                              },
-                            },
-                          },
-                          "& .MuiSwitch-track": {
-                            backgroundColor: theme.palette.success.main,
-                            opacity: 0.6,
-                          },
-                        }}
-                      />
-                    }
-                    label={
-                      <Box
-                        sx={{ display: "flex", alignItems: "center", gap: 1 }}
-                      >
-                        {isPrivate ? (
-                          <Lock size={16} color="white" />
-                        ) : (
-                          <Globe size={16} color="white" />
-                        )}
-                        <Typography
-                          variant="body2"
-                          sx={{
-                            color: "white",
-                            fontWeight: 500,
-                            fontSize: "0.875rem",
-                          }}
-                        >
-                          {isPrivate ? "Privado" : "Público"}
-                        </Typography>
-                      </Box>
-                    }
-                    labelPlacement="start"
+                  <IconButton
+                    onClick={handleEditClick}
+                    size="small"
                     sx={{
-                      margin: 0,
-                      "& .MuiFormControlLabel-label": {
-                        fontSize: "0.875rem",
+                      width: 32,
+                      height: 32,
+                      color: isEditingName
+                        ? theme.palette.success.main
+                        : "white",
+                      background: "rgba(255,255,255,0.15)",
+                      backdropFilter: "blur(10px)",
+                      "&:hover": {
+                        background: "rgba(255,255,255,0.25)",
                       },
                     }}
-                  />
-                </Paper>
-              )}
+                  >
+                    {isEditingName ? <Save size={16} /> : <Edit size={16} />}
+                  </IconButton>
+                )}
+              </Box>
+
+              {/* Right: Notes + Menu */}
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                {/* Notes Button - Always Visible */}
+                <Tooltip title="Notas del viaje">
+                  <IconButton
+                    onClick={onNotesClick}
+                    size="small"
+                    sx={{
+                      backgroundColor: theme.palette.primary.main,
+                      color: "white",
+                      width: 36,
+                      height: 36,
+                      "&:hover": {
+                        backgroundColor: theme.palette.primary.dark,
+                      },
+                    }}
+                  >
+                    <MessagesSquare size={16} />
+                  </IconButton>
+                </Tooltip>
+
+                {/* Menu Button */}
+                <Tooltip title="Más opciones">
+                  <IconButton
+                    onClick={handleMenuClick}
+                    size="small"
+                    sx={{
+                      backgroundColor: "rgba(255,255,255,0.15)",
+                      color: "white",
+                      width: 36,
+                      height: 36,
+                      backdropFilter: "blur(10px)",
+                      "&:hover": {
+                        backgroundColor: "rgba(255,255,255,0.25)",
+                      },
+                    }}
+                  >
+                    <MoreVertical size={16} />
+                  </IconButton>
+                </Tooltip>
+              </Box>
             </Box>
 
-            {/* Right Section - Actions */}
+            {/* Quick Info Bar - Minimal */}
             <Box
               sx={{
                 display: "flex",
                 alignItems: "center",
-                gap: 2,
-                order: { xs: 2, lg: 3 },
+                justifyContent: "flex-start",
+                gap: 1,
+                mt: 2,
+                mb: 1.5,
+                flexWrap: "wrap",
               }}
             >
-              {/* Travelers Section */}
-              <Box sx={{ display: "flex", alignItems: "center" }}>
-                <Travelers
-                  travelers={travelers}
-                  friendsList={friendsList}
-                  onAddTraveler={canManageTravelers ? onAddTraveler : undefined}
-                  onUpdateTraveler={
-                    canManageTravelers ? onUpdateTraveler : undefined
-                  }
-                  onRemoveTraveler={
-                    canManageTravelers ? onRemoveTraveler : undefined
-                  }
-                  creator={creator}
-                  userRole={userRole}
-                  currentUserId={currentUserId}
-                />
-              </Box>
-              {hasOfflinePermission && (
-                <Tooltip title="PDF & Offline">
-                  <IconButton
-                    onClick={onOfflineClick}
-                    sx={{
-                      padding: 2,
-                      border: "50%",
-                      background:
-                        "linear-gradient(rgba(228, 135, 155, 0.38), rgba(235, 157, 188, 0.41))",
-                    }}
-                  >
-                    <Download size={20} color={theme.palette.primary.light} />
-                  </IconButton>
-                </Tooltip>
-              )}
-              {/* Notes Button - Available to all users */}
-              <Tooltip title="Notas del viaje">
-                <IconButton
-                  onClick={onNotesClick}
-                  sx={{
-                    backgroundColor: theme.palette.primary.main,
-                    color: "white",
-                    padding: 2,
-                    border: "50%",
-                    boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
-                    backdropFilter: "blur(10px)",
-                    "&:hover": {
-                      backgroundColor: theme.palette.primary.dark,
-                      transform: "translateY(-2px)",
-                      boxShadow: "0 6px 16px rgba(0,0,0,0.3)",
-                    },
-                    transition: "all 0.3s ease",
-                  }}
-                >
-                  <MessagesSquare size={20} />
-                </IconButton>
-              </Tooltip>
+              <Chip
+                icon={<CalendarDays size={14} />}
+                label={`${travelDays} días`}
+                size="small"
+                sx={{
+                  backgroundColor: "rgba(255,255,255,0.2)",
+                  color: "white",
+                  fontSize: "0.7rem",
+                  height: 24,
+                  backdropFilter: "blur(10px)",
+                  "& .MuiChip-icon": { color: "white", width: 14, height: 14 },
+                }}
+              />
+
+              <Chip
+                icon={<HandCoins size={14} />}
+                label={`¥ ${totalBudget.toLocaleString()}`}
+                size="small"
+                sx={{
+                  backgroundColor: "rgba(255,255,255,0.2)",
+                  color: "white",
+                  fontSize: "0.7rem",
+                  height: 24,
+                  backdropFilter: "blur(10px)",
+                  "& .MuiChip-icon": { color: "white", width: 14, height: 14 },
+                }}
+              />
+
+              <Chip
+                icon={isPrivate ? <Lock size={12} /> : <Globe size={12} />}
+                label={isPrivate ? "Privado" : "Público"}
+                size="small"
+                sx={{
+                  backgroundColor: isPrivate
+                    ? "rgba(255, 152, 0, 0.8)"
+                    : "rgba(76, 175, 80, 0.8)",
+                  color: "white",
+                  fontSize: "0.7rem",
+                  height: 24,
+                  backdropFilter: "blur(10px)",
+                  "& .MuiChip-icon": { color: "white", width: 12, height: 12 },
+                }}
+              />
             </Box>
           </Box>
+        </Container>
+      </Box>
+
+      {/* Dropdown Menu */}
+      <Menu
+        anchorEl={anchorEl}
+        open={open}
+        onClose={handleMenuClose}
+        TransitionComponent={Fade}
+        sx={{
+          "& .MuiPaper-root": {
+            backgroundColor: theme.palette.background.paper,
+            backdropFilter: "blur(20px)",
+            borderRadius: 3,
+            boxShadow: theme.shadows[8],
+            border: `1px solid ${theme.palette.divider}`,
+            minWidth: 280,
+          },
+        }}
+      >
+        {/* Header Info */}
+        <Box
+          sx={{
+            px: 3,
+            py: 2,
+            borderBottom: `1px solid ${theme.palette.divider}`,
+          }}
+        >
+          <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+            Información del Viaje
+          </Typography>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
+            <Crown size={16} color="gold" />
+            <Typography variant="body2">
+              Creado por: {creator?.name || "Desconocido"}
+            </Typography>
+          </Box>
+          <Chip
+            label={`Tu rol: ${myRole}`}
+            size="small"
+            color={userRole === "owner" ? "primary" : "default"}
+            sx={{ fontSize: "0.75rem" }}
+          />
         </Box>
-      </Container>
-    </Box>
+
+        {/* Dates */}
+        <MenuItem onClick={onEditDates} disabled={!canEditDates}>
+          <ListItemIcon>
+            <CalendarDays size={18} />
+          </ListItemIcon>
+          <ListItemText>
+            <Box>
+              <Typography variant="body2">Fechas del viaje</Typography>
+              <Typography variant="caption" color="text.secondary">
+                {startDate ? startDate.toLocaleDateString() : "Sin fecha"} -{" "}
+                {endDate ? endDate.toLocaleDateString() : "Sin fecha"}
+              </Typography>
+            </Box>
+          </ListItemText>
+        </MenuItem>
+
+        {/* Travelers */}
+        <MenuItem onClick={handleTravelersClick}>
+          <ListItemIcon>
+            <Users size={18} />
+          </ListItemIcon>
+          <ListItemText>
+            <Typography variant="body2">
+              Viajeros ({travelers?.length || 0})
+            </Typography>
+          </ListItemText>
+        </MenuItem>
+
+        <Divider />
+
+        {/* Privacy Toggle */}
+        {canChangePrivacy && (
+          <MenuItem>
+            <ListItemIcon>
+              {isPrivate ? <Lock size={18} /> : <Globe size={18} />}
+            </ListItemIcon>
+            <ListItemText>
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                }}
+              >
+                <Typography variant="body2">
+                  {isPrivate ? "Itinerario Privado" : "Itinerario Público"}
+                </Typography>
+                <Switch
+                  checked={isPrivate}
+                  onChange={handlePrivacyChange}
+                  size="small"
+                />
+              </Box>
+            </ListItemText>
+          </MenuItem>
+        )}
+
+        {/* Offline/PDF */}
+        {hasOfflinePermission && (
+          <MenuItem onClick={handleOfflineClick}>
+            <ListItemIcon>
+              <Download size={18} />
+            </ListItemIcon>
+            <ListItemText>
+              <Typography variant="body2">Descargar PDF</Typography>
+            </ListItemText>
+          </MenuItem>
+        )}
+
+        <Divider />
+
+        {/* Info */}
+        <Box sx={{ px: 3, py: 2 }}>
+          <Typography variant="caption" color="text.secondary">
+            {travelDays} días • ¥{totalBudget.toLocaleString()} presupuesto
+          </Typography>
+        </Box>
+      </Menu>
+
+      {/* Travelers Modal */}
+      {showTravelers && (
+        <Travelers
+          travelers={travelers}
+          friendsList={friendsList}
+          onAddTraveler={canManageTravelers ? onAddTraveler : undefined}
+          onUpdateTraveler={canManageTravelers ? onUpdateTraveler : undefined}
+          onRemoveTraveler={canManageTravelers ? onRemoveTraveler : undefined}
+          creator={creator}
+          userRole={userRole}
+          currentUserId={currentUserId}
+          open={showTravelers}
+          onClose={() => setShowTravelers(false)}
+        />
+      )}
+    </>
   );
 };
 

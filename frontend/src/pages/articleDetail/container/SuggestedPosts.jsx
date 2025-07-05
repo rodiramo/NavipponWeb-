@@ -1,23 +1,29 @@
-import { Link } from "react-router-dom";
-import { images, stables } from "../../../constants";
-import { AccessTime, TrendingUp, ArrowForward } from "@mui/icons-material";
+import { useNavigate } from "react-router-dom";
+import { TrendingUp, ArrowForward } from "@mui/icons-material";
 import {
   Button,
   useTheme,
   Box,
   Typography,
-  Card,
-  CardContent,
-  CardMedia,
   Grid,
-  Chip,
-  Stack,
   Fade,
   Grow,
 } from "@mui/material";
+import ArticleCard from "../../../components/ArticleCard";
 
-const SuggestedPosts = ({ className, header, posts = [], tags }) => {
+const SuggestedPosts = ({
+  className,
+  header,
+  posts = [],
+  jwt,
+  currentUser,
+}) => {
   const theme = useTheme();
+  const navigate = useNavigate();
+  // Don't render if no posts
+  if (!posts || posts.length === 0) {
+    return null;
+  }
 
   return (
     <Box
@@ -66,175 +72,7 @@ const SuggestedPosts = ({ className, header, posts = [], tags }) => {
         {posts.slice(0, 6).map((item, index) => (
           <Grow in={true} timeout={300 + index * 100} key={item._id}>
             <Grid item xs={12} sm={6} md={4}>
-              <Card
-                component={Link}
-                to={`/blog/${item.slug}`}
-                sx={{
-                  height: "100%",
-                  display: "flex",
-                  flexDirection: "column",
-                  textDecoration: "none",
-                  backgroundColor: theme.palette.background.paper,
-                  border: `1px solid ${theme.palette.divider}`,
-                  borderRadius: 3,
-                  overflow: "hidden",
-                  position: "relative",
-                  transition: "all 0.3s ease-in-out",
-                  "&:hover": {
-                    transform: "translateY(-8px)",
-                    boxShadow: theme.shadows[12],
-                    "& .post-image": {
-                      transform: "scale(1.05)",
-                    },
-                    "& .post-title": {
-                      color: theme.palette.primary.main,
-                    },
-                    "& .read-more": {
-                      opacity: 1,
-                      transform: "translateX(0)",
-                    },
-                  },
-                }}
-              >
-                {/* Post Image */}
-                <Box
-                  sx={{
-                    position: "relative",
-                    overflow: "hidden",
-                    height: 200,
-                  }}
-                >
-                  <CardMedia
-                    className="post-image"
-                    component="img"
-                    image={
-                      item?.photo
-                        ? stables.UPLOAD_FOLDER_BASE_URL + item?.photo
-                        : images.samplePostImage
-                    }
-                    alt={item.title}
-                    sx={{
-                      height: "100%",
-                      objectFit: "cover",
-                      transition: "transform 0.3s ease-in-out",
-                    }}
-                  />
-
-                  {/* Overlay gradient */}
-                  <Box
-                    sx={{
-                      position: "absolute",
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      height: "50%",
-                      background:
-                        "linear-gradient(transparent, rgba(0,0,0,0.7))",
-                      display: "flex",
-                      alignItems: "flex-end",
-                      p: 2,
-                    }}
-                  >
-                    {/* Date chip */}
-                    <Chip
-                      icon={<AccessTime sx={{ fontSize: 16 }} />}
-                      label={new Date(item.createdAt).toLocaleDateString(
-                        "es-ES",
-                        {
-                          day: "numeric",
-                          month: "short",
-                          year: "numeric",
-                        }
-                      )}
-                      size="small"
-                      sx={{
-                        backgroundColor: "rgba(255, 255, 255, 0.9)",
-                        color: theme.palette.text.primary,
-                        fontWeight: "medium",
-                        fontSize: "0.75rem",
-                      }}
-                    />
-                  </Box>
-                </Box>
-
-                {/* Post Content */}
-                <CardContent
-                  sx={{
-                    flex: 1,
-                    display: "flex",
-                    flexDirection: "column",
-                    p: 3,
-                  }}
-                >
-                  {/* Title */}
-                  <Typography
-                    className="post-title"
-                    variant="h6"
-                    sx={{
-                      fontWeight: "bold",
-                      color: theme.palette.text.primary,
-                      fontSize: { xs: "1rem", sm: "1.1rem" },
-                      lineHeight: 1.3,
-                      mb: 2,
-                      display: "-webkit-box",
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: "vertical",
-                      overflow: "hidden",
-                      transition: "color 0.2s ease-in-out",
-                    }}
-                  >
-                    {item.title}
-                  </Typography>
-
-                  {/* Categories */}
-                  {item.categories && item.categories.length > 0 && (
-                    <Stack
-                      direction="row"
-                      spacing={0.5}
-                      sx={{ mb: 2, flexWrap: "wrap", gap: 0.5 }}
-                    >
-                      {item.categories.slice(0, 2).map((category, idx) => (
-                        <Chip
-                          key={idx}
-                          label={category.title}
-                          size="small"
-                          variant="outlined"
-                          sx={{
-                            fontSize: "0.7rem",
-                            height: 24,
-                            borderColor: theme.palette.primary.main,
-                            color: theme.palette.primary.main,
-                            "&:hover": {
-                              backgroundColor: theme.palette.primary.light,
-                            },
-                          }}
-                        />
-                      ))}
-                    </Stack>
-                  )}
-
-                  {/* Read More Button */}
-                  <Box
-                    className="read-more"
-                    sx={{
-                      mt: "auto",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 1,
-                      opacity: 0,
-                      transform: "translateX(-10px)",
-                      transition: "all 0.2s ease-in-out",
-                      color: theme.palette.primary.main,
-                      fontWeight: "medium",
-                    }}
-                  >
-                    <Typography variant="body2" sx={{ fontWeight: "bold" }}>
-                      Leer más
-                    </Typography>
-                    <ArrowForward sx={{ fontSize: 16 }} />
-                  </Box>
-                </CardContent>
-              </Card>
+              <ArticleCard post={item} currentUser={currentUser} token={jwt} />
             </Grid>
           </Grow>
         ))}
@@ -247,6 +85,7 @@ const SuggestedPosts = ({ className, header, posts = [], tags }) => {
             <Button
               variant="outlined"
               size="large"
+              onClick={() => navigate("/blog")}
               endIcon={<ArrowForward />}
               sx={{
                 borderRadius: "25px",
