@@ -32,6 +32,18 @@ const UserLayout = () => {
 
   // Handle authentication checks with delay for page reloads
   useEffect(() => {
+    console.log("UserLayout Debug - Full State:", {
+      jwt: !!jwt,
+      profileIsLoading,
+      profileError: profileError?.message || profileError,
+      profileSuccess,
+      profileData: !!profileData,
+      currentPath: location.pathname,
+      authChecked,
+      redirected,
+      timestamp: new Date().toISOString(),
+    });
+
     // Don't do anything if we're still loading the profile
     if (profileIsLoading) return;
 
@@ -56,24 +68,20 @@ const UserLayout = () => {
         const lastUserPage = sessionStorage.getItem("lastUserPage");
         const cameFromLogin = sessionStorage.getItem("cameFromLogin");
 
-        // Only redirect if:
-        // 1. There's a saved page
-        // 2. It's different from current page
-        // 3. User didn't just come from login page (fresh login should go to home)
-        if (
-          lastUserPage &&
-          lastUserPage !== location.pathname &&
-          !cameFromLogin
-        ) {
-          sessionStorage.removeItem("lastUserPage");
-          navigate(lastUserPage, { replace: true });
-          setRedirected(true);
-        } else {
-          // Clear the flags since we're not redirecting
-          sessionStorage.removeItem("lastUserPage");
-          sessionStorage.removeItem("cameFromLogin");
-        }
+        // if (
+        // lastUserPage &&
+        //  lastUserPage !== location.pathname &&
+        //  !cameFromLogin
+        // ) {
+        // sessionStorage.removeItem("lastUserPage");
+        // navigate(lastUserPage, { replace: true });
+        // setRedirected(true);
+        // } else {
+        // Clear the flags since we're not redirecting
+        //  sessionStorage.removeItem("lastUserPage");
+        // sessionStorage.removeItem("cameFromLogin");
       }
+
       return;
     }
 

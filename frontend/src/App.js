@@ -78,7 +78,6 @@ import NotFound from "./pages/NotFound.jsx";
 function App() {
   const mode = useSelector((state) => state.theme.mode);
   const theme = useMemo(() => createTheme(themeSettings(mode)), [mode]);
-  const API_URL = process.env.FRONTEND_API_URL || "http://localhost:3001";
 
   useEffect(() => {
     document.body.style.setProperty(
