@@ -168,7 +168,10 @@ const Comments = () => {
             <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
               <Reply
                 size={16}
-                style={{ marginRight: 8, color: theme.palette.secondary.main }}
+                style={{
+                  marginRight: 8,
+                  color: theme.palette.primary.black,
+                }}
               />
               <Typography variant="body2" color="textSecondary">
                 En respuesta a:
@@ -179,7 +182,7 @@ const Comments = () => {
               to={`/blog/${comment?.post?.slug}/#comment-${comment?._id}`}
               endIcon={<ExternalLink size={14} />}
               sx={{
-                color: theme.palette.secondary.main,
+                color: theme.palette.primary.black,
                 textTransform: "none",
                 fontWeight: "bold",
                 padding: 0,
@@ -477,7 +480,7 @@ const Comments = () => {
                           size={14}
                           style={{
                             marginRight: 4,
-                            color: theme.palette.secondary.main,
+                            color: theme.palette.secondary.medium,
                           }}
                         />
                         <Typography variant="caption" color="textSecondary">
@@ -488,7 +491,7 @@ const Comments = () => {
                         component={Link}
                         to={`/blog/${comment?.post?.slug}/#comment-${comment?._id}`}
                         sx={{
-                          color: theme.palette.secondary.main,
+                          color: theme.palette.secondary.medium,
                           textTransform: "none",
                           fontWeight: "bold",
                           padding: 0,

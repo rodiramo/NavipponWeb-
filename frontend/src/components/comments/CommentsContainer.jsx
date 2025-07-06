@@ -253,7 +253,7 @@ const CommentsContainer = ({
               p: { xs: 4, sm: 6 },
               textAlign: "center",
               borderRadius: 3,
-              backgroundColor: theme.palette.grey[50],
+              backgroundColor: theme.palette.background.blue,
               border: `1px dashed ${theme.palette.divider}`,
             }}
           >

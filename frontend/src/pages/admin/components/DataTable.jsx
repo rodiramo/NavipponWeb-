@@ -41,22 +41,12 @@ const DataTable = ({
   const theme = useTheme();
 
   // Enhanced responsive breakpoints
-  const isXs = useMediaQuery(theme.breakpoints.only("xs"));
-  const isSm = useMediaQuery(theme.breakpoints.only("sm"));
-  const isMd = useMediaQuery(theme.breakpoints.only("md"));
-  const isLg = useMediaQuery(theme.breakpoints.up("lg"));
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-  const isTablet = useMediaQuery(theme.breakpoints.between("sm", "md"));
   const isDesktop = useMediaQuery(theme.breakpoints.up("md"));
 
-  // Fix for 1060px breakpoint issue
-  const isIntermediate = useMediaQuery(
-    "(min-width: 960px) and (max-width: 1199px)"
-  );
   const isWideTablet = useMediaQuery(
     "(min-width: 900px) and (max-width: 1100px)"
   );
-  const shouldShowFullTable = useMediaQuery("(min-width: 1100px)");
 
   let totalPageCount = 0;
   let totalCount = 0;
@@ -213,7 +203,7 @@ const DataTable = ({
         sx={{
           borderRadius: { xs: "12px", sm: "16px", md: "16px" },
           overflow: "hidden",
-          backgroundColor: theme.palette.background.paper,
+          backgroundColor: theme.palette.background.blue,
           border: `1px solid ${theme.palette.divider}`,
           width: "100%",
         }}
@@ -368,13 +358,13 @@ const DataTable = ({
                     backgroundColor: theme.palette.background.default,
                     transition: "all 0.2s ease-in-out",
                     "&:hover": {
-                      backgroundColor: theme.palette.background.paper,
+                      backgroundColor: theme.palette.background.blue,
                       "& fieldset": {
                         borderColor: theme.palette.primary.main,
                       },
                     },
                     "&.Mui-focused": {
-                      backgroundColor: theme.palette.background.paper,
+                      backgroundColor: theme.palette.background.blue,
                       "& fieldset": {
                         borderColor: theme.palette.primary.main,
                         borderWidth: "2px",

@@ -48,12 +48,6 @@ import {
 const ManageExperiences = () => {
   const { jwt } = useUser();
   const theme = useTheme();
-
-  // More granular breakpoints for better responsiveness
-  const isXs = useMediaQuery(theme.breakpoints.only("xs"));
-  const isSm = useMediaQuery(theme.breakpoints.only("sm"));
-  const isMd = useMediaQuery(theme.breakpoints.only("md"));
-  const isLg = useMediaQuery(theme.breakpoints.up("lg"));
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const isTablet = useMediaQuery(theme.breakpoints.between("sm", "md"));
   const isDesktop = useMediaQuery(theme.breakpoints.up("md"));
@@ -230,6 +224,7 @@ const ManageExperiences = () => {
         <Card
           elevation={0}
           sx={{
+            background: theme.palette.background.blue,
             borderRadius: { xs: "12px", sm: "14px", md: "16px" },
             border: `1px solid ${theme.palette.divider}`,
             transition: "all 0.3s ease",
@@ -469,6 +464,7 @@ const ManageExperiences = () => {
               elevation={0}
               sx={{
                 p: { xs: 2, sm: 2.5, md: 3 },
+                background: theme.palette.background.blue,
                 borderRadius: { xs: "12px", sm: "14px", md: "16px" },
                 border: `1px solid ${theme.palette.divider}`,
               }}
@@ -902,7 +898,7 @@ const ManageExperiences = () => {
           mb: { xs: 3, md: 4 },
           p: { xs: 1, sm: 1.5, md: 2 },
           borderRadius: { xs: "12px", md: "16px" },
-          backgroundColor: theme.palette.background.paper,
+          backgroundColor: theme.palette.background.blue,
         }}
       >
         <Box sx={{ textAlign: { xs: "center", sm: "left" } }}>

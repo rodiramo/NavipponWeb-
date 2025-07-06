@@ -125,7 +125,7 @@ const Admin = () => {
             alignItems: "center",
             gap: 2,
             color: theme.palette.text.secondary,
-            backgroundColor: theme.palette.background.paper,
+            backgroundColor: theme.palette.background.blue,
             borderRadius: "16px",
             p: 4,
           }}
@@ -208,9 +208,8 @@ const Admin = () => {
       sx={{
         borderRadius: "16px",
         transition: "all 0.3s ease",
-
         border: `1px solid ${theme.palette.divider}`,
-        backgroundColor: theme.palette.background.paper,
+        backgroundColor: theme.palette.background.blue,
         overflow: "hidden",
       }}
     >
@@ -370,7 +369,7 @@ const Admin = () => {
                 borderRadius: "16px",
                 p: 3,
                 border: `1px solid ${theme.palette.divider}`,
-                backgroundColor: theme.palette.background.paper,
+                backgroundColor: theme.palette.background.blue,
               }}
             >
               <Typography
@@ -410,7 +409,7 @@ const Admin = () => {
                         name,
                       ]}
                       contentStyle={{
-                        backgroundColor: theme.palette.background.paper,
+                        backgroundColor: theme.palette.background.blue,
                         border: `1px solid ${theme.palette.divider}`,
                         borderRadius: "12px",
                         color: theme.palette.text.primary,
@@ -475,7 +474,7 @@ const Admin = () => {
                 borderRadius: "16px",
                 p: 3,
                 border: `1px solid ${theme.palette.divider}`,
-                backgroundColor: theme.palette.background.paper,
+                backgroundColor: theme.palette.background.blue,
               }}
             >
               <Typography
@@ -521,7 +520,7 @@ const Admin = () => {
                   <YAxis stroke={theme.palette.text.secondary} fontSize={12} />
                   <RechartsTooltip
                     contentStyle={{
-                      backgroundColor: theme.palette.background.paper,
+                      backgroundColor: theme.palette.background.blue,
                       border: `1px solid ${theme.palette.divider}`,
                       borderRadius: "12px",
                       color: theme.palette.text.primary,
@@ -552,7 +551,7 @@ const Admin = () => {
             borderRadius: "16px",
             p: 3,
             border: `1px solid ${theme.palette.divider}`,
-            backgroundColor: theme.palette.background.paper,
+            backgroundColor: theme.palette.background.blue,
           }}
         >
           <Typography
@@ -585,7 +584,7 @@ const Admin = () => {
               <YAxis stroke={theme.palette.text.secondary} fontSize={12} />
               <RechartsTooltip
                 contentStyle={{
-                  backgroundColor: theme.palette.background.paper,
+                  backgroundColor: theme.palette.background.blue,
                   border: `1px solid ${theme.palette.divider}`,
                   borderRadius: "12px",
                   color: theme.palette.text.primary,
