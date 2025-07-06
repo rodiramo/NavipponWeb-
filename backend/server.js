@@ -19,6 +19,7 @@ import favoriteRoutes from "./routes/favoriteRoutes.js";
 import itineraryRoutes from "./routes/itineraryRoutes.js";
 import emailRoutes from "./routes/emailRoutes.js";
 import importRoutes from "./routes/importRoutes.js";
+import checklistRoutes from "./routes/checklistRoutes.js";
 
 dotenv.config();
 connectDB();
@@ -106,6 +107,7 @@ app.use("/api/favorites", favoriteRoutes);
 app.use("/api/itineraries", itineraryRoutes);
 app.use("/api/email", emailRoutes);
 app.use("/api/import", importRoutes);
+app.use("/api/checklist", checklistRoutes);
 
 // 📌 Upload Image Route
 app.post("/upload", upload.single("image"), (req, res) => {

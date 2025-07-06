@@ -5,7 +5,7 @@ const ItinerarySchema = new Schema(
   {
     name: { type: String, required: true },
     travelDays: { type: Number, required: true },
-    totalBudget: { type: Number, required: true },
+    totalBudget: { type: Number, required: false },
     boards: [
       {
         date: { type: String, required: true },

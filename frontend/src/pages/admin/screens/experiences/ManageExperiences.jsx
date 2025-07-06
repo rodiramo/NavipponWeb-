@@ -19,6 +19,7 @@ import {
   Map,
   Plus,
   PlusCircle,
+  MoreVertical,
 } from "lucide-react";
 import useUser from "../../../../hooks/useUser";
 import {
@@ -37,12 +38,25 @@ import {
   Paper,
   LinearProgress,
   Fab,
+  IconButton,
+  Menu,
+  MenuItem,
+  Collapse,
+  Divider,
 } from "@mui/material";
 
 const ManageExperiences = () => {
   const { jwt } = useUser();
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+
+  // More granular breakpoints for better responsiveness
+  const isXs = useMediaQuery(theme.breakpoints.only("xs"));
+  const isSm = useMediaQuery(theme.breakpoints.only("sm"));
+  const isMd = useMediaQuery(theme.breakpoints.only("md"));
+  const isLg = useMediaQuery(theme.breakpoints.up("lg"));
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const isTablet = useMediaQuery(theme.breakpoints.between("sm", "md"));
+  const isDesktop = useMediaQuery(theme.breakpoints.up("md"));
 
   const {
     currentPage,
@@ -71,7 +85,7 @@ const ManageExperiences = () => {
     experiencesData?.data || []
   );
 
-  // Fetch ALL experiences for overview statistics (not paginated)
+  // Fetch ALL experiences for overview statistics
   const {
     data: allExperiencesData,
     isLoading: isLoadingAllExperiences,
@@ -81,14 +95,7 @@ const ManageExperiences = () => {
     queryFn: async () => {
       try {
         console.log("🔍 Fetching all experiences for overview...");
-
-        // Option 1: Use the new backend endpoint (if you added the service function)
-        // const data = await getAllExperiencesForModal(jwt);
-        // console.log("✅ Fetched all experiences for overview:", data.length);
-        // return data;
-
-        // Option 2: Use existing function with high limit (current implementation)
-        const response = await getAllExperiences("", 1, 1000); // Get first 1000 experiences
+        const response = await getAllExperiences("", 1, 1000);
         console.log(
           "✅ Fetched all experiences for overview:",
           response.data?.length || 0
@@ -100,8 +107,8 @@ const ManageExperiences = () => {
       }
     },
     enabled: !!jwt,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    cacheTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 5 * 60 * 1000,
+    cacheTime: 10 * 60 * 1000,
     retry: 2,
     onError: (error) => {
       console.error("Failed to load overview statistics:", error);
@@ -112,9 +119,8 @@ const ManageExperiences = () => {
     setUpdatedExperiences(experiencesData?.data || []);
   }, [experiencesData]);
 
-  // Calculate overview statistics from ALL experiences
+  // Calculate overview statistics
   const overviewStats = useMemo(() => {
-    // Use all experiences data for statistics, fall back to paginated data if API fails
     const experiencesToAnalyze =
       allExperiencesData || (allExperiencesError ? updatedExperiences : []);
 
@@ -138,7 +144,7 @@ const ManageExperiences = () => {
         categories[category] = (categories[category] || 0) + 1;
       }
 
-      // Count regions/prefectures (check multiple possible fields)
+      // Count regions/prefectures
       if (experience.prefecture && typeof experience.prefecture === "string") {
         const prefecture = experience.prefecture.trim();
         regions[prefecture] = (regions[prefecture] || 0) + 1;
@@ -163,7 +169,6 @@ const ManageExperiences = () => {
         });
       }
 
-      // Handle generalTags if available
       if (experience.generalTags) {
         Object.values(experience.generalTags).forEach((tagArray) => {
           if (Array.isArray(tagArray)) {
@@ -178,16 +183,6 @@ const ManageExperiences = () => {
       }
     });
 
-    console.log("📊 Overview statistics calculated:", {
-      totalExperiences: experiencesToAnalyze.length,
-      categoriesCount: Object.keys(categories).length,
-      regionsCount: Object.keys(regions).length,
-      tagsCount: Object.keys(tags).length,
-      dataSource: allExperiencesData
-        ? "All experiences API"
-        : "Paginated data fallback",
-    });
-
     return {
       categories,
       regions,
@@ -196,9 +191,7 @@ const ManageExperiences = () => {
     };
   }, [allExperiencesData, allExperiencesError, updatedExperiences]);
 
-  // Header with Create Button Component
-
-  // Overview Statistics Component
+  // Responsive Overview Statistics Component
   const OverviewSection = () => {
     const [expandedCards, setExpandedCards] = useState({});
 
@@ -224,53 +217,96 @@ const ManageExperiences = () => {
       cardType,
     }) => {
       const isExpanded = expandedCards[cardType] || false;
-      const displayLimit = isExpanded ? null : 5;
+      const displayLimit = isExpanded ? null : isMobile ? 3 : 5;
       const topItems = getTopItems(data, displayLimit);
       const totalCount = Object.values(data).reduce(
         (sum, count) => sum + count,
         0
       );
       const hasError = allExperiencesError && !isLoading;
-      const hasMore = Object.keys(data).length > 5;
+      const hasMore = Object.keys(data).length > (isMobile ? 3 : 5);
 
       return (
         <Card
           elevation={0}
           sx={{
-            borderRadius: "16px",
+            borderRadius: { xs: "12px", sm: "14px", md: "16px" },
             border: `1px solid ${theme.palette.divider}`,
             transition: "all 0.3s ease",
+            height: "100%",
+            display: "flex",
+            flexDirection: "column",
           }}
         >
-          <CardContent sx={{ p: 3 }}>
-            <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+          <CardContent
+            sx={{
+              p: { xs: 2, sm: 2.5, md: 3 },
+              flex: 1,
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                mb: { xs: 1.5, md: 2 },
+              }}
+            >
               <Box
                 sx={{
-                  p: 1.5,
-                  borderRadius: "12px",
+                  p: { xs: 1, sm: 1.25, md: 1.5 },
+                  borderRadius: { xs: "8px", md: "12px" },
                   backgroundColor: hasError
                     ? `${theme.palette.error.main}15`
                     : `${color}15`,
                   color: hasError ? theme.palette.error.main : color,
-                  mr: 2,
+                  mr: { xs: 1.5, md: 2 },
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
                 }}
               >
-                {icon}
+                {React.cloneElement(icon, {
+                  size: isMobile ? 20 : 24,
+                })}
               </Box>
-              <Box sx={{ flex: 1 }}>
-                <Typography variant="h6" fontWeight="600">
+              <Box sx={{ flex: 1, minWidth: 0 }}>
+                <Typography
+                  variant={isMobile ? "subtitle1" : "h6"}
+                  fontWeight="600"
+                  sx={{
+                    fontSize: { xs: "1rem", sm: "1.1rem", md: "1.25rem" },
+                    lineHeight: 1.2,
+                  }}
+                >
                   {title}
                 </Typography>
                 {isLoading ? (
-                  <Typography variant="body2" color="text.secondary">
-                    Cargando datos...
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ fontSize: { xs: "0.75rem", md: "0.875rem" } }}
+                  >
+                    Cargando...
                   </Typography>
                 ) : hasError ? (
-                  <Typography variant="body2" color="error.main">
-                    Error al cargar datos
+                  <Typography
+                    variant="body2"
+                    color="error.main"
+                    sx={{ fontSize: { xs: "0.75rem", md: "0.875rem" } }}
+                  >
+                    Error
                   </Typography>
                 ) : (
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{
+                      fontSize: { xs: "0.75rem", md: "0.875rem" },
+                      wordBreak: "break-word",
+                    }}
+                  >
                     {Object.keys(data).length} únicos • {totalCount} total
                   </Typography>
                 )}
@@ -282,175 +318,231 @@ const ManageExperiences = () => {
                   sx={{
                     color: color,
                     textTransform: "none",
-                    fontSize: "0.75rem",
+                    fontSize: { xs: "0.7rem", md: "0.75rem" },
                     minWidth: "auto",
-                    p: 1,
+                    p: { xs: 0.5, md: 1 },
+                    ml: 1,
                   }}
                 >
                   {isExpanded
-                    ? "Ver menos"
-                    : `Ver todos (${Object.keys(data).length})`}
+                    ? "Menos"
+                    : `+${Object.keys(data).length - (isMobile ? 3 : 5)}`}
                 </Button>
               )}
             </Box>
 
-            {isLoading ? (
-              <Box sx={{ py: 3 }}>
-                <LinearProgress sx={{ mb: 2 }} />
-                <LinearProgress sx={{ mb: 2 }} />
-                <LinearProgress />
-              </Box>
-            ) : hasError ? (
-              <Typography
-                variant="body2"
-                color="text.secondary"
-                sx={{ textAlign: "center", py: 2 }}
-              >
-                No se pudieron cargar las estadísticas completas
-              </Typography>
-            ) : topItems.length > 0 ? (
-              <Box
-                sx={{
-                  maxHeight: isExpanded ? "400px" : "auto",
-                  overflowY: "auto",
-                }}
-              >
-                {topItems.map(([name, count], index) => {
-                  const percentage =
-                    totalCount > 0 ? (count / totalCount) * 100 : 0;
-                  return (
-                    <Box
-                      key={name}
-                      sx={{ mb: index < topItems.length - 1 ? 2 : 0 }}
-                    >
+            <Box sx={{ flex: 1 }}>
+              {isLoading ? (
+                <Box sx={{ py: { xs: 2, md: 3 } }}>
+                  <LinearProgress sx={{ mb: 1, height: 4, borderRadius: 2 }} />
+                  <LinearProgress sx={{ mb: 1, height: 4, borderRadius: 2 }} />
+                  <LinearProgress sx={{ height: 4, borderRadius: 2 }} />
+                </Box>
+              ) : hasError ? (
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{
+                    textAlign: "center",
+                    py: { xs: 1, md: 2 },
+                    fontSize: { xs: "0.75rem", md: "0.875rem" },
+                  }}
+                >
+                  Error al cargar
+                </Typography>
+              ) : topItems.length > 0 ? (
+                <Box
+                  sx={{
+                    maxHeight: isExpanded
+                      ? { xs: "300px", md: "400px" }
+                      : "auto",
+                    overflowY: "auto",
+                  }}
+                >
+                  {topItems.map(([name, count], index) => {
+                    const percentage =
+                      totalCount > 0 ? (count / totalCount) * 100 : 0;
+                    return (
                       <Box
+                        key={name}
                         sx={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                          mb: 0.5,
+                          mb:
+                            index < topItems.length - 1
+                              ? { xs: 1.5, md: 2 }
+                              : 0,
                         }}
                       >
-                        <Typography
-                          variant="body2"
-                          sx={{
-                            fontWeight: 500,
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            whiteSpace: "nowrap",
-                            maxWidth: isExpanded ? "180px" : "200px",
-                          }}
-                          title={name} // Show full name on hover
-                        >
-                          {name}
-                        </Typography>
                         <Box
-                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                          sx={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            mb: 0.5,
+                            gap: 1,
+                          }}
                         >
-                          <Typography
-                            variant="caption"
-                            color="text.secondary"
-                            sx={{ fontSize: "0.7rem" }}
-                          >
-                            {percentage.toFixed(1)}%
-                          </Typography>
                           <Typography
                             variant="body2"
-                            color="text.secondary"
                             sx={{
-                              fontWeight: 600,
-                              minWidth: "30px",
-                              textAlign: "right",
+                              fontWeight: 500,
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
+                              flex: 1,
+                              fontSize: { xs: "0.75rem", md: "0.875rem" },
+                            }}
+                            title={name}
+                          >
+                            {name}
+                          </Typography>
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: { xs: 0.5, md: 1 },
+                              flexShrink: 0,
                             }}
                           >
-                            {count}
-                          </Typography>
+                            <Typography
+                              variant="caption"
+                              color="text.secondary"
+                              sx={{ fontSize: { xs: "0.6rem", md: "0.7rem" } }}
+                            >
+                              {percentage.toFixed(1)}%
+                            </Typography>
+                            <Typography
+                              variant="body2"
+                              color="text.secondary"
+                              sx={{
+                                fontWeight: 600,
+                                minWidth: { xs: "20px", md: "30px" },
+                                textAlign: "right",
+                                fontSize: { xs: "0.75rem", md: "0.875rem" },
+                              }}
+                            >
+                              {count}
+                            </Typography>
+                          </Box>
                         </Box>
-                      </Box>
-                      <LinearProgress
-                        variant="determinate"
-                        value={percentage}
-                        sx={{
-                          height: 6,
-                          borderRadius: 3,
-                          backgroundColor: `${color}20`,
-                          "& .MuiLinearProgress-bar": {
-                            backgroundColor: color,
+                        <LinearProgress
+                          variant="determinate"
+                          value={percentage}
+                          sx={{
+                            height: { xs: 4, md: 6 },
                             borderRadius: 3,
-                          },
-                        }}
-                      />
-                    </Box>
-                  );
-                })}
-              </Box>
-            ) : (
-              <Typography
-                variant="body2"
-                color="text.secondary"
-                sx={{ textAlign: "center", py: 2 }}
-              >
-                {emptyMessage}
-              </Typography>
-            )}
+                            backgroundColor: `${color}20`,
+                            "& .MuiLinearProgress-bar": {
+                              backgroundColor: color,
+                              borderRadius: 3,
+                            },
+                          }}
+                        />
+                      </Box>
+                    );
+                  })}
+                </Box>
+              ) : (
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{
+                    textAlign: "center",
+                    py: { xs: 1, md: 2 },
+                    fontSize: { xs: "0.75rem", md: "0.875rem" },
+                  }}
+                >
+                  {emptyMessage}
+                </Typography>
+              )}
+            </Box>
           </CardContent>
         </Card>
       );
     };
 
     return (
-      <Box sx={{ mb: 4 }}>
-        <Grid container spacing={3}>
+      <Box sx={{ mb: { xs: 3, md: 4 } }}>
+        <Grid container spacing={{ xs: 2, sm: 2.5, md: 3 }}>
           {/* Total Experiences Summary */}
           <Grid item xs={12}>
             <Paper
               elevation={0}
               sx={{
-                p: 1,
-                borderRadius: "16px",
+                p: { xs: 2, sm: 2.5, md: 3 },
+                borderRadius: { xs: "12px", sm: "14px", md: "16px" },
+                border: `1px solid ${theme.palette.divider}`,
               }}
             >
               <Box
                 sx={{
                   display: "flex",
                   alignItems: "center",
-                  justifyContent: "space-between",
+                  justifyContent: { xs: "center", sm: "flex-start" },
+                  textAlign: { xs: "center", sm: "left" },
                 }}
               >
                 <Box>
                   {isLoadingAllExperiences ? (
                     <>
-                      <LinearProgress sx={{ width: 120, mb: 1 }} />
-                      <Typography variant="h6" color="text.secondary">
-                        Cargando experiencias...
+                      <LinearProgress
+                        sx={{ width: { xs: 100, md: 120 }, mb: 1 }}
+                      />
+                      <Typography
+                        variant="h6"
+                        color="text.secondary"
+                        sx={{ fontSize: { xs: "1rem", md: "1.25rem" } }}
+                      >
+                        Cargando...
                       </Typography>
                     </>
                   ) : allExperiencesError ? (
                     <>
                       <Typography
-                        variant="h3"
+                        variant={isMobile ? "h4" : "h3"}
                         fontWeight="700"
                         color="error.main"
+                        sx={{
+                          fontSize: { xs: "2rem", sm: "2.5rem", md: "3rem" },
+                        }}
                       >
                         ⚠️
                       </Typography>
-                      <Typography variant="h6" color="error.main">
-                        Error al cargar estadísticas
+                      <Typography
+                        variant="h6"
+                        color="error.main"
+                        sx={{ fontSize: { xs: "1rem", md: "1.25rem" } }}
+                      >
+                        Error al cargar
                       </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        Mostrando datos de la página actual
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{ fontSize: { xs: "0.75rem", md: "0.875rem" } }}
+                      >
+                        Datos de página actual
                       </Typography>
                     </>
                   ) : (
                     <>
                       <Typography
-                        variant="h3"
+                        variant={isMobile ? "h4" : "h3"}
                         fontWeight="700"
                         color="primary.main"
+                        sx={{
+                          fontSize: { xs: "2rem", sm: "2.5rem", md: "3rem" },
+                          lineHeight: 1,
+                        }}
                       >
                         {overviewStats.totalExperiences.toLocaleString("es-ES")}
                       </Typography>
-                      <Typography variant="h6" color="text.secondary">
+                      <Typography
+                        variant="h6"
+                        color="text.secondary"
+                        sx={{
+                          fontSize: { xs: "1rem", md: "1.25rem" },
+                          mt: 0.5,
+                        }}
+                      >
                         Experiencias Totales
                       </Typography>
                     </>
@@ -460,40 +552,38 @@ const ManageExperiences = () => {
             </Paper>
           </Grid>
 
-          {/* Categories */}
-          <Grid item xs={12} md={4}>
+          {/* Statistics Cards */}
+          <Grid item xs={12} sm={6} lg={4}>
             <StatCard
               title="Categorías"
-              icon={<FolderOpen size={24} />}
+              icon={<FolderOpen />}
               data={overviewStats.categories}
               color={theme.palette.primary.main}
-              emptyMessage="No hay categorías definidas"
+              emptyMessage="Sin categorías"
               isLoading={isLoadingAllExperiences}
               cardType="categories"
             />
           </Grid>
 
-          {/* Regions/Locations */}
-          <Grid item xs={12} md={4}>
+          <Grid item xs={12} sm={6} lg={4}>
             <StatCard
               title="Ubicaciones"
-              icon={<Map size={24} />}
+              icon={<Map />}
               data={overviewStats.regions}
               color={theme.palette.secondary.medium}
-              emptyMessage="No hay ubicaciones definidas"
+              emptyMessage="Sin ubicaciones"
               isLoading={isLoadingAllExperiences}
               cardType="regions"
             />
           </Grid>
 
-          {/* Tags */}
-          <Grid item xs={12} md={4}>
+          <Grid item xs={12} sm={12} lg={4}>
             <StatCard
               title="Etiquetas"
-              icon={<Tags size={24} />}
+              icon={<Tags />}
               data={overviewStats.tags}
               color={theme.palette.info.main}
-              emptyMessage="No hay etiquetas definidas"
+              emptyMessage="Sin etiquetas"
               isLoading={isLoadingAllExperiences}
               cardType="tags"
             />
@@ -503,241 +593,340 @@ const ManageExperiences = () => {
     );
   };
 
-  // Mobile Card Component
-  const ExperienceCard = ({ experience }) => (
-    <Card
-      sx={{
-        mb: 2,
-        borderRadius: 2,
-        transition: "all 0.2s ease-in-out",
-        "&:hover": {
-          boxShadow: theme.shadows[4],
-        },
-      }}
-    >
-      {/* Experience Image Header */}
-      <CardMedia
-        component="div"
-        sx={{
-          height: 200,
-          position: "relative",
-          backgroundImage: `url(${
-            experience?.photo
-              ? experience.photo.startsWith("http")
-                ? experience.photo
-                : stables.UPLOAD_FOLDER_BASE_URL + experience.photo
-              : images.sampleExperienceImage
-          })`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
-      ></CardMedia>
+  // Enhanced Mobile/Tablet Card Component
+  const ExperienceCard = ({ experience }) => {
+    const [anchorEl, setAnchorEl] = useState(null);
+    const [showDetails, setShowDetails] = useState(false);
 
-      <CardContent>
-        {/* Experience Title */}
-        <Typography
-          variant="h6"
+    const handleMenuOpen = (event) => {
+      setAnchorEl(event.currentTarget);
+    };
+
+    const handleMenuClose = () => {
+      setAnchorEl(null);
+    };
+
+    return (
+      <Card
+        sx={{
+          mb: { xs: 2, sm: 2.5 },
+          borderRadius: { xs: "12px", sm: "16px" },
+          transition: "all 0.2s ease-in-out",
+          "&:hover": {
+            boxShadow: theme.shadows[4],
+            transform: "translateY(-1px)",
+          },
+          overflow: "hidden",
+        }}
+      >
+        {/* Experience Image Header */}
+        <CardMedia
+          component="div"
           sx={{
-            color: theme.palette.primary.main,
-            fontWeight: "bold",
-            mb: 2,
-            display: "-webkit-box",
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: "vertical",
-            overflow: "hidden",
+            height: { xs: 160, sm: 200, md: 220 },
+            position: "relative",
+            backgroundImage: `url(${
+              experience?.photo
+                ? experience.photo.startsWith("http")
+                  ? experience.photo
+                  : stables.UPLOAD_FOLDER_BASE_URL + experience.photo
+                : images.sampleExperienceImage
+            })`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
           }}
         >
-          {experience.title}
-        </Typography>
+          {/* Menu button overlay */}
+          <Box
+            sx={{
+              position: "absolute",
+              top: 8,
+              right: 8,
+              backgroundColor: "rgba(255,255,255,0.9)",
+              borderRadius: "50%",
+            }}
+          >
+            <IconButton size="small" onClick={handleMenuOpen} sx={{ p: 1 }}>
+              <MoreVertical size={18} />
+            </IconButton>
+          </Box>
+        </CardMedia>
 
-        {/* Experience Info Grid */}
-        <Grid container spacing={2} sx={{ mb: 2 }}>
-          <Grid item xs={6}>
-            <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-              <Calendar
-                size={16}
-                style={{ marginRight: 8, color: theme.palette.neutral.medium }}
-              />
-              <Typography variant="body2" color="textSecondary">
-                Creado:
+        <CardContent sx={{ p: { xs: 2, sm: 2.5, md: 3 } }}>
+          {/* Experience Title */}
+          <Typography
+            variant={isMobile ? "h6" : "h5"}
+            sx={{
+              color: theme.palette.primary.main,
+              fontWeight: "bold",
+              mb: { xs: 1.5, md: 2 },
+              display: "-webkit-box",
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: "vertical",
+              overflow: "hidden",
+              fontSize: { xs: "1.1rem", sm: "1.25rem", md: "1.5rem" },
+              lineHeight: 1.3,
+            }}
+          >
+            {experience.title}
+          </Typography>
+
+          {/* Experience Info Grid - Responsive */}
+          <Grid
+            container
+            spacing={{ xs: 1.5, sm: 2 }}
+            sx={{ mb: { xs: 1.5, md: 2 } }}
+          >
+            <Grid item xs={6} sm={6}>
+              <Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
+                <Calendar
+                  size={isMobile ? 14 : 16}
+                  style={{
+                    marginRight: 6,
+                    color: theme.palette.text.secondary,
+                  }}
+                />
+                <Typography
+                  variant="caption"
+                  color="textSecondary"
+                  sx={{ fontSize: { xs: "0.7rem", md: "0.75rem" } }}
+                >
+                  Creado:
+                </Typography>
+              </Box>
+              <Typography
+                variant="body2"
+                sx={{
+                  fontWeight: "medium",
+                  fontSize: { xs: "0.8rem", md: "0.875rem" },
+                }}
+              >
+                {(() => {
+                  if (!experience.createdAt) return "No definida";
+                  const date = new Date(experience.createdAt);
+                  if (isNaN(date.getTime())) return "No válida";
+                  return date.toLocaleDateString("es-ES", {
+                    day: "numeric",
+                    month: "short",
+                    year: isMobile ? "2-digit" : "numeric",
+                  });
+                })()}
               </Typography>
-            </Box>
-            <Typography variant="body2" sx={{ fontWeight: "medium" }}>
-              {(() => {
-                // Check if experience.createdAt exists and is a valid date
-                if (!experience.createdAt) {
-                  return "Fecha no definida";
+            </Grid>
+
+            <Grid item xs={6} sm={6}>
+              <Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
+                <FolderOpen
+                  size={isMobile ? 14 : 16}
+                  style={{
+                    marginRight: 6,
+                    color: theme.palette.text.secondary,
+                  }}
+                />
+                <Typography
+                  variant="caption"
+                  color="textSecondary"
+                  sx={{ fontSize: { xs: "0.7rem", md: "0.75rem" } }}
+                >
+                  Categoría:
+                </Typography>
+              </Box>
+              <Typography
+                variant="body2"
+                sx={{
+                  fontWeight: "medium",
+                  fontSize: { xs: "0.8rem", md: "0.875rem" },
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+                title={
+                  typeof experience.categories === "string"
+                    ? experience.categories
+                    : "Sin categorizar"
                 }
-
-                const date = new Date(experience.createdAt);
-
-                if (isNaN(date.getTime())) {
-                  return "Fecha no válida";
-                }
-
-                return date.toLocaleDateString("es-ES", {
-                  day: "numeric",
-                  month: "short",
-                  year: "numeric",
-                });
-              })()}
-            </Typography>
+              >
+                {typeof experience.categories === "string"
+                  ? experience.categories
+                  : "Sin categorizar"}
+              </Typography>
+            </Grid>
           </Grid>
 
-          <Grid item xs={6}>
-            <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-              <FolderOpen
-                size={16}
-                style={{ marginRight: 8, color: theme.palette.neutral.medium }}
-              />
-              <Typography variant="body2" color="textSecondary">
-                Categoría:
-              </Typography>
-            </Box>
-            <Typography variant="body2" sx={{ fontWeight: "medium" }}>
-              {typeof experience.categories === "string"
-                ? experience.categories
-                : "Sin categorizar"}
-            </Typography>
-          </Grid>
-        </Grid>
+          {/* Collapsible Details Section */}
+          <Collapse in={showDetails}>
+            <Divider sx={{ mb: 2 }} />
 
-        {/* Description Preview */}
-        {experience.caption && typeof experience.caption === "string" && (
-          <Box sx={{ mb: 2 }}>
-            <Typography
-              variant="body2"
-              color="textSecondary"
+            {/* Description Preview */}
+            {experience.caption && typeof experience.caption === "string" && (
+              <Box sx={{ mb: 2 }}>
+                <Typography
+                  variant="body2"
+                  color="textSecondary"
+                  sx={{
+                    fontStyle: "italic",
+                    fontSize: { xs: "0.8rem", md: "0.875rem" },
+                    lineHeight: 1.4,
+                  }}
+                >
+                  {experience.caption}
+                </Typography>
+              </Box>
+            )}
+
+            {/* Location */}
+            {experience.location && typeof experience.location === "string" && (
+              <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+                <MapPin
+                  size={isMobile ? 14 : 16}
+                  style={{
+                    marginRight: 8,
+                    color: theme.palette.secondary.medium,
+                  }}
+                />
+                <Typography
+                  variant="body2"
+                  color="textSecondary"
+                  sx={{ fontSize: { xs: "0.8rem", md: "0.875rem" } }}
+                >
+                  {experience.location}
+                </Typography>
+              </Box>
+            )}
+          </Collapse>
+
+          {/* Actions */}
+          <Box
+            sx={{
+              display: "flex",
+              gap: { xs: 1, sm: 1.5 },
+              flexWrap: "wrap",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            {/* Details Toggle Button */}
+            <Button
+              size="small"
+              onClick={() => setShowDetails(!showDetails)}
               sx={{
-                display: "-webkit-box",
-                WebkitLineClamp: 2,
-                WebkitBoxOrient: "vertical",
-                overflow: "hidden",
-                fontStyle: "italic",
+                textTransform: "none",
+                fontSize: { xs: "0.75rem", md: "0.875rem" },
+                color: theme.palette.text.secondary,
+                minWidth: "auto",
+                p: { xs: 0.5, md: 1 },
               }}
             >
-              {experience.caption}
-            </Typography>
-          </Box>
-        )}
+              {showDetails ? "Menos detalles" : "Más detalles"}
+            </Button>
 
-        {/* Location if available */}
-        {experience.location && typeof experience.location === "string" && (
-          <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-            <MapPin
-              size={16}
-              style={{ marginRight: 8, color: theme.palette.secondary.main }}
-            />
-            <Typography variant="body2" color="textSecondary">
-              {experience.location}
-            </Typography>
+            {/* Action Buttons */}
+            <Box sx={{ display: "flex", gap: 1 }}>
+              <Button
+                startIcon={<Eye size={isMobile ? 14 : 16} />}
+                component={Link}
+                to={`/experience/${experience?.slug}`}
+                sx={{
+                  textTransform: "none",
+                  borderRadius: "20px",
+                  fontSize: { xs: "0.75rem", md: "0.875rem" },
+                  px: { xs: 1.5, md: 2 },
+                  py: { xs: 0.5, md: 0.75 },
+                  color: theme.palette.secondary.medium,
+                  borderColor: theme.palette.secondary.medium,
+                  "&:hover": {
+                    backgroundColor: `${theme.palette.secondary.medium}10`,
+                  },
+                }}
+                variant="outlined"
+                size="small"
+              >
+                {isMobile ? "Ver" : "Ver detalles"}
+              </Button>
+            </Box>
           </Box>
-        )}
+        </CardContent>
 
-        {/* Actions */}
-        <Box
-          sx={{
-            display: "flex",
-            gap: 1,
-            flexWrap: "wrap",
-            alignItems: "center",
+        {/* Action Menu */}
+        <Menu
+          anchorEl={anchorEl}
+          open={Boolean(anchorEl)}
+          onClose={handleMenuClose}
+          PaperProps={{
+            sx: { borderRadius: 2, minWidth: 160 },
           }}
         >
-          {/* View Button */}
-          <Button
-            startIcon={<Eye size={16} />}
-            component={Link}
-            to={`/experience/${experience?.slug}`}
-            sx={{
-              textTransform: "none",
-              borderRadius: 30,
-              color: theme.palette.secondary.medium,
-              borderColor: theme.palette.secondary.medium,
-              "&:hover": {
-                backgroundColor: theme.palette.secondary.light,
-                borderColor: theme.palette.secondary.dark,
-              },
-            }}
-            variant="outlined"
-            size="small"
-          >
-            Ver detalles
-          </Button>
-          {/* Edit Button */}
-          <Button
-            startIcon={<Edit size={16} />}
+          <MenuItem
             component={Link}
             to={`/admin/experiences/manage/edit/${experience?.slug}`}
-            sx={{
-              textTransform: "none",
-              borderRadius: 30,
-              color: theme.palette.primary.main,
-              borderColor: theme.palette.primary.main,
-              "&:hover": {
-                backgroundColor: theme.palette.primary.light,
-                borderColor: theme.palette.primary.dark,
-              },
-            }}
-            variant="outlined"
-            size="small"
+            onClick={handleMenuClose}
+            sx={{ py: 1.5 }}
           >
+            <Edit size={16} style={{ marginRight: 8 }} />
             Editar
-          </Button>
-          {/* Delete Button */}
-          <Button
-            disabled={isLoadingDeleteData}
-            startIcon={<Trash2 size={16} />}
-            onClick={() => deleteDataHandler({ slug: experience?.slug })}
-            sx={{
-              textTransform: "none",
-              borderRadius: 30,
-              color: theme.palette.error.main,
-              borderColor: theme.palette.error.main,
-              "&:hover": {
-                backgroundColor: theme.palette.error.lightest,
-                borderColor: theme.palette.error.dark,
-              },
+          </MenuItem>
+          <MenuItem
+            onClick={() => {
+              handleMenuClose();
+              deleteDataHandler({ slug: experience?.slug });
             }}
-            variant="outlined"
-            size="small"
+            disabled={isLoadingDeleteData}
+            sx={{ py: 1.5, color: theme.palette.error.main }}
           >
+            <Trash2 size={16} style={{ marginRight: 8 }} />
             Borrar
-          </Button>
-        </Box>
-      </CardContent>
-    </Card>
-  );
+          </MenuItem>
+        </Menu>
+      </Card>
+    );
+  };
 
   return (
     <Box
       sx={{
         minHeight: "100vh",
-        p: { xs: 2, md: 3 },
+        p: { xs: 1, sm: 2, md: 3 },
         position: "relative",
+        maxWidth: "100%",
+        overflow: "hidden",
       }}
     >
       {/* Header with Create Button */}
       <Box
         sx={{
           display: "flex",
-          flexDirection: isMobile ? "column" : "row",
+          flexDirection: { xs: "column", sm: "column" },
           justifyContent: "space-between",
-          alignItems: isMobile ? "stretch" : "center",
-          gap: 2,
-          mb: 3,
-          p: 1,
+          alignItems: { xs: "stretch", sm: "center" },
+          gap: { xs: 2, sm: 2, md: 3 },
+          mb: { xs: 3, md: 4 },
+          p: { xs: 1, sm: 1.5, md: 2 },
+          borderRadius: { xs: "12px", md: "16px" },
+          backgroundColor: theme.palette.background.paper,
         }}
       >
-        <Box>
+        <Box sx={{ textAlign: { xs: "center", sm: "left" } }}>
           <Typography
             variant="h4"
             fontWeight="700"
             color="primary.main"
-            sx={{ mb: 1 }}
+            sx={{
+              mb: 1,
+              fontSize: {
+                xs: "1.5rem",
+                sm: "1.75rem",
+                md: "2rem",
+                lg: "2.125rem",
+              },
+            }}
           >
             Administrar Experiencias
           </Typography>
-          <Typography variant="body1" color="text.secondary">
+          <Typography
+            variant="body1"
+            color="text.secondary"
+            sx={{ fontSize: { xs: "0.875rem", md: "1rem" } }}
+          >
             Gestiona todas las experiencias de la plataforma
           </Typography>
         </Box>
@@ -747,16 +936,16 @@ const ManageExperiences = () => {
           component={Link}
           to="/admin/experiences/manage/create"
           variant="contained"
-          startIcon={<Plus size={20} />}
+          startIcon={<Plus size={isMobile ? 16 : 20} />}
           sx={{
             backgroundColor: theme.palette.primary.main,
             color: "white",
-            px: isMobile ? 2 : 3,
-            py: 1.5,
+            px: { xs: 2, sm: 2.5, md: 3 },
+            py: { xs: 1, sm: 1.25, md: 1.5 },
             borderRadius: "30px",
             textTransform: "none",
             fontWeight: 600,
-            fontSize: isMobile ? "0.9rem" : "1rem",
+            fontSize: { xs: "0.8rem", sm: "0.9rem", md: "1rem" },
             boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
             "&:hover": {
               backgroundColor: theme.palette.primary.dark,
@@ -764,9 +953,14 @@ const ManageExperiences = () => {
               boxShadow: "0 6px 16px rgba(0,0,0,0.2)",
             },
             transition: "all 0.3s ease",
+            whiteSpace: "nowrap",
           }}
         >
-          {isMobile ? "Nueva Experiencia" : "Crear Nueva Experiencia"}
+          {isMobile
+            ? "Nueva"
+            : isTablet
+              ? "Nueva Experiencia"
+              : "Crear Nueva Experiencia"}
         </Button>
       </Box>
 
@@ -775,6 +969,7 @@ const ManageExperiences = () => {
         isLoadingAllExperiences ||
         allExperiencesData) && <OverviewSection />}
 
+      {/* Data Table with responsive table headers */}
       <DataTable
         pageTitle=""
         dataListName="Lista de experiencias"
@@ -783,7 +978,7 @@ const ManageExperiences = () => {
         searchKeywordOnChangeHandler={searchKeywordHandler}
         searchKeyword={searchKeyword}
         tableHeaderTitleList={
-          isMobile ? [] : ["Experiencia", "Categoría", "Creado", "Acciones"]
+          isDesktop ? ["Experiencia", "Categoría", "Creado", "Acciones"] : []
         }
         isLoading={isLoading}
         isFetching={isFetching}
@@ -792,14 +987,8 @@ const ManageExperiences = () => {
         currentPage={currentPage}
         headers={experiencesData?.headers}
       >
-        {isMobile ? (
-          // Mobile Card Layout
-          <Box sx={{ width: "100%" }}>
-            {updatedExperiences.map((experience) => (
-              <ExperienceCard key={experience._id} experience={experience} />
-            ))}
-          </Box>
-        ) : (
+        {/* Responsive Layout: Cards for mobile/tablet, Table for desktop */}
+        {isDesktop ? (
           // Desktop Table Layout
           updatedExperiences.map((experience) => (
             <tr
@@ -810,12 +999,7 @@ const ManageExperiences = () => {
               className="hover:shadow-lg"
             >
               {/* Experience Image and Title */}
-              <td
-                style={{
-                  padding: "16px 24px",
-                  minWidth: "350px",
-                }}
-              >
+              <td style={{ padding: "16px 24px", minWidth: "350px" }}>
                 <Box sx={{ display: "flex", alignItems: "center" }}>
                   <Avatar
                     src={
@@ -826,8 +1010,8 @@ const ManageExperiences = () => {
                     alt={experience.title}
                     variant="rounded"
                     sx={{
-                      width: 80,
-                      height: 60,
+                      width: { md: 80, lg: 90 },
+                      height: { md: 60, lg: 68 },
                       mr: 2,
                       borderRadius: 2,
                     }}
@@ -844,6 +1028,7 @@ const ManageExperiences = () => {
                         overflow: "hidden",
                         lineHeight: 1.3,
                         mb: 0.5,
+                        fontSize: { md: "1rem", lg: "1.1rem" },
                       }}
                     >
                       {experience.title}
@@ -859,6 +1044,7 @@ const ManageExperiences = () => {
                             WebkitBoxOrient: "vertical",
                             overflow: "hidden",
                             fontStyle: "italic",
+                            fontSize: { md: "0.875rem", lg: "0.9rem" },
                           }}
                         >
                           {experience.caption}
@@ -869,19 +1055,13 @@ const ManageExperiences = () => {
               </td>
 
               {/* Category */}
-              <td
-                style={{
-                  padding: "16px 24px",
-                  borderBottom: `1px solid ${theme.palette.neutral.light}`,
-                  maxWidth: "200px",
-                }}
-              >
+              <td style={{ padding: "16px 24px", maxWidth: "200px" }}>
                 <Box sx={{ display: "flex", alignItems: "center" }}>
                   <FolderOpen
                     size={16}
                     style={{
                       marginRight: 8,
-                      color: theme.palette.neutral.medium,
+                      color: theme.palette.text.secondary,
                     }}
                   />
                   {experience.categories &&
@@ -893,11 +1073,15 @@ const ManageExperiences = () => {
                       sx={{
                         borderColor: theme.palette.secondary.medium,
                         color: theme.palette.secondary.medium,
-                        fontSize: "0.75rem",
+                        fontSize: { md: "0.75rem", lg: "0.8rem" },
                       }}
                     />
                   ) : (
-                    <Typography variant="body2" color="textSecondary">
+                    <Typography
+                      variant="body2"
+                      color="textSecondary"
+                      sx={{ fontSize: { md: "0.875rem", lg: "0.9rem" } }}
+                    >
                       Sin categorizar
                     </Typography>
                   )}
@@ -905,36 +1089,32 @@ const ManageExperiences = () => {
               </td>
 
               {/* Created Date */}
-              <td
-                style={{
-                  padding: "16px 24px",
-                  borderBottom: `1px solid ${theme.palette.neutral.light}`,
-                }}
-              >
+              <td style={{ padding: "16px 24px" }}>
                 <Box sx={{ display: "flex", alignItems: "center" }}>
                   <Calendar
                     size={16}
                     style={{
                       marginRight: 8,
-                      color: theme.palette.neutral.medium,
+                      color: theme.palette.text.secondary,
                     }}
                   />
-                  <Typography variant="body2" color="textPrimary">
+                  <Typography
+                    variant="body2"
+                    color="textPrimary"
+                    sx={{ fontSize: { md: "0.875rem", lg: "0.9rem" } }}
+                  >
                     {(() => {
                       try {
-                        if (!experience.createdAt) return "Fecha no disponible";
-
+                        if (!experience.createdAt) return "No disponible";
                         const date = new Date(experience.createdAt);
-
-                        if (isNaN(date.getTime())) return "Fecha no válida";
-
+                        if (isNaN(date.getTime())) return "No válida";
                         return date.toLocaleDateString("es-ES", {
                           day: "numeric",
                           month: "short",
                           year: "numeric",
                         });
                       } catch {
-                        return "Fecha no disponible";
+                        return "No disponible";
                       }
                     })()}
                   </Typography>
@@ -942,44 +1122,38 @@ const ManageExperiences = () => {
               </td>
 
               {/* Actions */}
-              <td
-                style={{
-                  padding: "16px 24px",
-                  borderBottom: `1px solid ${theme.palette.neutral.light}`,
-                }}
-              >
+              <td style={{ padding: "16px 24px" }}>
                 <Stack direction="row" spacing={1}>
                   <Button
                     startIcon={<Eye size={16} />}
                     component={Link}
                     to={`/experience/${experience?.slug}`}
                     sx={{
-                      width: "120px",
+                      width: { md: "110px", lg: "120px" },
                       textTransform: "none",
                       borderRadius: 30,
+                      fontSize: { md: "0.75rem", lg: "0.875rem" },
                       color: theme.palette.secondary.medium,
                       borderColor: theme.palette.secondary.medium,
                       "&:hover": {
-                        backgroundColor: theme.palette.secondary.light,
-                        borderColor: theme.palette.secondary.dark,
+                        backgroundColor: `${theme.palette.secondary.medium}10`,
                       },
                     }}
                     variant="outlined"
                     size="small"
                   >
-                    Ver detalles
+                    Ver
                   </Button>
                   <Button
                     component={Link}
                     to={`/admin/experiences/manage/edit/${experience?.slug}`}
                     sx={{
-                      color: theme.palette.primary.main,
+                      color: theme.palette.primary.black,
                       textTransform: "none",
                       borderRadius: 30,
-                      borderColor: theme.palette.primary.main,
+                      borderColor: theme.palette.primary.black,
                       "&:hover": {
-                        backgroundColor: theme.palette.primary.light,
-                        borderColor: theme.palette.primary.dark,
+                        backgroundColor: `${theme.palette.primary.main}10`,
                       },
                       transition: "all 0.2s ease-in-out",
                     }}
@@ -997,15 +1171,10 @@ const ManageExperiences = () => {
                     sx={{
                       color: theme.palette.error.main,
                       textTransform: "none",
-                      display: "flex",
-                      justifyContent: "center",
-                      alignItems: "center",
-                      alignContent: "center",
                       borderRadius: 30,
                       borderColor: theme.palette.error.main,
                       "&:hover": {
-                        backgroundColor: theme.palette.error.lightest,
-                        borderColor: theme.palette.error.dark,
+                        backgroundColor: `${theme.palette.error.main}10`,
                       },
                       transition: "all 0.2s ease-in-out",
                     }}
@@ -1018,29 +1187,38 @@ const ManageExperiences = () => {
               </td>
             </tr>
           ))
+        ) : (
+          // Mobile/Tablet Card Layout
+          <Box sx={{ width: "100%" }}>
+            {updatedExperiences.map((experience) => (
+              <ExperienceCard key={experience._id} experience={experience} />
+            ))}
+          </Box>
         )}
       </DataTable>
 
-      {/* Floating Action Button for Mobile (Alternative option) */}
-      {isMobile && (
+      {/* Floating Action Button for Mobile/Tablet */}
+      {!isDesktop && (
         <Fab
           component={Link}
           to="/admin/experiences/manage/create"
           sx={{
             position: "fixed",
-            bottom: 24,
-            right: 24,
+            bottom: { xs: 16, sm: 24 },
+            right: { xs: 16, sm: 24 },
             backgroundColor: theme.palette.primary.main,
             color: "white",
             zIndex: 1000,
+            width: { xs: 48, sm: 56 },
+            height: { xs: 48, sm: 56 },
             "&:hover": {
               backgroundColor: theme.palette.primary.dark,
-              transform: "scale(1.1)",
+              transform: "scale(1.05)",
             },
             transition: "all 0.3s ease",
           }}
         >
-          <PlusCircle size={24} />
+          <PlusCircle size={isMobile ? 20 : 24} />
         </Fab>
       )}
     </Box>

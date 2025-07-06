@@ -15,7 +15,6 @@ const UserLayout = () => {
   const theme = useTheme();
   const { jwt } = useUser();
   const [authChecked, setAuthChecked] = useState(false);
-  const [redirected, setRedirected] = useState(false);
 
   const {
     data: profileData,
@@ -30,9 +29,9 @@ const UserLayout = () => {
     staleTime: 5 * 60 * 1000, // Keep data fresh for 5 minutes
   });
 
-  // Handle authentication checks with delay for page reloads
+  // Handle authentication checks
   useEffect(() => {
-    console.log("UserLayout Debug - Full State:", {
+    console.log("UserLayout Debug - Authentication State:", {
       jwt: !!jwt,
       profileIsLoading,
       profileError: profileError?.message || profileError,
@@ -40,20 +39,23 @@ const UserLayout = () => {
       profileData: !!profileData,
       currentPath: location.pathname,
       authChecked,
-      redirected,
       timestamp: new Date().toISOString(),
     });
 
     // Don't do anything if we're still loading the profile
     if (profileIsLoading) return;
 
-    // If we have JWT but profile query failed
+    // If we have JWT but profile query failed (invalid/expired token)
     if (jwt && profileError) {
       console.error("Profile fetch failed:", profileError);
+      // Save current page before redirecting
       sessionStorage.setItem("lastUserPage", location.pathname);
-      navigate("/login");
+      // Clear invalid token data
+      localStorage.removeItem("account");
+      sessionStorage.removeItem("account");
+      navigate("/login", { replace: true });
       toast.error(
-        "Error al verificar la sesión. Por favor, inicia sesión nuevamente."
+        "Tu sesión ha expirado. Por favor, inicia sesión nuevamente."
       );
       setAuthChecked(true);
       return;
@@ -63,23 +65,22 @@ const UserLayout = () => {
     if (jwt && profileSuccess && profileData) {
       setAuthChecked(true);
 
-      // Handle redirect to saved page after login
-      if (!redirected) {
-        const lastUserPage = sessionStorage.getItem("lastUserPage");
-        const cameFromLogin = sessionStorage.getItem("cameFromLogin");
+      // Handle redirect to saved page after successful login
+      const lastUserPage = sessionStorage.getItem("lastUserPage");
+      const cameFromLogin = sessionStorage.getItem("cameFromLogin") === "true";
 
-        // if (
-        // lastUserPage &&
-        //  lastUserPage !== location.pathname &&
-        //  !cameFromLogin
-        // ) {
-        // sessionStorage.removeItem("lastUserPage");
-        // navigate(lastUserPage, { replace: true });
-        // setRedirected(true);
-        // } else {
-        // Clear the flags since we're not redirecting
-        //  sessionStorage.removeItem("lastUserPage");
-        // sessionStorage.removeItem("cameFromLogin");
+      if (lastUserPage && lastUserPage !== location.pathname && cameFromLogin) {
+        console.log("Redirecting to saved page:", lastUserPage);
+        sessionStorage.removeItem("lastUserPage");
+        sessionStorage.removeItem("cameFromLogin");
+        navigate(lastUserPage, { replace: true });
+        return;
+      }
+
+      // Clear flags if we're not redirecting
+      if (cameFromLogin) {
+        sessionStorage.removeItem("lastUserPage");
+        sessionStorage.removeItem("cameFromLogin");
       }
 
       return;
@@ -87,22 +88,24 @@ const UserLayout = () => {
 
     // If no JWT and we've given enough time for it to load
     if (!jwt && authChecked) {
+      console.log("No JWT found, redirecting to login");
       sessionStorage.setItem("lastUserPage", location.pathname);
-      navigate("/login");
+      navigate("/login", { replace: true });
       toast.error("Debes estar logueado para acceder a esta página");
       return;
     }
 
-    // Set a timeout to check auth state after a brief delay (for page reloads)
+    // Set a timeout to check auth state after a brief delay (for page reloads/hydration)
     if (!jwt && !authChecked) {
       const timeoutId = setTimeout(() => {
         if (!jwt) {
+          console.log("Timeout reached - no JWT found, redirecting to login");
           sessionStorage.setItem("lastUserPage", location.pathname);
-          navigate("/login");
+          navigate("/login", { replace: true });
           toast.error("Debes estar logueado para acceder a esta página");
         }
         setAuthChecked(true);
-      }, 1000); // Wait 1 second for JWT to load from storage
+      }, 1500); // Wait 1.5 seconds for JWT to load from storage
 
       return () => clearTimeout(timeoutId);
     }
@@ -115,9 +118,9 @@ const UserLayout = () => {
     navigate,
     location.pathname,
     authChecked,
-    redirected,
   ]);
 
+  // Determine if we should hide the navigation
   const hideSideNav =
     location.pathname === "/user/itineraries/manage/create" ||
     location.pathname.startsWith("/user/itineraries/manage/view/");
@@ -133,19 +136,22 @@ const UserLayout = () => {
             alignItems: "center",
             minHeight: "100vh",
             backgroundColor: theme.palette.background.default,
+            padding: 2,
           }}
         >
-          <Box sx={{ textAlign: "center" }}>
+          <Box sx={{ textAlign: "center", maxWidth: 400 }}>
             <CircularProgress
-              size={40}
+              size={48}
               thickness={4}
-              sx={{ mb: 2, color: theme.palette.primary.main }}
+              sx={{ mb: 3, color: theme.palette.primary.main }}
             />
             <Typography
               variant="h6"
               sx={{
-                color: theme.palette.text.secondary,
-                fontWeight: 500,
+                color: theme.palette.text.primary,
+                fontWeight: 600,
+                mb: 1,
+                fontSize: { xs: "1.1rem", md: "1.25rem" },
               }}
             >
               Verificando sesión...
@@ -154,7 +160,7 @@ const UserLayout = () => {
               variant="body2"
               sx={{
                 color: theme.palette.text.secondary,
-                mt: 1,
+                fontSize: { xs: "0.875rem", md: "1rem" },
               }}
             >
               Cargando tu perfil de usuario
@@ -165,7 +171,7 @@ const UserLayout = () => {
     );
   }
 
-  // Exclude UserLayout for Itinerary Detail Page
+  // Exclude UserLayout wrapper for Itinerary Detail Page (it has its own layout)
   if (location.pathname.startsWith("/user/itineraries/manage/view/")) {
     return <Outlet />;
   }
@@ -179,9 +185,10 @@ const UserLayout = () => {
           minHeight: "100vh",
           paddingTop: { xs: 15, lg: 15 },
           paddingBottom: { xs: 10, lg: 0 },
+          position: "relative",
         }}
       >
-        {/* Desktop SideNav - Hidden on mobile */}
+        {/* Desktop SideNav - Hidden on mobile and specific pages */}
         {!hideSideNav && (
           <Box
             sx={{
@@ -189,7 +196,10 @@ const UserLayout = () => {
               position: "fixed",
               left: 0,
               top: 100,
-              height: "100vh",
+              height: "calc(100vh - 100px)",
+              zIndex: 1000,
+              borderRight: `1px solid ${theme.palette.divider}`,
+              backgroundColor: theme.palette.background.paper,
             }}
           >
             <SideNav />
@@ -202,27 +212,42 @@ const UserLayout = () => {
           sx={{
             flex: 1,
             width: "100%",
-            marginLeft: { xs: 0, lg: !hideSideNav ? "250px" : 0 }, // No margin on mobile
-            px: { xs: 2, sm: 3, lg: 5 }, // Responsive padding
+            marginLeft: { xs: 0, lg: !hideSideNav ? "250px" : 0 },
+            px: { xs: 1, sm: 2, md: 3, lg: 4 },
+            py: { xs: 1, md: 2 },
             overflow: "auto",
             display: "flex",
             flexDirection: "column",
-            alignItems: "center",
+            minHeight: "calc(100vh - 120px)",
+            maxWidth: "100%",
+            boxSizing: "border-box",
           }}
         >
-          <Outlet />
+          <Box
+            sx={{
+              width: "100%",
+              maxWidth: "1400px", // Max content width
+              mx: "auto", // Center content
+              flex: 1,
+            }}
+          >
+            <Outlet />
+          </Box>
         </Box>
 
         {/* Mobile Bottom Navigation */}
         {!hideSideNav && (
           <Box
             sx={{
-              display: { xs: "block", lg: "none" }, // Show only on mobile
+              display: { xs: "block", lg: "none" },
               position: "fixed",
               bottom: 0,
               left: 0,
               right: 0,
-              zIndex: 1000,
+              zIndex: 1200,
+              borderTop: `1px solid ${theme.palette.divider}`,
+              backgroundColor: theme.palette.background.paper,
+              boxShadow: "0 -2px 8px rgba(0,0,0,0.1)",
             }}
           >
             <MobileNav />

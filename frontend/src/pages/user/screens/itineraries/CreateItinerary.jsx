@@ -4,7 +4,14 @@ import { getUserFriends } from "../../../../services/index/users";
 import { createItinerary } from "../../../../services/index/itinerary";
 import useUser from "../../../../hooks/useUser";
 import { toast } from "react-hot-toast";
-import { ArrowRight, ArrowLeft } from "lucide-react";
+import {
+  ArrowRight,
+  ArrowLeft,
+  FileText,
+  Calendar,
+  ClipboardList,
+  Users,
+} from "lucide-react";
 import { stables } from "../../../../constants";
 import {
   useTheme,
@@ -20,6 +27,8 @@ import {
   Autocomplete,
   IconButton,
   Chip,
+  Card,
+  CardContent,
 } from "@mui/material";
 import { DateRange } from "react-date-range";
 import { format, addDays, differenceInDays } from "date-fns";
@@ -36,15 +45,10 @@ const CreateItinerary = () => {
   const [notesArray, setNotesArray] = useState([]);
   const { user, jwt } = useUser();
   const navigate = useNavigate();
-
-  // State for managing friends fetched from API and selected ones
   const [availableFriends, setAvailableFriends] = useState([]);
   const [selectedFriends, setSelectedFriends] = useState([]);
-
-  // Multi-step state: steps: 0 = Detalles, 1 = Fechas y Boards, 2 = Amigos, 3 = Favorites, 4 = Revisión
   const [activeStep, setActiveStep] = useState(0);
   const steps = ["Detalles", "Fechas", "Viajeros", "Revisión"];
-
   const [dateRange, setDateRange] = useState([
     {
       startDate: new Date(),
@@ -96,7 +100,6 @@ const CreateItinerary = () => {
       differenceInDays(newRange.endDate, newRange.startDate) + 1;
     setTravelDays(daysCount);
 
-    // Create a new boards array with one board per day, setting the date automatically.
     const newBoards = [];
     for (let i = 0; i < daysCount; i++) {
       // You can choose any format; here we use "yyyy-MM-dd"
@@ -105,6 +108,7 @@ const CreateItinerary = () => {
     }
     setBoards(newBoards);
   };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     // Map selected friends to travelers (each friend is expected to have an _id)
@@ -122,11 +126,11 @@ const CreateItinerary = () => {
     };
     try {
       const response = await createItinerary(itinerary, jwt);
-      toast.success("Itinerary created successfully");
+      toast.success("Itinerario creado exitosamente");
       navigate(`/user/itineraries/manage/view/${response._id}`);
     } catch (error) {
-      toast.error("Error creating itinerary");
-      console.error("Error creating itinerary:", error);
+      toast.error("Error creando itinerario.");
+      console.error("Error creando itinerario:", error);
     }
   };
 
@@ -158,7 +162,8 @@ const CreateItinerary = () => {
                 fullWidth
                 sx={{
                   marginTop: 2,
-                  bgcolor: "white",
+                  bgcolor: theme.palette.background.default,
+                  color: theme.palette.primary.black,
                   borderRadius: "10px",
                   "& .MuiOutlinedInput-root": {
                     borderRadius: "10px",
@@ -168,6 +173,12 @@ const CreateItinerary = () => {
                     },
                     "&.Mui-focused fieldset": {
                       borderColor: theme.palette.secondary.dark,
+                    },
+                  },
+                  "& .MuiInputLabel-root": {
+                    color: theme.palette.primary.black,
+                    "&.Mui-focused": {
+                      color: `${theme.palette.primary.black} !important`,
                     },
                   },
                 }}
@@ -185,7 +196,17 @@ const CreateItinerary = () => {
                   value={noteInput}
                   onChange={(e) => setNoteInput(e.target.value)}
                   variant="outlined"
-                  sx={{ mr: 2, width: "100%", marginTop: 2 }}
+                  sx={{
+                    mr: 2,
+                    width: "100%",
+                    marginTop: 2,
+                    "& .MuiInputLabel-root": {
+                      color: theme.palette.primary.black,
+                      "&.Mui-focused": {
+                        color: `${theme.palette.primary.black} !important`,
+                      },
+                    },
+                  }}
                 />
                 <Button
                   onClick={addNote}
@@ -272,7 +293,15 @@ const CreateItinerary = () => {
               options={availableFriends}
               getOptionLabel={(option) => option.name}
               value={selectedFriends}
-              sx={{ width: "100%" }}
+              sx={{
+                width: "100%",
+                "& .MuiInputLabel-root": {
+                  color: theme.palette.primary.black,
+                  "&.Mui-focused": {
+                    color: `${theme.palette.primary.black} !important`,
+                  },
+                },
+              }}
               onChange={(event, newValue) => setSelectedFriends(newValue)}
               renderTags={(value, getTagProps) =>
                 value.map((option, index) => (
@@ -351,55 +380,212 @@ const CreateItinerary = () => {
         );
       case 3:
         return (
-          <div style={{ width: "100%" }}>
-            <Typography variant="h6" sx={{ mb: 2 }}>
+          <div
+            style={{
+              width: "100%",
+              background: theme.palette.primary.white,
+              padding: "2rem",
+              borderRadius: "16px",
+            }}
+          >
+            <Typography
+              variant="h6"
+              sx={{
+                mb: 3,
+                textAlign: "center",
+                color: theme.palette.primary.black,
+                fontWeight: "bold",
+              }}
+            >
               Revisa tu Itinerario
             </Typography>
-            <Typography>
-              <strong>Nombre:</strong> {name}
-            </Typography>
 
-            <Typography variant="h6">
-              <strong>Notas:</strong>
-            </Typography>
-            {Array.isArray(notesArray) && notesArray.length > 0 ? (
-              notesArray.map((note, index) => (
-                <Typography
-                  key={index}
-                  sx={{
-                    textDecoration: note.completed ? "line-through" : "none",
-                  }}
+            {/* Itinerary Name Card */}
+            <Card
+              sx={{
+                mb: 2,
+                borderRadius: "12px",
+                boxShadow: 2,
+                background: theme.palette.background.default,
+              }}
+            >
+              <CardContent>
+                <Box
+                  sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}
                 >
-                  {note.text}
+                  <FileText size={20} color={theme.palette.primary.black} />
+                  <Typography variant="h6" color={theme.palette.primary.black}>
+                    Nombre del Viaje
+                  </Typography>
+                </Box>
+                <Typography
+                  variant="body1"
+                  sx={{ fontSize: "1.1rem", fontWeight: 500 }}
+                >
+                  {name || "Sin nombre"}
                 </Typography>
-              ))
-            ) : (
-              <Typography>No hay notas agregadas.</Typography>
-            )}
+              </CardContent>
+            </Card>
 
-            <Typography>
-              <strong>Fechas:</strong>{" "}
-              {dateRange[0].startDate.toLocaleDateString()} -{" "}
-              {dateRange[0].endDate.toLocaleDateString()}
-            </Typography>
-            <Typography>
-              <strong>Total Días:</strong> {travelDays}
-            </Typography>
+            {/* Dates Card */}
+            <Card
+              sx={{
+                mb: 2,
+                borderRadius: "12px",
+                boxShadow: 2,
+                background: theme.palette.background.default,
+              }}
+            >
+              <CardContent>
+                <Box
+                  sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}
+                >
+                  <Calendar size={20} color={theme.palette.primary.black} />
+                  <Typography variant="h6" color={theme.palette.primary.black}>
+                    Fechas de Viaje
+                  </Typography>
+                </Box>
+                <Typography variant="body1" sx={{ mb: 1 }}>
+                  <strong>Inicio:</strong>{" "}
+                  {dateRange[0].startDate.toLocaleDateString("es-ES")}
+                </Typography>
+                <Typography variant="body1" sx={{ mb: 1 }}>
+                  <strong>Fin:</strong>{" "}
+                  {dateRange[0].endDate.toLocaleDateString("es-ES")}
+                </Typography>
+                <Typography variant="body1">
+                  <strong>Duración:</strong> {travelDays}{" "}
+                  {travelDays === 1 ? "día" : "días"}
+                </Typography>
+              </CardContent>
+            </Card>
 
-            <Box mt={2}>
-              <Typography variant="subtitle1" sx={{ mb: 2 }}>
-                Amigos Agregados:
-              </Typography>
-              {selectedFriends.length > 0 ? (
-                <ul>
-                  {selectedFriends.map((friend, index) => (
-                    <li key={index}>{friend.name}</li>
-                  ))}
-                </ul>
-              ) : (
-                <Typography>Ningún amigo agregado.</Typography>
-              )}
-            </Box>
+            {/* Notes Card */}
+            <Card
+              sx={{
+                mb: 2,
+                borderRadius: "12px",
+                boxShadow: 2,
+                background: theme.palette.background.default,
+              }}
+            >
+              <CardContent>
+                <Box
+                  sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}
+                >
+                  <ClipboardList
+                    size={20}
+                    color={theme.palette.primary.black}
+                  />
+                  <Typography variant="h6" color={theme.palette.primary.black}>
+                    Notas del Viaje
+                  </Typography>
+                </Box>
+                {Array.isArray(notesArray) && notesArray.length > 0 ? (
+                  <Box>
+                    {notesArray.map((note, index) => (
+                      <Box
+                        key={index}
+                        sx={{
+                          mb: 1,
+                          p: 1,
+                          backgroundColor: note.completed
+                            ? theme.palette.grey[100]
+                            : theme.palette.background.default,
+                          borderRadius: "8px",
+                          border: `1px solid ${theme.palette.grey[300]}`,
+                        }}
+                      >
+                        <Typography
+                          sx={{
+                            textDecoration: note.completed
+                              ? "line-through"
+                              : "none",
+                            color: note.completed
+                              ? theme.palette.grey[600]
+                              : theme.palette.text.primary,
+                          }}
+                        >
+                          • {note.text}
+                        </Typography>
+                      </Box>
+                    ))}
+                  </Box>
+                ) : (
+                  <Typography>No hay notas agregadas.</Typography>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Friends Card */}
+            <Card
+              sx={{
+                mb: 2,
+                borderRadius: "12px",
+                boxShadow: 2,
+                background: theme.palette.background.default,
+              }}
+            >
+              <CardContent>
+                <Box
+                  sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}
+                >
+                  <Users size={20} color={theme.palette.primary.black} />
+                  <Typography variant="h6" color={theme.palette.primary.black}>
+                    Compañeros de Viaje
+                  </Typography>
+                </Box>
+                {selectedFriends.length > 0 ? (
+                  <Box>
+                    {selectedFriends.map((friend, index) => (
+                      <Box
+                        key={index}
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 2,
+                          mb: 1,
+                          p: 1,
+                          backgroundColor: theme.palette.background.default,
+                          borderRadius: "8px",
+                          border: `1px solid ${theme.palette.grey[300]}`,
+                        }}
+                      >
+                        <img
+                          src={
+                            friend.avatar
+                              ? stables.UPLOAD_FOLDER_BASE_URL + friend.avatar
+                              : "/assets/default-avatar.jpg"
+                          }
+                          alt={friend.name}
+                          style={{
+                            width: "32px",
+                            height: "32px",
+                            borderRadius: "50%",
+                            objectFit: "cover",
+                          }}
+                        />
+                        <Typography sx={{ flex: 1 }}>{friend.name}</Typography>
+                        <Chip
+                          label={
+                            friend.role === "editor" ? "Editor" : "Solo Lectura"
+                          }
+                          size="small"
+                          color={
+                            friend.role === "editor" ? "primary" : "default"
+                          }
+                          variant="outlined"
+                        />
+                      </Box>
+                    ))}
+                  </Box>
+                ) : (
+                  <Typography color={theme.palette.grey[600]}>
+                    No hay compañeros agregados.
+                  </Typography>
+                )}
+              </CardContent>
+            </Card>
           </div>
         );
       default:
@@ -481,8 +667,11 @@ const CreateItinerary = () => {
                 sx={{
                   borderRadius: "30rem",
                   textTransform: "none",
-                  color: theme.palette.secondary.dark,
-                  background: theme.palette.secondary.lightBlue,
+                  color: theme.palette.primary.white,
+                  background: theme.palette.secondary.medium,
+                  "&:hover": {
+                    background: theme.palette.secondary.main,
+                  },
                 }}
               >
                 Siguiente <ArrowRight size={16} />

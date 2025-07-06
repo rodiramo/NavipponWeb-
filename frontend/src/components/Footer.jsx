@@ -92,6 +92,7 @@ const Footer = ({ onShowGuide }) => {
       className="py-16 px-6 relative overflow-hidden"
       style={{
         borderRadius: "3rem 3rem 0 0",
+        zIndex: "1000",
         marginTop: "auto",
         background:
           "linear-gradient(135deg, rgb(10 23 51) 0%, rgb(15 30 65) 50%, rgb(8 20 45) 100%)",

@@ -38,7 +38,7 @@ const RegisterPage = () => {
     } else {
       return isDark
         ? "/assets/navippon-logo-white.png"
-        : "/assets/navippon-icon.png";
+        : "/assets/navippon-logo-white.png";
     }
   };
 
@@ -94,6 +94,110 @@ const RegisterPage = () => {
   };
 
   const password = watch("password");
+
+  // Input styles without hover/active states - More aggressive overrides
+  const inputStyles = {
+    borderRadius: "50px !important",
+    width: { xs: "100%", md: "450px" },
+    "& .MuiOutlinedInput-root": {
+      borderRadius: "50px !important",
+      backgroundColor: "transparent !important",
+      "&:hover": {
+        backgroundColor: "transparent !important",
+        "& .MuiOutlinedInput-notchedOutline": {
+          borderColor: "rgba(0, 0, 0, 0.23) !important",
+          borderWidth: "1px !important",
+        },
+      },
+      "&.Mui-focused": {
+        backgroundColor: "transparent !important",
+        "& .MuiOutlinedInput-notchedOutline": {
+          borderColor: "rgba(0, 0, 0, 0.23) !important",
+          borderWidth: "1px !important",
+          boxShadow: "none !important",
+        },
+      },
+      "&:hover .MuiOutlinedInput-notchedOutline": {
+        borderColor: "rgba(0, 0, 0, 0.23) !important",
+        borderWidth: "1px !important",
+      },
+      "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+        borderColor: "rgba(0, 0, 0, 0.23) !important",
+        borderWidth: "1px !important",
+      },
+      "&::before": {
+        display: "none !important",
+      },
+      "&::after": {
+        display: "none !important",
+      },
+    },
+    "& .MuiOutlinedInput-notchedOutline": {
+      borderRadius: "50px !important",
+      borderWidth: "1px !important",
+      borderColor: "rgba(0, 0, 0, 0.23) !important",
+    },
+    "& .MuiInputBase-input": {
+      borderRadius: "50px !important",
+      backgroundColor: "transparent !important",
+      "&:hover": {
+        backgroundColor: "transparent !important",
+        boxShadow: "none !important",
+      },
+      "&:focus": {
+        backgroundColor: "transparent !important",
+        boxShadow: "none !important",
+        outline: "none !important",
+      },
+      "&:focus-visible": {
+        outline: "none !important",
+        boxShadow: "none !important",
+        backgroundColor: "transparent !important",
+      },
+      "&:active": {
+        backgroundColor: "transparent !important",
+        boxShadow: "none !important",
+      },
+    },
+    "& .MuiInputLabel-root": {
+      "&.Mui-focused": {
+        color: "rgba(0, 0, 0, 0.6) !important",
+      },
+    },
+    // Remove any box shadows completely with !important
+    boxShadow: "none !important",
+    "&:hover": {
+      boxShadow: "none !important",
+      backgroundColor: "transparent !important",
+    },
+    "&:focus": {
+      boxShadow: "none !important",
+      backgroundColor: "transparent !important",
+    },
+    "&:focus-within": {
+      boxShadow: "none !important",
+      backgroundColor: "transparent !important",
+    },
+    "&:active": {
+      boxShadow: "none !important",
+      backgroundColor: "transparent !important",
+    },
+    "&::before": {
+      display: "none !important",
+    },
+    "&::after": {
+      display: "none !important",
+    },
+    // Target any potential overlay elements
+    "& *": {
+      "&::before": {
+        display: "none !important",
+      },
+      "&::after": {
+        display: "none !important",
+      },
+    },
+  };
 
   return (
     <Box
@@ -195,11 +299,7 @@ const RegisterPage = () => {
               margin="normal"
               label="Nombre: *"
               type="text"
-              sx={{
-                borderRadius: "50px",
-                width: { xs: "100%", md: "450px" }, // Responsive width
-                "& fieldset": { borderRadius: "50px" },
-              }}
+              sx={inputStyles}
               {...register("name", { required: "El nombre es requerido" })}
               error={!!errors.name}
               helperText={errors.name?.message}
@@ -209,11 +309,7 @@ const RegisterPage = () => {
               margin="normal"
               label="Email: *"
               type="email"
-              sx={{
-                borderRadius: "50px",
-                width: { xs: "100%", md: "450px" }, // Responsive width
-                "& fieldset": { borderRadius: "50px" },
-              }}
+              sx={inputStyles}
               {...register("email", { required: "El Email es requerido" })}
               error={!!errors.email}
               helperText={errors.email?.message}
@@ -223,11 +319,7 @@ const RegisterPage = () => {
               margin="normal"
               label="Contraseña: *"
               type={showPassword ? "text" : "password"}
-              sx={{
-                borderRadius: "50px",
-                width: { xs: "100%", md: "450px" }, // Responsive width
-                "& fieldset": { borderRadius: "50px" },
-              }}
+              sx={inputStyles}
               {...register("password", {
                 required: "La contraseña es requerida",
                 minLength: {
@@ -254,11 +346,7 @@ const RegisterPage = () => {
               fullWidth
               margin="normal"
               label="Confirmar Contraseña: *"
-              sx={{
-                borderRadius: "50px",
-                width: { xs: "100%", md: "450px" }, // Responsive width
-                "& fieldset": { borderRadius: "50px" },
-              }}
+              sx={inputStyles}
               type={showConfirmPassword ? "text" : "password"}
               {...register("confirmPassword", {
                 required: "La confirmación de la contraseña es requerida",

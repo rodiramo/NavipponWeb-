@@ -152,6 +152,7 @@ const ItineraryHeader = ({
                 fontSize: "0.75rem",
                 px: 2,
                 py: 0.5,
+                mt: 3,
                 minWidth: "auto",
                 "&:hover": {
                   borderColor: "rgba(255,255,255,0.5)",
@@ -174,7 +175,6 @@ const ItineraryHeader = ({
               <Box
                 sx={{
                   flex: 1,
-
                   display: "flex",
                   alignItems: "center",
                   gap: 1,

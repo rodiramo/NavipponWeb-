@@ -8,12 +8,14 @@
   background-color: white;
   padding: 1.5rem;
   border-radius: 0.5rem;
-  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
+  box-shadow:
+    0 10px 15px rgba(0, 0, 0, 0.1),
+    0 4px 6px rgba(0, 0, 0, 0.05);
   z-index: 50;
-  max-height: 80vh;  
-  overflow-y: auto;  
-  width: 90%; 
-  max-width: 600px;  
+  max-height: 80vh;
+  overflow-y: auto;
+  width: 90%;
+  max-width: 600px;
 }
 
 .modal-overlay {
@@ -21,4 +23,62 @@
   inset: 0;
   background-color: rgba(0, 0, 0, 0.5);
   z-index: 40;
+}
+
+/* Add this to your global CSS file (index.css or App.css) */
+
+/* Completely remove all Material-UI input overlays and focus states */
+.MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline,
+.MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline,
+.MuiOutlinedInput-root:focus .MuiOutlinedInput-notchedOutline,
+.MuiOutlinedInput-root:focus-within .MuiOutlinedInput-notchedOutline,
+.MuiOutlinedInput-root:active .MuiOutlinedInput-notchedOutline {
+  border-color: rgba(0, 0, 0, 0.23) !important;
+  border-width: 1px !important;
+  box-shadow: none !important;
+}
+
+/* Remove any background overlays */
+.MuiOutlinedInput-root:hover,
+.MuiOutlinedInput-root.Mui-focused,
+.MuiOutlinedInput-root:focus,
+.MuiOutlinedInput-root:focus-within,
+.MuiOutlinedInput-root:active {
+  background-color: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Remove input field overlays */
+.MuiInputBase-input:hover,
+.MuiInputBase-input:focus,
+.MuiInputBase-input:focus-visible,
+.MuiInputBase-input:active {
+  background-color: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+/* Remove any pseudo-elements that might create overlays */
+.MuiOutlinedInput-root::before,
+.MuiOutlinedInput-root::after,
+.MuiInputBase-input::before,
+.MuiInputBase-input::after {
+  display: none !important;
+  content: none !important;
+}
+
+/* Force remove any ripple effects */
+.MuiOutlinedInput-root .MuiTouchRipple-root {
+  display: none !important;
+}
+
+/* Remove focus ring */
+.MuiOutlinedInput-root:focus-within {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Keep labels neutral */
+.MuiInputLabel-root.Mui-focused {
+  color: rgba(0, 0, 0, 0.6) !important;
 }

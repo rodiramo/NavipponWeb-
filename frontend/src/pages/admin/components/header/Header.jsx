@@ -79,7 +79,7 @@ const Header = ({ isMenuOpen, setIsMenuOpen }) => {
           transition: "width 0.3s ease-in-out",
           height: "100vh", // ✅ Keep fixed height
           borderRadius: "0rem 2rem 2rem 0rem",
-
+          zIndex: 10000,
           position: "fixed",
           display: "flex",
           flexDirection: "column",

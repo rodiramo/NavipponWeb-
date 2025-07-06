@@ -36,7 +36,7 @@ const LoginPage = () => {
     } else {
       return isDark
         ? "/assets/navippon-logo-white.png"
-        : "/assets/navippon-icon.png";
+        : "/assets/navippon-logo-white.png";
     }
   };
 
@@ -69,6 +69,83 @@ const LoginPage = () => {
   const submitHandler = (data) => {
     const { email, password } = data;
     login({ email, password, rememberMe });
+  };
+
+  // Input styles without hover/active states
+  const inputStyles = {
+    borderRadius: "50px",
+    width: { xs: "100%", md: "450px" },
+    "& .MuiOutlinedInput-root": {
+      borderRadius: "50px",
+      "&:hover": {
+        "& .MuiOutlinedInput-notchedOutline": {
+          borderColor: "inherit",
+          borderWidth: "1px",
+          backgroundColor: "transparent !important",
+        },
+      },
+      "&.Mui-focused": {
+        "& .MuiOutlinedInput-notchedOutline": {
+          borderColor: "inherit",
+          borderWidth: "1px",
+          backgroundColor: "transparent !important",
+          boxShadow: "none", // Remove focus box shadow
+        },
+      },
+      "&:hover .MuiOutlinedInput-notchedOutline": {
+        borderColor: "inherit",
+        backgroundColor: "transparent !important",
+        boxShadow: "none",
+      },
+      "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+        borderColor: "inherit",
+        backgroundColor: "transparent !important",
+        borderWidth: "1px",
+        boxShadow: "none",
+      },
+    },
+    "& .MuiOutlinedInput-notchedOutline": {
+      borderRadius: "50px",
+      borderWidth: "1px",
+      backgroundColor: "transparent",
+      boxShadow: "none",
+      borderColor: "inherit",
+    },
+    "& .MuiInputBase-input": {
+      borderRadius: "50px",
+      backgroundColor: "transparent !important",
+      boxShadow: "none",
+      "&:hover": {
+        backgroundColor: "transparent !important",
+        boxShadow: "none",
+      },
+      "&:focus": {
+        backgroundColor: "transparent !important",
+        boxShadow: "none",
+        outline: "none",
+      },
+      "&:focus-visible": {
+        outline: "none",
+        backgroundColor: "transparent !important",
+        boxShadow: "none",
+      },
+    },
+    "& .MuiInputLabel-root": {
+      "&.Mui-focused": {
+        color: "inherit",
+      },
+    },
+    // Remove any box shadows completely
+    boxShadow: "none",
+    "&:hover": {
+      boxShadow: "none",
+    },
+    "&:focus": {
+      boxShadow: "none",
+    },
+    "&:focus-within": {
+      boxShadow: "none",
+    },
   };
 
   return (
@@ -181,22 +258,14 @@ const LoginPage = () => {
               })}
               error={!!errors.email}
               helperText={errors.email?.message}
-              sx={{
-                borderRadius: "50px",
-                width: { xs: "100%", md: "450px" }, // 100% on mobile, 450px on desktop
-                "& fieldset": { borderRadius: "50px" },
-              }}
+              sx={inputStyles}
             />
             <TextField
               fullWidth
               margin="normal"
               label="Contraseña: *"
               type={showPassword ? "text" : "password"}
-              sx={{
-                borderRadius: "50px",
-                width: { xs: "100%", md: "450px" }, // 100% on mobile, 450px on desktop
-                "& fieldset": { borderRadius: "50px" },
-              }}
+              sx={inputStyles}
               {...register("password", {
                 required: "La contraseña es requerida",
                 minLength: {

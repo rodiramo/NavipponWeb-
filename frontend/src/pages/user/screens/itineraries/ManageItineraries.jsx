@@ -36,6 +36,9 @@ import {
   DialogContent,
   DialogActions,
   LinearProgress,
+  useMediaQuery,
+  Paper,
+  Collapse,
 } from "@mui/material";
 
 import {
@@ -54,6 +57,8 @@ import {
   Lock,
   MapPin,
   Clock,
+  MoreVertical,
+  Filter,
 } from "lucide-react";
 
 const ManageItineraries = () => {
@@ -73,9 +78,21 @@ const ManageItineraries = () => {
     name: "",
   });
   const [loading, setLoading] = useState(true);
+  const [showFilters, setShowFilters] = useState(false);
+
   const { user, jwt } = useUser();
   const navigate = useNavigate();
   const theme = useTheme();
+
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const isTablet = useMediaQuery(theme.breakpoints.between("sm", "md"));
+  const isDesktop = useMediaQuery(theme.breakpoints.up("md"));
+
+  // Custom breakpoints for better card layout
+  const isWideTablet = useMediaQuery(
+    "(min-width: 900px) and (max-width: 1100px)"
+  );
+  const isUltraWide = useMediaQuery("(min-width: 1800px)");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -99,7 +116,6 @@ const ManageItineraries = () => {
     }
   }, [user, jwt]);
 
-  // Default Japan images from Cloudinary
   const getDefaultJapanImage = (itinerary) => {
     const japanImages = [
       "v1750616108/pexels-evgeny-tchebotarev-1058775-2187430_abucrj.jpg",
@@ -118,7 +134,6 @@ const ManageItineraries = () => {
       "1_mi36gv",
     ];
 
-    // Use itinerary ID to consistently pick the same image
     const imageIndex = itinerary._id
       ? itinerary._id.charCodeAt(itinerary._id.length - 1) % japanImages.length
       : Math.floor(Math.random() * japanImages.length);
@@ -191,99 +206,148 @@ const ManageItineraries = () => {
     return filtered;
   };
 
+  // Enhanced Responsive Itinerary Card
   const ItineraryCard = ({ itinerary, isOwned = true, onAction }) => {
+    const [expanded, setExpanded] = useState(false);
+    const [menuAnchor, setMenuAnchor] = useState(null);
+
     const daysUntilTrip = itinerary.startDate
       ? Math.ceil(
           (new Date(itinerary.startDate) - new Date()) / (1000 * 60 * 60 * 24)
         )
       : null;
 
+    const handleMenuOpen = (event) => {
+      setMenuAnchor(event.currentTarget);
+    };
+
+    const handleMenuClose = () => {
+      setMenuAnchor(null);
+    };
+
     return (
       <Fade in timeout={600}>
         <Card
           sx={{
             height: "100%",
-            borderRadius: "16px",
+            borderRadius: { xs: "12px", sm: "16px" },
             overflow: "hidden",
             boxShadow: "none",
             transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-            border: `1px solid ${theme.palette.secondary.light}`,
+            border: `1px solid ${theme.palette.divider}`,
             backgroundColor: theme.palette.background.default,
+            display: "flex",
+            flexDirection: "column",
           }}
         >
           <Box sx={{ position: "relative" }}>
             <CardMedia
               component="img"
-              height="220"
+              height="200px"
               image={itinerary.coverImage || getDefaultJapanImage(itinerary)}
               alt={itinerary.name}
               sx={{
+                objectFit: "cover",
+                width: "100%",
+                minHeight: "200px", // Ensure minimum height
+                maxHeight: "200px", // Ensure maximum height
+                aspectRatio: "16/9", // Force consistent aspect ratio
+                display: "block", // Prevent inline spacing issues
                 transition: "transform 0.3s ease",
-                "&:hover": { transform: "scale(1.05)" },
+                "&:hover": {
+                  transform: isDesktop ? "scale(1.02)" : "none",
+                },
               }}
             />
-
-            {/* Status overlays */}
+            {/* Status overlays - Responsive */}
             <Box
               sx={{
                 position: "absolute",
-                top: 12,
-                left: 12,
-                right: 12,
+                top: { xs: 8, sm: 12 },
+                left: { xs: 8, sm: 12 },
+                right: { xs: 8, sm: 12 },
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "flex-start",
+                flexWrap: "wrap",
+                gap: 1,
               }}
             >
-              <Stack spacing={1}>
+              <Stack spacing={1} sx={{ flex: 1 }}>
                 {/* Privacy Status */}
                 <Chip
                   icon={
                     itinerary.isPrivate ? (
-                      <Lock size={16} />
+                      <Lock
+                        size={isMobile ? 14 : 16}
+                        color={theme.palette.primary.dark}
+                      />
                     ) : (
-                      <Globe size={16} />
+                      <Globe
+                        size={isMobile ? 14 : 16}
+                        color={theme.palette.success.dark}
+                      />
                     )
                   }
                   label={itinerary.isPrivate ? "Privado" : "Público"}
                   size="small"
                   sx={{
                     backgroundColor: itinerary.isPrivate
-                      ? `${theme.palette.warning.main}90`
-                      : `${theme.palette.success.main}90`,
-                    color: "white",
+                      ? `${theme.palette.primary.light}`
+                      : `${theme.palette.success.light}`,
+                    color: itinerary.isPrivate
+                      ? `${theme.palette.primary.dark}`
+                      : `${theme.palette.success.dark}`,
+                    width: "fit-content",
                     backdropFilter: "blur(10px)",
+                    fontSize: { xs: "0.7rem", md: "0.75rem" },
+                    height: { xs: 24, md: 28 },
                     "& .MuiChip-icon": { color: "white" },
                   }}
                 />
 
-                {/* Days until trip */}
-                {daysUntilTrip !== null && daysUntilTrip > 0 && (
-                  <Chip
-                    icon={<Clock size={16} />}
-                    label={`En ${daysUntilTrip} días`}
-                    size="small"
-                    sx={{
-                      backgroundColor: `${theme.palette.info.main}90`,
-                      color: "white",
-                      backdropFilter: "blur(10px)",
-                      "& .MuiChip-icon": { color: "white" },
-                    }}
-                  />
-                )}
+                {/* Days until trip - only show on larger screens or when expanded */}
+                {daysUntilTrip !== null &&
+                  daysUntilTrip > 0 &&
+                  (isDesktop || expanded) && (
+                    <Chip
+                      icon={<Clock size={isMobile ? 14 : 16} />}
+                      label={`En ${daysUntilTrip} día${daysUntilTrip !== 1 ? "s" : ""}`}
+                      size="small"
+                      sx={{
+                        backgroundColor: `${theme.palette.info.main}90`,
+                        color: "white",
+                        backdropFilter: "blur(10px)",
+                        fontSize: { xs: "0.7rem", md: "0.75rem" },
+                        height: { xs: 24, md: 28 },
+                        "& .MuiChip-icon": { color: "white" },
+                      }}
+                    />
+                  )}
               </Stack>
 
               {/* Owner/Guest Badge */}
               <Chip
-                icon={isOwned ? <Crown size={16} /> : <User size={16} />}
+                icon={
+                  isOwned ? (
+                    <Crown size={isMobile ? 14 : 16} />
+                  ) : (
+                    <User
+                      size={isMobile ? 14 : 16}
+                      color={theme.palette.secondary.light}
+                    />
+                  )
+                }
                 label={isOwned ? "Creador" : "Invitado"}
                 size="small"
                 sx={{
                   backgroundColor: isOwned
                     ? `${theme.palette.primary.main}90`
-                    : `${theme.palette.secondary.main}90`,
-                  color: "white",
+                    : `${theme.palette.secondary.medium}`,
+                  color: isOwned ? `white` : `${theme.palette.primary.white}`,
                   backdropFilter: "blur(10px)",
+                  fontSize: { xs: "0.7rem", md: "0.75rem" },
+                  height: { xs: 24, md: 28 },
                   "& .MuiChip-icon": { color: "white" },
                 }}
               />
@@ -293,50 +357,75 @@ const ManageItineraries = () => {
             <Box
               sx={{
                 position: "absolute",
-                bottom: 12,
-                left: 12,
+                bottom: { xs: 8, sm: 12 },
+                left: { xs: 8, sm: 12 },
                 backgroundColor: "rgba(0, 0, 0, 0.8)",
                 backdropFilter: "blur(10px)",
-                borderRadius: "12px",
-                px: 2,
-                py: 1,
+                borderRadius: { xs: "18px", md: "30px" },
+                px: { xs: 1.5, md: 2 },
+                py: { xs: 0.5, md: 1 },
                 display: "flex",
                 alignItems: "center",
-                gap: 1,
+                gap: { xs: 0.5, md: 1 },
               }}
             >
-              <Users size={16} color="white" />
+              <Users size={isMobile ? 14 : 16} color="white" />
               <Typography
                 variant="caption"
-                sx={{ color: "white", fontWeight: 600 }}
+                sx={{
+                  color: "white",
+                  fontWeight: 600,
+                  fontSize: { xs: "0.7rem", md: "0.75rem" },
+                }}
               >
                 {itinerary.travelers?.length || 1} viajero
                 {(itinerary.travelers?.length || 1) !== 1 ? "s" : ""}
               </Typography>
             </Box>
+
+            {/* Mobile menu button */}
+            {isMobile && (
+              <Box
+                sx={{
+                  position: "absolute",
+                  top: 8,
+                  right: 8,
+                  backgroundColor: "rgba(255,255,255,0.9)",
+                  borderRadius: "50%",
+                }}
+              >
+                <IconButton
+                  size="small"
+                  onClick={handleMenuOpen}
+                  sx={{ p: 0.5 }}
+                >
+                  <MoreVertical size={16} />
+                </IconButton>
+              </Box>
+            )}
           </Box>
 
           <CardContent
             sx={{
-              p: 3,
+              p: { xs: 2, sm: 2.5, md: 3 },
               display: "flex",
               flexDirection: "column",
-              height: "calc(100% - 220px)",
+              flex: 1,
             }}
           >
             {/* Title */}
             <Typography
-              variant="h6"
+              variant={isMobile ? "subtitle1" : "h6"}
               sx={{
                 fontWeight: 700,
                 color: theme.palette.text.primary,
-                mb: 2,
                 lineHeight: 1.3,
                 display: "-webkit-box",
                 WebkitLineClamp: 2,
                 WebkitBoxOrient: "vertical",
                 overflow: "hidden",
-                minHeight: "2.6em",
+                minHeight: { xs: "2.4em", md: "2.6em" },
+                fontSize: { xs: "1rem", sm: "1.1rem", md: "1.25rem" },
               }}
             >
               {itinerary.name}
@@ -345,7 +434,12 @@ const ManageItineraries = () => {
             {/* Creator info for invited itineraries */}
             {!isOwned && (
               <Box
-                sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1 }}
+                sx={{
+                  mb: { xs: 1.5, md: 2 },
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                }}
               >
                 <Avatar
                   src={
@@ -354,9 +448,9 @@ const ManageItineraries = () => {
                       : undefined
                   }
                   sx={{
-                    width: 24,
-                    height: 24,
-                    fontSize: "0.75rem",
+                    width: { xs: 20, md: 24 },
+                    height: { xs: 20, md: 24 },
+                    fontSize: { xs: "0.7rem", md: "0.75rem" },
                     backgroundColor: theme.palette.primary.main,
                   }}
                 >
@@ -365,130 +459,282 @@ const ManageItineraries = () => {
                 <Typography
                   variant="body2"
                   color="text.secondary"
-                  sx={{ fontWeight: 500 }}
+                  sx={{
+                    fontWeight: 500,
+                    fontSize: { xs: "0.8rem", md: "0.875rem" },
+                  }}
                 >
                   Creado por {itinerary.user?.name}
                 </Typography>
               </Box>
             )}
 
-            {/* Details */}
-            <Stack spacing={2} sx={{ mb: 3, flex: 1 }}>
+            {/* Details - Responsive layout */}
+            <Stack
+              spacing={{ xs: 1.5, md: 2 }}
+              sx={{ mb: { xs: 2, md: 3 }, flex: 1 }}
+            >
               <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-                <Calendar size={18} color={theme.palette.primary.main} />
+                <Calendar
+                  size={isMobile ? 16 : 18}
+                  color={theme.palette.primary.main}
+                />
                 <Typography
                   variant="body2"
-                  sx={{ fontWeight: 500, color: theme.palette.text.primary }}
+                  sx={{
+                    fontWeight: 500,
+                    color: theme.palette.text.primary,
+                    fontSize: { xs: "0.8rem", md: "0.875rem" },
+                  }}
                 >
                   {itinerary.travelDays} día
                   {itinerary.travelDays !== 1 ? "s" : ""} de viaje
                 </Typography>
               </Box>
 
-              {itinerary.totalBudget && (
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-                  <HandCoins size={18} color={theme.palette.primary.main} />
-                  <Typography
-                    variant="body2"
-                    sx={{ fontWeight: 500, color: theme.palette.text.primary }}
-                  >
-                    Presupuesto: ¥
-                    {itinerary.totalBudget?.toLocaleString("es-ES")}
-                  </Typography>
-                </Box>
-              )}
-
-              {itinerary.destination && (
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-                  <MapPin size={18} color={theme.palette.primary.main} />
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      fontWeight: 500,
-                      color: theme.palette.text.primary,
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {itinerary.destination}
-                  </Typography>
-                </Box>
-              )}
-
-              {!isOwned &&
-                (() => {
-                  const myTraveler = itinerary.travelers?.find(
-                    (traveler) =>
-                      String(traveler.userId._id) === String(user._id)
-                  );
-                  const myRole = myTraveler?.role || "Invitado";
-
-                  return (
+              {/* Collapsible details for mobile */}
+              <Collapse in={expanded || isDesktop}>
+                <Stack spacing={{ xs: 1.5, md: 2 }}>
+                  {itinerary.totalBudget && (
                     <Box
                       sx={{ display: "flex", alignItems: "center", gap: 1.5 }}
                     >
-                      <User size={18} color={theme.palette.secondary.main} />
+                      <HandCoins
+                        size={isMobile ? 16 : 18}
+                        color={theme.palette.primary.main}
+                      />
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          fontWeight: 500,
+                          color: itinerary.totalBudget
+                            ? theme.palette.text.primary
+                            : theme.palette.text.secondary,
+                          fontSize: { xs: "0.8rem", md: "0.875rem" },
+                        }}
+                      >
+                        {itinerary.totalBudget
+                          ? `Presupuesto: ¥${itinerary.totalBudget.toLocaleString("es-ES")}`
+                          : "Presupuesto no definido"}
+                      </Typography>
+                    </Box>
+                  )}
+
+                  {itinerary.destination && (
+                    <Box
+                      sx={{ display: "flex", alignItems: "center", gap: 1.5 }}
+                    >
+                      <MapPin
+                        size={isMobile ? 16 : 18}
+                        color={theme.palette.primary.main}
+                      />
                       <Typography
                         variant="body2"
                         sx={{
                           fontWeight: 500,
                           color: theme.palette.text.primary,
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                          fontSize: { xs: "0.8rem", md: "0.875rem" },
                         }}
                       >
-                        Tu rol: {myRole}
+                        {itinerary.destination}
                       </Typography>
                     </Box>
-                  );
-                })()}
+                  )}
+
+                  {!isOwned &&
+                    (() => {
+                      const myTraveler = itinerary.travelers?.find(
+                        (traveler) =>
+                          String(traveler.userId._id) === String(user._id)
+                      );
+                      const myRole = myTraveler?.role || "Invitado";
+
+                      return (
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1.5,
+                          }}
+                        >
+                          <User
+                            size={isMobile ? 16 : 18}
+                            color={theme.palette.secondary.medium}
+                          />
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              fontWeight: 500,
+                              color: theme.palette.text.primary,
+                              fontSize: { xs: "0.8rem", md: "0.875rem" },
+                            }}
+                          >
+                            Tu rol: {myRole}
+                          </Typography>
+                        </Box>
+                      );
+                    })()}
+                </Stack>
+              </Collapse>
             </Stack>
 
-            {/* Actions */}
-            <Stack direction="row" spacing={1} alignItems="center">
-              <Button
-                variant="contained"
-                startIcon={<Eye size={18} />}
-                onClick={() =>
-                  navigate(`/user/itineraries/manage/view/${itinerary._id}`)
-                }
-                sx={{
-                  borderRadius: "30px",
-                  textTransform: "none",
-                  fontWeight: 600,
-                  flex: 1,
-                  py: 1,
-                  boxShadow: "none",
-                  border: `1px solid ${theme.palette.secondary.medium}`,
-                  backgroundColor: "transparent",
-                  color: theme.palette.secondary.medium,
-                  "&:hover": {
-                    backgroundColor: theme.palette.secondary.light,
-                  },
-                  transition: "all 0.2s ease",
-                }}
-              >
-                Ver detalles
-              </Button>
-
-              <Tooltip title="Compartir">
-                <IconButton
-                  onClick={() => handleShare(itinerary)}
+            {/* Actions - Responsive layout */}
+            {isMobile ? (
+              <Box>
+                {/* Toggle details button */}
+                <Button
+                  size="small"
+                  onClick={() => setExpanded(!expanded)}
                   sx={{
-                    backgroundColor: `${theme.palette.info.main}15`,
-                    color: theme.palette.info.main,
+                    textTransform: "none",
+                    mb: 2,
+                    fontSize: "0.75rem",
+                    color: theme.palette.text.secondary,
+                  }}
+                >
+                  {expanded ? "Menos detalles" : "Más detalles"}
+                </Button>
+
+                {/* Primary action button */}
+                <Button
+                  variant="contained"
+                  startIcon={<Eye size={16} />}
+                  onClick={() =>
+                    navigate(`/user/itineraries/manage/view/${itinerary._id}`)
+                  }
+                  fullWidth
+                  sx={{
+                    borderRadius: "25px",
+                    textTransform: "none",
+                    fontWeight: 600,
+                    py: 1.5,
+                    fontSize: "0.875rem",
+                    backgroundColor: theme.palette.primary.main,
                     "&:hover": {
-                      backgroundColor: `${theme.palette.info.main}25`,
-                      transform: "scale(1.1)",
+                      backgroundColor: theme.palette.primary.dark,
+                    },
+                  }}
+                >
+                  Ver Detalles
+                </Button>
+              </Box>
+            ) : (
+              <Stack direction="row" spacing={1} alignItems="center">
+                <Button
+                  variant="outlined"
+                  startIcon={<Eye size={18} />}
+                  onClick={() =>
+                    navigate(`/user/itineraries/manage/view/${itinerary._id}`)
+                  }
+                  sx={{
+                    borderRadius: "30px",
+                    textTransform: "none",
+                    fontWeight: 600,
+                    flex: 1,
+                    py: { sm: 1, md: 1.2 },
+                    fontSize: { sm: "0.8rem", md: "0.875rem" },
+                    border: `1px solid ${theme.palette.primary.main}`,
+                    color: theme.palette.primary.main,
+                    "&:hover": {
+                      backgroundColor: `${theme.palette.primary.main}10`,
+                      borderColor: theme.palette.primary.dark,
                     },
                     transition: "all 0.2s ease",
                   }}
                 >
-                  <Share size={18} />
-                </IconButton>
-              </Tooltip>
+                  Ver detalles
+                </Button>
 
-              <Tooltip title={isOwned ? "Eliminar" : "Abandonar"}>
-                <IconButton
+                <Tooltip title="Compartir">
+                  <IconButton
+                    onClick={() => handleShare(itinerary)}
+                    size={isTablet ? "small" : "medium"}
+                    sx={{
+                      backgroundColor: `${theme.palette.info.main}15`,
+                      color: theme.palette.info.main,
+                      "&:hover": {
+                        backgroundColor: `${theme.palette.info.main}25`,
+                        transform: "scale(1.05)",
+                      },
+                      transition: "all 0.2s ease",
+                    }}
+                  >
+                    <Share size={isTablet ? 16 : 18} />
+                  </IconButton>
+                </Tooltip>
+
+                <Tooltip title={isOwned ? "Eliminar" : "Abandonar"}>
+                  <IconButton
+                    onClick={() => {
+                      if (isOwned) {
+                        setDeleteDialog({
+                          open: true,
+                          id: itinerary._id,
+                          name: itinerary.name,
+                        });
+                      } else {
+                        setLeaveDialog({
+                          open: true,
+                          id: itinerary._id,
+                          name: itinerary.name,
+                        });
+                      }
+                    }}
+                    size={isTablet ? "small" : "medium"}
+                    sx={{
+                      backgroundColor: `${theme.palette.error.main}15`,
+                      color: theme.palette.error.main,
+                      "&:hover": {
+                        backgroundColor: `${theme.palette.error.main}25`,
+                        transform: "scale(1.05)",
+                      },
+                      transition: "all 0.2s ease",
+                    }}
+                  >
+                    {isOwned ? (
+                      <Trash2 size={isTablet ? 16 : 18} />
+                    ) : (
+                      <LogOut size={isTablet ? 16 : 18} />
+                    )}
+                  </IconButton>
+                </Tooltip>
+              </Stack>
+            )}
+          </CardContent>
+
+          {/* Mobile Action Menu */}
+          {isMobile && (
+            <Dialog
+              open={Boolean(menuAnchor)}
+              onClose={handleMenuClose}
+              PaperProps={{
+                sx: { borderRadius: 2, minWidth: 200 },
+              }}
+            >
+              <Box sx={{ p: 2 }}>
+                <Button
+                  fullWidth
+                  startIcon={<Share size={16} />}
+                  onClick={() => {
+                    handleShare(itinerary);
+                    handleMenuClose();
+                  }}
+                  sx={{
+                    justifyContent: "flex-start",
+                    mb: 1,
+                    textTransform: "none",
+                  }}
+                >
+                  Compartir
+                </Button>
+                <Button
+                  fullWidth
+                  startIcon={
+                    isOwned ? <Trash2 size={16} /> : <LogOut size={16} />
+                  }
                   onClick={() => {
                     if (isOwned) {
                       setDeleteDialog({
@@ -503,22 +749,19 @@ const ManageItineraries = () => {
                         name: itinerary.name,
                       });
                     }
+                    handleMenuClose();
                   }}
                   sx={{
-                    backgroundColor: `${theme.palette.error.main}15`,
+                    justifyContent: "flex-start",
                     color: theme.palette.error.main,
-                    "&:hover": {
-                      backgroundColor: `${theme.palette.error.main}25`,
-                      transform: "scale(1.1)",
-                    },
-                    transition: "all 0.2s ease",
+                    textTransform: "none",
                   }}
                 >
-                  {isOwned ? <Trash2 size={18} /> : <LogOut size={18} />}
-                </IconButton>
-              </Tooltip>
-            </Stack>
-          </CardContent>
+                  {isOwned ? "Eliminar" : "Abandonar"}
+                </Button>
+              </Box>
+            </Dialog>
+          )}
         </Card>
       </Fade>
     );
@@ -526,44 +769,52 @@ const ManageItineraries = () => {
 
   const EmptyState = ({ isOwned = true }) => (
     <Fade in timeout={800}>
-      <Box
+      <Paper
+        elevation={0}
         sx={{
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          py: 8,
-          px: 4,
+          py: { xs: 6, md: 8 },
+          px: { xs: 3, md: 4 },
           textAlign: "center",
           backgroundColor: `${theme.palette.primary.main}05`,
-          borderRadius: "16px",
+          borderRadius: { xs: "12px", md: "16px" },
           border: `2px dashed ${theme.palette.primary.main}30`,
         }}
       >
         <Box
           sx={{
-            width: 120,
-            height: 120,
+            width: { xs: 80, md: 120 },
+            height: { xs: 80, md: 120 },
             borderRadius: "50%",
             backgroundColor: `${theme.palette.primary.main}10`,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            mb: 3,
+            mb: { xs: 2, md: 3 },
           }}
         >
           {isOwned ? (
-            <CirclePlus size={48} color={theme.palette.primary.main} />
+            <CirclePlus
+              size={isMobile ? 32 : 48}
+              color={theme.palette.primary.main}
+            />
           ) : (
-            <Users size={48} color={theme.palette.primary.main} />
+            <Users
+              size={isMobile ? 32 : 48}
+              color={theme.palette.primary.main}
+            />
           )}
         </Box>
 
         <Typography
-          variant="h5"
+          variant={isMobile ? "h6" : "h5"}
           sx={{
             fontWeight: 700,
-            mb: 2,
+            mb: { xs: 1.5, md: 2 },
             color: theme.palette.text.primary,
+            fontSize: { xs: "1.1rem", md: "1.5rem" },
           }}
         >
           {isOwned ? "¡Crea tu primer itinerario!" : "Sin invitaciones"}
@@ -572,7 +823,12 @@ const ManageItineraries = () => {
         <Typography
           variant="body1"
           color="text.secondary"
-          sx={{ mb: 4, maxWidth: 400, lineHeight: 1.6 }}
+          sx={{
+            mb: { xs: 3, md: 4 },
+            maxWidth: { xs: 300, md: 400 },
+            lineHeight: 1.6,
+            fontSize: { xs: "0.875rem", md: "1rem" },
+          }}
         >
           {isOwned
             ? "Planifica y organiza tus viajes a Japón. ¡Tu próxima aventura te está esperando!"
@@ -582,20 +838,20 @@ const ManageItineraries = () => {
         {isOwned && (
           <Button
             variant="contained"
-            startIcon={<CirclePlus size={20} />}
+            startIcon={<CirclePlus size={isMobile ? 18 : 20} />}
             onClick={() => navigate("/user/itineraries/manage/create")}
             sx={{
-              borderRadius: "12px",
-              px: 4,
-              py: 1.5,
+              borderRadius: { xs: "25px", md: "12px" },
+              px: { xs: 3, md: 4 },
+              py: { xs: 1.25, md: 1.5 },
               textTransform: "none",
               fontWeight: 600,
-              fontSize: "1rem",
+              fontSize: { xs: "0.875rem", md: "1rem" },
               backgroundColor: theme.palette.primary.main,
               "&:hover": {
                 backgroundColor: theme.palette.primary.dark,
-
                 boxShadow: theme.shadows[8],
+                transform: { xs: "none", md: "translateY(-2px)" },
               },
               transition: "all 0.3s ease",
             }}
@@ -603,7 +859,7 @@ const ManageItineraries = () => {
             Crear Itinerario
           </Button>
         )}
-      </Box>
+      </Paper>
     </Fade>
   );
 
@@ -619,196 +875,360 @@ const ManageItineraries = () => {
 
   return (
     <Container
-      maxWidth="xl"
+      maxWidth="100%"
       sx={{
-        py: 4,
-        backgroundColor: theme.palette.background.default,
+        py: { xs: 2, sm: 3, md: 4 },
+        px: { xs: 1, sm: 2, md: 3 },
+        backgroundColor: "transparent",
         minHeight: "100vh",
       }}
     >
-      {/* Header */}
-      <Box sx={{ mb: 6 }}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
+      {/* Header - Responsive */}
+      <Box sx={{ mb: { xs: 4, md: 6 } }}>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: { xs: "flex-start", sm: "center" },
+            gap: 2,
+            mb: 2,
+            flexDirection: { xs: "column", sm: "row" },
+          }}
+        >
           <Typography
             variant="h3"
             sx={{
               fontWeight: 700,
               color: theme.palette.text.primary,
-              fontSize: { xs: "2rem", md: "2.5rem" },
+              fontSize: {
+                xs: "1.75rem",
+                sm: "2rem",
+                md: "2.25rem",
+                lg: "2.5rem",
+              },
             }}
           >
             Mis Itinerarios
           </Typography>
         </Box>
+
         <Typography
           variant="h6"
           color="text.secondary"
-          sx={{ maxWidth: 600, mb: 3 }}
+          sx={{
+            maxWidth: { xs: "100%", md: 600 },
+            mb: { xs: 2, md: 3 },
+            fontSize: { xs: "0.875rem", sm: "1rem", md: "1.125rem" },
+          }}
         >
           Gestiona todos tus viajes y aventuras por Japón en un solo lugar
         </Typography>
 
-        {/* Stats */}
-        <Grid container spacing={2} sx={{ mb: 4 }}>
+        {/* Stats - Responsive Grid */}
+        <Grid
+          container
+          spacing={{ xs: 1.5, sm: 2 }}
+          sx={{ mb: { xs: 3, md: 4 } }}
+        >
           <Grid item xs={6} sm={3}>
-            <Box
+            <Paper
+              elevation={0}
               sx={{
                 textAlign: "center",
-                p: 2,
-                backgroundColor: `${theme.palette.primary.main}10`,
-                borderRadius: "12px",
+                p: { xs: 1.5, sm: 2 },
+                backgroundColor: `${theme.palette.background.grey}90`,
+                borderRadius: { xs: "8px", md: "12px" },
               }}
             >
-              <Typography variant="h4" sx={{ fontWeight: 700 }}>
+              <Typography
+                variant={isMobile ? "h5" : "h4"}
+                sx={{
+                  fontWeight: 700,
+                  fontSize: { xs: "1.5rem", sm: "1.75rem", md: "2rem" },
+                }}
+              >
                 {stats.totalCreated}
               </Typography>
-              <Typography variant="body2" color="text.secondary">
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ fontSize: { xs: "0.75rem", md: "0.875rem" } }}
+              >
                 Mis Viajes
               </Typography>
-            </Box>
+            </Paper>
           </Grid>
+
           <Grid item xs={6} sm={3}>
-            <Box
+            <Paper
+              elevation={0}
               sx={{
                 textAlign: "center",
-                p: 2,
-                backgroundColor: `${theme.palette.primary.main}10`,
-                borderRadius: "12px",
+                p: { xs: 1.5, sm: 2 },
+                backgroundColor: `${theme.palette.background.grey}90`,
+                borderRadius: { xs: "8px", md: "12px" },
               }}
             >
-              <Typography variant="h4" sx={{ fontWeight: 700 }}>
+              <Typography
+                variant={isMobile ? "h5" : "h4"}
+                sx={{
+                  fontWeight: 700,
+                  fontSize: { xs: "1.5rem", sm: "1.75rem", md: "2rem" },
+                }}
+              >
                 {stats.totalInvited}
               </Typography>
-              <Typography variant="body2" color="text.secondary">
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ fontSize: { xs: "0.75rem", md: "0.875rem" } }}
+              >
                 Invitaciones
               </Typography>
-            </Box>
+            </Paper>
           </Grid>
+
           <Grid item xs={6} sm={3}>
-            <Box
+            <Paper
+              elevation={0}
               sx={{
                 textAlign: "center",
-                p: 2,
-                backgroundColor: `${theme.palette.primary.main}10`,
-                borderRadius: "12px",
+                p: { xs: 1.5, sm: 2 },
+                backgroundColor: `${theme.palette.background.grey}90`,
+                borderRadius: { xs: "8px", md: "12px" },
               }}
             >
-              <Typography variant="h4" sx={{ fontWeight: 700 }}>
+              <Typography
+                variant={isMobile ? "h5" : "h4"}
+                sx={{
+                  fontWeight: 700,
+                  fontSize: { xs: "1.5rem", sm: "1.75rem", md: "2rem" },
+                }}
+              >
                 {stats.publicCount}
               </Typography>
-              <Typography variant="body2" color="text.secondary">
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ fontSize: { xs: "0.75rem", md: "0.875rem" } }}
+              >
                 Públicos
               </Typography>
-            </Box>
+            </Paper>
           </Grid>
+
           <Grid item xs={6} sm={3}>
-            <Box
+            <Paper
+              elevation={0}
               sx={{
                 textAlign: "center",
-                p: 2,
-                backgroundColor: `${theme.palette.primary.main}10`,
-                borderRadius: "12px",
+                p: { xs: 1.5, sm: 2 },
+                backgroundColor: `${theme.palette.background.grey}90`,
+                borderRadius: { xs: "8px", md: "12px" },
               }}
             >
-              <Typography variant="h4" sx={{ fontWeight: 700 }}>
+              <Typography
+                variant={isMobile ? "h5" : "h4"}
+                sx={{
+                  fontWeight: 700,
+                  fontSize: { xs: "1.5rem", sm: "1.75rem", md: "2rem" },
+                }}
+              >
                 {stats.privateCount}
               </Typography>
-              <Typography variant="body2" color="text.secondary">
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ fontSize: { xs: "0.75rem", md: "0.875rem" } }}
+              >
                 Privados
               </Typography>
-            </Box>
+            </Paper>
           </Grid>
         </Grid>
 
-        {/* Search and Filters */}
-        <Grid container spacing={2} alignItems="center">
-          <Grid item xs={12} md={6}>
-            <TextField
-              fullWidth
-              placeholder="Buscar itinerarios..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <Search size={20} color={theme.palette.text.secondary} />
-                  </InputAdornment>
-                ),
-              }}
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: "30px",
-                  backgroundColor: theme.palette.background.paper,
-                },
-              }}
-            />
+        <Paper
+          elevation={0}
+          sx={{
+            p: { xs: 2, md: 3 },
+            borderRadius: { xs: "12px", md: "16px" },
+            border: `1px solid ${theme.palette.divider}`,
+            backgroundColor: theme.palette.background.default,
+          }}
+        >
+          <Grid container spacing={{ xs: 2, md: 2 }} alignItems="center">
+            {/* Search */}
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                placeholder="Buscar itinerarios..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                size={isMobile ? "small" : "medium"}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Search
+                        size={isMobile ? 18 : 20}
+                        color={theme.palette.text.secondary}
+                      />
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: { xs: "25px", md: "30px" },
+                    backgroundColor: theme.palette.background.default,
+                    "&:hover fieldset": {
+                      borderColor: theme.palette.primary.main,
+                    },
+                    "&.Mui-focused fieldset": {
+                      borderColor: theme.palette.primary.main,
+                    },
+                  },
+                }}
+              />
+            </Grid>
+
+            {/* Filter controls - Responsive layout */}
+            {isMobile ? (
+              <Grid item xs={12}>
+                <Button
+                  fullWidth
+                  variant="outlined"
+                  startIcon={<Filter size={16} />}
+                  onClick={() => setShowFilters(!showFilters)}
+                  sx={{
+                    borderRadius: "25px",
+                    textTransform: "none",
+                    py: 1.25,
+                  }}
+                >
+                  Filtros {showFilters ? "▲" : "▼"}
+                </Button>
+
+                <Collapse in={showFilters}>
+                  <Box
+                    sx={{
+                      mt: 2,
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 2,
+                    }}
+                  >
+                    <FormControl fullWidth size="small">
+                      <InputLabel>Ordenar por</InputLabel>
+                      <Select
+                        value={sortBy}
+                        label="Ordenar por"
+                        onChange={(e) => setSortBy(e.target.value)}
+                        sx={{ borderRadius: "20px" }}
+                      >
+                        <MenuItem value="newest">Más recientes</MenuItem>
+                        <MenuItem value="oldest">Más antiguos</MenuItem>
+                        <MenuItem value="name">Nombre A-Z</MenuItem>
+                        <MenuItem value="duration">Duración</MenuItem>
+                      </Select>
+                    </FormControl>
+
+                    <FormControl fullWidth size="small">
+                      <InputLabel>Filtrar</InputLabel>
+                      <Select
+                        value={filterStatus}
+                        label="Filtrar"
+                        onChange={(e) => setFilterStatus(e.target.value)}
+                        sx={{ borderRadius: "20px" }}
+                      >
+                        <MenuItem value="all">Todos</MenuItem>
+                        <MenuItem value="public">Públicos</MenuItem>
+                        <MenuItem value="private">Privados</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Box>
+                </Collapse>
+              </Grid>
+            ) : (
+              <>
+                <Grid item xs={12} sm={6} md={3}>
+                  <FormControl fullWidth>
+                    <InputLabel>Ordenar por</InputLabel>
+                    <Select
+                      value={sortBy}
+                      label="Ordenar por"
+                      onChange={(e) => setSortBy(e.target.value)}
+                      sx={{ borderRadius: "30px" }}
+                    >
+                      <MenuItem value="newest">Más recientes</MenuItem>
+                      <MenuItem value="oldest">Más antiguos</MenuItem>
+                      <MenuItem value="name">Nombre A-Z</MenuItem>
+                      <MenuItem value="duration">Duración</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+
+                <Grid item xs={12} sm={6} md={3}>
+                  <FormControl fullWidth>
+                    <InputLabel>Filtrar</InputLabel>
+                    <Select
+                      value={filterStatus}
+                      label="Filtrar"
+                      onChange={(e) => setFilterStatus(e.target.value)}
+                      sx={{ borderRadius: "30px" }}
+                    >
+                      <MenuItem value="all">Todos</MenuItem>
+                      <MenuItem value="public">Públicos</MenuItem>
+                      <MenuItem value="private">Privados</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+              </>
+            )}
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <FormControl fullWidth>
-              <InputLabel>Ordenar por</InputLabel>
-              <Select
-                value={sortBy}
-                label="Ordenar por"
-                onChange={(e) => setSortBy(e.target.value)}
-                sx={{ borderRadius: "30px" }}
-              >
-                <MenuItem value="newest">Más recientes</MenuItem>
-                <MenuItem value="oldest">Más antiguos</MenuItem>
-                <MenuItem value="name">Nombre A-Z</MenuItem>
-                <MenuItem value="duration">Duración</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <FormControl fullWidth>
-              <InputLabel>Filtrar</InputLabel>
-              <Select
-                value={filterStatus}
-                label="Filtrar"
-                onChange={(e) => setFilterStatus(e.target.value)}
-                sx={{ borderRadius: "30px" }}
-              >
-                <MenuItem value="all">Todos</MenuItem>
-                <MenuItem value="public">Públicos</MenuItem>
-                <MenuItem value="private">Privados</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
-        </Grid>
+        </Paper>
       </Box>
 
       {loading && <LinearProgress sx={{ mb: 4, borderRadius: "4px" }} />}
 
       {/* Your Itineraries Section */}
-      <Box sx={{ mb: 8 }}>
+      <Box sx={{ mb: { xs: 6, md: 8 } }}>
         <Box
           sx={{
             display: "flex",
             justifyContent: "space-between",
-            alignItems: "center",
-            mb: 4,
-            flexWrap: "wrap",
-            gap: 2,
+            alignItems: { xs: "flex-start", sm: "center" },
+            mb: { xs: 3, md: 4 },
+            flexDirection: { xs: "column", sm: "row" },
+            gap: { xs: 2, sm: 0 },
           }}
         >
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
             <Box
               sx={{
-                p: 2,
-                borderRadius: "12px",
+                p: { xs: 1.5, md: 2 },
+                borderRadius: { xs: "8px", md: "12px" },
                 backgroundColor: `${theme.palette.primary.main}15`,
               }}
             >
-              <Crown size={24} color={theme.palette.primary.main} />
+              <Crown
+                size={isMobile ? 20 : 24}
+                color={theme.palette.primary.main}
+              />
             </Box>
             <Box>
               <Typography
                 variant="h4"
-                sx={{ fontWeight: 700, color: theme.palette.text.primary }}
+                sx={{
+                  fontWeight: 700,
+                  color: theme.palette.text.primary,
+                  fontSize: { xs: "1.5rem", sm: "1.75rem", md: "2rem" },
+                }}
               >
                 Mis Viajes
               </Typography>
-              <Typography variant="body2" color="text.secondary">
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ fontSize: { xs: "0.8rem", md: "0.875rem" } }}
+              >
                 {filteredCreated.length} de {createdItineraries.length}{" "}
                 itinerarios
               </Typography>
@@ -817,23 +1237,25 @@ const ManageItineraries = () => {
 
           <Button
             variant="contained"
-            startIcon={<CirclePlus size={20} />}
+            startIcon={<CirclePlus size={isMobile ? 18 : 20} />}
             onClick={() => navigate("/user/itineraries/manage/create")}
             sx={{
               borderRadius: "30px",
-              px: 3,
-              py: 1.5,
+              px: { xs: 2.5, md: 3 },
+              py: { xs: 1.25, md: 1.5 },
               textTransform: "none",
               fontWeight: 600,
+              fontSize: { xs: "0.875rem", md: "1rem" },
               backgroundColor: theme.palette.primary.main,
+              alignSelf: { xs: "stretch", sm: "auto" },
               "&:hover": {
                 backgroundColor: theme.palette.primary.dark,
-                transform: "translateY(-1px)",
+                transform: { xs: "none", md: "translateY(-1px)" },
               },
               transition: "all 0.2s ease",
             }}
           >
-            Nuevo Itinerario
+            {isMobile ? "Nuevo Itinerario" : "Nuevo Itinerario"}
           </Button>
         </Box>
 
@@ -842,15 +1264,26 @@ const ManageItineraries = () => {
             <EmptyState isOwned={true} />
           ) : (
             <Box sx={{ textAlign: "center", py: 4 }}>
-              <Typography variant="h6" color="text.secondary">
+              <Typography
+                variant="h6"
+                color="text.secondary"
+                sx={{ fontSize: { xs: "1rem", md: "1.25rem" } }}
+              >
                 No se encontraron itinerarios con los filtros aplicados
               </Typography>
             </Box>
           )
         ) : (
-          <Grid container spacing={3}>
+          <Grid container spacing={{ xs: 2, sm: 2.5, md: 3 }}>
             {filteredCreated.map((itinerary, index) => (
-              <Grid item xs={12} sm={6} lg={4} key={itinerary._id}>
+              <Grid
+                item
+                xs={12}
+                sm={6}
+                md={isWideTablet ? 6 : 4}
+                lg={isUltraWide ? 3 : 4}
+                key={itinerary._id}
+              >
                 <Fade in timeout={300 + index * 50}>
                   <div>
                     <ItineraryCard
@@ -874,24 +1307,42 @@ const ManageItineraries = () => {
 
       {/* Invited Itineraries Section */}
       <Box>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 4 }}>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 2,
+            mb: { xs: 3, md: 4 },
+          }}
+        >
           <Box
             sx={{
-              p: 2,
-              borderRadius: "12px",
-              backgroundColor: `${theme.palette.secondary.main}15`,
+              p: { xs: 1.5, md: 2 },
+              borderRadius: { xs: "8px", md: "12px" },
+              backgroundColor: `${theme.palette.secondary.medium}15`,
             }}
           >
-            <Users size={24} color={theme.palette.secondary.main} />
+            <Users
+              size={isMobile ? 20 : 24}
+              color={theme.palette.secondary.medium}
+            />
           </Box>
           <Box>
             <Typography
               variant="h4"
-              sx={{ fontWeight: 700, color: theme.palette.text.primary }}
+              sx={{
+                fontWeight: 700,
+                color: theme.palette.text.primary,
+                fontSize: { xs: "1.5rem", sm: "1.75rem", md: "2rem" },
+              }}
             >
               Invitaciones
             </Typography>
-            <Typography variant="body2" color="text.secondary">
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              sx={{ fontSize: { xs: "0.8rem", md: "0.875rem" } }}
+            >
               {filteredInvited.length} de {invitedItineraries.length}{" "}
               invitaciones
             </Typography>
@@ -903,15 +1354,26 @@ const ManageItineraries = () => {
             <EmptyState isOwned={false} />
           ) : (
             <Box sx={{ textAlign: "center", py: 4 }}>
-              <Typography variant="h6" color="text.secondary">
+              <Typography
+                variant="h6"
+                color="text.secondary"
+                sx={{ fontSize: { xs: "1rem", md: "1.25rem" } }}
+              >
                 No se encontraron invitaciones con los filtros aplicados
               </Typography>
             </Box>
           )
         ) : (
-          <Grid container spacing={3}>
+          <Grid container spacing={{ xs: 2, sm: 2.5, md: 3 }}>
             {filteredInvited.map((itinerary, index) => (
-              <Grid item xs={12} sm={6} lg={4} key={itinerary._id}>
+              <Grid
+                item
+                xs={12}
+                sm={6}
+                md={isWideTablet ? 6 : 4}
+                lg={isUltraWide ? 3 : 4}
+                key={itinerary._id}
+              >
                 <Fade in timeout={300 + index * 50}>
                   <div>
                     <ItineraryCard
@@ -937,18 +1399,26 @@ const ManageItineraries = () => {
       <Dialog
         open={deleteDialog.open}
         onClose={() => setDeleteDialog({ open: false, id: null, name: "" })}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: { borderRadius: 2 },
+        }}
       >
-        <DialogTitle>Confirmar Eliminación</DialogTitle>
+        <DialogTitle sx={{ fontSize: { xs: "1.125rem", md: "1.25rem" } }}>
+          Confirmar Eliminación
+        </DialogTitle>
         <DialogContent>
-          <Typography>
+          <Typography sx={{ fontSize: { xs: "0.875rem", md: "1rem" } }}>
             ¿Estás seguro de que quieres eliminar el itinerario "
             <strong>{deleteDialog.name}</strong>"? Esta acción no se puede
             deshacer.
           </Typography>
         </DialogContent>
-        <DialogActions>
+        <DialogActions sx={{ p: 3, gap: 1 }}>
           <Button
             onClick={() => setDeleteDialog({ open: false, id: null, name: "" })}
+            sx={{ borderRadius: "20px", textTransform: "none" }}
           >
             Cancelar
           </Button>
@@ -956,6 +1426,7 @@ const ManageItineraries = () => {
             onClick={() => handleDelete(deleteDialog.id)}
             color="error"
             variant="contained"
+            sx={{ borderRadius: "20px", textTransform: "none" }}
           >
             Eliminar
           </Button>
@@ -966,18 +1437,26 @@ const ManageItineraries = () => {
       <Dialog
         open={leaveDialog.open}
         onClose={() => setLeaveDialog({ open: false, id: null, name: "" })}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: { borderRadius: 2 },
+        }}
       >
-        <DialogTitle>Abandonar Itinerario</DialogTitle>
+        <DialogTitle sx={{ fontSize: { xs: "1.125rem", md: "1.25rem" } }}>
+          Abandonar Itinerario
+        </DialogTitle>
         <DialogContent>
-          <Typography>
+          <Typography sx={{ fontSize: { xs: "0.875rem", md: "1rem" } }}>
             ¿Estás seguro de que quieres abandonar el itinerario "
             <strong>{leaveDialog.name}</strong>"? Ya no tendrás acceso a este
             viaje.
           </Typography>
         </DialogContent>
-        <DialogActions>
+        <DialogActions sx={{ p: 3, gap: 1 }}>
           <Button
             onClick={() => setLeaveDialog({ open: false, id: null, name: "" })}
+            sx={{ borderRadius: "20px", textTransform: "none" }}
           >
             Cancelar
           </Button>
@@ -985,6 +1464,7 @@ const ManageItineraries = () => {
             onClick={() => handleLeave(leaveDialog.id)}
             color="warning"
             variant="contained"
+            sx={{ borderRadius: "20px", textTransform: "none" }}
           >
             Abandonar
           </Button>

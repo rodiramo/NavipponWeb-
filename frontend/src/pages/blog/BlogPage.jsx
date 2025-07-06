@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 import { getAllPosts } from "../../services/index/posts";
+import { getUserFriends } from "../../services/index/users"; // Use your existing user service
 import ArticleCardSkeleton from "../../components/ArticleCardSkeleton";
 import ErrorMessage from "../../components/ErrorMessage";
 import ArticleCard from "../../components/ArticleCard";
@@ -36,6 +37,7 @@ import {
   ArrowForward,
 } from "@mui/icons-material";
 import { Users } from "lucide-react";
+
 let isFirstRun = true;
 
 const BlogPage = () => {
@@ -43,8 +45,9 @@ const BlogPage = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down("lg"));
   const [searchParams, setSearchParams] = useSearchParams();
   const [open, setOpen] = useState(false);
-  const [userListModalOpen, setUserListModalOpen] = useState(false); // New state for UserList modal
+  const [userListModalOpen, setUserListModalOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
+  const [friendshipStates, setFriendshipStates] = useState({});
   const { user, jwt } = useUser();
 
   const [sortBy, setSortBy] = useState("newest");
@@ -61,6 +64,94 @@ const BlogPage = () => {
       console.log(error);
     },
   });
+
+  // Extract unique author IDs from posts
+  const authorIds = useMemo(() => {
+    if (!data?.data || !user) return [];
+    const uniqueIds = [
+      ...new Set(
+        data.data
+          .map((post) => post.user?._id || post.userId?._id)
+          .filter((id) => id && id !== user._id)
+      ),
+    ];
+    return uniqueIds;
+  }, [data?.data, user?._id]);
+
+  // Fetch friendship states for all authors using your existing user service
+  const { data: friendsData, isLoading: friendsLoading } = useQuery({
+    queryKey: ["userFriends", user?._id],
+    queryFn: () => getUserFriends({ userId: user._id, token: jwt }),
+    enabled: !!user && !!jwt,
+    staleTime: 5 * 60 * 1000,
+    onError: (error) => {
+      console.error("Error fetching friends:", error);
+    },
+  });
+
+  // Process friends data into friendship states
+  useEffect(() => {
+    if (friendsData && authorIds.length > 0) {
+      const states = {};
+
+      console.log("🔗 Raw friends data from API:", friendsData);
+
+      authorIds.forEach((authorId) => {
+        // Check if this author is in the friends list
+        // Your API might return different structures, so let's handle multiple possibilities
+        let isFriend = false;
+
+        if (Array.isArray(friendsData)) {
+          // If friendsData is a direct array of friends
+          isFriend = friendsData.some(
+            (friend) =>
+              friend._id === authorId ||
+              friend.id === authorId ||
+              friend.user?._id === authorId ||
+              friend.friend?._id === authorId
+          );
+        } else if (friendsData.friends && Array.isArray(friendsData.friends)) {
+          // If friendsData has a friends property with an array
+          isFriend = friendsData.friends.some(
+            (friend) =>
+              friend._id === authorId ||
+              friend.id === authorId ||
+              friend.user?._id === authorId ||
+              friend.friend?._id === authorId
+          );
+        } else if (friendsData.data && Array.isArray(friendsData.data)) {
+          // If friendsData has a data property with an array
+          isFriend = friendsData.data.some(
+            (friend) =>
+              friend._id === authorId ||
+              friend.id === authorId ||
+              friend.user?._id === authorId ||
+              friend.friend?._id === authorId
+          );
+        }
+
+        states[authorId] = {
+          status: isFriend ? "accepted" : "none",
+          pending: false,
+          isFriend: isFriend,
+          friendshipId: isFriend ? "friend-id" : null,
+          sentByCurrentUser: false,
+        };
+      });
+
+      console.log("🔗 Friendship states processed:", states);
+      setFriendshipStates(states);
+    }
+  }, [friendsData, authorIds, user?._id]);
+
+  // Handler to update friendship state when user takes action
+  const handleFriendshipUpdate = (authorId, newState) => {
+    console.log("🔄 Updating friendship state:", { authorId, newState });
+    setFriendshipStates((prev) => ({
+      ...prev,
+      [authorId]: newState,
+    }));
+  };
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -266,6 +357,15 @@ const BlogPage = () => {
                         color="primary"
                         variant="outlined"
                       />
+                      {/* Show friendship loading state */}
+                      {friendsLoading && (
+                        <Chip
+                          size="small"
+                          label="Cargando amistades..."
+                          color="info"
+                          variant="outlined"
+                        />
+                      )}
                     </Box>
                   </Box>
 
@@ -441,17 +541,33 @@ const BlogPage = () => {
                   </Paper>
                 ) : (
                   <>
-                    {/* Posts Grid */}
+                    {/* Posts Grid with Friendship States */}
                     <Grid container spacing={3} sx={{ mb: 6 }}>
-                      {data?.data.map((post) => (
-                        <Grid item xs={12} sm={6} lg={4} key={post._id}>
-                          <ArticleCard
-                            post={post}
-                            currentUser={user}
-                            token={jwt}
-                          />
-                        </Grid>
-                      ))}
+                      {data?.data.map((post) => {
+                        const authorId = post.user?._id || post.userId?._id;
+                        const friendshipState = friendshipStates[authorId] || {
+                          status: "none",
+                          pending: false,
+                          isFriend: false,
+                          friendshipId: null,
+                          sentByCurrentUser: false,
+                        };
+
+                        return (
+                          <Grid item xs={12} sm={6} lg={4} key={post._id}>
+                            <ArticleCard
+                              post={post}
+                              currentUser={user}
+                              token={jwt}
+                              // Pass friendship state to the card
+                              friendshipState={friendshipState}
+                              onFriendshipUpdate={(newState) =>
+                                handleFriendshipUpdate(authorId, newState)
+                              }
+                            />
+                          </Grid>
+                        );
+                      })}
                     </Grid>
 
                     {/* Pagination */}

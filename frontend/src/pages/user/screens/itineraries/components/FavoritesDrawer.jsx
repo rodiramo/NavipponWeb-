@@ -512,7 +512,7 @@ const EnhancedFilters = ({
                       : "transparent",
                   color:
                     !selectedRegion || selectedRegion === "All"
-                      ? "white"
+                      ? theme.palette.primary.white
                       : theme.palette.text.primary,
                   border: `1px solid ${theme.palette.secondary.main}30`,
                   "&:hover": {
@@ -680,7 +680,7 @@ const FavoritesDrawer = ({
 
   // Responsive drawer width
   const responsiveDrawerWidth = isMobile
-    ? "100vw"
+    ? "100%"
     : isTablet
       ? 350
       : drawerWidth;
@@ -845,9 +845,12 @@ const FavoritesDrawer = ({
                   : "translateX(0)",
             transition: "transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
             top: isMobile ? 0 : "0rem",
-            height: isMobile ? "100vh" : "auto",
-            background: `linear-gradient(135deg, ${theme.palette.background.paper}95)`,
+            height: isMobile ? "100vh" : "100vh",
+            background: `linear-gradient(135deg, ${theme.palette.background.default}95)`,
             backdropFilter: "blur(20px)",
+            display: "flex",
+            flexDirection: "column",
+            overflow: "hidden",
           },
         }}
       >
@@ -857,9 +860,10 @@ const FavoritesDrawer = ({
             position: "sticky",
             top: 0,
             zIndex: 10,
-            background: `linear-gradient(135deg, ${theme.palette.secondary.medium})`,
-            color: "white",
+            background: theme.palette.background.default,
+            color: theme.palette.primary.black,
             p: { xs: 2, sm: 3 },
+            flexShrink: 0,
             "&::before": {
               content: '""',
               position: "absolute",
@@ -874,7 +878,6 @@ const FavoritesDrawer = ({
             sx={{
               position: "relative",
               zIndex: 1,
-              color: theme.palette.primary.white,
             }}
           >
             <Box
@@ -937,7 +940,7 @@ const FavoritesDrawer = ({
         </Box>
 
         {/* Enhanced Filters */}
-        <Box sx={{ p: { xs: 2, sm: 3 }, pb: { xs: 1, sm: 2 } }}>
+        <Box sx={{ p: { xs: 2, sm: 3 }, pb: { xs: 1, sm: 2 }, flexShrink: 0 }}>
           <EnhancedFilters
             selectedCategory={selectedCategory}
             setSelectedCategory={setSelectedCategory}
@@ -952,137 +955,161 @@ const FavoritesDrawer = ({
           />
         </Box>
 
-        {/* Enhanced Favorites List */}
-        {favoriteEntries.length > 0 ? (
-          <DroppableDrawer isMobile={isMobile}>
-            {favoriteEntries.map(([category, favs]) => (
-              <Box key={category} sx={{ mb: { xs: 3, sm: 4 } }}>
-                {/* Enhanced Category Header */}
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: { xs: 1.5, sm: 2 },
-                    mb: { xs: 2, sm: 3 },
-                    p: { xs: 1.5, sm: 2 },
-                    borderRadius: { xs: 2, sm: 3 },
-                    background: `linear-gradient(135deg, ${theme.palette.primary.main}15)`,
-                    border: `1px solid ${theme.palette.primary.main}30`,
-                  }}
-                >
-                  {getCategoryIcon(category)}
-                  <Typography
-                    variant={isMobile ? "subtitle1" : "h6"}
+        {/* Scrollable Content Area */}
+        <Box
+          sx={{
+            flex: 1,
+            overflow: "auto",
+            paddingX: { xs: 2, sm: 3 },
+            paddingBottom: { xs: 2, sm: 3 },
+            // Custom scrollbar styling
+            "&::-webkit-scrollbar": {
+              width: "6px",
+            },
+            "&::-webkit-scrollbar-track": {
+              background: "transparent",
+            },
+            "&::-webkit-scrollbar-thumb": {
+              background: theme.palette.grey[400],
+              borderRadius: "3px",
+            },
+            "&::-webkit-scrollbar-thumb:hover": {
+              background: theme.palette.grey[600],
+            },
+          }}
+        >
+          {/* Enhanced Favorites List */}
+          {favoriteEntries.length > 0 ? (
+            <DroppableDrawer isMobile={isMobile}>
+              {favoriteEntries.map(([category, favs]) => (
+                <Box key={category} sx={{ mb: { xs: 3, sm: 4 } }}>
+                  {/* Enhanced Category Header */}
+                  <Box
                     sx={{
-                      fontWeight: 700,
-                      color: theme.palette.primary.main,
-                      flex: 1,
-                      fontSize: { xs: "1rem", sm: "1.25rem" },
+                      display: "flex",
+                      alignItems: "center",
+                      gap: { xs: 1.5, sm: 2 },
+                      mb: { xs: 2, sm: 3 },
+                      p: { xs: 1.5, sm: 2 },
+                      borderRadius: { xs: 2, sm: 3 },
+                      background: `linear-gradient(135deg, ${theme.palette.primary.main}15)`,
+                      border: `1px solid ${theme.palette.primary.main}30`,
                     }}
                   >
-                    {category}
-                  </Typography>
-                  <Chip
-                    label={favs.length}
-                    size="small"
-                    sx={{
-                      background: `linear-gradient(135deg, ${theme.palette.primary.main})`,
-                      color: "white",
-                      fontWeight: 600,
-                      fontSize: { xs: "0.7rem", sm: "0.75rem" },
-                      height: { xs: 20, sm: 24 },
-                    }}
-                  />
+                    {getCategoryIcon(category)}
+                    <Typography
+                      variant={isMobile ? "subtitle1" : "h6"}
+                      sx={{
+                        fontWeight: 700,
+                        color: theme.palette.primary.main,
+                        flex: 1,
+                        fontSize: { xs: "1rem", sm: "1.25rem" },
+                      }}
+                    >
+                      {category}
+                    </Typography>
+                    <Chip
+                      label={favs.length}
+                      size="small"
+                      sx={{
+                        background: `linear-gradient(135deg, ${theme.palette.primary.main})`,
+                        color: "white",
+                        fontWeight: 600,
+                        fontSize: { xs: "0.7rem", sm: "0.75rem" },
+                        height: { xs: 20, sm: 24 },
+                      }}
+                    />
+                  </Box>
+
+                  {/* List of Favorites */}
+                  {Array.isArray(favs) &&
+                    favs.map((fav, index) => {
+                      if (!fav || !fav.experienceId || !fav._id) {
+                        return null;
+                      }
+
+                      return (
+                        <DraggableFavorite
+                          key={fav._id}
+                          fav={fav}
+                          index={index}
+                          userRole={userRole}
+                          isMobile={isMobile}
+                        />
+                      );
+                    })}
                 </Box>
-
-                {/* List of Favorites */}
-                {Array.isArray(favs) &&
-                  favs.map((fav, index) => {
-                    if (!fav || !fav.experienceId || !fav._id) {
-                      return null;
-                    }
-
-                    return (
-                      <DraggableFavorite
-                        key={fav._id}
-                        fav={fav}
-                        index={index}
-                        userRole={userRole}
-                        isMobile={isMobile}
-                      />
-                    );
-                  })}
-              </Box>
-            ))}
-          </DroppableDrawer>
-        ) : (
-          // Enhanced Empty State
-          <Box
-            sx={{
-              flex: 1,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flexDirection: "column",
-              p: { xs: 3, sm: 4 },
-              textAlign: "center",
-            }}
-          >
+              ))}
+            </DroppableDrawer>
+          ) : (
+            // Enhanced Empty State
             <Box
               sx={{
-                width: { xs: 80, sm: 120 },
-                height: { xs: 80, sm: 120 },
-                borderRadius: "50%",
-                background: `linear-gradient(135deg, ${theme.palette.primary.main}20)`,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                mb: { xs: 2, sm: 3 },
-                animation: "pulse 2s infinite",
-                "@keyframes pulse": {
-                  "0%, 100%": { opacity: 1, transform: "scale(1)" },
-                  "50%": { opacity: 0.8, transform: "scale(1.05)" },
-                },
+                flexDirection: "column",
+                p: { xs: 3, sm: 4 },
+                textAlign: "center",
+                minHeight: "50vh",
               }}
             >
-              <Heart
-                size={isMobile ? 32 : 48}
-                color={theme.palette.primary.main}
-              />
-            </Box>
-            <Typography
-              variant={isMobile ? "subtitle1" : "h6"}
-              sx={{ mb: 2, fontWeight: 600 }}
-            >
-              {totalFavorites === 0
-                ? "No tienes favoritos aún"
-                : "No se encontraron favoritos"}
-            </Typography>
-            <Typography
-              variant="body2"
-              color="text.secondary"
-              sx={{
-                maxWidth: { xs: 240, sm: 280 },
-                lineHeight: 1.5,
-                fontSize: { xs: "0.8rem", sm: "0.875rem" },
-              }}
-            >
-              {totalFavorites === 0
-                ? "Empieza a guardar tus lugares favoritos para verlos aquí organizados por categoría"
-                : "Intenta ajustar los filtros para encontrar lo que buscas"}
-            </Typography>
-            {filteredCount === 0 && totalFavorites > 0 && (
-              <Button
-                onClick={onClearFilters}
-                variant="outlined"
-                size={isMobile ? "small" : "medium"}
-                sx={{ mt: 2, borderRadius: 3 }}
+              <Box
+                sx={{
+                  width: { xs: 80, sm: 120 },
+                  height: { xs: 80, sm: 120 },
+                  borderRadius: "50%",
+                  background: `linear-gradient(135deg, ${theme.palette.primary.main}20)`,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  mb: { xs: 2, sm: 3 },
+                  animation: "pulse 2s infinite",
+                  "@keyframes pulse": {
+                    "0%, 100%": { opacity: 1, transform: "scale(1)" },
+                    "50%": { opacity: 0.8, transform: "scale(1.05)" },
+                  },
+                }}
               >
-                Limpiar filtros
-              </Button>
-            )}
-          </Box>
-        )}
+                <Heart
+                  size={isMobile ? 32 : 48}
+                  color={theme.palette.primary.main}
+                />
+              </Box>
+              <Typography
+                variant={isMobile ? "subtitle1" : "h6"}
+                sx={{ mb: 2, fontWeight: 600 }}
+              >
+                {totalFavorites === 0
+                  ? "No tienes favoritos aún"
+                  : "No se encontraron favoritos"}
+              </Typography>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{
+                  maxWidth: { xs: 240, sm: 280 },
+                  lineHeight: 1.5,
+                  fontSize: { xs: "0.8rem", sm: "0.875rem" },
+                }}
+              >
+                {totalFavorites === 0
+                  ? "Empieza a guardar tus lugares favoritos para verlos aquí organizados por categoría"
+                  : "Intenta ajustar los filtros para encontrar lo que buscas"}
+              </Typography>
+              {filteredCount === 0 && totalFavorites > 0 && (
+                <Button
+                  onClick={onClearFilters}
+                  variant="outlined"
+                  size={isMobile ? "small" : "medium"}
+                  sx={{ mt: 2, borderRadius: 3 }}
+                >
+                  Limpiar filtros
+                </Button>
+              )}
+            </Box>
+          )}
+        </Box>
       </DrawerComponent>
 
       {/* Responsive Floating Button */}

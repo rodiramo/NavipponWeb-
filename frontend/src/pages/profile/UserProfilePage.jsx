@@ -26,6 +26,7 @@ import {
   Grid,
   Chip,
   Container,
+  useMediaQuery,
 } from "@mui/material";
 import {
   FmdGoodOutlined,
@@ -40,11 +41,15 @@ import {
 } from "@mui/icons-material";
 import FriendToggle from "./component/FriendToggle";
 import { Eye, ScrollText, Info } from "lucide-react";
+
 const UserProfilePage = () => {
   const { userId } = useParams();
   const navigate = useNavigate();
   const { user: currentUser, jwt: token } = useUser();
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const isSmallMobile = useMediaQuery(theme.breakpoints.down("sm"));
+
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -55,7 +60,6 @@ const UserProfilePage = () => {
   const [postsLoading, setPostsLoading] = useState(false);
   const [tripsLoading, setTripsLoading] = useState(false);
 
-  // Determine if this is the current user's profile or someone else's
   const isOwnProfile = !userId || userId === currentUser?._id;
 
   // Cover image state
@@ -66,7 +70,6 @@ const UserProfilePage = () => {
       console.log(`Fetching profile for user ID: ${userId}`);
       getUserProfileById({ userId, token })
         .then((data) => {
-          console.log("API User Profile Response:", data);
           setProfile(data);
 
           // Set cover image
@@ -248,7 +251,7 @@ const UserProfilePage = () => {
     }
 
     return (
-      <Grid container spacing={3}>
+      <Grid container spacing={isMobile ? 2 : 3}>
         {posts.map((post) => (
           <Grid item xs={12} sm={6} md={4} key={post._id}>
             <ArticleCard
@@ -295,7 +298,7 @@ const UserProfilePage = () => {
     }
 
     return (
-      <Grid container spacing={3}>
+      <Grid container spacing={isMobile ? 2 : 3}>
         {trips.map((trip) => {
           const permissions = getUserTripPermissions(trip, currentUser);
 
@@ -304,7 +307,8 @@ const UserProfilePage = () => {
               <Card
                 sx={{
                   height: "100%",
-                  borderRadius: "16px",
+                  borderRadius: { xs: "12px", md: "16px" },
+                  backgroundColor: theme.palette.background.blue,
                   boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
                   transition: "all 0.3s ease",
                   cursor: permissions.canView ? "pointer" : "not-allowed",
@@ -312,7 +316,7 @@ const UserProfilePage = () => {
                   position: "relative",
                   "&:hover": permissions.canView
                     ? {
-                        transform: "translateY(-4px)",
+                        transform: isMobile ? "none" : "translateY(-4px)",
                         boxShadow: "0 8px 30px rgba(0,0,0,0.15)",
                       }
                     : {},
@@ -322,14 +326,20 @@ const UserProfilePage = () => {
                 {trip.coverImage && (
                   <CardMedia
                     component="img"
-                    height="200"
+                    height={isMobile ? "150" : "200"}
                     image={`${stables.UPLOAD_FOLDER_BASE_URL}/${trip.coverImage}`}
                     alt={trip.title}
                   />
                 )}
 
                 {/* Permission Badge */}
-                <Box sx={{ position: "absolute", top: 12, right: 12 }}>
+                <Box
+                  sx={{
+                    position: "absolute",
+                    top: { xs: 8, md: 12 },
+                    right: { xs: 8, md: 12 },
+                  }}
+                >
                   <Chip
                     icon={
                       permissions.role === "owner" ? (
@@ -337,9 +347,15 @@ const UserProfilePage = () => {
                       ) : permissions.role === "editor" ? (
                         <Edit fontSize="small" />
                       ) : permissions.role === "viewer" ? (
-                        <Eye fontSize="small" />
+                        <Eye
+                          fontSize="small"
+                          color={theme.palette.primary.white}
+                        />
                       ) : (
-                        <Eye fontSize="small" />
+                        <Eye
+                          fontSize="small"
+                          color={theme.palette.primary.white}
+                        />
                       )
                     }
                     label={
@@ -359,7 +375,7 @@ const UserProfilePage = () => {
                           : permissions.role === "editor"
                             ? "primary.light"
                             : permissions.role === "viewer"
-                              ? "info.light"
+                              ? "secondary.medium"
                               : "grey.300",
                       color:
                         permissions.role === "owner"
@@ -367,22 +383,26 @@ const UserProfilePage = () => {
                           : permissions.role === "editor"
                             ? "primary.dark"
                             : permissions.role === "viewer"
-                              ? "info.dark"
-                              : "grey.700",
-                      fontWeight: 600,
-                      fontSize: "0.7rem",
+                              ? "primary.white"
+                              : theme.palette.secondary.light,
+
+                      fontSize: { xs: "0.6rem", md: "0.7rem" },
                     }}
                   />
                 </Box>
 
-                <CardContent>
+                <CardContent sx={{ p: { xs: 2, md: 3 } }}>
                   <Box
                     display="flex"
                     justifyContent="space-between"
                     alignItems="flex-start"
                     mb={2}
                   >
-                    <Typography variant="h6" gutterBottom sx={{ flex: 1 }}>
+                    <Typography
+                      variant={isMobile ? "subtitle1" : "h6"}
+                      gutterBottom
+                      sx={{ flex: 1, fontSize: { xs: "1rem", md: "1.25rem" } }}
+                    >
                       {trip.title}
                     </Typography>
                   </Box>
@@ -392,10 +412,11 @@ const UserProfilePage = () => {
                     color="text.secondary"
                     sx={{
                       display: "-webkit-box",
-                      WebkitLineClamp: 3,
+                      WebkitLineClamp: isMobile ? 2 : 3,
                       WebkitBoxOrient: "vertical",
                       overflow: "hidden",
                       mb: 2,
+                      fontSize: { xs: "0.8rem", md: "0.875rem" },
                     }}
                   >
                     {trip.description}
@@ -403,7 +424,10 @@ const UserProfilePage = () => {
 
                   <Box display="flex" alignItems="center" gap={1} mb={2}>
                     <CalendarToday fontSize="small" />
-                    <Typography variant="caption">
+                    <Typography
+                      variant="caption"
+                      sx={{ fontSize: { xs: "0.7rem", md: "0.75rem" } }}
+                    >
                       {formatDate(trip.startDate)} - {formatDate(trip.endDate)}
                     </Typography>
                   </Box>
@@ -413,16 +437,20 @@ const UserProfilePage = () => {
                     display="flex"
                     justifyContent="space-between"
                     alignItems="center"
+                    flexDirection={{ xs: "column", sm: "row" }}
+                    gap={{ xs: 1, sm: 0 }}
                   >
                     <Button
                       variant={permissions.canEdit ? "contained" : "outlined"}
                       size="small"
                       startIcon={permissions.canEdit ? <Edit /> : <Eye />}
                       disabled={!permissions.canView}
+                      fullWidth={isMobile}
                       sx={{
                         borderRadius: "20px",
                         textTransform: "none",
                         fontWeight: 600,
+                        fontSize: { xs: "0.75rem", md: "0.875rem" },
                       }}
                     >
                       Ver viaje
@@ -434,7 +462,10 @@ const UserProfilePage = () => {
                       label={trip.isPrivate ? "Privado" : "Público"}
                       size="small"
                       variant="outlined"
-                      sx={{ fontSize: "0.7rem" }}
+                      sx={{
+                        fontSize: { xs: "0.6rem", md: "0.7rem" },
+                        mt: { xs: 1, sm: 0 },
+                      }}
                     />
                   </Box>
                 </CardContent>
@@ -450,16 +481,25 @@ const UserProfilePage = () => {
     return (
       <Card
         sx={{
-          borderRadius: "16px",
+          borderRadius: { xs: "12px", md: "16px" },
+          backgroundColor: theme.palette.background.blue,
           boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
-          p: 3,
+          p: { xs: 2, md: 3 },
         }}
       >
-        <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, mb: 3 }}>
+        <Typography
+          variant="h6"
+          gutterBottom
+          sx={{
+            fontWeight: 600,
+            mb: 3,
+            fontSize: { xs: "1.1rem", md: "1.25rem" },
+          }}
+        >
           Información Personal
         </Typography>
 
-        <Grid container spacing={3}>
+        <Grid container spacing={{ xs: 2, md: 3 }}>
           {profile.bio && (
             <Grid item xs={12}>
               <Box>
@@ -467,10 +507,16 @@ const UserProfilePage = () => {
                   variant="subtitle2"
                   color="text.secondary"
                   gutterBottom
+                  sx={{ fontSize: { xs: "0.8rem", md: "0.875rem" } }}
                 >
                   Biografía
                 </Typography>
-                <Typography variant="body1">{profile.bio}</Typography>
+                <Typography
+                  variant="body1"
+                  sx={{ fontSize: { xs: "0.9rem", md: "1rem" } }}
+                >
+                  {profile.bio}
+                </Typography>
               </Box>
             </Grid>
           )}
@@ -480,10 +526,17 @@ const UserProfilePage = () => {
               <Box display="flex" alignItems="center" gap={2}>
                 <FmdGoodOutlined color="primary" />
                 <Box>
-                  <Typography variant="subtitle2" color="text.secondary">
+                  <Typography
+                    variant="subtitle2"
+                    color="text.secondary"
+                    sx={{ fontSize: { xs: "0.8rem", md: "0.875rem" } }}
+                  >
                     Ubicación
                   </Typography>
-                  <Typography variant="body2">
+                  <Typography
+                    variant="body2"
+                    sx={{ fontSize: { xs: "0.85rem", md: "0.9rem" } }}
+                  >
                     {profile.city}, {profile.country}
                   </Typography>
                 </Box>
@@ -496,10 +549,19 @@ const UserProfilePage = () => {
               <Box display="flex" alignItems="center" gap={2}>
                 <Work color="primary" />
                 <Box>
-                  <Typography variant="subtitle2" color="text.secondary">
+                  <Typography
+                    variant="subtitle2"
+                    color="text.secondary"
+                    sx={{ fontSize: { xs: "0.8rem", md: "0.875rem" } }}
+                  >
                     Ocupación
                   </Typography>
-                  <Typography variant="body2">{profile.occupation}</Typography>
+                  <Typography
+                    variant="body2"
+                    sx={{ fontSize: { xs: "0.85rem", md: "0.9rem" } }}
+                  >
+                    {profile.occupation}
+                  </Typography>
                 </Box>
               </Box>
             </Grid>
@@ -510,10 +572,19 @@ const UserProfilePage = () => {
               <Box display="flex" alignItems="center" gap={2}>
                 <School color="primary" />
                 <Box>
-                  <Typography variant="subtitle2" color="text.secondary">
+                  <Typography
+                    variant="subtitle2"
+                    color="text.secondary"
+                    sx={{ fontSize: { xs: "0.8rem", md: "0.875rem" } }}
+                  >
                     Educación
                   </Typography>
-                  <Typography variant="body2">{profile.education}</Typography>
+                  <Typography
+                    variant="body2"
+                    sx={{ fontSize: { xs: "0.85rem", md: "0.9rem" } }}
+                  >
+                    {profile.education}
+                  </Typography>
                 </Box>
               </Box>
             </Grid>
@@ -524,7 +595,11 @@ const UserProfilePage = () => {
               <Box display="flex" alignItems="center" gap={2}>
                 <Language color="primary" />
                 <Box>
-                  <Typography variant="subtitle2" color="text.secondary">
+                  <Typography
+                    variant="subtitle2"
+                    color="text.secondary"
+                    sx={{ fontSize: { xs: "0.8rem", md: "0.875rem" } }}
+                  >
                     Sitio Web
                   </Typography>
                   <Typography
@@ -532,7 +607,11 @@ const UserProfilePage = () => {
                     component="a"
                     href={profile.website}
                     target="_blank"
-                    sx={{ color: "primary.main", textDecoration: "none" }}
+                    sx={{
+                      color: "primary.main",
+                      textDecoration: "none",
+                      fontSize: { xs: "0.85rem", md: "0.9rem" },
+                    }}
                   >
                     {profile.website}
                   </Typography>
@@ -546,10 +625,17 @@ const UserProfilePage = () => {
               <Box display="flex" alignItems="center" gap={2}>
                 <CalendarToday color="primary" />
                 <Box>
-                  <Typography variant="subtitle2" color="text.secondary">
+                  <Typography
+                    variant="subtitle2"
+                    color="text.secondary"
+                    sx={{ fontSize: { xs: "0.8rem", md: "0.875rem" } }}
+                  >
                     Se unió
                   </Typography>
-                  <Typography variant="body2">
+                  <Typography
+                    variant="body2"
+                    sx={{ fontSize: { xs: "0.85rem", md: "0.9rem" } }}
+                  >
                     {formatDate(profile.joinedDate)}
                   </Typography>
                 </Box>
@@ -563,33 +649,50 @@ const UserProfilePage = () => {
 
   return (
     <MainLayout>
-      <Container maxWidth="95%" sx={{ pb: 10 }}>
-        <BreadcrumbBack />
+      <Container
+        maxWidth="95%"
+        sx={{
+          pb: { xs: 5, md: 10 },
+          px: { xs: 1, sm: 2, md: 3 },
+        }}
+      >
+        <Box sx={{ display: { xs: "none", md: "block" } }}>
+          <BreadcrumbBack />
+        </Box>
 
         {/* Header Card */}
         <Card
           sx={{
-            borderRadius: "24px",
+            borderRadius: { xs: "16px", md: "24px" },
             overflow: "hidden",
+            backgroundColor: theme.palette.background.blue,
             boxShadow: "0 8px 40px rgba(0,0,0,0.12)",
-            mb: 4,
+            mb: { xs: 2, md: 4 },
           }}
         >
           {/* Gradient Header */}
           <Box
             sx={{
-              height: "400px",
+              height: { xs: "250px", sm: "300px", md: "400px" },
               background: `linear-gradient(135deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.2) 100%), url(${coverImage})`,
               backgroundSize: "cover",
               backgroundPosition: "center",
               position: "relative",
               display: "flex",
               alignItems: "flex-end",
-              p: 3,
+              p: { xs: 2, md: 3 },
             }}
           />
+
           {/* Profile Content */}
-          <Box sx={{ px: 7, pb: 3, position: "relative", mt: -5 }}>
+          <Box
+            sx={{
+              px: { xs: 2, sm: 3, md: 7 },
+              pb: { xs: 2, md: 3 },
+              position: "relative",
+              mt: { xs: -3, md: -5 },
+            }}
+          >
             {/* Profile Picture */}
             <Avatar
               src={
@@ -599,22 +702,26 @@ const UserProfilePage = () => {
               }
               alt={profile.name}
               sx={{
-                width: 120,
-                height: 120,
+                width: { xs: 80, sm: 100, md: 120 },
+                height: { xs: 80, sm: 100, md: 120 },
                 border: "4px solid white",
                 boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
                 mb: 2,
               }}
             />
 
-            <Grid container spacing={7} alignItems="flex-start">
+            <Grid container spacing={{ xs: 2, md: 7 }} alignItems="flex-start">
               <Grid item xs={12} md={8}>
                 {/* Name and Title */}
                 <Box mb={2}>
                   <Box display="flex" alignItems="center" gap={1} mb={1}>
                     <Typography
-                      variant="h4"
-                      sx={{ fontWeight: 700, color: "text.primary" }}
+                      variant={isMobile ? "h5" : "h4"}
+                      sx={{
+                        fontWeight: 700,
+                        color: "text.primary",
+                        fontSize: { xs: "1.5rem", sm: "2rem", md: "2.125rem" },
+                      }}
                     >
                       {profile.name || "Usuario desconocido"}
                     </Typography>
@@ -623,16 +730,23 @@ const UserProfilePage = () => {
 
                   {profile.occupation && (
                     <Typography
-                      variant="h6"
+                      variant={isMobile ? "subtitle1" : "h6"}
                       color="text.secondary"
-                      sx={{ fontWeight: 400 }}
+                      sx={{
+                        fontWeight: 400,
+                        fontSize: { xs: "1rem", md: "1.25rem" },
+                      }}
                     >
                       {profile.occupation}
                     </Typography>
                   )}
 
                   {profile.city && profile.country && (
-                    <Typography variant="body2" color="text.secondary">
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{ fontSize: { xs: "0.85rem", md: "0.875rem" } }}
+                    >
                       {profile.city}, {profile.country}
                     </Typography>
                   )}
@@ -643,7 +757,11 @@ const UserProfilePage = () => {
                   <Typography
                     variant="body1"
                     color="text.secondary"
-                    sx={{ mb: 2, lineHeight: 1.6 }}
+                    sx={{
+                      mb: 2,
+                      lineHeight: 1.6,
+                      fontSize: { xs: "0.9rem", md: "1rem" },
+                    }}
                   >
                     {profile.bio}
                   </Typography>
@@ -652,7 +770,6 @@ const UserProfilePage = () => {
                 {/* Action Buttons for other profiles */}
                 {!isOwnProfile && (
                   <Box sx={{ mb: 3 }}>
-                    {/* NEW: Replace the button with FriendToggle component */}
                     <FriendToggle
                       profile={profile}
                       currentUser={currentUser}
@@ -668,35 +785,61 @@ const UserProfilePage = () => {
               <Grid item xs={12} md={4}>
                 <Box
                   sx={{
-                    backgroundColor: "grey.50",
-                    borderRadius: "16px",
-                    p: 3,
+                    borderRadius: { xs: "12px", md: "16px" },
+                    p: { xs: 2, md: 3 },
                     textAlign: "center",
                   }}
                 >
-                  <Typography
-                    variant="h6"
-                    sx={{ fontWeight: 600, mb: 2, color: "text.primary" }}
-                  ></Typography>
-
                   <Grid container spacing={2}>
                     <Grid item xs={4}>
-                      <Typography variant="h4" sx={{ fontWeight: 700 }}>
+                      <Typography
+                        variant={isMobile ? "h5" : "h4"}
+                        sx={{
+                          fontWeight: 700,
+                          fontSize: { xs: "1.5rem", md: "2.125rem" },
+                        }}
+                      >
                         {profile.tripsCount || 0}
                       </Typography>
-                      <Typography variant="body2">Viajes</Typography>
+                      <Typography
+                        variant="body2"
+                        sx={{ fontSize: { xs: "0.75rem", md: "0.875rem" } }}
+                      >
+                        Viajes
+                      </Typography>
                     </Grid>
                     <Grid item xs={4}>
-                      <Typography variant="h4" sx={{ fontWeight: 700 }}>
+                      <Typography
+                        variant={isMobile ? "h5" : "h4"}
+                        sx={{
+                          fontWeight: 700,
+                          fontSize: { xs: "1.5rem", md: "2.125rem" },
+                        }}
+                      >
                         {profile.friends?.length || 0}
                       </Typography>
-                      <Typography variant="body2">Amigos</Typography>
+                      <Typography
+                        variant="body2"
+                        sx={{ fontSize: { xs: "0.75rem", md: "0.875rem" } }}
+                      >
+                        Amigos
+                      </Typography>
                     </Grid>
                     <Grid item xs={4}>
-                      <Typography variant="h4" sx={{ fontWeight: 700 }}>
+                      <Typography
+                        variant={isMobile ? "h5" : "h4"}
+                        sx={{
+                          fontWeight: 700,
+                          fontSize: { xs: "1.5rem", md: "2.125rem" },
+                        }}
+                      >
                         {profile.publicationsCount || 0}
                       </Typography>
-                      <Typography variant="body2" color="text.secondary">
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{ fontSize: { xs: "0.75rem", md: "0.875rem" } }}
+                      >
                         Posts
                       </Typography>
                     </Grid>
@@ -707,128 +850,134 @@ const UserProfilePage = () => {
           </Box>
         </Card>
 
-        {/* Quick Action Cards */}
-        <Grid container spacing={3} sx={{ mb: 4 }}>
-          <Grid item xs={12} md={4}>
-            <Card
-              sx={{
-                p: 3,
-                borderRadius: "16px",
-                boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-                cursor: "pointer",
-                transition: "all 0.3s ease",
-                "&:hover": {
-                  transform: "translateY(-2px)",
-                  boxShadow: "0 8px 30px rgba(0,0,0,0.12)",
-                },
-              }}
-              onClick={() => setCurrentTab(0)}
-            >
-              <Box display="flex" alignItems="center" gap={2}>
-                <Box
-                  sx={{
-                    width: 48,
-                    height: 48,
-                    borderRadius: "12px",
-                    backgroundColor: "primary.light",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <ScrollText color={theme.palette.primary.main} />
+        {/* Quick Action Cards - Hidden on Mobile */}
+        <Box sx={{ display: { xs: "none", md: "block" } }}>
+          <Grid container spacing={3} sx={{ mb: 4 }}>
+            <Grid item xs={12} md={4}>
+              <Card
+                sx={{
+                  p: 3,
+                  borderRadius: "16px",
+                  backgroundColor: theme.palette.background.blue,
+                  boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+                  cursor: "pointer",
+                  transition: "all 0.3s ease",
+                  "&:hover": {
+                    transform: "translateY(-2px)",
+                    boxShadow: "0 8px 30px rgba(0,0,0,0.12)",
+                  },
+                }}
+                onClick={() => setCurrentTab(0)}
+              >
+                <Box display="flex" alignItems="center" gap={2}>
+                  <Box
+                    sx={{
+                      width: 48,
+                      height: 48,
+                      borderRadius: "12px",
+                      backgroundColor: "primary.light",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <ScrollText color={theme.palette.primary.main} />
+                  </Box>
+                  <Box>
+                    <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                      Ver Publicaciones
+                    </Typography>
+                  </Box>
                 </Box>
-                <Box>
-                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                    Ver Publicaciones
-                  </Typography>
-                </Box>
-              </Box>
-            </Card>
-          </Grid>
+              </Card>
+            </Grid>
 
-          <Grid item xs={12} md={4}>
-            <Card
-              sx={{
-                p: 3,
-                borderRadius: "16px",
-                boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-                cursor: "pointer",
-                transition: "all 0.3s ease",
-                "&:hover": {
-                  transform: "translateY(-2px)",
-                  boxShadow: "0 8px 30px rgba(0,0,0,0.12)",
-                },
-              }}
-              onClick={() => setCurrentTab(1)}
-            >
-              <Box display="flex" alignItems="center" gap={2}>
-                <Box
-                  sx={{
-                    width: 48,
-                    height: 48,
-                    borderRadius: "12px",
-                    backgroundColor: "secondary.light",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <FmdGoodOutlined color="secondary" />
+            <Grid item xs={12} md={4}>
+              <Card
+                sx={{
+                  p: 3,
+                  borderRadius: "16px",
+                  backgroundColor: theme.palette.background.blue,
+                  boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+                  cursor: "pointer",
+                  transition: "all 0.3s ease",
+                  "&:hover": {
+                    transform: "translateY(-2px)",
+                    boxShadow: "0 8px 30px rgba(0,0,0,0.12)",
+                  },
+                }}
+                onClick={() => setCurrentTab(1)}
+              >
+                <Box display="flex" alignItems="center" gap={2}>
+                  <Box
+                    sx={{
+                      width: 48,
+                      height: 48,
+                      borderRadius: "12px",
+                      backgroundColor: "secondary.light",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <FmdGoodOutlined color="secondary" />
+                  </Box>
+                  <Box>
+                    <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                      Ver viajes
+                    </Typography>
+                  </Box>
                 </Box>
-                <Box>
-                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                    Ver viajes
-                  </Typography>
-                </Box>
-              </Box>
-            </Card>
-          </Grid>
+              </Card>
+            </Grid>
 
-          <Grid item xs={12} md={4}>
-            <Card
-              sx={{
-                p: 3,
-                borderRadius: "16px",
-                boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-                cursor: "pointer",
-                transition: "all 0.3s ease",
-                "&:hover": {
-                  transform: "translateY(-2px)",
-                  boxShadow: "0 8px 30px rgba(0,0,0,0.12)",
-                },
-              }}
-              onClick={() => setCurrentTab(2)}
-            >
-              <Box display="flex" alignItems="center" gap={2}>
-                <Box
-                  sx={{
-                    width: 48,
-                    height: 48,
-                    borderRadius: "12px",
-                    backgroundColor: "primary.light",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <Info color={theme.palette.primary.main} />
+            <Grid item xs={12} md={4}>
+              <Card
+                sx={{
+                  p: 3,
+                  borderRadius: "16px",
+                  backgroundColor: theme.palette.background.blue,
+                  boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+                  cursor: "pointer",
+                  transition: "all 0.3s ease",
+                  "&:hover": {
+                    transform: "translateY(-2px)",
+                    boxShadow: "0 8px 30px rgba(0,0,0,0.12)",
+                  },
+                }}
+                onClick={() => setCurrentTab(2)}
+              >
+                <Box display="flex" alignItems="center" gap={2}>
+                  <Box
+                    sx={{
+                      width: 48,
+                      height: 48,
+                      borderRadius: "12px",
+                      backgroundColor: "primary.light",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Info color={theme.palette.primary.main} />
+                  </Box>
+                  <Box>
+                    <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                      Más información
+                    </Typography>
+                  </Box>
                 </Box>
-                <Box>
-                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                    Más información
-                  </Typography>
-                </Box>
-              </Box>
-            </Card>
+              </Card>
+            </Grid>
           </Grid>
-        </Grid>
+        </Box>
 
         {/* Tabs Section */}
-        <Box sx={{ mb: 3 }}>
+        <Box sx={{ mb: { xs: 2, md: 3 } }}>
           <Tabs
             value={currentTab}
             onChange={handleTabChange}
+            variant={isMobile ? "fullWidth" : "standard"}
             sx={{
               "& .MuiTabs-indicator": {
                 height: 3,
@@ -837,7 +986,8 @@ const UserProfilePage = () => {
               "& .MuiTab-root": {
                 textTransform: "none",
                 fontWeight: 600,
-                fontSize: "1rem",
+                fontSize: { xs: "0.875rem", md: "1rem" },
+                minHeight: { xs: 40, md: 48 },
                 "&.Mui-selected": {
                   color: "primary.main",
                 },

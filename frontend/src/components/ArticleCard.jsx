@@ -12,7 +12,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { toggleFriend } from "../services/index/users";
 import { toast } from "react-hot-toast";
 import { useTheme, Chip } from "@mui/material";
-import { Clock, Eye, Calendar, Edit } from "lucide-react";
+import { Clock, Eye, Calendar } from "lucide-react";
 
 const ArticleCard = ({ post, className, currentUser, token, onEdit }) => {
   const theme = useTheme();

@@ -39,6 +39,8 @@ import ProfilePicture from "../../../components/ProfilePicture";
 import { toast } from "react-hot-toast";
 import { setUserInfo } from "../../../store/reducers/authSlice";
 
+const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
+
 const User = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -49,7 +51,7 @@ const User = () => {
   const [user, setUser] = useState(reduxUser || {});
 
   // Editing states
-  const [editingField, setEditingField] = useState(null); // 'name', 'email', 'location', or null
+  const [editingField, setEditingField] = useState(null);
   const [tempValues, setTempValues] = useState({
     name: "",
     email: "",
@@ -494,7 +496,7 @@ const User = () => {
   const updateProfileMutation = useMutation({
     mutationFn: async (data) => {
       const response = await axios.put(
-        `/api/users/updateProfile/${user._id}`,
+        `${API_URL}/api/users/updateProfile/${user._id}`,
         data,
         {
           headers: {
@@ -524,11 +526,15 @@ const User = () => {
       const formData = new FormData();
       formData.append("coverImg", file);
 
-      const response = await axios.put("/api/users/updateCoverImg", formData, {
-        headers: {
-          Authorization: `Bearer ${jwt}`,
-        },
-      });
+      const response = await axios.put(
+        `${API_URL}/api/users/updateCoverImg`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${jwt}`,
+          },
+        }
+      );
       return response.data;
     },
     onSuccess: (data) => {
@@ -689,7 +695,9 @@ const User = () => {
         sx={{
           mb: 2,
           border: "none",
+          borderRadius: "16px",
           boxShadow: "none",
+          background: theme.palette.background.blue,
           transition: "all 0.3s ease",
         }}
       >
@@ -970,7 +978,14 @@ const User = () => {
   return (
     <Box width="100%" mx="auto">
       {/* Cover Image Section */}
-      <Card sx={{ mb: 3, overflow: "hidden", borderRadius: 4 }}>
+      <Card
+        sx={{
+          mb: 3,
+          overflow: "hidden",
+          borderRadius: 4,
+          background: theme.palette.background.blue,
+        }}
+      >
         <Box
           sx={{
             width: "100%",
@@ -1000,7 +1015,7 @@ const User = () => {
               position: "absolute",
               top: 16,
               right: 16,
-              background: "rgba(255,255,255,0.9)",
+              background: theme.palette.primary.white,
               backdropFilter: "blur(10px)",
               color: theme.palette.text.primary,
               "&:hover": {

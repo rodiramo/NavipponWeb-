@@ -117,7 +117,8 @@ export const themeSettings = (mode) => {
             success: {
               dark: colorTokens.success[900],
               main: colorTokens.success[500],
-              light: colorTokens.success[200],
+              light: colorTokens.success[100],
+              lightest: colorTokens.success[50],
             },
             error: {
               dark: colorTokens.error[700],
@@ -143,6 +144,7 @@ export const themeSettings = (mode) => {
               light: colorTokens.lightBlue[900],
               grey: colorTokens.grey[800],
               nav: colorTokens.darkBlue[800],
+              blue: colorTokens.darkBlue[800],
             },
           }
         : {
@@ -195,6 +197,7 @@ export const themeSettings = (mode) => {
               light: colorTokens.lightBlue[100],
               alt: colorTokens.grey[10],
               grey: colorTokens.grey[200], // Added grey token for light mode
+              blue: colorTokens.darkBlue[0],
               nav: colorTokens.darkBlue[800],
             },
           }),

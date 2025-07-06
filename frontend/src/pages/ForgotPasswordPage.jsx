@@ -182,7 +182,7 @@ const ForgotPasswordPage = () => {
         alignItems="center"
       >
         <HomeButton />
-        <Box width="100%" maxWidth="60%">
+        <Box width="100%" maxWidth="100%">
           <Typography variant="h4" mb={1} textAlign="center">
             Recuperar contraseña
           </Typography>
@@ -226,7 +226,9 @@ const ForgotPasswordPage = () => {
               helperText={errors.email?.message}
               sx={{
                 borderRadius: "50px",
-                width: "450px",
+
+                width: { xs: "100%", md: "450px" },
+
                 "& fieldset": { borderRadius: "50px" },
               }}
             />

@@ -96,7 +96,7 @@ const AdminLayout = () => {
       <Header isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} />
       <main
         style={{
-          marginLeft: isMenuOpen ? "15rem" : "5rem",
+          marginLeft: isMenuOpen ? "15rem" : "4rem",
           transition: "margin-left 0.3s ease-in-out",
         }}
         className="flex-1 lg:p-6"

@@ -225,7 +225,7 @@ const Travelers = ({
                           height: 56,
                           position: "relative",
                           zIndex: 1,
-                          border: `3px solid ${theme.palette.background.paper}`,
+                          border: `3px solid ${theme.palette.background.default}`,
                           boxShadow: "0 12px 32px rgba(0,0,0,0.12)",
                           background: !creator.avatar
                             ? `linear-gradient(135deg, ${theme.palette.warning.main}, ${theme.palette.warning.dark})`
@@ -328,7 +328,7 @@ const Travelers = ({
                             height: 56,
                             position: "relative",
                             zIndex: 1,
-                            border: `3px solid ${theme.palette.background.paper}`,
+                            border: `3px solid ${theme.palette.background.default}`,
                             boxShadow: "0 12px 32px rgba(0,0,0,0.12)",
                             transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
                             "&:hover":
@@ -370,7 +370,7 @@ const Travelers = ({
                       height: 56,
                       background: `linear-gradient(135deg, ${theme.palette.primary.main})`,
                       color: "white",
-                      border: `3px solid ${theme.palette.background.paper}`,
+                      border: `3px solid ${theme.palette.background.default}`,
                       boxShadow: "0 12px 32px rgba(0,0,0,0.12)",
                       transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
                       position: "relative",
@@ -413,7 +413,7 @@ const Travelers = ({
           mt: 2,
           "& .MuiPopover-paper": {
             borderRadius: 4,
-            background: `linear-gradient(135deg, ${theme.palette.background.paper}95, ${theme.palette.background.paper}80)`,
+            background: `linear-gradient(135deg, ${theme.palette.background.default}95, ${theme.palette.background.default}80)`,
             backdropFilter: "blur(20px)",
             border: `1px solid ${theme.palette.divider}40`,
             boxShadow: "0 32px 64px rgba(0,0,0,0.2)",
@@ -524,7 +524,7 @@ const Travelers = ({
                     sx={{
                       borderRadius: 3,
                       "& .MuiOutlinedInput-root": {
-                        background: `${theme.palette.background.paper}50`,
+                        background: `${theme.palette.background.default}50`,
                         backdropFilter: "blur(10px)",
                       },
                     }}
@@ -639,7 +639,7 @@ const Travelers = ({
           PaperProps={{
             sx: {
               borderRadius: 4,
-              background: `linear-gradient(135deg, ${theme.palette.background.paper}95, ${theme.palette.background.paper}85)`,
+              background: `linear-gradient(135deg, ${theme.palette.background.default}95, ${theme.palette.background.default}85)`,
               backdropFilter: "blur(20px)",
               border: `1px solid ${theme.palette.divider}40`,
               boxShadow: "0 32px 64px rgba(0,0,0,0.25)",
@@ -649,7 +649,7 @@ const Travelers = ({
         >
           <Box
             sx={{
-              background: `linear-gradient(135deg, ${theme.palette.secondary.medium})`,
+              background: `linear-gradient(135deg, ${theme.palette.primary.main})`,
               p: 4,
               textAlign: "center",
               position: "relative",
@@ -681,7 +681,16 @@ const Travelers = ({
 
           <DialogContent sx={{ p: 4 }}>
             <FormControl fullWidth sx={{ mb: 3 }}>
-              <InputLabel id="friend-select-label" sx={{ fontWeight: 600 }}>
+              <InputLabel
+                id="friend-select-label"
+                sx={{
+                  fontWeight: 600,
+                  color: `${theme.palette.primary.black} !important`,
+                  "&.Mui-focused": {
+                    color: `${theme.palette.primary.black} !important`,
+                  },
+                }}
+              >
                 Selecciona un amigo
               </InputLabel>
               <Select
@@ -692,7 +701,7 @@ const Travelers = ({
                 sx={{
                   borderRadius: 3,
                   "& .MuiOutlinedInput-root": {
-                    background: `${theme.palette.background.paper}50`,
+                    background: `${theme.palette.background.default}50`,
                     backdropFilter: "blur(10px)",
                   },
                 }}
@@ -700,15 +709,25 @@ const Travelers = ({
                 {availableFriendsForAdd?.map((friend) => (
                   <MenuItem key={friend._id} value={friend._id}>
                     <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                      <Avatar
-                        sx={{
-                          width: 36,
-                          height: 36,
-                          background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+                      <img
+                        src={
+                          friend.avatar
+                            ? stables.UPLOAD_FOLDER_BASE_URL + friend.avatar
+                            : "/assets/default-avatar.jpg"
+                        }
+                        alt={friend.name}
+                        onError={(e) => {
+                          e.target.src =
+                            "https://via.placeholder.com/36x36/cccccc/666666?text=" +
+                            friend.name.charAt(0).toUpperCase();
                         }}
-                      >
-                        {friend.name?.charAt(0).toUpperCase()}
-                      </Avatar>
+                        style={{
+                          width: "36px",
+                          height: "36px",
+                          borderRadius: "50%",
+                          objectFit: "cover",
+                        }}
+                      />
                       <Typography sx={{ fontWeight: 600 }}>
                         {friend.name}
                       </Typography>
@@ -719,7 +738,16 @@ const Travelers = ({
             </FormControl>
 
             <FormControl fullWidth>
-              <InputLabel id="role-select-label" sx={{ fontWeight: 600 }}>
+              <InputLabel
+                id="role-select-label"
+                sx={{
+                  fontWeight: 600,
+                  color: `${theme.palette.primary.black} !important`,
+                  "&.Mui-focused": {
+                    color: `${theme.palette.primary.black} !important`,
+                  },
+                }}
+              >
                 Asignar rol
               </InputLabel>
               <Select
@@ -730,7 +758,7 @@ const Travelers = ({
                 sx={{
                   borderRadius: 3,
                   "& .MuiOutlinedInput-root": {
-                    background: `${theme.palette.background.paper}50`,
+                    background: `${theme.palette.background.default}50`,
                     backdropFilter: "blur(10px)",
                   },
                 }}

@@ -18,13 +18,13 @@ const createItinerary = async (req, res, next) => {
       boards,
       notes,
       isPrivate,
-      travelers, // array of objects: { userId, role }
+      travelers,
     } = req.body;
 
     const itinerary = new Itinerary({
       name,
       travelDays,
-      totalBudget,
+      totalBudget: "",
       boards,
       notes,
       isPrivate: isPrivate !== undefined ? isPrivate : true,

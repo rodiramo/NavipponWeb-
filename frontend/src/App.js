@@ -9,10 +9,10 @@ import "./App.css";
 import { ThemeProvider } from "@mui/material";
 import createTheme from "@mui/material/styles/createTheme";
 import { themeSettings } from "./theme.js";
-import ArticleDetailPage from "./pages/articleDetail/ArticleDetailPage";
+import ScrollToTop from "./components/ScrollToTop";
+
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
-import RegionDetail from "./pages/regionDetail/RegionDetailPage";
 
 // Footer routes
 import FAQPage from "./pages/terms/FAQPage.jsx";
@@ -45,11 +45,13 @@ import Reviews from "./pages/admin/screens/reviews/Reviews";
 
 // Blog
 import BlogPage from "./pages/blog/BlogPage";
+import ArticleDetailPage from "./pages/articleDetail/ArticleDetailPage";
 import PostFormPage from "./pages/user/screens/posts/PostFormPage.jsx";
 import AboutPage from "./pages/about/AboutPage";
 
 // Experience
 import ExperiencePage from "./pages/experience/ExperiencePage";
+import RegionDetail from "./pages/regionDetail/RegionDetailPage";
 import ExperienceDetailPage from "./pages/experienceDetail/ExperienceDetailPage";
 
 // User
@@ -90,6 +92,7 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <div className="App font-opensans">
+        <ScrollToTop />
         <Routes>
           {/* Public Routes */}
           <Route index path="/" element={<HomePage />} />
