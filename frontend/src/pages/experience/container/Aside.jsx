@@ -1084,8 +1084,8 @@ const Aside = ({
               fontWeight: 500,
               backgroundColor:
                 tag.count === 0
-                  ? theme.palette.grey[50]
-                  : theme.palette.grey[100],
+                  ? theme.palette.secondary.main
+                  : theme.palette.secondary.light,
               padding: "2px 6px",
               borderRadius: "8px",
               minWidth: "24px",
@@ -1150,7 +1150,7 @@ const Aside = ({
             sx={{
               color: theme.palette.text.secondary,
               fontSize: "0.75rem",
-              backgroundColor: theme.palette.grey[100],
+              backgroundColor: theme.palette.secondary.light,
               padding: "2px 6px",
               borderRadius: "8px",
             }}
@@ -1206,6 +1206,7 @@ const Aside = ({
         elevation={0}
         sx={{
           mb: 3,
+          borderRadius: 4,
           backgroundColor: theme.palette.primary.light,
           border: `1px solid ${theme.palette.primary.main}20`,
         }}
@@ -1261,7 +1262,10 @@ const Aside = ({
       {/* Filter Sections */}
       <Box sx={{ "& .MuiAccordion-root": { mb: 1 } }}>
         {/* General Filters */}
-        <Accordion elevation={0}>
+        <Accordion
+          elevation={0}
+          sx={{ backgroundColor: theme.palette.background.default }}
+        >
           <AccordionSummary
             expandIcon={
               <ChevronDown sx={{ color: theme.palette.text.primary }} />
@@ -1323,7 +1327,10 @@ const Aside = ({
         </Accordion>
 
         {/* Attraction Filters */}
-        <Accordion elevation={0}>
+        <Accordion
+          elevation={0}
+          sx={{ backgroundColor: theme.palette.background.default }}
+        >
           <AccordionSummary
             expandIcon={
               <ChevronDown sx={{ color: theme.palette.text.primary }} />
@@ -1349,7 +1356,10 @@ const Aside = ({
         </Accordion>
 
         {/* Hotel Filters */}
-        <Accordion elevation={0}>
+        <Accordion
+          elevation={0}
+          sx={{ backgroundColor: theme.palette.background.default }}
+        >
           <AccordionSummary
             expandIcon={
               <ChevronDown sx={{ color: theme.palette.text.primary }} />
@@ -1411,7 +1421,10 @@ const Aside = ({
         </Accordion>
 
         {/* Restaurant Filters */}
-        <Accordion elevation={0}>
+        <Accordion
+          elevation={0}
+          sx={{ backgroundColor: theme.palette.background.default }}
+        >
           <AccordionSummary
             expandIcon={
               <ChevronDown sx={{ color: theme.palette.text.primary }} />

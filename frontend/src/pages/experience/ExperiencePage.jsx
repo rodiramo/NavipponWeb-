@@ -421,7 +421,7 @@ const ExperiencePage = ({ filters: initialFilters }) => {
     width: "90%",
     maxWidth: "500px",
     maxHeight: "90vh",
-    bgcolor: "background.paper",
+    bgcolor: "background.default",
     borderRadius: "16px",
     boxShadow: 24,
     overflow: "hidden",
@@ -435,7 +435,7 @@ const ExperiencePage = ({ filters: initialFilters }) => {
     transform: "translate(-50%, -50%)",
     width: "95%",
     height: "80vh",
-    bgcolor: "background.paper",
+    bgcolor: "background.default",
     borderRadius: "16px",
     boxShadow: 24,
     overflow: "hidden",
@@ -516,9 +516,6 @@ const ExperiencePage = ({ filters: initialFilters }) => {
         >
           <Box sx={modalStyle}>
             <div className="flex items-center justify-between p-4 border-b">
-              <Typography id="filters-modal-title" variant="h6" component="h2">
-                Filtros
-              </Typography>
               <IconButton
                 onClick={() => setIsFiltersModalOpen(false)}
                 sx={{ color: theme.palette.text.secondary }}
@@ -539,21 +536,6 @@ const ExperiencePage = ({ filters: initialFilters }) => {
                 isLoading={!allExperiencesData} // Add this line
                 totalExperiences={allExperiencesData?.data?.length || 0} // Add this line
               />
-            </div>
-            <div className="p-4 border-t bg-gray-50">
-              <Button
-                fullWidth
-                variant="contained"
-                onClick={() => setIsFiltersModalOpen(false)}
-                sx={{
-                  backgroundColor: theme.palette.primary.main,
-                  "&:hover": {
-                    backgroundColor: theme.palette.primary.dark,
-                  },
-                }}
-              >
-                Aplicar Filtros
-              </Button>
             </div>
           </Box>
         </Modal>
