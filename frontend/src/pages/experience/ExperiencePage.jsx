@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 import { getAllExperiences } from "../../services/index/experiences";
@@ -210,7 +210,208 @@ const ExperiencePage = ({ filters: initialFilters }) => {
   ]);
 
   const totalPageCount = parseInt(data?.headers?.["x-totalpagecount"], 10);
+  // Add this function at the top of your ExperiencePage component or in a utils file
+  const calculateTagCounts = (experiences) => {
+    const counts = {};
 
+    if (!experiences || experiences.length === 0) {
+      return counts;
+    }
+
+    console.log("Calculating counts for", experiences.length, "experiences");
+
+    experiences.forEach((experience) => {
+      // Count categories (main filter)
+      if (experience.categories) {
+        counts[experience.categories] =
+          (counts[experience.categories] || 0) + 1;
+      }
+
+      // Count regions
+      if (experience.region) {
+        counts[experience.region] = (counts[experience.region] || 0) + 1;
+      }
+
+      // Count prefecture (if different from region)
+      if (
+        experience.prefecture &&
+        experience.prefecture !== experience.region
+      ) {
+        counts[experience.prefecture] =
+          (counts[experience.prefecture] || 0) + 1;
+      }
+
+      // General Tags - these are nested in objects
+      if (experience.generalTags) {
+        // Season tags
+        if (
+          experience.generalTags.season &&
+          Array.isArray(experience.generalTags.season)
+        ) {
+          experience.generalTags.season.forEach((tag) => {
+            if (tag) {
+              counts[tag] = (counts[tag] || 0) + 1;
+            }
+          });
+        }
+
+        // Budget tags
+        if (
+          experience.generalTags.budget &&
+          Array.isArray(experience.generalTags.budget)
+        ) {
+          experience.generalTags.budget.forEach((tag) => {
+            if (tag) {
+              counts[tag] = (counts[tag] || 0) + 1;
+            }
+          });
+        }
+
+        // Location tags
+        if (
+          experience.generalTags.location &&
+          Array.isArray(experience.generalTags.location)
+        ) {
+          experience.generalTags.location.forEach((tag) => {
+            if (tag) {
+              counts[tag] = (counts[tag] || 0) + 1;
+            }
+          });
+        }
+
+        // Rating tags
+        if (
+          experience.generalTags.rating &&
+          Array.isArray(experience.generalTags.rating)
+        ) {
+          experience.generalTags.rating.forEach((tag) => {
+            if (tag) {
+              counts[tag] = (counts[tag] || 0) + 1;
+            }
+          });
+        }
+      }
+
+      // Hotel Tags - nested in hotelTags object
+      if (experience.hotelTags) {
+        // Accommodation types
+        if (
+          experience.hotelTags.accommodation &&
+          Array.isArray(experience.hotelTags.accommodation)
+        ) {
+          experience.hotelTags.accommodation.forEach((tag) => {
+            if (tag) {
+              counts[tag] = (counts[tag] || 0) + 1;
+            }
+          });
+        }
+
+        // Hotel services
+        if (
+          experience.hotelTags.hotelServices &&
+          Array.isArray(experience.hotelTags.hotelServices)
+        ) {
+          experience.hotelTags.hotelServices.forEach((tag) => {
+            if (tag) {
+              counts[tag] = (counts[tag] || 0) + 1;
+            }
+          });
+        }
+
+        // Trip types
+        if (
+          experience.hotelTags.typeTrip &&
+          Array.isArray(experience.hotelTags.typeTrip)
+        ) {
+          experience.hotelTags.typeTrip.forEach((tag) => {
+            if (tag) {
+              counts[tag] = (counts[tag] || 0) + 1;
+            }
+          });
+        }
+      }
+
+      // Restaurant Tags - nested in restaurantTags object
+      if (experience.restaurantTags) {
+        // Restaurant types
+        if (
+          experience.restaurantTags.restaurantTypes &&
+          Array.isArray(experience.restaurantTags.restaurantTypes)
+        ) {
+          experience.restaurantTags.restaurantTypes.forEach((tag) => {
+            if (tag) {
+              counts[tag] = (counts[tag] || 0) + 1;
+            }
+          });
+        }
+
+        // Cuisines
+        if (
+          experience.restaurantTags.cuisines &&
+          Array.isArray(experience.restaurantTags.cuisines)
+        ) {
+          experience.restaurantTags.cuisines.forEach((tag) => {
+            if (tag) {
+              counts[tag] = (counts[tag] || 0) + 1;
+            }
+          });
+        }
+
+        // Restaurant services
+        if (
+          experience.restaurantTags.restaurantServices &&
+          Array.isArray(experience.restaurantTags.restaurantServices)
+        ) {
+          experience.restaurantTags.restaurantServices.forEach((tag) => {
+            if (tag) {
+              counts[tag] = (counts[tag] || 0) + 1;
+            }
+          });
+        }
+      }
+
+      // Attraction Tags - these are a direct array
+      if (
+        experience.attractionTags &&
+        Array.isArray(experience.attractionTags)
+      ) {
+        experience.attractionTags.forEach((tag) => {
+          if (tag) {
+            counts[tag] = (counts[tag] || 0) + 1;
+          }
+        });
+      }
+    });
+
+    console.log("Final counts:", counts);
+    return counts;
+  };
+  // Add this query after your existing queries
+  const { data: allExperiencesData } = useQuery({
+    queryFn: () => getAllExperiences("", 1, 10000, {}), // Get all experiences without filters
+    queryKey: ["allExperiences"], // Cache this separately
+    staleTime: 5 * 60 * 1000, // 5 minutes - since this doesn't change often
+    onError: (error) => {
+      console.log("All experiences fetch error:", error);
+    },
+  });
+  // Add this after your queries and before the useEffect hooks
+  const tagCounts = useMemo(() => {
+    if (!allExperiencesData?.data) return {};
+    return calculateTagCounts(allExperiencesData.data);
+  }, [allExperiencesData?.data]); // Add this temporarily after your useMemo to debug
+  useEffect(() => {
+    if (allExperiencesData?.data) {
+      console.log("=== DEBUGGING EXPERIENCE DATA ===");
+      console.log("Total experiences:", allExperiencesData.data.length);
+      console.log("First experience:", allExperiencesData.data[0]);
+      console.log(
+        "Experience keys:",
+        Object.keys(allExperiencesData.data[0] || {})
+      );
+      console.log("Tag counts result:", tagCounts);
+    }
+  }, [allExperiencesData, tagCounts]);
   // Modal styles
   const modalStyle = {
     position: "absolute",
@@ -334,6 +535,9 @@ const ExperiencePage = ({ filters: initialFilters }) => {
                   }
                 }}
                 selectedFilter={selectedFilter}
+                tagCounts={tagCounts} // Add this line
+                isLoading={!allExperiencesData} // Add this line
+                totalExperiences={allExperiencesData?.data?.length || 0} // Add this line
               />
             </div>
             <div className="p-4 border-t bg-gray-50">
@@ -386,6 +590,9 @@ const ExperiencePage = ({ filters: initialFilters }) => {
               <Aside
                 onFilterChange={handleFilterChange}
                 selectedFilter={selectedFilter}
+                tagCounts={tagCounts} // Add this line
+                isLoading={!allExperiencesData} // Add this line
+                totalExperiences={allExperiencesData?.data?.length || 0} // Add this line
               />
             </div>
           </aside>

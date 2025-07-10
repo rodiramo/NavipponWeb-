@@ -38,7 +38,8 @@ const ExperienceDetailPage = () => {
   const [isFavorite, setIsFavorite] = useState(false);
   const theme = useTheme(true);
 
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const isTablet = useMediaQuery(theme.breakpoints.between("sm", "md")); // 600px to 960px
 
   const isDefaultImage = (photoUrl) => {
     return photoUrl && photoUrl.startsWith("https://images.unsplash.com");
@@ -161,10 +162,12 @@ const ExperienceDetailPage = () => {
 
           {/* Responsive Main Content */}
           <section
-            className="container mx-auto px-5 py-5"
+            className="container"
             style={{
-              paddingLeft: isMobile ? "1rem" : "1.25rem",
-              paddingRight: isMobile ? "1rem" : "1.25rem",
+              minWidth: "100%",
+              margin: "auto",
+              paddingLeft: isMobile ? "1rem" : isTablet ? "2rem" : "5rem",
+              paddingRight: isMobile ? "1rem" : isTablet ? "2rem" : "5rem",
               paddingTop: isMobile ? "1rem" : "1.25rem",
               paddingBottom: isMobile ? "1rem" : "1.25rem",
             }}

@@ -51,7 +51,6 @@ const getGoogleIcon = (category) => {
   };
 };
 
-// Rich Text Renderer Component
 const RichTextRenderer = ({ content, theme }) => {
   // Function to apply text marks (bold, italic, etc.)
   const applyMarks = (text, marks = []) => {
@@ -134,7 +133,6 @@ const RichTextRenderer = ({ content, theme }) => {
     return <Component {...props}>{styledText}</Component>;
   };
 
-  // Function to render individual content nodes
   const renderNode = (node, index) => {
     if (!node || !node.type) {
       return null;
@@ -442,7 +440,7 @@ const Aside = ({ info }) => {
       sx={{ mt: 4 }}
     >
       {/* Left Section - Main Content */}
-      <Box flex={{ xs: 1, md: 2 }}>
+      <Box flex={{ xs: 1, md: 3 }}>
         <Card
           elevation={0}
           sx={{

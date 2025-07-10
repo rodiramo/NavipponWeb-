@@ -1,4 +1,4 @@
-// Enhanced ActivityCard.jsx with Mobile Responsive Design
+// Enhanced ActivityCard.jsx with Mobile and Tablet Responsive Design
 import React, { useState } from "react";
 import {
   Box,
@@ -36,7 +36,7 @@ import { stables, images } from "../../../../../constants";
 
 const ExperienceDetailsModal = ({ open, onClose, experience, category }) => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
   if (!experience) return null;
 
@@ -473,6 +473,7 @@ const ActivityCard = ({
   const theme = useTheme();
   const [detailsOpen, setDetailsOpen] = useState(false);
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const isTabletOrMobile = useMediaQuery(theme.breakpoints.down("md")); // This includes tablets
 
   // Use sortable for both reordering within board and dragging between boards
   const {
@@ -490,7 +491,7 @@ const ActivityCard = ({
       favIndex,
       favorite: fav,
     },
-    disabled: isMobile, // Disable drag on mobile
+    disabled: isTabletOrMobile, // Disable drag on mobile AND tablet
   });
 
   const style = {
@@ -545,8 +546,8 @@ const ActivityCard = ({
       <Paper
         ref={setNodeRef}
         style={style}
-        {...(!isMobile ? attributes : {})}
-        {...(!isMobile ? listeners : {})}
+        {...(!isTabletOrMobile ? attributes : {})}
+        {...(!isTabletOrMobile ? listeners : {})}
         className="no-scroll"
         sx={{
           position: "relative",
@@ -563,13 +564,17 @@ const ActivityCard = ({
           background: `linear-gradient(135deg, ${theme.palette.background.paper}95, ${theme.palette.background.paper}85)`,
           backdropFilter: "blur(10px)",
           border: `1px solid ${theme.palette.divider}40`,
-          cursor: isDragging ? "grabbing" : isMobile ? "default" : "grab",
+          cursor: isDragging
+            ? "grabbing"
+            : isTabletOrMobile
+              ? "default"
+              : "grab",
           transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
           "&:hover": {
-            boxShadow: isMobile
+            boxShadow: isTabletOrMobile
               ? "0 4px 16px rgba(0,0,0,0.12)"
               : "0 8px 32px rgba(0,0,0,0.15)",
-            transform: isMobile ? "none" : "translateY(-4px)",
+            transform: isTabletOrMobile ? "none" : "translateY(-4px)",
             borderColor: theme.palette.primary.main,
           },
           ...(isDragging && {
@@ -698,8 +703,8 @@ const ActivityCard = ({
                   {fav?.experienceId?.title || "Actividad sin título"}
                 </Typography>
 
-                {/* Mobile Up/Down Arrows - Inside card */}
-                {isMobile && userRole !== "viewer" && (
+                {/* Mobile AND Tablet Up/Down Arrows - Inside card */}
+                {isTabletOrMobile && userRole !== "viewer" && (
                   <Box
                     sx={{
                       display: "flex",
@@ -713,8 +718,8 @@ const ActivityCard = ({
                       onClick={handleMoveUp}
                       disabled={favIndex === 0}
                       sx={{
-                        width: 20,
-                        height: 20,
+                        width: { xs: 20, sm: 24 },
+                        height: { xs: 20, sm: 24 },
                         backgroundColor:
                           favIndex === 0
                             ? theme.palette.grey[200]
@@ -733,15 +738,15 @@ const ActivityCard = ({
                         },
                       }}
                     >
-                      <ChevronUp size={12} />
+                      <ChevronUp size={isMobile ? 12 : 16} />
                     </IconButton>
                     <IconButton
                       size="small"
                       onClick={handleMoveDown}
                       disabled={favIndex === totalActivities - 1}
                       sx={{
-                        width: 20,
-                        height: 20,
+                        width: { xs: 20, sm: 24 },
+                        height: { xs: 20, sm: 24 },
                         backgroundColor:
                           favIndex === totalActivities - 1
                             ? theme.palette.grey[200]
@@ -762,7 +767,7 @@ const ActivityCard = ({
                         },
                       }}
                     >
-                      <ChevronDown size={12} />
+                      <ChevronDown size={isMobile ? 12 : 16} />
                     </IconButton>
                   </Box>
                 )}
@@ -812,7 +817,7 @@ const ActivityCard = ({
                   "&:hover": {
                     background: `${theme.palette.primary.main}20`,
                     borderColor: theme.palette.primary.main,
-                    transform: isMobile ? "none" : "translateY(-1px)",
+                    transform: isTabletOrMobile ? "none" : "translateY(-1px)",
                   },
                 }}
               >
@@ -873,7 +878,7 @@ const ActivityCard = ({
               "&:hover": {
                 background: theme.palette.error.main,
                 color: "white",
-                transform: isMobile ? "none" : "scale(1.1)",
+                transform: isTabletOrMobile ? "none" : "scale(1.1)",
                 boxShadow: `0 4px 16px ${theme.palette.error.main}40`,
               },
               pointerEvents: "auto",
@@ -884,8 +889,8 @@ const ActivityCard = ({
           </IconButton>
         )}
 
-        {/* Enhanced Drag Indicator - Hidden on mobile */}
-        {!isMobile && (
+        {/* Enhanced Drag Indicator - Hidden on mobile AND tablet */}
+        {!isTabletOrMobile && (
           <Box
             sx={{
               position: "absolute",

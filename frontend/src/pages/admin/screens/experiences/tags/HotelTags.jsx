@@ -1,57 +1,101 @@
 import React from "react";
-import {
-  FaHotel,
-  FaCapsules,
-  FaBuilding,
-  FaHome,
-  FaWifi,
-  FaParking,
-  FaSwimmer,
-  FaDumbbell,
-  FaUtensils,
-  FaWheelchair,
-  FaDog,
-  FaHeart,
-  FaBriefcase,
-  FaHiking,
-  FaMountain,
-} from "react-icons/fa";
-import { GiBed } from "react-icons/gi";
-import {
-  MdOutlineSpa,
-  MdFreeBreakfast,
-  MdAirportShuttle,
-} from "react-icons/md";
 import { Chip, Box, Typography } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
+import {
+  Building,
+  Sparkles,
+  Bed,
+  Building2,
+  Home,
+  Backpack,
+  Mountain,
+  Church,
+  Crown,
+  Trees,
+  Tent,
+  Waves,
+  Plane,
+  Wifi,
+  Coffee,
+  Car,
+  Dumbbell,
+  Utensils,
+  Accessibility,
+  Dog,
+  Globe,
+  Clock,
+  Briefcase,
+  Baby,
+  Heart,
+  Users,
+  User,
+  GraduationCap,
+  Camera,
+} from "lucide-react";
 
-// Data for hotel tags
+// Icon size constant for consistency
+const ICON_SIZE = 16;
+
+// EXPANDED: Complete accommodation types
 const accommodation = [
-  { icon: <FaHotel />, label: "Hoteles de lujo" },
-  { icon: <MdOutlineSpa />, label: "Ryokan (tradicional)" },
-  { icon: <FaCapsules />, label: "Hoteles cápsula" },
-  { icon: <FaBuilding />, label: "Hoteles de negocios" },
-  { icon: <FaHome />, label: "Apartamentos" },
-  { icon: <GiBed />, label: "Hostales" },
+  {
+    icon: <Building size={ICON_SIZE} />,
+    label: "Hoteles de lujo occidentales",
+  },
+  { icon: <Sparkles size={ICON_SIZE} />, label: "Ryokan tradicionales" },
+  { icon: <Bed size={ICON_SIZE} />, label: "Hoteles cápsula" },
+  { icon: <Building2 size={ICON_SIZE} />, label: "Hoteles de negocios" },
+  { icon: <Home size={ICON_SIZE} />, label: "Apartamentos/Airbnb" },
+  { icon: <Backpack size={ICON_SIZE} />, label: "Hostales para mochileros" },
+  {
+    icon: <Mountain size={ICON_SIZE} />,
+    label: "Alojamiento rural (Minshuku)",
+  },
+  { icon: <Church size={ICON_SIZE} />, label: "Estancia en templos (Shukubo)" },
+  { icon: <Crown size={ICON_SIZE} />, label: "Hoteles boutique" },
+  { icon: <Trees size={ICON_SIZE} />, label: "Cabañas en la naturaleza" },
+  { icon: <Tent size={ICON_SIZE} />, label: "Glamping y camping de lujo" },
+  { icon: <Waves size={ICON_SIZE} />, label: "Resorts con onsen" },
+  { icon: <Waves size={ICON_SIZE} />, label: "Resorts de playa" },
+  {
+    icon: <Mountain size={ICON_SIZE} />,
+    label: "Alojamiento en estaciones de esquí",
+  },
 ];
 
+// EXPANDED: Complete hotel services
 const hotelServices = [
-  { icon: <FaWifi />, label: "Wi-Fi gratis" },
-  { icon: <MdFreeBreakfast />, label: "Desayuno incluido" },
-  { icon: <FaParking />, label: "Aparcamiento gratuito" },
-  { icon: <MdAirportShuttle />, label: "Transporte al aeropuerto" },
-  { icon: <FaSwimmer />, label: "Piscina" },
-  { icon: <FaDumbbell />, label: "Gimnasio" },
-  { icon: <FaUtensils />, label: "Restaurante en el hotel" },
-  { icon: <FaWheelchair />, label: "Accesible" },
-  { icon: <FaDog />, label: "Admite mascotas" },
+  { icon: <Wifi size={ICON_SIZE} />, label: "Wi-Fi gratis" },
+  { icon: <Coffee size={ICON_SIZE} />, label: "Desayuno incluido" },
+  { icon: <Car size={ICON_SIZE} />, label: "Aparcamiento gratuito" },
+  { icon: <Plane size={ICON_SIZE} />, label: "Transporte al aeropuerto" },
+  { icon: <Waves size={ICON_SIZE} />, label: "Piscina" },
+  { icon: <Dumbbell size={ICON_SIZE} />, label: "Gimnasio" },
+  { icon: <Utensils size={ICON_SIZE} />, label: "Restaurante en el hotel" },
+  { icon: <Waves size={ICON_SIZE} />, label: "Onsen/Aguas termales" },
+  { icon: <Accessibility size={ICON_SIZE} />, label: "Accesible" },
+  { icon: <Dog size={ICON_SIZE} />, label: "Admite mascotas" },
+  { icon: <Globe size={ICON_SIZE} />, label: "Personal que habla inglés" },
+  { icon: <Clock size={ICON_SIZE} />, label: "Check-in 24h" },
+  { icon: <Briefcase size={ICON_SIZE} />, label: "Centro de negocios" },
+  { icon: <Baby size={ICON_SIZE} />, label: "Servicios para familias" },
+  { icon: <Sparkles size={ICON_SIZE} />, label: "Servicio de limpieza diario" },
 ];
 
+// EXPANDED: Complete trip types
 const typeTrip = [
-  { icon: <FaHeart />, label: "Luna de miel" },
-  { icon: <FaBriefcase />, label: "De negocios" },
-  { icon: <FaHiking />, label: "Amigable para mochileros" },
-  { icon: <FaMountain />, label: "Para aventureros" },
+  { icon: <Baby size={ICON_SIZE} />, label: "Viajes familiares" },
+  { icon: <Heart size={ICON_SIZE} />, label: "Luna de miel/Romántico" },
+  { icon: <Briefcase size={ICON_SIZE} />, label: "Viajes de negocios" },
+  { icon: <Backpack size={ICON_SIZE} />, label: "Mochileros/Presupuesto bajo" },
+  { icon: <Mountain size={ICON_SIZE} />, label: "Aventureros/Deportes" },
+  { icon: <Users size={ICON_SIZE} />, label: "Grupos grandes" },
+  { icon: <User size={ICON_SIZE} />, label: "Viajeros solitarios" },
+  { icon: <GraduationCap size={ICON_SIZE} />, label: "Viajes educativos" },
+  { icon: <Users size={ICON_SIZE} />, label: "Viajeros mayores" },
+  { icon: <Crown size={ICON_SIZE} />, label: "Experiencias de lujo" },
+  { icon: <Camera size={ICON_SIZE} />, label: "Fotografía/Turismo cultural" },
+  { icon: <Sparkles size={ICON_SIZE} />, label: "Celebraciones especiales" },
 ];
 
 const HotelTags = ({ selectedHotelTags, setSelectedHotelTags }) => {
@@ -76,7 +120,7 @@ const HotelTags = ({ selectedHotelTags, setSelectedHotelTags }) => {
           marginBottom: "8px",
         }}
       >
-        Tipos de alojamiento
+        Tipos de alojamiento ({accommodation.length} opciones)
       </Typography>
       <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
         {accommodation.map(({ icon, label }) => (
@@ -122,7 +166,7 @@ const HotelTags = ({ selectedHotelTags, setSelectedHotelTags }) => {
           marginBottom: "8px",
         }}
       >
-        Servicios del hotel
+        Servicios del hotel ({hotelServices.length} opciones)
       </Typography>
       <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
         {hotelServices.map(({ icon, label }) => (
@@ -168,7 +212,7 @@ const HotelTags = ({ selectedHotelTags, setSelectedHotelTags }) => {
           marginBottom: "8px",
         }}
       >
-        Tipo de viaje
+        Tipo de viaje ({typeTrip.length} opciones)
       </Typography>
       <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
         {typeTrip.map(({ icon, label }) => (
