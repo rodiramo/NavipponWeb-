@@ -1,87 +1,135 @@
 import React, { useEffect } from "react";
-import { FaSnowflake, FaSun, FaLeaf, FaTree } from "react-icons/fa";
-import { MdAttachMoney, MdStars, MdLocationOn } from "react-icons/md";
 import { Chip, Box, Typography } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
+import {
+  Leaf,
+  Sun,
+  Flower2,
+  Snowflake,
+  Infinity,
+  HandHelping,
+  PiggyBank,
+  CircleDollarSign,
+  Crown,
+  Coins,
+  TrainFront,
+  Plane,
+  Building2,
+  Store,
+  Mountain,
+  Waves,
+  Trees,
+} from "lucide-react";
 
-// Updated to match backend expectations
+// ✅ UPDATED: Now matches schema exactly!
 const generalTags = {
   season: [
-    { icon: <FaLeaf />, label: "Primavera" },
-    { icon: <FaSun />, label: "Verano" },
-    { icon: <FaTree />, label: "Otoño" },
-    { icon: <FaSnowflake />, label: "Invierno" },
-    { icon: <MdStars />, label: "Todo el año" },
+    { icon: <Flower2 />, label: "Primavera (Sakura)" },
+    { icon: <Sun />, label: "Verano (Festivales)" },
+    { icon: <Leaf />, label: "Otoño (Koyo)" },
+    { icon: <Snowflake />, label: "Invierno (Nieve)" },
+    { icon: <Infinity />, label: "Todo el año" },
   ],
   budget: [
-    { icon: <MdAttachMoney />, label: "Gratis" },
-    { icon: <MdAttachMoney />, label: "Económico" },
-    { icon: <MdAttachMoney />, label: "Moderado" },
-    { icon: <MdAttachMoney />, label: "Lujo" },
+    { icon: <HandHelping />, label: "Gratis" },
+    { icon: <PiggyBank />, label: "Económico (¥0-3,000)" },
+    { icon: <CircleDollarSign />, label: "Moderado (¥3,000-10,000)" },
+    { icon: <Crown />, label: "Premium (¥10,000-30,000)" },
+    { icon: <Coins />, label: "Lujo (¥30,000+)" },
   ],
   location: [
-    { icon: <MdLocationOn />, label: "Cerca de estaciones de tren o metro" },
-    { icon: <MdLocationOn />, label: "Cerca de aeropuertos" },
-    { icon: <MdLocationOn />, label: "Cerca de áreas de puntos de interés" },
+    { icon: <TrainFront />, label: "Cerca de estaciones JR" },
+    { icon: <TrainFront />, label: "Cerca de metro" },
+    { icon: <Plane />, label: "Cerca de aeropuertos" },
+    { icon: <Building2 />, label: "Centro de la ciudad" },
+    { icon: <Store />, label: "Distritos comerciales" },
+    { icon: <Mountain />, label: "Áreas rurales/montañosas" },
+    { icon: <Waves />, label: "Zona costera" },
+    { icon: <Trees />, label: "Parques y naturaleza" },
   ],
 };
 
-// Mapping for potential database value mismatches
+// ✅ UPDATED: Mapping for potential database value mismatches (backward compatibility)
 const tagValueMapping = {
   season: {
-    spring: "Primavera",
-    summer: "Verano",
-    autumn: "Otoño",
-    fall: "Otoño",
-    winter: "Invierno",
+    // Old values mapping to new schema values
+    Primavera: "Primavera (Sakura)",
+    Verano: "Verano (Festivales)",
+    Otoño: "Otoño (Koyo)",
+    Invierno: "Invierno (Nieve)",
+    // English versions
+    spring: "Primavera (Sakura)",
+    summer: "Verano (Festivales)",
+    autumn: "Otoño (Koyo)",
+    fall: "Otoño (Koyo)",
+    winter: "Invierno (Nieve)",
     all_year: "Todo el año",
     year_round: "Todo el año",
-    // Add Spanish versions in case database has them
-    primavera: "Primavera",
-    verano: "Verano",
-    otoño: "Otoño",
-    invierno: "Invierno",
+    // Exact matches (case insensitive)
+    "primavera (sakura)": "Primavera (Sakura)",
+    "verano (festivales)": "Verano (Festivales)",
+    "otoño (koyo)": "Otoño (Koyo)",
+    "invierno (nieve)": "Invierno (Nieve)",
     "todo el año": "Todo el año",
   },
   budget: {
+    // Old values mapping to new schema values
+    Económico: "Económico (¥0-3,000)",
+    Moderado: "Moderado (¥3,000-10,000)",
+    Lujo: "Lujo (¥30,000+)",
+    // English versions
     free: "Gratis",
-    budget: "Económico",
-    economic: "Económico",
-    economico: "Económico",
-    moderate: "Moderado",
-    moderado: "Moderado",
-    luxury: "Lujo",
-    lujo: "Lujo",
-    expensive: "Lujo",
-    // Add exact matches
+    budget: "Económico (¥0-3,000)",
+    economic: "Económico (¥0-3,000)",
+    economico: "Económico (¥0-3,000)",
+    moderate: "Moderado (¥3,000-10,000)",
+    moderado: "Moderado (¥3,000-10,000)",
+    premium: "Premium (¥10,000-30,000)",
+    luxury: "Lujo (¥30,000+)",
+    lujo: "Lujo (¥30,000+)",
+    expensive: "Lujo (¥30,000+)",
+    // Exact matches (case insensitive)
     gratis: "Gratis",
-    económico: "Económico",
+    "económico (¥0-3,000)": "Económico (¥0-3,000)",
+    "moderado (¥3,000-10,000)": "Moderado (¥3,000-10,000)",
+    "premium (¥10,000-30,000)": "Premium (¥10,000-30,000)",
+    "lujo (¥30,000+)": "Lujo (¥30,000+)",
   },
   location: {
-    train_station: "Cerca de estaciones de tren o metro",
-    metro_station: "Cerca de estaciones de tren o metro",
+    // Old values mapping to new schema values
+    "Cerca de estaciones de tren o metro": "Cerca de estaciones JR",
+    "Cerca de áreas de puntos de interés": "Centro de la ciudad",
+    // English versions
+    train_station: "Cerca de estaciones JR",
+    metro_station: "Cerca de metro",
     airport: "Cerca de aeropuertos",
-    poi: "Cerca de áreas de puntos de interés",
-    points_of_interest: "Cerca de áreas de puntos de interés",
-    // Add Spanish versions
-    "cerca de estaciones de tren o metro":
-      "Cerca de estaciones de tren o metro",
+    city_center: "Centro de la ciudad",
+    commercial: "Distritos comerciales",
+    rural: "Áreas rurales/montañosas",
+    coastal: "Zona costera",
+    nature: "Parques y naturaleza",
+    poi: "Centro de la ciudad",
+    points_of_interest: "Centro de la ciudad",
+    // Exact matches (case insensitive)
+    "cerca de estaciones jr": "Cerca de estaciones JR",
+    "cerca de metro": "Cerca de metro",
     "cerca de aeropuertos": "Cerca de aeropuertos",
-    "cerca de áreas de puntos de interés":
-      "Cerca de áreas de puntos de interés",
+    "centro de la ciudad": "Centro de la ciudad",
+    "distritos comerciales": "Distritos comerciales",
+    "áreas rurales/montañosas": "Áreas rurales/montañosas",
+    "zona costera": "Zona costera",
+    "parques y naturaleza": "Parques y naturaleza",
   },
 };
 
-// Updated display names for Spanish UI
+// Display names for Spanish UI
 const tagDisplayNames = {
   season: "Estación",
   budget: "Presupuesto",
   location: "Ubicación",
 };
 
-// Helper function to convert component format back to database format
-// Note: This only handles season, budget, and location.
-// Rating should be handled separately in your form.
+// ✅ Helper function to convert component format back to database format
 export const convertTagsToDbFormat = (componentTags) => {
   const dbFormat = {};
   Object.keys(componentTags || {}).forEach((tagType) => {

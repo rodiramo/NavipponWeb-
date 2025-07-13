@@ -3,7 +3,6 @@ import {
   MdOutlineBeachAccess,
   MdOutlineRamenDining,
   MdOutlineCoffee,
-  MdOutlineShoppingBag,
   MdOutlineTempleBuddhist,
   MdOutlineHotTub,
   MdOutlineCastle,
@@ -12,7 +11,6 @@ import {
   MdOutlinePhotoCamera,
   MdLocalBar,
   MdNightlife,
-  MdAutoStories,
   MdPhoneAndroid,
   MdCheckroom,
   MdOutlineStore,
@@ -36,9 +34,9 @@ import {
   TbActivity,
 } from "react-icons/tb";
 import { LiaCocktailSolid, LiaSwimmerSolid } from "react-icons/lia";
-import { GiGreekTemple, GiWaterfall, GiBookshelf } from "react-icons/gi";
+import { GiGreekTemple, GiWaterfall } from "react-icons/gi";
 import { FaRegStar } from "react-icons/fa";
-import { BsRobot, BsSnow } from "react-icons/bs";
+import { BsSnow } from "react-icons/bs";
 import { LuFerrisWheel, LuWaves, LuTrees } from "react-icons/lu";
 import { PiBinocularsBold } from "react-icons/pi";
 import { RiSunLine } from "react-icons/ri";
@@ -62,6 +60,7 @@ import {
   Baby,
   Guitar,
   Sword,
+  Amphora,
   Camera,
   Flower,
   Banana,
@@ -71,6 +70,7 @@ import {
   Origami,
   Bot,
   MicVocal,
+  FlaskConical,
   BookOpenText,
   PartyPopper,
   Gamepad2,
@@ -79,10 +79,8 @@ import {
   Mountain,
 } from "lucide-react";
 
-// Icon size constant to ensure consistency
 const ICON_SIZE = 20;
 
-// Complete attraction tags organized by category
 const attractionTags = [
   // Nature & Outdoor Activities
   { icon: <MdOutlineForest size={ICON_SIZE} />, title: "Bosques y naturaleza" },
@@ -170,7 +168,8 @@ const attractionTags = [
     title: "Templos budistas",
   },
   { icon: <GiGreekTemple size={ICON_SIZE} />, title: "Museos de arte" },
-  { icon: <BsRobot size={ICON_SIZE} />, title: "Museos de ciencia" },
+  { icon: <FlaskConical size={ICON_SIZE} />, title: "Museos de ciencia" },
+  { icon: <Amphora size={ICON_SIZE} />, title: "Museo" },
   { icon: <Sword size={ICON_SIZE} />, title: "Cultura samurai" },
   { icon: <MdOutlineBook size={ICON_SIZE} />, title: "Sitios literarios" },
 

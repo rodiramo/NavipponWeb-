@@ -170,6 +170,7 @@ const attractionTags = [
   "Templos sintoístas",
   "Templos budistas",
   "Museos de arte",
+  "Museo",
   "Museos de ciencia",
   "Cultura samurai",
   "Sitios literarios",
@@ -252,7 +253,8 @@ const restaurantTags = {
     "Cocina india",
 
     // Special Diets
-    "Vegetariana/Vegana",
+    "Vegetariana",
+    "Vegana",
     "Sin gluten",
     "Halal",
     "Kosher",

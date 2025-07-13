@@ -92,7 +92,8 @@ const cuisines = [
   { icon: <Soup size={ICON_SIZE} />, label: "Cocina india" },
 
   // Special Diets
-  { icon: <Salad size={ICON_SIZE} />, label: "Vegetariana/Vegana" },
+  { icon: <Salad size={ICON_SIZE} />, label: "Vegetariana" },
+  { icon: <Salad size={ICON_SIZE} />, label: "Vegana" },
   { icon: <Wheat size={ICON_SIZE} />, label: "Sin gluten" },
   { icon: <Shield size={ICON_SIZE} />, label: "Halal" },
   { icon: <Shield size={ICON_SIZE} />, label: "Kosher" },
