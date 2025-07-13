@@ -21,6 +21,8 @@ import {
   Earth,
   ArrowLeft,
   ArrowRight,
+  Search,
+  MapPin,
   Image,
   Clock,
 } from "lucide-react";
@@ -89,7 +91,10 @@ const ExperienceForm = () => {
     type: "Point",
     coordinates: [],
   });
-
+  const [manualCoords, setManualCoords] = useState({
+    lat: "",
+    lng: "",
+  });
   // All your existing state variables...
   const [experienceSlug, setExperienceSlug] = useState("");
   const [caption, setCaption] = useState("");
@@ -415,6 +420,65 @@ const ExperienceForm = () => {
       token: jwt,
     });
   };
+  const geocodeAddress = async () => {
+    if (!address.trim()) {
+      toast.error("Por favor ingresa una dirección");
+      return;
+    }
+
+    try {
+      const geocoder = new window.google.maps.Geocoder();
+      const result = await new Promise((resolve, reject) => {
+        geocoder.geocode({ address: address }, (results, status) => {
+          if (status === "OK" && results[0]) {
+            resolve(results[0]);
+          } else {
+            reject(new Error("No se pudo encontrar la ubicación"));
+          }
+        });
+      });
+
+      const lat = result.geometry.location.lat();
+      const lng = result.geometry.location.lng();
+
+      setLocation({
+        type: "Point",
+        coordinates: [lng, lat],
+      });
+      setManualCoords({ lat: lat.toString(), lng: lng.toString() });
+
+      if (result.formatted_address) {
+        setAddress(result.formatted_address);
+      }
+
+      toast.success("Coordenadas obtenidas exitosamente");
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+
+  // Add this function to apply manual coordinates:
+  const applyManualCoordinates = () => {
+    const lat = parseFloat(manualCoords.lat);
+    const lng = parseFloat(manualCoords.lng);
+
+    if (isNaN(lat) || isNaN(lng)) {
+      toast.error("Por favor ingresa coordenadas válidas");
+      return;
+    }
+
+    if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+      toast.error("Coordenadas fuera de rango válido");
+      return;
+    }
+
+    setLocation({
+      type: "Point",
+      coordinates: [lng, lat],
+    });
+
+    toast.success("Coordenadas aplicadas exitosamente");
+  };
 
   // Step content renderer
   const renderStepContent = (step) => {
@@ -571,7 +635,132 @@ const ExperienceForm = () => {
               gutterBottom
             >
               Ubicación*
-            </Typography>
+            </Typography>{" "}
+            <Box>
+              <Typography variant="subtitle1" sx={{ mb: 1 }}>
+                Dirección
+              </Typography>
+              <Stack direction={isMobile ? "column" : "row"} spacing={1}>
+                <TextField
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  fullWidth
+                  placeholder="Ingresa la dirección completa"
+                  size={isMobile ? "medium" : "large"}
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      borderRadius: "12px",
+                    },
+                  }}
+                />
+                <Button
+                  onClick={geocodeAddress}
+                  variant="outlined"
+                  startIcon={<Search size={16} />}
+                  disabled={!address.trim()}
+                  sx={{
+                    borderRadius: "12px",
+                    textTransform: "none",
+                    minWidth: isMobile ? "100%" : "140px",
+                  }}
+                >
+                  Obtener coordenadas
+                </Button>
+              </Stack>
+            </Box>
+            {/* Manual Coordinates */}
+            <Box>
+              <Typography variant="subtitle1" sx={{ mb: 1 }}>
+                Coordenadas (Opcional)
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    label="Latitud"
+                    value={manualCoords.lat}
+                    onChange={(e) =>
+                      setManualCoords((prev) => ({
+                        ...prev,
+                        lat: e.target.value,
+                      }))
+                    }
+                    fullWidth
+                    placeholder="35.6762"
+                    type="number"
+                    inputProps={{ step: "any" }}
+                    size={isMobile ? "medium" : "large"}
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: "12px",
+                      },
+                    }}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    label="Longitud"
+                    value={manualCoords.lng}
+                    onChange={(e) =>
+                      setManualCoords((prev) => ({
+                        ...prev,
+                        lng: e.target.value,
+                      }))
+                    }
+                    fullWidth
+                    placeholder="139.6503"
+                    type="number"
+                    inputProps={{ step: "any" }}
+                    size={isMobile ? "medium" : "large"}
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: "12px",
+                      },
+                    }}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <Button
+                    onClick={applyManualCoordinates}
+                    variant="contained"
+                    startIcon={<MapPin size={16} />}
+                    disabled={!manualCoords.lat || !manualCoords.lng}
+                    sx={{
+                      borderRadius: "20px",
+                      textTransform: "none",
+                    }}
+                  >
+                    Aplicar coordenadas
+                  </Button>
+                </Grid>
+              </Grid>
+            </Box>
+            {/* Current Coordinates Display */}
+            {location &&
+              location.coordinates &&
+              location.coordinates.length === 2 && (
+                <Box
+                  sx={{
+                    p: 2,
+                    backgroundColor: `${theme.palette.success.main}10`,
+                    borderRadius: "12px",
+                    border: `1px solid ${theme.palette.success.main}30`,
+                  }}
+                >
+                  <Typography
+                    variant="subtitle2"
+                    color="success.main"
+                    gutterBottom
+                  >
+                    ✅ Coordenadas establecidas
+                  </Typography>
+                  <Typography variant="body2">
+                    Latitud: {location.coordinates[1].toFixed(6)}
+                  </Typography>
+                  <Typography variant="body2">
+                    Longitud: {location.coordinates[0].toFixed(6)}
+                  </Typography>
+                </Box>
+              )}
             <RegionPrefectureSelect
               region={region}
               setRegion={setRegion}
@@ -670,24 +859,7 @@ const ExperienceForm = () => {
                   }}
                 />
               </Grid>
-              <Grid item xs={12}>
-                <Typography variant="subtitle1" sx={{ mb: 1 }}>
-                  Dirección
-                </Typography>
-                <TextField
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                  fullWidth
-                  placeholder="Dirección completa"
-                  size={isMobile ? "medium" : "large"}
-                  sx={{
-                    "& .MuiOutlinedInput-root": {
-                      borderRadius: "12px",
-                      fontSize: isMobile ? "14px" : "16px",
-                    },
-                  }}
-                />
-              </Grid>
+
               <Grid item xs={12}>
                 <Typography variant="subtitle1" sx={{ mb: 1 }}>
                   Sitio Web

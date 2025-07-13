@@ -846,7 +846,7 @@ const FavoritesDrawer = ({
             transition: "transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
             top: isMobile ? 0 : "0rem",
             height: isMobile ? "100vh" : "100vh",
-            background: `linear-gradient(135deg, ${theme.palette.background.default}95)`,
+            background: `linear-gradient(135deg, ${theme.palette.background.default})`,
             backdropFilter: "blur(20px)",
             display: "flex",
             flexDirection: "column",

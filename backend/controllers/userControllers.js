@@ -1,6 +1,11 @@
 import upload from "../middleware/uploadPictureMiddleware.js";
-import Comment from "../models/Comment.js";
 import cloudinary from "../config/cloudinaryConfig.js";
+import Comment from "../models/Comment.js";
+import Post from "../models/Post.js";
+import User from "../models/User.js";
+import Itinerary from "../models/Itinerary.js";
+import Review from "../models/Review.js";
+import Favorite from "../models/Favorite.js";
 
 // Enhanced notification imports
 import {
@@ -18,8 +23,6 @@ import {
 } from "../services/notificationService.js";
 import crypto from "crypto";
 import { sendPasswordResetEmail } from "../services/emailService.js";
-import Post from "../models/Post.js";
-import User from "../models/User.js";
 import { fileRemover } from "../utils/fileRemover.js";
 
 console.log("=== EMAIL CONFIGURATION DEBUG ===");
@@ -412,9 +415,10 @@ const deleteUser = async (req, res, next) => {
     let user = await User.findById(req.params.userId);
 
     if (!user) {
-      throw new Error("User no found");
+      throw new Error("User not found");
     }
 
+    // 1. Delete user's posts and related comments
     const postsToDelete = await Post.find({ user: user._id });
     const postIdsToDelete = postsToDelete.map((post) => post._id);
 
@@ -426,10 +430,43 @@ const deleteUser = async (req, res, next) => {
       _id: { $in: postIdsToDelete },
     });
 
+    // Remove post photos
     postsToDelete.forEach((post) => {
       fileRemover(post.photo);
     });
 
+    // 2. Remove user from other users' friends lists
+    await User.updateMany(
+      { friends: user._id },
+      { $pull: { friends: user._id } }
+    );
+
+    // 3. Remove user from itineraries
+    // Option A: Remove user from itineraries they're part of
+    await Itinerary.updateMany(
+      { travelers: user._id }, // or whatever field name you use
+      { $pull: { participants: user._id } }
+    );
+
+    // Option B: If user is the owner, you might want to delete the itinerary entirely
+    await Itinerary.deleteMany({ owner: user._id }); // adjust field name as needed
+
+    // 4. Remove user's favorites and any favorites pointing to this user
+    await Favorite.deleteMany({ user: user._id }); // user's own favorites
+    await Favorite.deleteMany({ favorited_user: user._id }); // others favoriting this user
+
+    // 5. Clean up any other collections that reference this user
+    // Add more cleanup as needed based on your schema:
+
+    // Reviews/Ratings
+    await Review.deleteMany({ user: user._id });
+    await Review.deleteMany({ reviewed_user: user._id });
+
+    // Notifications
+    await Notification.deleteMany({ user: user._id });
+    await Notification.deleteMany({ from_user: user._id });
+
+    // 6. Finally, delete the user
     await user.remove();
     fileRemover(user.avatar);
 

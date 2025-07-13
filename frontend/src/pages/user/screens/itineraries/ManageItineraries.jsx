@@ -353,7 +353,7 @@ const ManageItineraries = () => {
               />
             </Box>
 
-            {/* Travelers Count */}
+            {/* Travelers Count - FIXED */}
             <Box
               sx={{
                 position: "absolute",
@@ -378,8 +378,12 @@ const ManageItineraries = () => {
                   fontSize: { xs: "0.7rem", md: "0.75rem" },
                 }}
               >
-                {itinerary.travelers?.length || 1} viajero
-                {(itinerary.travelers?.length || 1) !== 1 ? "s" : ""}
+                {itinerary.travelers?.filter((t) => t.userId).length || 1}{" "}
+                viajero
+                {(itinerary.travelers?.filter((t) => t.userId).length || 1) !==
+                1
+                  ? "s"
+                  : ""}
               </Typography>
             </Box>
 
@@ -431,8 +435,8 @@ const ManageItineraries = () => {
               {itinerary.name}
             </Typography>
 
-            {/* Creator info for invited itineraries */}
-            {!isOwned && (
+            {/* Creator info for invited itineraries - FIXED */}
+            {!isOwned && itinerary.user && (
               <Box
                 sx={{
                   mb: { xs: 1.5, md: 2 },
@@ -544,10 +548,12 @@ const ManageItineraries = () => {
                     </Box>
                   )}
 
+                  {/* Role section - FIXED */}
                   {!isOwned &&
                     (() => {
                       const myTraveler = itinerary.travelers?.find(
                         (traveler) =>
+                          traveler.userId && // ✅ NULL CHECK ADDED HERE
                           String(traveler.userId._id) === String(user._id)
                       );
                       const myRole = myTraveler?.role || "Invitado";

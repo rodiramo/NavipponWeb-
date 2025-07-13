@@ -35,6 +35,7 @@ const regions = {
     "Miyazaki",
     "Kagoshima",
     "Saga",
+    "Okinawa",
   ],
 };
 

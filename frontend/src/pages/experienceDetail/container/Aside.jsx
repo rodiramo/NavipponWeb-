@@ -325,6 +325,16 @@ const Aside = ({ info }) => {
 
   // Enhanced tag rendering with better styling
   const renderTags = (tags, availableTags) => {
+    console.log("Rendering tags:", tags, "with available:", availableTags);
+
+    if (!tags || !Array.isArray(tags) || tags.length === 0) {
+      return (
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+          No hay tags disponibles
+        </Typography>
+      );
+    }
+
     return (
       <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 1 }}>
         {tags.map((tag, index) => {
@@ -357,12 +367,52 @@ const Aside = ({ info }) => {
                 },
               }}
             />
-          ) : null;
+          ) : (
+            // Show tags even if not found in availableTags (for debugging)
+            <Chip
+              key={index}
+              label={tag}
+              variant="outlined"
+              sx={{
+                borderColor: theme.palette.warning.main,
+                color: theme.palette.warning.main,
+                backgroundColor: `${theme.palette.warning.main}08`,
+              }}
+            />
+          );
         })}
       </Box>
     );
   };
+  const getPrice = () => {
+    if (info.price) return `¥ ${info.price}`;
+    if (info.budget) return `¥ ${info.budget}`;
+    if (info.cost) return `¥ ${info.cost}`;
+    if (info.pricing) return `¥ ${info.pricing}`;
+    return "A consultar";
+  };
 
+  // Try multiple possible data paths for season
+  const getSeason = () => {
+    if (info.generalTags?.season) return info.generalTags.season;
+    if (info.season) return info.season;
+    if (info.bestSeason) return info.bestSeason;
+    if (info.recommendedSeason) return info.recommendedSeason;
+    return "No especificada";
+  };
+
+  // ADD THIS DEBUG CODE TO SEE YOUR DATA STRUCTURE
+  console.log("=== DEBUG INFO DATA ===");
+  console.log("Full info object:", info);
+  console.log("Categories:", info.categories);
+  console.log("Restaurant tags:", info.restaurantTags);
+  console.log("Hotel tags:", info.hotelTags);
+  console.log("Attraction tags:", info.attractionTags);
+  console.log("General tags:", info.generalTags);
+  console.log("Price:", info.price);
+  console.log("Budget:", info.budget);
+  console.log("All keys in info:", Object.keys(info));
+  console.log("=======================");
   // Contact info item component
   const ContactItem = ({ icon, text, isLink = false, href = null }) => (
     <Box
@@ -479,48 +529,49 @@ const Aside = ({ info }) => {
 
             {/* Season and Price Info */}
             <Box
-              sx={{ display: "flex", alignItems: "center", gap: 1, flex: 1 }}
+              sx={{ display: "flex", flexDirection: "column", gap: 2, mb: 4 }}
             >
-              <SunSnow color={theme.palette.secondary.medium} size={20} />
-              <Typography
-                variant="body1"
-                sx={{ color: theme.palette.text.primary }}
-              >
-                Mejor temporada:{" "}
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <SunSnow color={theme.palette.secondary.medium} size={20} />
                 <Typography
-                  component="span"
-                  sx={{
-                    fontWeight: 700,
-                    color: theme.palette.secondary.medium,
-                  }}
+                  variant="body1"
+                  sx={{ color: theme.palette.text.primary }}
                 >
-                  {info.generalTags?.season || "No especificada"}
+                  Mejor temporada:{" "}
+                  <Typography
+                    component="span"
+                    sx={{
+                      fontWeight: 700,
+                      color: theme.palette.secondary.medium,
+                    }}
+                  >
+                    {getSeason()}
+                  </Typography>
                 </Typography>
-              </Typography>
-            </Box>
-            <Box
-              sx={{ display: "flex", alignItems: "center", gap: 1, flex: 1 }}
-            >
-              <Euro color={theme.palette.primary.main} size={20} />
-              <Typography
-                variant="body1"
-                sx={{ color: theme.palette.text.primary }}
-              >
-                Precio Aproximado:{" "}
+              </Box>
+
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <Euro color={theme.palette.primary.main} size={20} />
                 <Typography
-                  component="span"
-                  sx={{
-                    fontWeight: 700,
-                    color: theme.palette.primary.main,
-                  }}
+                  variant="body1"
+                  sx={{ color: theme.palette.text.primary }}
                 >
-                  {`¥ ${info.price}` || "A consultar"}
+                  Precio Aproximado:{" "}
+                  <Typography
+                    component="span"
+                    sx={{
+                      fontWeight: 700,
+                      color: theme.palette.primary.main,
+                    }}
+                  >
+                    {getPrice()}
+                  </Typography>
                 </Typography>
-              </Typography>
+              </Box>
             </Box>
+
             <Divider sx={{ mt: 4, mb: 4, opacity: 0.3 }} />
 
-            {/* Category-specific Tags */}
             <Box>
               {info.categories === "Atractivos" && (
                 <Box sx={{ mb: 4 }}>
@@ -556,7 +607,11 @@ const Aside = ({ info }) => {
                       Tipo de alojamiento
                     </Typography>
                     {renderTags(
-                      info.hotelTags?.accommodation || [],
+                      info.hotelTags?.accommodation ||
+                        info.hotelTags?.accommodations ||
+                        info.accommodation ||
+                        info.accommodations ||
+                        [],
                       hotelTags.accommodations
                     )}
                   </Box>
@@ -573,7 +628,11 @@ const Aside = ({ info }) => {
                       Servicios
                     </Typography>
                     {renderTags(
-                      info.hotelTags?.hotelServices || [],
+                      info.hotelTags?.hotelServices ||
+                        info.hotelTags?.services ||
+                        info.hotelServices ||
+                        info.services ||
+                        [],
                       hotelTags.hotelServices
                     )}
                   </Box>
@@ -590,7 +649,11 @@ const Aside = ({ info }) => {
                       Tipo de viaje
                     </Typography>
                     {renderTags(
-                      info.hotelTags?.typeTrip || [],
+                      info.hotelTags?.typeTrip ||
+                        info.hotelTags?.tripType ||
+                        info.typeTrip ||
+                        info.tripType ||
+                        [],
                       hotelTags.typeTrip
                     )}
                   </Box>
@@ -611,7 +674,11 @@ const Aside = ({ info }) => {
                       Tipo de restaurante
                     </Typography>
                     {renderTags(
-                      info.restaurantTags?.restaurantTypes || [],
+                      info.restaurantTags?.restaurantTypes ||
+                        info.restaurantTags?.types ||
+                        info.restaurantTypes ||
+                        info.types ||
+                        [],
                       restaurantTags.restaurantTypes
                     )}
                   </Box>
@@ -628,7 +695,11 @@ const Aside = ({ info }) => {
                       Cocinas
                     </Typography>
                     {renderTags(
-                      info.restaurantTags?.cuisines || [],
+                      info.restaurantTags?.cuisines ||
+                        info.restaurantTags?.cuisine ||
+                        info.cuisines ||
+                        info.cuisine ||
+                        [],
                       restaurantTags.cuisines
                     )}
                   </Box>
@@ -645,7 +716,11 @@ const Aside = ({ info }) => {
                       Servicios de restaurante
                     </Typography>
                     {renderTags(
-                      info.restaurantTags?.restaurantServices || [],
+                      info.restaurantTags?.restaurantServices ||
+                        info.restaurantTags?.services ||
+                        info.restaurantServices ||
+                        info.services ||
+                        [],
                       restaurantTags.restaurantServices
                     )}
                   </Box>

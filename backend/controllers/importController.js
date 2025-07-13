@@ -1,11 +1,13 @@
-// controllers/importController.js
+// controllers/importController.js - Updated version
 import ApiImportService from "../services/ApiImportService.js";
 import OpenStreetApi from "../services/OpenStreetApi.js";
+import TagMappingService from "../services/tagMappingService.js";
 
 export class ImportController {
   constructor() {
     this.googleService = new ApiImportService();
     this.osmService = new OpenStreetApi();
+    this.tagMapper = new TagMappingService();
   }
 
   async searchExternal(req, res) {
@@ -18,16 +20,13 @@ export class ImportController {
         prefecture,
         category,
       });
-      console.log("👤 User:", req.user?._id);
 
       let places = [];
       let previews = [];
 
       if (source === "google") {
-        // Search Google Places
         places = await this.googleService.searchPlaces(query, prefecture);
 
-        // Transform for preview
         for (const place of places.slice(0, 10)) {
           try {
             let details = place;
@@ -46,9 +45,29 @@ export class ImportController {
               categoryName,
               req.user?._id
             );
+
+            // Apply tag mapping to ensure valid enum values
+            const mappedTags = this.tagMapper.autoMapFromGooglePlace(
+              details,
+              categoryName
+            );
+            transformed.attractionTags = mappedTags.attractionTags;
+            transformed.generalTags = mappedTags.generalTags;
+            transformed.restaurantTags = mappedTags.restaurantTags;
+            transformed.hotelTags = mappedTags.hotelTags;
+
+            // Validate tags
+            const validation = this.tagMapper.validateTags(transformed);
+            if (!validation.isValid) {
+              console.warn(
+                `⚠️ Tag validation warnings for ${transformed.title}:`,
+                validation.errors
+              );
+              // Continue with valid tags only
+            }
+
             previews.push(transformed);
 
-            // Rate limiting for real API calls
             if (!place.place_id.startsWith("mock_")) {
               await this.delay(500);
             }
@@ -57,10 +76,8 @@ export class ImportController {
           }
         }
       } else if (source === "osm") {
-        // Search OpenStreetMap
         places = await this.osmService.searchPlaces(query, prefecture);
 
-        // Transform OSM data for preview
         for (const place of places.slice(0, 10)) {
           try {
             const categoryName = this.mapCategoryName(category);
@@ -69,6 +86,27 @@ export class ImportController {
               categoryName,
               req.user?._id
             );
+
+            // Apply safe defaults for OSM data
+            transformed.attractionTags =
+              transformed.attractionTags?.slice(0, 3) || [];
+            transformed.generalTags = {
+              season: ["Todo el año"],
+              budget: ["Medio"],
+              rating: [],
+              location: ["Zona turística"],
+            };
+            transformed.restaurantTags = {
+              restaurantTypes: ["Restaurante tradicional"],
+              cuisines: [],
+              restaurantServices: [],
+            };
+            transformed.hotelTags = {
+              accommodation: ["Hotel"],
+              hotelServices: [],
+              typeTrip: [],
+            };
+
             previews.push(transformed);
           } catch (error) {
             console.error("Error transforming OSM place:", error);
@@ -117,28 +155,49 @@ export class ImportController {
 
       for (const experienceData of data || []) {
         try {
-          // Check for duplicates - handle both Google and OSM external IDs
+          // Clean and validate tags before saving
+          const cleanedData = this.cleanExperienceData(
+            experienceData,
+            category
+          );
+
+          // Validate the cleaned data
+          const validation = this.tagMapper.validateTags(cleanedData);
+          if (!validation.isValid) {
+            console.warn(
+              `⚠️ Skipping ${cleanedData.title} due to validation errors:`,
+              validation.errors
+            );
+            results.errors++;
+            results.details.push({
+              title: cleanedData.title,
+              status: "error",
+              error: `Tag validation failed: ${validation.errors.join(", ")}`,
+            });
+            continue;
+          }
+
+          // Check for duplicates
           let duplicate = null;
           const duplicateQueries = [];
 
-          if (experienceData.externalIds?.googlePlaceId) {
+          if (cleanedData.externalIds?.googlePlaceId) {
             duplicateQueries.push({
               "externalIds.googlePlaceId":
-                experienceData.externalIds.googlePlaceId,
+                cleanedData.externalIds.googlePlaceId,
             });
           }
 
-          if (experienceData.externalIds?.osmId) {
+          if (cleanedData.externalIds?.osmId) {
             duplicateQueries.push({
-              "externalIds.osmId": experienceData.externalIds.osmId,
+              "externalIds.osmId": cleanedData.externalIds.osmId,
             });
           }
 
-          // Also check by title and location
           duplicateQueries.push({
-            title: experienceData.title,
-            prefecture: experienceData.prefecture,
-            categories: experienceData.categories,
+            title: cleanedData.title,
+            prefecture: cleanedData.prefecture,
+            categories: cleanedData.categories,
           });
 
           if (duplicateQueries.length > 0) {
@@ -146,10 +205,10 @@ export class ImportController {
           }
 
           if (duplicate) {
-            console.log(`⚠️ Duplicate found: ${experienceData.title}`);
+            console.log(`⚠️ Duplicate found: ${cleanedData.title}`);
             results.duplicates++;
             results.details.push({
-              title: experienceData.title,
+              title: cleanedData.title,
               status: "duplicate",
               existingId: duplicate._id,
             });
@@ -158,19 +217,19 @@ export class ImportController {
 
           // Create new experience
           const experience = new Experience({
-            ...experienceData,
+            ...cleanedData,
             user: userId,
           });
 
           const savedExperience = await experience.save();
           results.imported++;
           results.details.push({
-            title: experienceData.title,
+            title: cleanedData.title,
             status: "imported",
             id: savedExperience._id,
           });
 
-          console.log(`✅ Imported: ${experienceData.title}`);
+          console.log(`✅ Imported: ${cleanedData.title}`);
         } catch (error) {
           console.error(`❌ Error importing ${experienceData.title}:`, error);
           results.errors++;
@@ -228,7 +287,6 @@ export class ImportController {
       const experiencesToImport = [];
 
       if (source === "google") {
-        // Search Google Places
         const places = await this.googleService.searchPlaces(query, prefecture);
 
         for (const place of places.slice(0, limit)) {
@@ -248,7 +306,13 @@ export class ImportController {
               categoryName,
               userId
             );
-            experiencesToImport.push(transformed);
+
+            // Clean the data before adding to import list
+            const cleanedData = this.cleanExperienceData(
+              transformed,
+              categoryName
+            );
+            experiencesToImport.push(cleanedData);
 
             if (!place.place_id.startsWith("mock_")) {
               await this.delay(500);
@@ -258,7 +322,6 @@ export class ImportController {
           }
         }
       } else if (source === "osm") {
-        // Search OpenStreetMap
         const places = await this.osmService.searchPlaces(query, prefecture);
 
         for (const place of places.slice(0, limit)) {
@@ -268,14 +331,18 @@ export class ImportController {
               categoryName,
               userId
             );
-            experiencesToImport.push(transformed);
+
+            const cleanedData = this.cleanExperienceData(
+              transformed,
+              categoryName
+            );
+            experiencesToImport.push(cleanedData);
           } catch (error) {
             console.error("Error in OSM quick import transform:", error);
           }
         }
       }
 
-      // Now import them using the helper method
       const importResult = await this.importExperiencesHelper(
         experiencesToImport,
         userId
@@ -298,14 +365,103 @@ export class ImportController {
     }
   }
 
+  // Helper method to clean and validate experience data
+  cleanExperienceData(experienceData, category) {
+    const cleaned = { ...experienceData };
+
+    // Ensure we have the correct category
+    cleaned.categories = category;
+
+    // Apply appropriate tag mapping based on category
+    if (category === "Atractivos") {
+      cleaned.attractionTags = this.tagMapper.mapAttractionTags(
+        cleaned.attractionTags || []
+      );
+      cleaned.restaurantTags = {
+        restaurantTypes: [],
+        cuisines: [],
+        restaurantServices: [],
+      };
+      cleaned.hotelTags = {
+        accommodation: [],
+        hotelServices: [],
+        typeTrip: [],
+      };
+    } else if (category === "Restaurantes") {
+      cleaned.restaurantTags = this.tagMapper.mapRestaurantTags(
+        cleaned.restaurantTags || {}
+      );
+      cleaned.attractionTags = [];
+      cleaned.hotelTags = {
+        accommodation: [],
+        hotelServices: [],
+        typeTrip: [],
+      };
+    } else if (category === "Hoteles") {
+      cleaned.hotelTags = this.tagMapper.mapHotelTags(cleaned.hotelTags || {});
+      cleaned.attractionTags = [];
+      cleaned.restaurantTags = {
+        restaurantTypes: [],
+        cuisines: [],
+        restaurantServices: [],
+      };
+    }
+
+    // Clean general tags
+    cleaned.generalTags = this.tagMapper.mapGeneralTags(
+      cleaned.generalTags || {}
+    );
+
+    // Ensure required fields have defaults
+    if (!cleaned.price || cleaned.price < 0) {
+      cleaned.price = 0;
+    }
+
+    if (!cleaned.region) {
+      // Map prefecture to region (you might want to create a prefecture-to-region mapping)
+      cleaned.region = this.mapPrefectureToRegion(cleaned.prefecture);
+    }
+
+    return cleaned;
+  }
+
+  // Helper to map prefecture to region
+  mapPrefectureToRegion(prefecture) {
+    const prefectureToRegion = {
+      Tokyo: "Kanto",
+      Osaka: "Kansai",
+      Kyoto: "Kansai",
+      Kanagawa: "Kanto",
+      Chiba: "Kanto",
+      Saitama: "Kanto",
+      Hokkaido: "Hokkaido",
+      Fukuoka: "Kyushu",
+      Hiroshima: "Chugoku",
+      Aichi: "Chubu",
+      Miyagi: "Tohoku",
+      Nara: "Kansai",
+    };
+    return prefectureToRegion[prefecture] || "Kanto";
+  }
+
   async importExperiencesHelper(experiencesData, userId) {
     const Experience = (await import("../models/Experience.js")).default;
-
     const results = { imported: 0, duplicates: 0, errors: 0 };
 
     for (const experienceData of experiencesData) {
       try {
-        // Check for duplicates - handle both Google and OSM IDs
+        // Data should already be cleaned by cleanExperienceData
+        const validation = this.tagMapper.validateTags(experienceData);
+        if (!validation.isValid) {
+          console.warn(
+            `⚠️ Skipping ${experienceData.title}:`,
+            validation.errors
+          );
+          results.errors++;
+          continue;
+        }
+
+        // Check for duplicates
         const duplicateQueries = [];
 
         if (experienceData.externalIds?.googlePlaceId) {
@@ -321,7 +477,6 @@ export class ImportController {
           });
         }
 
-        // Also check by title and location
         duplicateQueries.push({
           title: experienceData.title,
           prefecture: experienceData.prefecture,
@@ -338,7 +493,6 @@ export class ImportController {
           continue;
         }
 
-        // Create and save
         const experience = new Experience({
           ...experienceData,
           user: userId,
@@ -346,11 +500,7 @@ export class ImportController {
 
         await experience.save();
         results.imported++;
-        console.log(
-          `✅ Imported: ${experienceData.title} (${
-            experienceData.externalIds?.googlePlaceId ? "Google" : "OSM"
-          })`
-        );
+        console.log(`✅ Imported: ${experienceData.title}`);
       } catch (error) {
         console.error("Error importing experience:", error);
         results.errors++;

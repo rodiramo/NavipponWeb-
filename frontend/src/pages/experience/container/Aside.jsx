@@ -6,11 +6,8 @@ import {
   Snowflake,
   Cat,
   Dog,
-  Microwave,
   Trees,
   Wifi,
-  Sandwich,
-  MountainSnow,
   Dumbbell,
   Baby,
   Backpack,
@@ -18,21 +15,14 @@ import {
   Truck,
   ShoppingBag,
   Utensils,
-  CircleParking,
   Infinity,
   Beef,
-  EggFried,
   CircleCheck,
-  Hotel,
   RotateCcw,
   Bed,
-  Eye,
-  Earth,
-  Ham,
   CookingPot,
   Store,
   Blocks,
-  BriefcaseBusiness,
   Coffee,
   Amphora,
   Martini,
@@ -46,22 +36,15 @@ import {
   Church,
   Waves,
   Bot,
-  WheatOff,
   PartyPopper,
   MapPinHouse,
   FerrisWheel,
-  ChefHat,
-  Carrot,
-  Vegan,
   Grape,
-  BusFront,
-  WavesLadder,
   Globe,
   Pizza,
   Fish,
   Heart,
   TrainFront,
-  Languages,
   Building,
   Building2,
   Home,
@@ -128,8 +111,6 @@ const regions = [
   "Kyushu",
 ];
 
-// Helper function to get count for a tag
-// Helper function to get count for a tag - update this in your Aside component
 const getTagCount = (tagKey, tagTitle, tagCounts) => {
   // Try different variations of the tag
   return (
@@ -137,7 +118,6 @@ const getTagCount = (tagKey, tagTitle, tagCounts) => {
     tagCounts[tagTitle] ||
     tagCounts[tagTitle.toLowerCase()] ||
     tagCounts[tagKey?.toLowerCase()] ||
-    // Try without spaces and special characters
     tagCounts[tagTitle.replace(/\s+/g, "_")] ||
     tagCounts[tagTitle.replace(/\s+/g, "")] ||
     0

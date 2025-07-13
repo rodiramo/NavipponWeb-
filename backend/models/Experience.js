@@ -32,6 +32,7 @@ const regions = {
     "Nagasaki",
     "Kumamoto",
     "Oita",
+    "Okinawa",
     "Miyazaki",
     "Kagoshima",
     "Saga",
