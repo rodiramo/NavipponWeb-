@@ -38,7 +38,7 @@ import {
   Fade,
   Container,
   TextField, // Add TextField for mobile search
-  CircularProgress, // Add CircularProgress for loading
+  CircularProgress, // Add CircularProgress f
 } from "@mui/material";
 
 const ManagePosts = () => {
@@ -387,7 +387,6 @@ const ManagePosts = () => {
           <Button
             component={Link}
             to={`/user/posts/manage/edit/${post?.slug}`}
-            startIcon={<Edit size={16} />}
             sx={{
               color: theme.palette.primary.black,
               borderColor: theme.palette.primary.black,
@@ -401,12 +400,11 @@ const ManagePosts = () => {
             variant="outlined"
             size="small"
           >
-            Editar
+            <Edit size={16} />
           </Button>
 
           <Button
             disabled={isLoadingDeleteData}
-            startIcon={<Trash2 size={16} />}
             onClick={() => deleteDataHandler({ slug: post?.slug })}
             sx={{
               color: theme.palette.error.main,
@@ -423,7 +421,7 @@ const ManagePosts = () => {
             variant="outlined"
             size="small"
           >
-            Borrar
+            <Trash2 size={16} />
           </Button>
         </Box>
       </CardContent>
@@ -746,7 +744,6 @@ const ManagePosts = () => {
                   <Button
                     component={Link}
                     to={`/user/posts/manage/edit/${post?.slug}`}
-                    startIcon={<Edit size={16} />}
                     sx={{
                       color: theme.palette.primary.black,
                       borderColor: theme.palette.primary.black,
@@ -762,12 +759,11 @@ const ManagePosts = () => {
                     variant="outlined"
                     size="small"
                   >
-                    Editar
+                    <Edit size={16} />
                   </Button>
 
                   <Button
                     disabled={isLoadingDeleteData}
-                    startIcon={<Trash2 size={16} />}
                     onClick={() => deleteDataHandler({ slug: post?.slug })}
                     sx={{
                       color: theme.palette.error.main,
@@ -786,7 +782,7 @@ const ManagePosts = () => {
                     variant="outlined"
                     size="small"
                   >
-                    Borrar
+                    <Trash2 size={16} />
                   </Button>
                 </Stack>
               </td>

@@ -49,6 +49,7 @@ import ErrorMessage from "../../../../components/ErrorMessage";
 import HotelTags from "./tags/HotelTags";
 import RestaurantTags from "./tags/RestaurantTags";
 import AtractionTags from "./tags/AtractionTags";
+import ScheduleComponent from "./tags/ScheduleComponent";
 import GeneralTags from "./tags/GeneralTags";
 
 const DEFAULT_IMAGES = {
