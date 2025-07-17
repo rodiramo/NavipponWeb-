@@ -1,6 +1,8 @@
 import upload from "../middleware/uploadPictureMiddleware.js";
 import cloudinary from "../config/cloudinaryConfig.js"; // ✅ Import Cloudinary
 import Post from "../models/Post.js";
+import asyncHandler from "express-async-handler";
+import User from "../models/User.js";
 import Comment from "../models/Comment.js";
 import { fileRemover } from "../utils/fileRemover.js";
 import { v4 as uuidv4 } from "uuid";
@@ -451,4 +453,330 @@ const getPost = async (req, res, next) => {
   }
 };
 
-export { createPost, updatePost, deletePost, getPost, getUserPosts };
+/**
+ * @desc    Toggle save/unsave a post
+ * @route   POST /api/posts/:postId/save
+ * @access  Private
+ */
+const toggleSavePost = asyncHandler(async (req, res) => {
+  try {
+    const { postId } = req.params;
+    const userId = req.user._id;
+
+    // Check if post exists
+    const post = await Post.findById(postId);
+    if (!post) {
+      return res.status(404).json({
+        success: false,
+        message: "Post no encontrado",
+      });
+    }
+
+    // Get user
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "Usuario no encontrado",
+      });
+    }
+
+    // Check if post is currently saved
+    const isCurrentlySaved = user.savedPosts.includes(postId);
+
+    if (isCurrentlySaved) {
+      // Remove from saved posts
+      user.savedPosts = user.savedPosts.filter(
+        (savedPostId) => savedPostId.toString() !== postId.toString()
+      );
+    } else {
+      // Add to saved posts
+      user.savedPosts.push(postId);
+    }
+
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: isCurrentlySaved
+        ? "Post removido de guardados"
+        : "Post guardado exitosamente",
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        avatar: user.avatar,
+        savedPosts: user.savedPosts,
+        savedPostsCount: user.savedPosts.length,
+      },
+      action: isCurrentlySaved ? "unsaved" : "saved",
+    });
+  } catch (error) {
+    console.error("Error in toggleSavePost:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error interno del servidor",
+    });
+  }
+});
+
+/**
+ * @desc    Get user's saved posts with pagination
+ * @route   GET /api/users/saved-posts
+ * @access  Private
+ */
+const getSavedPosts = asyncHandler(async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    // Get user with saved posts count
+    const user = await User.findById(userId).select("savedPosts");
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "Usuario no encontrado",
+      });
+    }
+
+    const totalCount = user.savedPosts.length;
+    const totalPages = Math.ceil(totalCount / limit);
+
+    // Get paginated saved posts
+    const savedPostIds = user.savedPosts.slice(skip, skip + limit);
+
+    const savedPosts = await Post.find({
+      _id: { $in: savedPostIds },
+    })
+      .populate("user", "name avatar verified")
+      .populate("categories", "title")
+      .sort({ createdAt: -1 })
+      .select(
+        "title slug caption photo createdAt updatedAt user tags categories approved"
+      );
+
+    // Maintain the order from user.savedPosts
+    const orderedPosts = savedPostIds
+      .map((id) =>
+        savedPosts.find((post) => post._id.toString() === id.toString())
+      )
+      .filter(Boolean);
+
+    res.status(200).json({
+      success: true,
+      posts: orderedPosts,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalCount,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1,
+        limit,
+      },
+      message: "Posts guardados obtenidos exitosamente",
+    });
+  } catch (error) {
+    console.error("Error in getSavedPosts:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error interno del servidor",
+    });
+  }
+});
+
+/**
+ * @desc    Remove multiple saved posts
+ * @route   DELETE /api/users/saved-posts
+ * @access  Private
+ */
+const removeSavedPosts = asyncHandler(async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { postIds } = req.body;
+
+    // Validate input
+    if (!postIds || !Array.isArray(postIds) || postIds.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Se requiere un array de IDs de posts",
+      });
+    }
+
+    // Get user
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "Usuario no encontrado",
+      });
+    }
+
+    // Count posts before removal
+    const initialCount = user.savedPosts.length;
+
+    // Remove specified posts
+    user.savedPosts = user.savedPosts.filter(
+      (savedPostId) => !postIds.includes(savedPostId.toString())
+    );
+
+    const finalCount = user.savedPosts.length;
+    const removedCount = initialCount - finalCount;
+
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: `${removedCount} posts removidos de guardados`,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        avatar: user.avatar,
+        savedPosts: user.savedPosts,
+        savedPostsCount: user.savedPosts.length,
+      },
+      removedCount,
+    });
+  } catch (error) {
+    console.error("Error in removeSavedPosts:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error interno del servidor",
+    });
+  }
+});
+
+/**
+ * @desc    Check if a post is saved by user
+ * @route   GET /api/posts/:postId/saved
+ * @access  Private
+ */
+const checkIfPostSaved = asyncHandler(async (req, res) => {
+  try {
+    const { postId } = req.params;
+    const userId = req.user._id;
+
+    // Check if post exists
+    const post = await Post.findById(postId);
+    if (!post) {
+      return res.status(404).json({
+        success: false,
+        message: "Post no encontrado",
+      });
+    }
+
+    // Get user
+    const user = await User.findById(userId).select("savedPosts");
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "Usuario no encontrado",
+      });
+    }
+
+    const isSaved = user.savedPosts.includes(postId);
+
+    res.status(200).json({
+      success: true,
+      isSaved,
+      postId,
+      message: isSaved ? "Post está guardado" : "Post no está guardado",
+    });
+  } catch (error) {
+    console.error("Error in checkIfPostSaved:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error interno del servidor",
+    });
+  }
+});
+
+/**
+ * @desc    Get saved posts count for user
+ * @route   GET /api/users/saved-posts/count
+ * @access  Private
+ */
+const getSavedPostsCount = asyncHandler(async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    const user = await User.findById(userId).select("savedPosts");
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "Usuario no encontrado",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      count: user.savedPosts.length,
+      message: "Contador de posts guardados obtenido exitosamente",
+    });
+  } catch (error) {
+    console.error("Error in getSavedPostsCount:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error interno del servidor",
+    });
+  }
+});
+
+/**
+ * @desc    Clear all saved posts for user
+ * @route   DELETE /api/users/saved-posts/clear
+ * @access  Private
+ */
+const clearAllSavedPosts = asyncHandler(async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "Usuario no encontrado",
+      });
+    }
+
+    const clearedCount = user.savedPosts.length;
+    user.savedPosts = [];
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: `Todos los posts guardados han sido removidos (${clearedCount} posts)`,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        avatar: user.avatar,
+        savedPosts: [],
+        savedPostsCount: 0,
+      },
+      clearedCount,
+    });
+  } catch (error) {
+    console.error("Error in clearAllSavedPosts:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error interno del servidor",
+    });
+  }
+});
+
+export {
+  createPost,
+  updatePost,
+  deletePost,
+  getPost,
+  getUserPosts,
+  toggleSavePost,
+  getSavedPosts,
+  removeSavedPosts,
+  checkIfPostSaved,
+  getSavedPostsCount,
+  clearAllSavedPosts,
+};

@@ -63,10 +63,14 @@ const ManageExperiences = () => {
     submitSearchKeywordHandler,
     deleteDataHandler,
     setCurrentPage,
+    DeleteConfirmationDialog,
   } = useDataTable({
     dataQueryFn: () => getAllExperiences(searchKeyword, currentPage),
+    deleteDataMessage: "Experiencia eliminada exitosamente",
+    deleteConfirmTitle: "Eliminar experiencia", // Optional: custom title
+    deleteConfirmMessage:
+      "¿Estás seguro de que quieres eliminar esta experiencia? Esta acción no se puede deshacer y se perderán todos los datos asociados.", // Optional: custom message
     dataQueryKey: "experiences",
-    deleteDataMessage: "Experiencia Borrada",
     mutateDeleteFn: ({ slug }) => {
       return deleteExperience({
         slug,
@@ -959,12 +963,10 @@ const ManageExperiences = () => {
               : "Crear Nueva Experiencia"}
         </Button>
       </Box>
-
       {/* Overview Statistics Section */}
       {((!isLoading && updatedExperiences.length > 0) ||
         isLoadingAllExperiences ||
         allExperiencesData) && <OverviewSection />}
-
       {/* Data Table with responsive table headers */}
       <DataTable
         pageTitle=""
@@ -1191,8 +1193,8 @@ const ManageExperiences = () => {
             ))}
           </Box>
         )}
-      </DataTable>
-
+      </DataTable>{" "}
+      <DeleteConfirmationDialog />
       {/* Floating Action Button for Mobile/Tablet */}
       {!isDesktop && (
         <Fab

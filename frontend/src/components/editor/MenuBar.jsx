@@ -10,15 +10,18 @@ import {
   AiOutlineUnderline,
   AiOutlineUnorderedList,
 } from "react-icons/ai";
-import { Tooltip } from "@mui/material";
+import { Tooltip, Box } from "@mui/material";
 import { BiColorFill } from "react-icons/bi";
-import { useTheme } from "@mui/material";
+import { useTheme, useMediaQuery } from "@mui/material";
 import { MdOutlineLayersClear } from "react-icons/md";
 import { PiQuotes } from "react-icons/pi";
 import { TbSpacingVertical } from "react-icons/tb";
 
 const MenuBar = ({ editor }) => {
   const theme = useTheme();
+  const isSmall = useMediaQuery(theme.breakpoints.down("sm"));
+  const isXS = useMediaQuery("(max-width:480px)");
+
   const [selectedColor, setSelectedColor] = useState(
     theme.palette.primary.main
   );
@@ -33,8 +36,56 @@ const MenuBar = ({ editor }) => {
     editor.chain().focus().setMark("textStyle", { color: newColor }).run();
   };
 
+  // Get responsive button styles
+  const getButtonStyle = (isActive = false, isSpecial = false) => ({
+    backgroundColor: isActive
+      ? theme.palette.primary.main
+      : isSpecial
+        ? theme.palette.background.paper
+        : theme.palette.background.paper,
+    color: isActive ? "white" : theme.palette.text.primary,
+    border: `1px solid ${isActive ? theme.palette.primary.main : theme.palette.divider}`,
+    borderRadius: isXS ? "6px" : "8px",
+    padding: isXS ? "6px" : isSmall ? "8px" : "10px",
+    minWidth: isXS ? "32px" : isSmall ? "36px" : "40px",
+    height: isXS ? "32px" : isSmall ? "36px" : "40px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    transition: "all 0.2s ease-in-out",
+    cursor: "pointer",
+    fontSize: isXS ? "12px" : isSmall ? "13px" : "14px",
+    fontWeight: 500,
+    "&:hover": {
+      backgroundColor: isActive
+        ? theme.palette.primary.dark
+        : theme.palette.action.hover,
+      borderColor: theme.palette.primary.main,
+    },
+  });
+
+  // Responsive icon size
+  const iconSize = isXS ? 14 : 16;
+
   return (
-    <div className="border border-slate-300 rounded-lg p-5 sticky top-3 left-0 right-0 bg-white z-10 flex gap-0.5 flex-wrap">
+    <Box
+      sx={{
+        border: `1px solid ${theme.palette.divider}`,
+        borderRadius: isXS ? "8px" : "12px",
+        p: isXS ? 1 : isSmall ? 1.5 : 2,
+        position: "sticky",
+        top: isXS ? 8 : 12,
+        left: 0,
+        right: 0,
+        backgroundColor: theme.palette.background.default,
+        zIndex: 10,
+        boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+        display: "flex",
+        gap: isXS ? 0.5 : 1,
+        flexWrap: "wrap",
+        alignItems: "center",
+      }}
+    >
       {[
         {
           action: () => editor.chain().focus().setParagraph().run(),
@@ -62,46 +113,39 @@ const MenuBar = ({ editor }) => {
           type: "heading",
           level: 3,
         },
-        {
-          action: () =>
-            editor.chain().focus().toggleHeading({ level: 4 }).run(),
-          label: "H4",
-          type: "heading",
-          level: 4,
-        },
-        {
-          action: () =>
-            editor.chain().focus().toggleHeading({ level: 5 }).run(),
-          label: "H5",
-          type: "heading",
-          level: 5,
-        },
-        {
-          action: () =>
-            editor.chain().focus().toggleHeading({ level: 6 }).run(),
-          label: "H6",
-          type: "heading",
-          level: 6,
-        },
+        // Hide H4-H6 on very small screens
+        ...(isXS
+          ? []
+          : [
+              {
+                action: () =>
+                  editor.chain().focus().toggleHeading({ level: 4 }).run(),
+                label: "H4",
+                type: "heading",
+                level: 4,
+              },
+              {
+                action: () =>
+                  editor.chain().focus().toggleHeading({ level: 5 }).run(),
+                label: "H5",
+                type: "heading",
+                level: 5,
+              },
+              {
+                action: () =>
+                  editor.chain().focus().toggleHeading({ level: 6 }).run(),
+                label: "H6",
+                type: "heading",
+                level: 6,
+              },
+            ]),
       ].map(({ action, label, type, level }) => (
         <button
           key={label}
           onClick={action}
-          style={{
-            backgroundColor: editor.isActive(
-              type,
-              level ? { level } : undefined
-            )
-              ? theme.palette.primary.main
-              : theme.palette.secondary.light,
-            color: editor.isActive(type, level ? { level } : undefined)
-              ? "white"
-              : theme.palette.text.primary,
-            padding: "8px",
-            borderRadius: "30rem",
-            transition: "background-color 0.3s ease-in-out",
-            cursor: "pointer",
-          }}
+          style={getButtonStyle(
+            editor.isActive(type, level ? { level } : undefined)
+          )}
         >
           {label}
         </button>
@@ -111,31 +155,31 @@ const MenuBar = ({ editor }) => {
       {[
         {
           action: () => editor.chain().focus().toggleBold().run(),
-          icon: <AiOutlineBold />,
+          icon: <AiOutlineBold size={iconSize} />,
           tooltip: "Negrita",
           type: "bold",
         },
         {
           action: () => editor.chain().focus().toggleItalic().run(),
-          icon: <AiOutlineItalic />,
+          icon: <AiOutlineItalic size={iconSize} />,
           tooltip: "Itálica",
           type: "italic",
         },
         {
           action: () => editor.chain().focus().toggleUnderline().run(),
-          icon: <AiOutlineUnderline />,
+          icon: <AiOutlineUnderline size={iconSize} />,
           tooltip: "Subrayar",
           type: "underline",
         },
         {
           action: () => editor.chain().focus().toggleStrike().run(),
-          icon: <AiOutlineStrikethrough />,
+          icon: <AiOutlineStrikethrough size={iconSize} />,
           tooltip: "Tachar",
           type: "strike",
         },
         {
           action: () => editor.chain().focus().unsetAllMarks().run(),
-          icon: <MdOutlineLayersClear />,
+          icon: <MdOutlineLayersClear size={iconSize} />,
           tooltip: "Borrar Estilos",
         },
       ].map(({ action, icon, tooltip, type }) => (
@@ -151,18 +195,7 @@ const MenuBar = ({ editor }) => {
                 [`toggle${type.charAt(0).toUpperCase() + type.slice(1)}`]()
                 .run()
             }
-            style={{
-              backgroundColor: editor.isActive(type)
-                ? theme.palette.primary.main
-                : theme.palette.secondary.light,
-              color: editor.isActive(type)
-                ? "white"
-                : theme.palette.text.primary,
-              padding: "8px",
-              borderRadius: "30rem",
-              transition: "background-color 0.3s ease-in-out",
-              cursor: "pointer",
-            }}
+            style={getButtonStyle(editor.isActive(type))}
           >
             {icon}
           </button>
@@ -173,48 +206,42 @@ const MenuBar = ({ editor }) => {
       {[
         {
           action: () => editor.chain().focus().toggleBulletList().run(),
-          icon: <AiOutlineUnorderedList />,
+          icon: <AiOutlineUnorderedList size={iconSize} />,
           tooltip: "Lista con Viñetas",
           type: "bulletList",
         },
         {
           action: () => editor.chain().focus().toggleOrderedList().run(),
-          icon: <AiOutlineOrderedList />,
+          icon: <AiOutlineOrderedList size={iconSize} />,
           tooltip: "Lista Numerada",
           type: "orderedList",
         },
         {
           action: () => editor.chain().focus().toggleBlockquote().run(),
-          icon: <PiQuotes />,
+          icon: <PiQuotes size={iconSize} />,
           tooltip: "Cita",
           type: "blockquote",
         },
-        {
-          action: () => editor.chain().focus().setHorizontalRule().run(),
-          icon: <TbSpacingVertical />,
-          tooltip: "Línea Horizontal",
-        },
-        {
-          action: () => editor.chain().focus().setHardBreak().run(),
-          icon: <AiOutlineEnter />,
-          tooltip: "Salto de Línea",
-        },
+        // Hide some buttons on very small screens
+        ...(isXS
+          ? []
+          : [
+              {
+                action: () => editor.chain().focus().setHorizontalRule().run(),
+                icon: <TbSpacingVertical size={iconSize} />,
+                tooltip: "Línea Horizontal",
+              },
+              {
+                action: () => editor.chain().focus().setHardBreak().run(),
+                icon: <AiOutlineEnter size={iconSize} />,
+                tooltip: "Salto de Línea",
+              },
+            ]),
       ].map(({ action, icon, tooltip, type }) => (
         <Tooltip key={tooltip} title={tooltip} placement="top">
           <button
             onClick={action}
-            style={{
-              backgroundColor: editor.isActive(type)
-                ? theme.palette.primary.main
-                : theme.palette.secondary.light,
-              color: editor.isActive(type)
-                ? "white"
-                : theme.palette.text.primary,
-              padding: "8px",
-              borderRadius: "30rem",
-              transition: "background-color 0.3s ease-in-out",
-              cursor: "pointer",
-            }}
+            style={getButtonStyle(editor.isActive(type))}
           >
             {icon}
           </button>
@@ -225,27 +252,17 @@ const MenuBar = ({ editor }) => {
       {[
         {
           action: () => editor.chain().focus().undo().run(),
-          icon: <AiOutlineUndo />,
+          icon: <AiOutlineUndo size={iconSize} />,
           tooltip: "Deshacer",
         },
         {
           action: () => editor.chain().focus().redo().run(),
-          icon: <AiOutlineRedo />,
+          icon: <AiOutlineRedo size={iconSize} />,
           tooltip: "Rehacer",
         },
       ].map(({ action, icon, tooltip }) => (
         <Tooltip key={tooltip} title={tooltip} placement="top">
-          <button
-            onClick={action}
-            style={{
-              backgroundColor: theme.palette.secondary.light,
-              color: theme.palette.text.primary,
-              padding: "8px",
-              borderRadius: "30rem",
-              transition: "background-color 0.3s ease-in-out",
-              cursor: "pointer",
-            }}
-          >
+          <button onClick={action} style={getButtonStyle(false, true)}>
             {icon}
           </button>
         </Tooltip>
@@ -253,25 +270,20 @@ const MenuBar = ({ editor }) => {
 
       {/* Change Text Color */}
       <Tooltip title={"Cambiar color del texto"} placement="top">
-        <div
-          style={{
+        <Box
+          sx={{
             position: "relative",
             display: "flex",
             alignItems: "center",
           }}
         >
           <button
-            className="editor-btn"
             style={{
+              ...getButtonStyle(false, true),
               color: selectedColor,
-              transition: "color 0.3s ease-in-out",
-              backgroundColor: theme.palette.secondary.light,
-              padding: "8px",
-              borderRadius: "30rem",
-              cursor: "pointer",
             }}
           >
-            <BiColorFill />
+            <BiColorFill size={iconSize} />
           </button>
           <input
             type="color"
@@ -285,9 +297,9 @@ const MenuBar = ({ editor }) => {
               cursor: "pointer",
             }}
           />
-        </div>
+        </Box>
       </Tooltip>
-    </div>
+    </Box>
   );
 };
 

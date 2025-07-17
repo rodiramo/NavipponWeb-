@@ -1,5 +1,5 @@
 import { useDispatch, useSelector } from "react-redux";
-import { setFriends } from "../store/reducers/authSlice.js";
+import { setFriends, setSavedPosts } from "../store/reducers/authSlice.js";
 import { AiFillHeart } from "react-icons/ai";
 import {
   PersonAddOutlined,
@@ -8,22 +8,25 @@ import {
 } from "@mui/icons-material";
 import { images, stables } from "../constants";
 import { Link, useNavigate } from "react-router-dom";
-
 import { toggleFriend } from "../services/index/users";
+import { toggleSavePost } from "../services/index/posts"; // You'll need to create this
 import { toast } from "react-hot-toast";
 import { useTheme, Chip } from "@mui/material";
-import { Clock, Eye, Calendar } from "lucide-react";
+import { Clock, Eye, Calendar, Bookmark, BookmarkCheck } from "lucide-react";
 
 const ArticleCard = ({ post, className, currentUser, token, onEdit }) => {
   const theme = useTheme();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const friends = useSelector((state) => state.auth.user?.friends ?? []);
+  const savedPosts = useSelector((state) => state.auth.user?.savedPosts ?? []);
 
   // Check if the current user is a friend
   const isFriend = friends?.includes(post.user._id) ?? false;
   // Check if the post belongs to the current user
   const isOwnProfile = currentUser?._id === post.user._id;
+  // Check if the post is saved by current user
+  const isSaved = savedPosts?.includes(post._id) ?? false;
 
   const handleFriendToggle = async (e) => {
     e.preventDefault();
@@ -42,6 +45,32 @@ const ArticleCard = ({ post, className, currentUser, token, onEdit }) => {
       );
     } catch (error) {
       toast.error("Error al actualizar amigos");
+      console.error(error);
+    }
+  };
+
+  const handleSaveToggle = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!currentUser) {
+      toast.error("Inicia sesión para guardar posts");
+      return;
+    }
+
+    try {
+      const updatedUser = await toggleSavePost({ postId: post._id, token });
+
+      // Update Redux store with the updated saved posts
+      dispatch(setSavedPosts(updatedUser.savedPosts));
+
+      toast.success(
+        updatedUser.savedPosts.includes(post._id)
+          ? "Post guardado"
+          : "Post removido de guardados"
+      );
+    } catch (error) {
+      toast.error("Error al guardar post");
       console.error(error);
     }
   };
@@ -178,18 +207,40 @@ const ArticleCard = ({ post, className, currentUser, token, onEdit }) => {
             </button>
           )}
 
-          {/* Favorite Button */}
-          <button
-            className="group/heart w-12 h-12 rounded-full backdrop-blur-md border border-white/20 flex items-center justify-center transition-all duration-300 hover:scale-110 hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/50"
-            style={{
-              backgroundColor: theme.palette.primary.white,
-            }}
-          >
-            <AiFillHeart
-              style={{ color: theme.palette.primary.main, fontSize: "1.5rem" }}
-              className="text-xl transition-transform duration-300 group-hover/heart:scale-125"
-            />
-          </button>
+          {/* Save Button - Only show for logged in users */}
+          {currentUser && (
+            <button
+              onClick={handleSaveToggle}
+              className="group/save w-12 h-12 rounded-full backdrop-blur-md border border-white/20 flex items-center justify-center transition-all duration-300 hover:scale-110 hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/50"
+              style={{
+                backgroundColor: isSaved
+                  ? `${theme.palette.secondary.medium}90`
+                  : theme.palette.primary.white,
+                borderColor: isSaved
+                  ? `${theme.palette.secondary.medium}30`
+                  : "rgba(255,255,255,0.2)",
+              }}
+              title={isSaved ? "Remover de guardados" : "Guardar post"}
+            >
+              {isSaved ? (
+                <BookmarkCheck
+                  style={{
+                    color: theme.palette.primary.white,
+                    fontSize: "1.25rem",
+                  }}
+                  className="transition-transform duration-300 group-hover/save:scale-125"
+                />
+              ) : (
+                <Bookmark
+                  style={{
+                    color: theme.palette.text.secondary,
+                    fontSize: "1.25rem",
+                  }}
+                  className="transition-transform duration-300 group-hover/save:scale-125"
+                />
+              )}
+            </button>
+          )}
         </div>
       </div>
 
@@ -230,8 +281,12 @@ const ArticleCard = ({ post, className, currentUser, token, onEdit }) => {
         {/* Author Section - Fixed Position */}
         <div className="flex items-center justify-between pt-4 border-t border-slate-200/20 mt-4">
           <div className="flex items-center gap-3">
-            {/* Author Avatar */}
-            <div className="relative">
+            {/* Author Avatar - Also clickable */}
+            <Link
+              to={`/profile/${post.user._id}`}
+              className="relative group/avatar"
+              onClick={(e) => e.stopPropagation()}
+            >
               <img
                 src={
                   post.user.avatar
@@ -239,16 +294,31 @@ const ArticleCard = ({ post, className, currentUser, token, onEdit }) => {
                     : images.userImage
                 }
                 alt={post.user.name}
-                className="w-12 h-12 rounded-full object-cover border-2 border-white/20"
+                className="w-12 h-12 rounded-full object-cover border-2 border-white/20 transition-all duration-300 group-hover/avatar:border-white/40 group-hover/avatar:scale-105"
               />
               {/* Online indicator - optional */}
               <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
-            </div>
+            </Link>
 
             {/* Author Info */}
             <div>
               <h4 className="font-semibold">
-                {post.user.name}
+                <Link
+                  to={`/profile/${post.user._id}`}
+                  className="transition-all duration-300 hover:underline group/name"
+                  style={{
+                    color: theme.palette.primary.main,
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                  onMouseEnter={(e) => {
+                    e.target.style.color = theme.palette.primary.dark;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.color = theme.palette.primary.main;
+                  }}
+                >
+                  {post.user.name}
+                </Link>
                 {isOwnProfile && (
                   <span className="ml-2 text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-800">
                     Tú
@@ -324,6 +394,23 @@ const ArticleCard = ({ post, className, currentUser, token, onEdit }) => {
           </div>
         </div>
       </div>
+
+      {/* Saved Badge - Shows when post is saved */}
+      {isSaved && (
+        <div className="absolute bottom-3 left-3 z-10">
+          <div
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium backdrop-blur-md border transition-all duration-300"
+            style={{
+              backgroundColor: `${theme.palette.warning.main}20`,
+              borderColor: `${theme.palette.warning.main}30`,
+              color: theme.palette.warning.main,
+            }}
+          >
+            <BookmarkCheck size={12} />
+            <span>Guardado</span>
+          </div>
+        </div>
+      )}
 
       {/* Card shine effect */}
       <div className="absolute inset-0 opacity-0 group-hover:opacity-50 transition-opacity duration-500 rounded-3xl pointer-events-none">

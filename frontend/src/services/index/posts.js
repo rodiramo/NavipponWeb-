@@ -114,3 +114,127 @@ export const getPostCount = async (token) => {
     throw new Error(error.message);
   }
 };
+
+/**
+ * Toggle save/unsave a post for the current user
+ * @param {Object} params - The parameters
+ * @param {string} params.postId - The ID of the post to save/unsave
+ * @param {string} params.token - The user's authentication token
+ * @returns {Promise<Object>} Updated user object with savedPosts array
+ */
+export const toggleSavePost = async ({ postId, token }) => {
+  try {
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    };
+
+    const { data } = await axios.post(
+      `${API_URL}/api/posts/${postId}/save`,
+      {},
+      config
+    );
+
+    return data.user; // Should return updated user with savedPosts array
+  } catch (error) {
+    if (error.response && error.response.data.message) {
+      throw new Error(error.response.data.message);
+    }
+    throw new Error(error.message);
+  }
+};
+
+/**
+ * Get all saved posts for the current user
+ * @param {Object} params - The parameters
+ * @param {string} params.token - The user's authentication token
+ * @param {number} params.page - Page number for pagination (optional)
+ * @param {number} params.limit - Number of posts per page (optional)
+ * @returns {Promise<Object>} Object containing saved posts and pagination info
+ */
+export const getSavedPosts = async ({ token, page = 1, limit = 10 }) => {
+  try {
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+    });
+
+    // ✅ FIXED: Updated to correct endpoint path
+    const { data } = await axios.get(
+      `${API_URL}/api/posts/users/saved-posts?${params.toString()}`,
+      config
+    );
+    return data;
+  } catch (error) {
+    if (error.response && error.response.data.message) {
+      throw new Error(error.response.data.message);
+    }
+    throw new Error(error.message);
+  }
+};
+
+/**
+ * Remove multiple saved posts
+ * @param {Object} params - The parameters
+ * @param {string[]} params.postIds - Array of post IDs to remove
+ * @param {string} params.token - The user's authentication token
+ * @returns {Promise<Object>} Updated user object
+ */
+export const removeSavedPosts = async ({ postIds, token }) => {
+  try {
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    };
+
+    const { data } = await axios.delete(`${API_URL}/api/users/saved-posts`, {
+      ...config,
+      data: { postIds },
+    });
+
+    return data.user;
+  } catch (error) {
+    if (error.response && error.response.data.message) {
+      throw new Error(error.response.data.message);
+    }
+    throw new Error(error.message);
+  }
+};
+
+/**
+ * Check if a post is saved by the current user
+ * @param {Object} params - The parameters
+ * @param {string} params.postId - The ID of the post to check
+ * @param {string} params.token - The user's authentication token
+ * @returns {Promise<boolean>} True if the post is saved
+ */
+export const checkIfPostSaved = async ({ postId, token }) => {
+  try {
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    };
+
+    const { data } = await axios.get(
+      `${API_URL}/api/posts/${postId}/saved`,
+      config
+    );
+
+    return data.isSaved;
+  } catch (error) {
+    if (error.response && error.response.data.message) {
+      throw new Error(error.response.data.message);
+    }
+    throw new Error(error.message);
+  }
+};

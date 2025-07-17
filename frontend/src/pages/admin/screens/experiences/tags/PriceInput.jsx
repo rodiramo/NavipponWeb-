@@ -34,7 +34,7 @@ const PriceInput = ({ price, setPrice }) => {
           borderRadius: "10px",
           border: `1.5px solid ${theme.palette.secondary.light}`,
           paddingLeft: "16px",
-          backgroundColor: "white",
+          backgroundColor: theme.palette.background.default,
         }}
         placeholder="Ingresa el precio"
       />

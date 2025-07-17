@@ -156,7 +156,7 @@ const CreateItinerary = () => {
                 Elige un nombre para identificar tu viaje.
               </Typography>
               <TextField
-                label="Nombre"
+                label="Nombre*"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 fullWidth

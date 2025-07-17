@@ -38,7 +38,12 @@ const UserSchema = new Schema(
     },
     verificationCode: { type: String, required: false },
     admin: { type: Boolean, default: false },
-
+    savedPosts: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Post",
+      },
+    ],
     // Friend requests
     sentFriendRequests: [
       {

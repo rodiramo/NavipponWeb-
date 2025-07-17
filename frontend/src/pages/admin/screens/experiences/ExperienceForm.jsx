@@ -25,6 +25,10 @@ import {
   MapPin,
   Image,
   Clock,
+  ChevronLeft,
+  ChevronRight,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import {
   Button,
@@ -42,6 +46,8 @@ import {
   useMediaQuery,
   Container,
   Stack,
+  MobileStepper,
+  Divider,
 } from "@mui/material";
 import useUser from "../../../../hooks/useUser";
 import { stables } from "../../../../constants";
@@ -49,7 +55,6 @@ import ErrorMessage from "../../../../components/ErrorMessage";
 import HotelTags from "./tags/HotelTags";
 import RestaurantTags from "./tags/RestaurantTags";
 import AtractionTags from "./tags/AtractionTags";
-import ScheduleComponent from "./tags/ScheduleComponent";
 import GeneralTags from "./tags/GeneralTags";
 
 const DEFAULT_IMAGES = {
@@ -76,6 +81,8 @@ const DEFAULT_SCHEDULES = {
 const ExperienceForm = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const isXS = useMediaQuery("(max-width:480px)");
+
   const { slug } = useParams();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -121,6 +128,17 @@ const ExperienceForm = () => {
     "Revisión",
   ];
 
+  // Responsive step labels for mobile
+  const mobileSteps = [
+    "Básicos",
+    "Contenido",
+    "Ubicación",
+    "Categorías",
+    "Contacto",
+    "Imagen",
+    "Revisión",
+  ];
+
   // Tag states
   const [selectedGeneralTags, setSelectedGeneralTags] = useState({
     season: [],
@@ -139,6 +157,9 @@ const ExperienceForm = () => {
     hotelServices: [],
     typeTrip: [],
   });
+
+  // Show more/less state for attraction tags
+  const [showAllAttractionTags, setShowAllAttractionTags] = useState(false);
 
   // Get default image based on category
   const getDefaultImage = () => {
@@ -164,14 +185,18 @@ const ExperienceForm = () => {
     return null;
   };
 
-  // Auto-update default image when category changes
+  // Auto-update default image when category changes (but not when useDefaultImage changes)
   useEffect(() => {
     if (useDefaultImage && categories) {
-      // Force re-render to show new default image
-      setUseDefaultImage(false);
-      setTimeout(() => setUseDefaultImage(true), 10);
+      // Just trigger a re-render without the flicker
+      const timeoutId = setTimeout(() => {
+        // Force component to acknowledge the new default image
+        setUseDefaultImage(true);
+      }, 50);
+
+      return () => clearTimeout(timeoutId);
     }
-  }, [categories, useDefaultImage]);
+  }, [categories, useDefaultImage]); // Remove useDefaultImage from dependencies to prevent loop
 
   const handleTitleChange = (e) => {
     const titleValue = e.target.value;
@@ -196,9 +221,12 @@ const ExperienceForm = () => {
   };
 
   const handleUseDefaultImage = () => {
-    setPhoto(null);
-    setInitialPhoto(null);
-    setUseDefaultImage(true);
+    // Batch state updates to prevent multiple re-renders
+    React.startTransition(() => {
+      setPhoto(null);
+      setInitialPhoto(null);
+      setUseDefaultImage(true);
+    });
   };
 
   // Handle using default schedule template
@@ -421,6 +449,7 @@ const ExperienceForm = () => {
       token: jwt,
     });
   };
+
   const geocodeAddress = async () => {
     if (!address.trim()) {
       toast.error("Por favor ingresa una dirección");
@@ -486,7 +515,7 @@ const ExperienceForm = () => {
     switch (step) {
       case 0: // Detalles Básicos
         return (
-          <Stack spacing={3}>
+          <Stack spacing={isXS ? 2 : 3}>
             {/* Google Places Search */}
             <Box>
               <Stack
@@ -495,15 +524,26 @@ const ExperienceForm = () => {
                 alignItems="center"
                 sx={{ mb: 1 }}
               >
-                <Earth size={20} color={theme.palette.primary.main} />
+                <Earth
+                  size={isXS ? 18 : 20}
+                  color={theme.palette.primary.main}
+                />
                 <Typography
-                  variant={isMobile ? "h6" : "h5"}
+                  variant={isXS ? "subtitle1" : isMobile ? "h6" : "h5"}
                   fontWeight="medium"
+                  sx={{ fontSize: isXS ? "1rem" : undefined }}
                 >
                   Buscar lugar
                 </Typography>
               </Stack>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{
+                  mb: 2,
+                  fontSize: isXS ? "0.75rem" : "0.875rem",
+                }}
+              >
                 Ingresa el nombre o dirección para cargar información
                 automáticamente
               </Typography>
@@ -526,11 +566,11 @@ const ExperienceForm = () => {
                 <TextField
                   fullWidth
                   placeholder="Busca la experiencia con Google..."
-                  size={isMobile ? "medium" : "large"}
+                  size={isXS ? "small" : "medium"}
                   sx={{
                     "& .MuiOutlinedInput-root": {
-                      borderRadius: "12px",
-                      fontSize: isMobile ? "14px" : "16px",
+                      borderRadius: isXS ? "8px" : "12px",
+                      fontSize: isXS ? "13px" : isMobile ? "14px" : "16px",
                     },
                   }}
                 />
@@ -540,9 +580,10 @@ const ExperienceForm = () => {
             {/* Title */}
             <Box>
               <Typography
-                variant={isMobile ? "h6" : "h5"}
+                variant={isXS ? "subtitle1" : isMobile ? "h6" : "h5"}
                 fontWeight="medium"
                 gutterBottom
+                sx={{ fontSize: isXS ? "1rem" : undefined }}
               >
                 Título*
               </Typography>
@@ -552,11 +593,11 @@ const ExperienceForm = () => {
                 fullWidth
                 required
                 placeholder="Título de la experiencia..."
-                size={isMobile ? "medium" : "large"}
+                size={isXS ? "small" : "medium"}
                 sx={{
                   "& .MuiOutlinedInput-root": {
-                    borderRadius: "12px",
-                    fontSize: isMobile ? "14px" : "16px",
+                    borderRadius: isXS ? "8px" : "12px",
+                    fontSize: isXS ? "13px" : isMobile ? "14px" : "16px",
                   },
                 }}
               />
@@ -565,13 +606,21 @@ const ExperienceForm = () => {
             {/* Caption */}
             <Box>
               <Typography
-                variant={isMobile ? "h6" : "h5"}
+                variant={isXS ? "subtitle1" : isMobile ? "h6" : "h5"}
                 fontWeight="medium"
                 gutterBottom
+                sx={{ fontSize: isXS ? "1rem" : undefined }}
               >
                 Descripción breve*
               </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{
+                  mb: 2,
+                  fontSize: isXS ? "0.75rem" : "0.875rem",
+                }}
+              >
                 Una descripción concisa que destaque lo más importante
               </Typography>
               <TextField
@@ -580,13 +629,13 @@ const ExperienceForm = () => {
                 fullWidth
                 required
                 multiline
-                rows={isMobile ? 3 : 4}
+                rows={isXS ? 2 : isMobile ? 3 : 4}
                 placeholder="Escribe la descripción aquí..."
-                size={isMobile ? "medium" : "large"}
+                size={isXS ? "small" : "medium"}
                 sx={{
                   "& .MuiOutlinedInput-root": {
-                    borderRadius: "12px",
-                    fontSize: isMobile ? "14px" : "16px",
+                    borderRadius: isXS ? "8px" : "12px",
+                    fontSize: isXS ? "13px" : isMobile ? "14px" : "16px",
                   },
                 }}
               />
@@ -596,22 +645,36 @@ const ExperienceForm = () => {
 
       case 1: // Contenido
         return (
-          <Stack spacing={3}>
+          <Stack spacing={isXS ? 2 : 3}>
             <Typography
-              variant={isMobile ? "h6" : "h5"}
+              variant={isXS ? "subtitle1" : isMobile ? "h6" : "h5"}
               fontWeight="medium"
               gutterBottom
+              sx={{ fontSize: isXS ? "1rem" : undefined }}
             >
               Contenido detallado*
             </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              sx={{
+                mb: 2,
+                fontSize: isXS ? "0.75rem" : "0.875rem",
+              }}
+            >
               Describe completamente la experiencia, qué incluye, horarios, etc.
             </Typography>
             <Box
               sx={{
                 "& .ql-editor": {
-                  minHeight: isMobile ? "200px" : "300px",
-                  fontSize: isMobile ? "14px" : "16px",
+                  minHeight: isXS ? "150px" : isMobile ? "200px" : "300px",
+                  fontSize: isXS ? "13px" : isMobile ? "14px" : "16px",
+                },
+                "& .ql-toolbar": {
+                  borderRadius: isXS ? "8px 8px 0 0" : "12px 12px 0 0",
+                },
+                "& .ql-container": {
+                  borderRadius: isXS ? "0 0 8px 8px" : "0 0 12px 12px",
                 },
               }}
             >
@@ -629,28 +692,38 @@ const ExperienceForm = () => {
 
       case 2: // Ubicación
         return (
-          <Stack spacing={3}>
+          <Stack spacing={isXS ? 2 : 3}>
             <Typography
-              variant={isMobile ? "h6" : "h5"}
+              variant={isXS ? "subtitle1" : isMobile ? "h6" : "h5"}
               fontWeight="medium"
               gutterBottom
+              sx={{ fontSize: isXS ? "1rem" : undefined }}
             >
               Ubicación*
-            </Typography>{" "}
+            </Typography>
+
+            {/* Address Section */}
             <Box>
-              <Typography variant="subtitle1" sx={{ mb: 1 }}>
+              <Typography
+                variant="subtitle1"
+                sx={{
+                  mb: 1,
+                  fontSize: isXS ? "0.9rem" : "1rem",
+                }}
+              >
                 Dirección
               </Typography>
-              <Stack direction={isMobile ? "column" : "row"} spacing={1}>
+              <Stack direction="column" spacing={1}>
                 <TextField
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
                   fullWidth
                   placeholder="Ingresa la dirección completa"
-                  size={isMobile ? "medium" : "large"}
+                  size={isXS ? "small" : "medium"}
                   sx={{
                     "& .MuiOutlinedInput-root": {
-                      borderRadius: "12px",
+                      borderRadius: isXS ? "8px" : "12px",
+                      fontSize: isXS ? "13px" : "14px",
                     },
                   }}
                 />
@@ -659,22 +732,32 @@ const ExperienceForm = () => {
                   variant="outlined"
                   startIcon={<Search size={16} />}
                   disabled={!address.trim()}
+                  fullWidth={isXS}
+                  size={isXS ? "small" : "medium"}
                   sx={{
-                    borderRadius: "12px",
+                    borderRadius: isXS ? "8px" : "12px",
                     textTransform: "none",
-                    minWidth: isMobile ? "100%" : "140px",
+                    fontSize: isXS ? "0.75rem" : "0.875rem",
+                    alignSelf: isXS ? "stretch" : "flex-start",
                   }}
                 >
                   Obtener coordenadas
                 </Button>
               </Stack>
             </Box>
+
             {/* Manual Coordinates */}
             <Box>
-              <Typography variant="subtitle1" sx={{ mb: 1 }}>
+              <Typography
+                variant="subtitle1"
+                sx={{
+                  mb: 1,
+                  fontSize: isXS ? "0.9rem" : "1rem",
+                }}
+              >
                 Coordenadas (Opcional)
               </Typography>
-              <Grid container spacing={2}>
+              <Grid container spacing={isXS ? 1 : 2}>
                 <Grid item xs={12} sm={6}>
                   <TextField
                     label="Latitud"
@@ -689,10 +772,11 @@ const ExperienceForm = () => {
                     placeholder="35.6762"
                     type="number"
                     inputProps={{ step: "any" }}
-                    size={isMobile ? "medium" : "large"}
+                    size={isXS ? "small" : "medium"}
                     sx={{
                       "& .MuiOutlinedInput-root": {
-                        borderRadius: "12px",
+                        borderRadius: isXS ? "8px" : "12px",
+                        fontSize: isXS ? "13px" : "14px",
                       },
                     }}
                   />
@@ -711,10 +795,11 @@ const ExperienceForm = () => {
                     placeholder="139.6503"
                     type="number"
                     inputProps={{ step: "any" }}
-                    size={isMobile ? "medium" : "large"}
+                    size={isXS ? "small" : "medium"}
                     sx={{
                       "& .MuiOutlinedInput-root": {
-                        borderRadius: "12px",
+                        borderRadius: isXS ? "8px" : "12px",
+                        fontSize: isXS ? "13px" : "14px",
                       },
                     }}
                   />
@@ -725,9 +810,12 @@ const ExperienceForm = () => {
                     variant="contained"
                     startIcon={<MapPin size={16} />}
                     disabled={!manualCoords.lat || !manualCoords.lng}
+                    fullWidth={isXS}
+                    size={isXS ? "small" : "medium"}
                     sx={{
-                      borderRadius: "20px",
+                      borderRadius: isXS ? "16px" : "20px",
                       textTransform: "none",
+                      fontSize: isXS ? "0.75rem" : "0.875rem",
                     }}
                   >
                     Aplicar coordenadas
@@ -735,15 +823,16 @@ const ExperienceForm = () => {
                 </Grid>
               </Grid>
             </Box>
+
             {/* Current Coordinates Display */}
             {location &&
               location.coordinates &&
               location.coordinates.length === 2 && (
                 <Box
                   sx={{
-                    p: 2,
+                    p: isXS ? 1.5 : 2,
                     backgroundColor: `${theme.palette.success.main}10`,
-                    borderRadius: "12px",
+                    borderRadius: isXS ? "8px" : "12px",
                     border: `1px solid ${theme.palette.success.main}30`,
                   }}
                 >
@@ -751,17 +840,25 @@ const ExperienceForm = () => {
                     variant="subtitle2"
                     color="success.main"
                     gutterBottom
+                    sx={{ fontSize: isXS ? "0.8rem" : "0.875rem" }}
                   >
                     ✅ Coordenadas establecidas
                   </Typography>
-                  <Typography variant="body2">
+                  <Typography
+                    variant="body2"
+                    sx={{ fontSize: isXS ? "0.75rem" : "0.875rem" }}
+                  >
                     Latitud: {location.coordinates[1].toFixed(6)}
                   </Typography>
-                  <Typography variant="body2">
+                  <Typography
+                    variant="body2"
+                    sx={{ fontSize: isXS ? "0.75rem" : "0.875rem" }}
+                  >
                     Longitud: {location.coordinates[0].toFixed(6)}
                   </Typography>
                 </Box>
               )}
+
             <RegionPrefectureSelect
               region={region}
               setRegion={setRegion}
@@ -773,35 +870,144 @@ const ExperienceForm = () => {
 
       case 3: // Categorías
         return (
-          <Stack spacing={3}>
+          <Stack spacing={isXS ? 2 : 3}>
             <ExperienceTypeSelect
               categories={categories}
               setCategories={setCategories}
               isExperienceDataLoaded={!isLoading}
             />
 
-            <GeneralTags
-              selectedGeneralTags={selectedGeneralTags}
-              setSelectedGeneralTags={setSelectedGeneralTags}
-            />
+            <Box>
+              <Typography
+                variant="h6"
+                fontWeight="medium"
+                gutterBottom
+                sx={{ fontSize: isXS ? "1rem" : "1.25rem" }}
+              >
+                Tags Generales
+              </Typography>
+              <GeneralTags
+                selectedGeneralTags={selectedGeneralTags}
+                setSelectedGeneralTags={setSelectedGeneralTags}
+              />
+            </Box>
 
             {categories === "Atractivos" && (
-              <AtractionTags
-                selectedAttractionTags={selectedAttractionTags}
-                setSelectedAttractionTags={setSelectedAttractionTags}
-              />
+              <Box>
+                <Typography
+                  variant="h6"
+                  fontWeight="medium"
+                  gutterBottom
+                  sx={{ fontSize: isXS ? "1rem" : "1.25rem" }}
+                >
+                  Tags de Atractivos
+                </Typography>
+                <Box
+                  sx={{
+                    maxHeight: showAllAttractionTags
+                      ? "none"
+                      : isXS
+                        ? "120px"
+                        : isMobile
+                          ? "150px"
+                          : "200px",
+                    overflow: "hidden",
+                    transition: "all 0.3s ease-in-out",
+                    position: "relative",
+                  }}
+                >
+                  <AtractionTags
+                    selectedAttractionTags={selectedAttractionTags}
+                    setSelectedAttractionTags={setSelectedAttractionTags}
+                  />
+                </Box>
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "center",
+                    mt: isXS ? 1.5 : 2,
+                    position: "relative",
+                  }}
+                >
+                  {!showAllAttractionTags && (
+                    <Box
+                      sx={{
+                        position: "absolute",
+                        top: isXS ? "-60px" : isMobile ? "-80px" : "-100px",
+                        left: 0,
+                        right: 0,
+                        height: isXS ? "60px" : isMobile ? "80px" : "100px",
+                        background: `linear-gradient(to bottom, transparent 0%, ${theme.palette.background.paper} 70%)`,
+                        pointerEvents: "none",
+                      }}
+                    />
+                  )}
+                  <Button
+                    onClick={() =>
+                      setShowAllAttractionTags(!showAllAttractionTags)
+                    }
+                    variant="outlined"
+                    size={isXS ? "small" : "medium"}
+                    endIcon={
+                      showAllAttractionTags ? (
+                        <ChevronUp size={16} />
+                      ) : (
+                        <ChevronDown size={16} />
+                      )
+                    }
+                    sx={{
+                      borderRadius: isXS ? "16px" : "20px",
+                      textTransform: "none",
+                      fontSize: isXS ? "0.75rem" : "0.875rem",
+                      px: isXS ? 2 : 3,
+                      backgroundColor: theme.palette.background.paper,
+                      boxShadow: showAllAttractionTags
+                        ? "none"
+                        : `0 2px 8px ${theme.palette.action.hover}`,
+                      "&:hover": {
+                        backgroundColor: theme.palette.action.hover,
+                        boxShadow: `0 4px 12px ${theme.palette.action.hover}`,
+                      },
+                    }}
+                  >
+                    {showAllAttractionTags
+                      ? "Mostrar menos"
+                      : "Mostrar más tags"}
+                  </Button>
+                </Box>
+              </Box>
             )}
             {categories === "Restaurantes" && (
-              <RestaurantTags
-                selectedRestaurantTags={selectedRestaurantTags}
-                setSelectedRestaurantTags={setSelectedRestaurantTags}
-              />
+              <Box>
+                <Typography
+                  variant="h6"
+                  fontWeight="medium"
+                  gutterBottom
+                  sx={{ fontSize: isXS ? "1rem" : "1.25rem" }}
+                >
+                  Tags de Restaurantes
+                </Typography>
+                <RestaurantTags
+                  selectedRestaurantTags={selectedRestaurantTags}
+                  setSelectedRestaurantTags={setSelectedRestaurantTags}
+                />
+              </Box>
             )}
             {categories === "Hoteles" && (
-              <HotelTags
-                selectedHotelTags={selectedHotelTags}
-                setSelectedHotelTags={setSelectedHotelTags}
-              />
+              <Box>
+                <Typography
+                  variant="h6"
+                  fontWeight="medium"
+                  gutterBottom
+                  sx={{ fontSize: isXS ? "1rem" : "1.25rem" }}
+                >
+                  Tags de Hoteles
+                </Typography>
+                <HotelTags
+                  selectedHotelTags={selectedHotelTags}
+                  setSelectedHotelTags={setSelectedHotelTags}
+                />
+              </Box>
             )}
           </Stack>
         );
@@ -809,22 +1015,30 @@ const ExperienceForm = () => {
       case 4: // Contacto
         return (
           <Card
-            elevation={isMobile ? 1 : 2}
+            elevation={isXS ? 0 : isMobile ? 1 : 2}
             sx={{
-              p: isMobile ? 2 : 3,
-              borderRadius: "16px",
+              p: isXS ? 1.5 : isMobile ? 2 : 3,
+              borderRadius: isXS ? "12px" : "16px",
+              border: isXS ? `1px solid ${theme.palette.divider}` : "none",
             }}
           >
             <Typography
-              variant={isMobile ? "h6" : "h5"}
+              variant={isXS ? "subtitle1" : isMobile ? "h6" : "h5"}
               fontWeight="medium"
               gutterBottom
+              sx={{ fontSize: isXS ? "1rem" : undefined }}
             >
               Información de contacto
             </Typography>
-            <Grid container spacing={isMobile ? 2 : 3}>
+            <Grid container spacing={isXS ? 1.5 : isMobile ? 2 : 3}>
               <Grid item xs={12} sm={6}>
-                <Typography variant="subtitle1" sx={{ mb: 1 }}>
+                <Typography
+                  variant="subtitle1"
+                  sx={{
+                    mb: 1,
+                    fontSize: isXS ? "0.9rem" : "1rem",
+                  }}
+                >
                   Teléfono
                 </Typography>
                 <PhoneInput
@@ -833,17 +1047,27 @@ const ExperienceForm = () => {
                   onChange={(phone) => setPhone(phone)}
                   inputStyle={{
                     width: "100%",
-                    height: isMobile ? "48px" : "56px",
-                    borderRadius: "12px",
+                    height: isXS ? "40px" : isMobile ? "48px" : "56px",
+                    borderRadius: isXS ? "8px" : "12px",
                     border: `1.5px solid ${theme.palette.divider}`,
-                    fontSize: isMobile ? "14px" : "16px",
-                    paddingLeft: "48px",
+                    fontSize: isXS ? "13px" : isMobile ? "14px" : "16px",
+                    paddingLeft: isXS ? "44px" : "48px",
+                  }}
+                  buttonStyle={{
+                    borderRadius: isXS ? "8px 0 0 8px" : "12px 0 0 12px",
+                    height: isXS ? "40px" : isMobile ? "48px" : "56px",
                   }}
                   placeholder="Teléfono"
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
-                <Typography variant="subtitle1" sx={{ mb: 1 }}>
+                <Typography
+                  variant="subtitle1"
+                  sx={{
+                    mb: 1,
+                    fontSize: isXS ? "0.9rem" : "1rem",
+                  }}
+                >
                   Correo electrónico
                 </Typography>
                 <TextField
@@ -851,18 +1075,24 @@ const ExperienceForm = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   fullWidth
                   placeholder="correo@ejemplo.com"
-                  size={isMobile ? "medium" : "large"}
+                  size={isXS ? "small" : "medium"}
                   sx={{
                     "& .MuiOutlinedInput-root": {
-                      borderRadius: "12px",
-                      fontSize: isMobile ? "14px" : "16px",
+                      borderRadius: isXS ? "8px" : "12px",
+                      fontSize: isXS ? "13px" : isMobile ? "14px" : "16px",
                     },
                   }}
                 />
               </Grid>
 
               <Grid item xs={12}>
-                <Typography variant="subtitle1" sx={{ mb: 1 }}>
+                <Typography
+                  variant="subtitle1"
+                  sx={{
+                    mb: 1,
+                    fontSize: isXS ? "0.9rem" : "1rem",
+                  }}
+                >
                   Sitio Web
                 </Typography>
                 <TextField
@@ -870,7 +1100,7 @@ const ExperienceForm = () => {
                   onChange={(e) => setWebsite(e.target.value)}
                   fullWidth
                   placeholder="https://ejemplo.com"
-                  size={isMobile ? "medium" : "large"}
+                  size={isXS ? "small" : "medium"}
                   onBlur={(e) => {
                     let value = e.target.value.trim();
                     if (
@@ -884,8 +1114,8 @@ const ExperienceForm = () => {
                   }}
                   sx={{
                     "& .MuiOutlinedInput-root": {
-                      borderRadius: "12px",
-                      fontSize: isMobile ? "14px" : "16px",
+                      borderRadius: isXS ? "8px" : "12px",
+                      fontSize: isXS ? "13px" : isMobile ? "14px" : "16px",
                     },
                   }}
                 />
@@ -900,8 +1130,14 @@ const ExperienceForm = () => {
                     alignItems="center"
                     sx={{ mb: 1 }}
                   >
-                    <Clock size={20} color={theme.palette.primary.main} />
-                    <Typography variant="subtitle1">
+                    <Clock
+                      size={isXS ? 18 : 20}
+                      color={theme.palette.primary.main}
+                    />
+                    <Typography
+                      variant="subtitle1"
+                      sx={{ fontSize: isXS ? "0.9rem" : "1rem" }}
+                    >
                       Horarios de atención
                     </Typography>
                   </Stack>
@@ -911,34 +1147,35 @@ const ExperienceForm = () => {
                     onChange={(e) => setSchedule(e.target.value)}
                     fullWidth
                     multiline
-                    rows={isMobile ? 2 : 3}
+                    rows={isXS ? 2 : isMobile ? 2 : 3}
                     placeholder="Ejemplo: lunes: 9:00–17:00 martes: 9:00–17:00 miércoles: Cerrado..."
-                    size={isMobile ? "medium" : "large"}
+                    size={isXS ? "small" : "medium"}
                     sx={{
                       "& .MuiOutlinedInput-root": {
-                        borderRadius: "12px",
-                        fontSize: isMobile ? "14px" : "16px",
+                        borderRadius: isXS ? "8px" : "12px",
+                        fontSize: isXS ? "13px" : isMobile ? "14px" : "16px",
                       },
                     }}
                   />
 
                   {/* Schedule Helper Buttons */}
                   <Stack
-                    direction={isMobile ? "column" : "row"}
+                    direction="column"
                     spacing={1}
-                    sx={{ mt: 2 }}
+                    sx={{ mt: isXS ? 1.5 : 2 }}
                   >
                     {categories && (
                       <Button
                         onClick={handleUseDefaultSchedule}
                         variant="outlined"
                         size="small"
-                        startIcon={<Clock size={16} />}
+                        startIcon={<Clock size={14} />}
+                        fullWidth={isXS}
                         sx={{
-                          borderRadius: "20px",
+                          borderRadius: isXS ? "16px" : "20px",
                           textTransform: "none",
-                          fontSize: isMobile ? "0.75rem" : "0.8rem",
-                          flexShrink: 0,
+                          fontSize: isXS ? "0.7rem" : "0.75rem",
+                          py: isXS ? 0.5 : 1,
                         }}
                       >
                         Usar horario típico de {categories}
@@ -949,11 +1186,12 @@ const ExperienceForm = () => {
                       onClick={() => setSchedule("")}
                       variant="text"
                       size="small"
+                      fullWidth={isXS}
                       sx={{
-                        borderRadius: "20px",
+                        borderRadius: isXS ? "16px" : "20px",
                         textTransform: "none",
-                        fontSize: isMobile ? "0.75rem" : "0.8rem",
-                        flexShrink: 0,
+                        fontSize: isXS ? "0.7rem" : "0.75rem",
+                        py: isXS ? 0.5 : 1,
                       }}
                     >
                       Limpiar
@@ -963,7 +1201,14 @@ const ExperienceForm = () => {
                   <Typography
                     variant="body2"
                     color="text.secondary"
-                    sx={{ mt: 1, fontSize: isMobile ? "0.75rem" : "0.875rem" }}
+                    sx={{
+                      mt: 1,
+                      fontSize: isXS
+                        ? "0.7rem"
+                        : isMobile
+                          ? "0.75rem"
+                          : "0.875rem",
+                    }}
                   >
                     Describe los horarios de funcionamiento. Ejemplo: "lunes:
                     9:00–17:00 martes: Cerrado"
@@ -976,11 +1221,12 @@ const ExperienceForm = () => {
 
       case 5: // Imagen
         return (
-          <Stack spacing={3}>
+          <Stack spacing={isXS ? 2 : 3}>
             <Typography
-              variant={isMobile ? "h6" : "h5"}
+              variant={isXS ? "subtitle1" : isMobile ? "h6" : "h5"}
               fontWeight="medium"
               gutterBottom
+              sx={{ fontSize: isXS ? "1rem" : undefined }}
             >
               Imagen de la experiencia
             </Typography>
@@ -998,9 +1244,9 @@ const ExperienceForm = () => {
                       alt={title || "Experiencia"}
                       style={{
                         width: "100%",
-                        height: isMobile ? "200px" : "300px",
+                        height: isXS ? "180px" : isMobile ? "200px" : "300px",
                         objectFit: "cover",
-                        borderRadius: "16px",
+                        borderRadius: isXS ? "12px" : "16px",
                         border: useDefaultImage
                           ? `2px solid ${theme.palette.primary.main}`
                           : "none",
@@ -1013,9 +1259,10 @@ const ExperienceForm = () => {
                         color="primary"
                         sx={{
                           position: "absolute",
-                          top: 8,
-                          left: 8,
-                          fontSize: isMobile ? "0.6rem" : "0.7rem",
+                          top: isXS ? 6 : 8,
+                          left: isXS ? 6 : 8,
+                          fontSize: isXS ? "0.6rem" : "0.7rem",
+                          height: isXS ? "20px" : "24px",
                         }}
                       />
                     )}
@@ -1028,9 +1275,9 @@ const ExperienceForm = () => {
                       alignItems: "center",
                       justifyContent: "center",
                       width: "100%",
-                      height: isMobile ? "200px" : "300px",
+                      height: isXS ? "180px" : isMobile ? "200px" : "300px",
                       border: `2px dashed ${theme.palette.primary.main}`,
-                      borderRadius: "16px",
+                      borderRadius: isXS ? "12px" : "16px",
                       backgroundColor: theme.palette.background.paper,
                       cursor: "pointer",
                       "&:hover": {
@@ -1039,10 +1286,16 @@ const ExperienceForm = () => {
                     }}
                   >
                     <ImageUp
-                      size={isMobile ? 32 : 40}
+                      size={isXS ? 28 : isMobile ? 32 : 40}
                       color={theme.palette.primary.main}
                     />
-                    <Typography variant={isMobile ? "body2" : "body1"}>
+                    <Typography
+                      variant={isXS ? "body2" : "body1"}
+                      sx={{
+                        fontSize: isXS ? "0.8rem" : undefined,
+                        mt: 1,
+                      }}
+                    >
                       Subir imagen
                     </Typography>
                   </Box>
@@ -1058,23 +1311,25 @@ const ExperienceForm = () => {
             </Box>
 
             {/* Image Action Buttons */}
-            <Stack
-              direction={isMobile ? "column" : "row"}
-              spacing={1}
-              sx={{ flexWrap: "wrap" }}
-            >
+            <Stack direction="column" spacing={1}>
               {(photo || initialPhoto || useDefaultImage) && (
                 <Button
                   onClick={handleDeleteImage}
                   variant="outlined"
                   color="error"
-                  size={isMobile ? "medium" : "small"}
+                  size={isXS ? "small" : "medium"}
+                  fullWidth
                   sx={{
-                    borderRadius: "20px",
+                    borderRadius: isXS ? "16px" : "20px",
                     textTransform: "none",
-                    fontSize: isMobile ? "0.8rem" : "0.875rem",
+                    fontSize: isXS
+                      ? "0.75rem"
+                      : isMobile
+                        ? "0.8rem"
+                        : "0.875rem",
+                    py: isXS ? 0.75 : 1,
                   }}
-                  startIcon={<Trash2 size={16} />}
+                  startIcon={<Trash2 size={14} />}
                 >
                   Eliminar imagen
                 </Button>
@@ -1085,13 +1340,19 @@ const ExperienceForm = () => {
                   onClick={handleUseDefaultImage}
                   variant="outlined"
                   color="primary"
-                  size={isMobile ? "medium" : "small"}
+                  size={isXS ? "small" : "medium"}
+                  fullWidth
                   sx={{
-                    borderRadius: "20px",
+                    borderRadius: isXS ? "16px" : "20px",
                     textTransform: "none",
-                    fontSize: isMobile ? "0.8rem" : "0.875rem",
+                    fontSize: isXS
+                      ? "0.75rem"
+                      : isMobile
+                        ? "0.8rem"
+                        : "0.875rem",
+                    py: isXS ? 0.75 : 1,
                   }}
-                  startIcon={<Image size={16} />}
+                  startIcon={<Image size={14} />}
                 >
                   Usar imagen por defecto ({categories})
                 </Button>
@@ -1101,13 +1362,15 @@ const ExperienceForm = () => {
                 component="label"
                 htmlFor="experiencePicture"
                 variant="contained"
-                size={isMobile ? "medium" : "small"}
+                size={isXS ? "small" : "medium"}
+                fullWidth
                 sx={{
-                  borderRadius: "20px",
+                  borderRadius: isXS ? "16px" : "20px",
                   textTransform: "none",
-                  fontSize: isMobile ? "0.8rem" : "0.875rem",
+                  fontSize: isXS ? "0.75rem" : isMobile ? "0.8rem" : "0.875rem",
+                  py: isXS ? 0.75 : 1,
                 }}
-                startIcon={<ImageUp size={16} />}
+                startIcon={<ImageUp size={14} />}
               >
                 {photo || initialPhoto ? "Cambiar imagen" : "Subir imagen"}
               </Button>
@@ -1117,7 +1380,10 @@ const ExperienceForm = () => {
             <Typography
               variant="body2"
               color="text.secondary"
-              sx={{ fontSize: isMobile ? "0.75rem" : "0.875rem" }}
+              sx={{
+                fontSize: isXS ? "0.7rem" : isMobile ? "0.75rem" : "0.875rem",
+                textAlign: "center",
+              }}
             >
               {useDefaultImage
                 ? `Usando imagen por defecto para ${categories}`
@@ -1128,33 +1394,35 @@ const ExperienceForm = () => {
 
       case 6: // Revisión
         return (
-          <Stack spacing={3}>
+          <Stack spacing={isXS ? 2 : 3}>
             <Typography
-              variant={isMobile ? "h6" : "h5"}
+              variant={isXS ? "subtitle1" : isMobile ? "h6" : "h5"}
               fontWeight="medium"
               gutterBottom
+              sx={{ fontSize: isXS ? "1rem" : undefined }}
             >
               Revisar Experiencia
             </Typography>
             <Paper
-              elevation={isMobile ? 1 : 2}
+              elevation={isXS ? 0 : isMobile ? 1 : 2}
               sx={{
-                p: isMobile ? 2 : 3,
-                borderRadius: "16px",
+                p: isXS ? 1.5 : isMobile ? 2 : 3,
+                borderRadius: isXS ? "12px" : "16px",
+                border: isXS ? `1px solid ${theme.palette.divider}` : "none",
               }}
             >
               {/* Image Preview in Review */}
               {getCurrentImageSrc() && (
-                <Box sx={{ mb: 3, textAlign: "center" }}>
+                <Box sx={{ mb: isXS ? 2 : 3, textAlign: "center" }}>
                   <img
                     src={getCurrentImageSrc()}
                     alt={title || "Experiencia"}
                     style={{
                       width: "100%",
-                      maxWidth: isMobile ? "100%" : "400px",
-                      height: isMobile ? "200px" : "250px",
+                      maxWidth: isXS ? "100%" : isMobile ? "300px" : "400px",
+                      height: isXS ? "150px" : isMobile ? "200px" : "250px",
                       objectFit: "cover",
-                      borderRadius: "12px",
+                      borderRadius: isXS ? "8px" : "12px",
                     }}
                   />
                   {useDefaultImage && (
@@ -1164,7 +1432,11 @@ const ExperienceForm = () => {
                       sx={{
                         display: "block",
                         mt: 1,
-                        fontSize: isMobile ? "0.7rem" : "0.75rem",
+                        fontSize: isXS
+                          ? "0.65rem"
+                          : isMobile
+                            ? "0.7rem"
+                            : "0.75rem",
                       }}
                     >
                       Imagen por defecto para {categories}
@@ -1174,10 +1446,12 @@ const ExperienceForm = () => {
               )}
 
               <Typography
-                variant={isMobile ? "h6" : "h5"}
+                variant={isXS ? "subtitle1" : isMobile ? "h6" : "h5"}
                 color="primary"
                 gutterBottom
-                sx={{ fontSize: isMobile ? "1.1rem" : "1.25rem" }}
+                sx={{
+                  fontSize: isXS ? "1rem" : isMobile ? "1.1rem" : "1.25rem",
+                }}
               >
                 {title || "Sin título"}
               </Typography>
@@ -1185,15 +1459,27 @@ const ExperienceForm = () => {
                 variant="body2"
                 color="text.secondary"
                 paragraph
-                sx={{ fontSize: isMobile ? "0.85rem" : "0.875rem" }}
+                sx={{
+                  fontSize: isXS ? "0.8rem" : isMobile ? "0.85rem" : "0.875rem",
+                }}
               >
                 {caption || "Sin descripción"}
               </Typography>
-              <Grid container spacing={isMobile ? 1 : 2}>
+
+              <Divider sx={{ my: isXS ? 1.5 : 2 }} />
+
+              <Grid container spacing={isXS ? 1 : isMobile ? 1 : 2}>
                 <Grid item xs={12} sm={6}>
                   <Typography
                     variant="body2"
-                    sx={{ fontSize: isMobile ? "0.8rem" : "0.875rem" }}
+                    sx={{
+                      fontSize: isXS
+                        ? "0.75rem"
+                        : isMobile
+                          ? "0.8rem"
+                          : "0.875rem",
+                      mb: isXS ? 0.5 : 1,
+                    }}
                   >
                     <strong>Categoría:</strong>{" "}
                     {categories || "No seleccionada"}
@@ -1202,7 +1488,14 @@ const ExperienceForm = () => {
                 <Grid item xs={12} sm={6}>
                   <Typography
                     variant="body2"
-                    sx={{ fontSize: isMobile ? "0.8rem" : "0.875rem" }}
+                    sx={{
+                      fontSize: isXS
+                        ? "0.75rem"
+                        : isMobile
+                          ? "0.8rem"
+                          : "0.875rem",
+                      mb: isXS ? 0.5 : 1,
+                    }}
                   >
                     <strong>Región:</strong> {region || "No seleccionada"}
                   </Typography>
@@ -1210,7 +1503,14 @@ const ExperienceForm = () => {
                 <Grid item xs={12} sm={6}>
                   <Typography
                     variant="body2"
-                    sx={{ fontSize: isMobile ? "0.8rem" : "0.875rem" }}
+                    sx={{
+                      fontSize: isXS
+                        ? "0.75rem"
+                        : isMobile
+                          ? "0.8rem"
+                          : "0.875rem",
+                      mb: isXS ? 0.5 : 1,
+                    }}
                   >
                     <strong>Prefectura:</strong>{" "}
                     {prefecture || "No seleccionada"}
@@ -1219,7 +1519,14 @@ const ExperienceForm = () => {
                 <Grid item xs={12} sm={6}>
                   <Typography
                     variant="body2"
-                    sx={{ fontSize: isMobile ? "0.8rem" : "0.875rem" }}
+                    sx={{
+                      fontSize: isXS
+                        ? "0.75rem"
+                        : isMobile
+                          ? "0.8rem"
+                          : "0.875rem",
+                      mb: isXS ? 0.5 : 1,
+                    }}
                   >
                     <strong>Precio:</strong> ¥{price || 0}
                   </Typography>
@@ -1228,7 +1535,14 @@ const ExperienceForm = () => {
                   <Grid item xs={12} sm={6}>
                     <Typography
                       variant="body2"
-                      sx={{ fontSize: isMobile ? "0.8rem" : "0.875rem" }}
+                      sx={{
+                        fontSize: isXS
+                          ? "0.75rem"
+                          : isMobile
+                            ? "0.8rem"
+                            : "0.875rem",
+                        mb: isXS ? 0.5 : 1,
+                      }}
                     >
                       <strong>Teléfono:</strong> {phone}
                     </Typography>
@@ -1238,7 +1552,14 @@ const ExperienceForm = () => {
                   <Grid item xs={12} sm={6}>
                     <Typography
                       variant="body2"
-                      sx={{ fontSize: isMobile ? "0.8rem" : "0.875rem" }}
+                      sx={{
+                        fontSize: isXS
+                          ? "0.75rem"
+                          : isMobile
+                            ? "0.8rem"
+                            : "0.875rem",
+                        mb: isXS ? 0.5 : 1,
+                      }}
                     >
                       <strong>Email:</strong> {email}
                     </Typography>
@@ -1248,7 +1569,14 @@ const ExperienceForm = () => {
                   <Grid item xs={12}>
                     <Typography
                       variant="body2"
-                      sx={{ fontSize: isMobile ? "0.8rem" : "0.875rem" }}
+                      sx={{
+                        fontSize: isXS
+                          ? "0.75rem"
+                          : isMobile
+                            ? "0.8rem"
+                            : "0.875rem",
+                        mb: isXS ? 0.5 : 1,
+                      }}
                     >
                       <strong>Horarios:</strong> {schedule}
                     </Typography>
@@ -1277,19 +1605,21 @@ const ExperienceForm = () => {
       <Box
         sx={{
           background: theme.palette.secondary.light,
-          padding: isMobile ? "20px 16px" : "40px 24px",
+          padding: isXS ? "16px 12px" : isMobile ? "20px 16px" : "40px 24px",
           width: "100%",
-          borderRadius: isMobile
-            ? "0rem 0rem 2rem 2rem"
-            : "0rem 0rem 5rem 5rem",
+          borderRadius: isXS
+            ? "0rem 0rem 1.5rem 1.5rem"
+            : isMobile
+              ? "0rem 0rem 2rem 2rem"
+              : "0rem 0rem 5rem 5rem",
           marginTop: "-25px",
         }}
       >
         <Typography
-          variant={isMobile ? "h4" : "h2"}
+          variant={isXS ? "h5" : isMobile ? "h4" : "h2"}
           textAlign="center"
           sx={{
-            fontSize: isMobile ? "1.75rem" : "3rem",
+            fontSize: isXS ? "1.5rem" : isMobile ? "1.75rem" : "3rem",
             fontWeight: "bold",
           }}
         >
@@ -1301,58 +1631,96 @@ const ExperienceForm = () => {
       <Container
         maxWidth="lg"
         sx={{
-          px: isMobile ? 2 : 3,
-          py: isMobile ? 2 : 4,
+          px: isXS ? 1 : isMobile ? 2 : 3,
+          py: isXS ? 1 : isMobile ? 2 : 4,
         }}
       >
         {/* Stepper Container */}
         <Paper
-          elevation={isMobile ? 1 : 3}
+          elevation={isXS ? 0 : isMobile ? 1 : 3}
           sx={{
-            p: isMobile ? 2 : 4,
-            borderRadius: "20px",
+            p: isXS ? 1.5 : isMobile ? 2 : 4,
+            borderRadius: isXS ? "16px" : "20px",
             mb: 2,
+            border: isXS ? `1px solid ${theme.palette.divider}` : "none",
           }}
         >
-          {/* Responsive Stepper */}
-          <Stepper
-            activeStep={activeStep}
-            orientation={isMobile ? "vertical" : "horizontal"}
-            sx={{
-              mb: isMobile ? 2 : 4,
-              "& .MuiStepLabel-label": {
-                fontSize: isMobile ? "0.75rem" : "0.875rem",
-                fontWeight: 500,
-              },
-              "& .MuiStepContent-root": {
-                borderLeft: isMobile
-                  ? `2px solid ${theme.palette.primary.light}`
-                  : "none",
-                ml: isMobile ? 1 : 0,
-                pl: isMobile ? 2 : 0,
-              },
-            }}
-          >
-            {steps.map((label, index) => (
-              <Step key={label}>
-                <StepLabel
-                  sx={{
-                    "& .MuiStepIcon-root": {
-                      fontSize: isMobile ? "1.2rem" : "1.5rem",
-                    },
-                  }}
+          {/* Mobile Stepper for very small screens */}
+          {isXS ? (
+            <Box sx={{ mb: 3 }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  mb: 2,
+                }}
+              >
+                <Typography variant="h6" sx={{ fontSize: "1rem" }}>
+                  {mobileSteps[activeStep]}
+                </Typography>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ fontSize: "0.75rem" }}
                 >
-                  {isMobile ? label.split(" ")[0] : label}
-                </StepLabel>
-              </Step>
-            ))}
-          </Stepper>
+                  {activeStep + 1} de {steps.length}
+                </Typography>
+              </Box>
+              <MobileStepper
+                variant="progress"
+                steps={steps.length}
+                position="static"
+                activeStep={activeStep}
+                sx={{
+                  backgroundColor: "transparent",
+                  p: 0,
+                  "& .MuiMobileStepper-progress": {
+                    width: "100%",
+                    height: 6,
+                    borderRadius: 3,
+                  },
+                }}
+                nextButton={<div />}
+                backButton={<div />}
+              />
+            </Box>
+          ) : (
+            /* Regular Stepper for larger screens */
+            <Stepper
+              activeStep={activeStep}
+              orientation={isMobile ? "vertical" : "horizontal"}
+              sx={{
+                mb: isMobile ? 2 : 4,
+                "& .MuiStepLabel-label": {
+                  fontSize: isMobile ? "0.75rem" : "0.875rem",
+                  fontWeight: 500,
+                },
+                "& .MuiStepContent-root": {
+                  borderLeft: isMobile
+                    ? `2px solid ${theme.palette.primary.light}`
+                    : "none",
+                  ml: isMobile ? 1 : 0,
+                  pl: isMobile ? 2 : 0,
+                },
+                "& .MuiStepIcon-root": {
+                  fontSize: isMobile ? "1.2rem" : "1.5rem",
+                },
+              }}
+            >
+              {steps.map((label, index) => (
+                <Step key={label}>
+                  <StepLabel>{isMobile ? mobileSteps[index] : label}</StepLabel>
+                </Step>
+              ))}
+            </Stepper>
+          )}
 
           {/* Step Content */}
           <Box
             sx={{
-              mt: isMobile ? 2 : 4,
-              minHeight: isMobile ? "300px" : "400px",
+              mt: isXS ? 2 : isMobile ? 2 : 4,
+              minHeight: isXS ? "250px" : isMobile ? "300px" : "400px",
             }}
           >
             {renderStepContent(activeStep)}
@@ -1362,33 +1730,41 @@ const ExperienceForm = () => {
           <Box
             sx={{
               display: "flex",
-              flexDirection: isMobile ? "column" : "row",
+              flexDirection: isXS || isMobile ? "column" : "row",
               justifyContent: "space-between",
-              alignItems: isMobile ? "stretch" : "center",
-              mt: isMobile ? 3 : 4,
-              gap: isMobile ? 2 : 0,
+              alignItems: isXS || isMobile ? "stretch" : "center",
+              mt: isXS ? 2 : isMobile ? 3 : 4,
+              gap: isXS ? 1 : isMobile ? 2 : 0,
             }}
           >
+            {/* Back Button - Left */}
             <Button
               onClick={handleBack}
               disabled={activeStep === 0}
-              startIcon={!isMobile && <ArrowLeft size={20} />}
+              startIcon={
+                isXS ? (
+                  <ChevronLeft size={18} />
+                ) : isMobile ? (
+                  <ArrowLeft size={20} />
+                ) : (
+                  <ArrowLeft size={20} />
+                )
+              }
               variant="outlined"
-              size={isMobile ? "large" : "medium"}
+              size={isXS ? "medium" : isMobile ? "large" : "medium"}
+              fullWidth={isXS || isMobile}
               sx={{
-                borderRadius: "30px",
+                borderRadius: isXS ? "24px" : "30px",
                 textTransform: "none",
-                px: isMobile ? 3 : 4,
-                py: isMobile ? 1.5 : 1,
-                fontSize: isMobile ? "1rem" : "0.875rem",
-                minWidth: isMobile ? "100%" : "auto",
-                order: isMobile ? 2 : 1,
+                px: isXS ? 2 : isMobile ? 3 : 4,
+                py: isXS ? 1 : isMobile ? 1.5 : 1,
+                fontSize: isXS ? "0.85rem" : isMobile ? "1rem" : "0.875rem",
               }}
             >
-              {isMobile && <ArrowLeft size={20} style={{ marginRight: 8 }} />}
               Anterior
             </Button>
 
+            {/* Next/Submit Button - Right */}
             {activeStep === steps.length - 1 ? (
               <Button
                 onClick={
@@ -1396,16 +1772,15 @@ const ExperienceForm = () => {
                 }
                 variant="contained"
                 disabled={mutation.isLoading}
-                size={isMobile ? "large" : "medium"}
+                size={isXS ? "medium" : isMobile ? "large" : "medium"}
+                fullWidth={isXS || isMobile}
                 sx={{
-                  px: isMobile ? 3 : 6,
-                  py: isMobile ? 1.5 : 1,
-                  borderRadius: "30px",
+                  px: isXS ? 2 : isMobile ? 3 : 6,
+                  py: isXS ? 1 : isMobile ? 1.5 : 1,
+                  borderRadius: isXS ? "24px" : "30px",
                   textTransform: "none",
-                  fontSize: isMobile ? "1rem" : "0.875rem",
+                  fontSize: isXS ? "0.85rem" : isMobile ? "1rem" : "0.875rem",
                   fontWeight: "bold",
-                  minWidth: isMobile ? "100%" : "auto",
-                  order: isMobile ? 1 : 2,
                 }}
               >
                 {mutation.isLoading
@@ -1418,21 +1793,27 @@ const ExperienceForm = () => {
               <Button
                 onClick={handleNext}
                 variant="contained"
-                size={isMobile ? "large" : "medium"}
+                size={isXS ? "medium" : isMobile ? "large" : "medium"}
+                fullWidth={isXS || isMobile}
                 sx={{
-                  borderRadius: "30px",
+                  borderRadius: isXS ? "24px" : "30px",
                   textTransform: "none",
-                  px: isMobile ? 3 : 4,
-                  py: isMobile ? 1.5 : 1,
-                  fontSize: isMobile ? "1rem" : "0.875rem",
+                  px: isXS ? 2 : isMobile ? 3 : 4,
+                  py: isXS ? 1 : isMobile ? 1.5 : 1,
+                  fontSize: isXS ? "0.85rem" : isMobile ? "1rem" : "0.875rem",
                   fontWeight: "bold",
-                  minWidth: isMobile ? "100%" : "auto",
-                  order: isMobile ? 1 : 2,
                 }}
-                endIcon={!isMobile && <ArrowRight size={20} />}
+                endIcon={
+                  isXS ? (
+                    <ChevronRight size={18} />
+                  ) : isMobile ? (
+                    <ArrowRight size={20} />
+                  ) : (
+                    <ArrowRight size={20} />
+                  )
+                }
               >
                 Siguiente
-                {isMobile && <ArrowRight size={20} style={{ marginLeft: 8 }} />}
               </Button>
             )}
           </Box>

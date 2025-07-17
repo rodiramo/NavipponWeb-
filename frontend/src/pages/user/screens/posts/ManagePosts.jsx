@@ -4,6 +4,10 @@ import {
   deleteUserPost,
   getUserPosts,
 } from "../../../../services/index/userPosts";
+import {
+  getSavedPosts,
+  toggleSavePost,
+} from "../../../../services/index/posts";
 import { Link, useNavigate } from "react-router-dom";
 import DataTable from "../../components/DataTable";
 import { useDataTable } from "../../../../hooks/useDataTable";
@@ -13,13 +17,14 @@ import {
   Trash2,
   Edit,
   Calendar,
-  Tag,
   FolderOpen,
-  CheckCircle,
-  XCircle,
   Plus,
   Eye,
-  Search, // Add Search icon for mobile search
+  Search,
+  Bookmark,
+  BookmarkX,
+  FileEdit,
+  Heart,
 } from "lucide-react";
 import {
   useTheme,
@@ -27,7 +32,6 @@ import {
   Typography,
   Avatar,
   Chip,
-  IconButton,
   Button,
   Card,
   CardContent,
@@ -37,8 +41,13 @@ import {
   Stack,
   Fade,
   Container,
-  TextField, // Add TextField for mobile search
-  CircularProgress, // Add CircularProgress f
+  TextField,
+  CircularProgress,
+  Alert,
+  Snackbar,
+  Tabs,
+  Tab,
+  Badge,
 } from "@mui/material";
 
 const ManagePosts = () => {
@@ -47,6 +56,22 @@ const ManagePosts = () => {
   const navigate = useNavigate();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
+  // Tab state
+  const [currentTab, setCurrentTab] = useState(0);
+
+  // Error state management
+  const [error, setError] = useState(null);
+  const [showError, setShowError] = useState(false);
+  const [success, setSuccess] = useState(null);
+  const [showSuccess, setShowSuccess] = useState(false);
+
+  // Saved posts state
+  const [savedPosts, setSavedPosts] = useState([]);
+  const [savedPostsLoading, setSavedPostsLoading] = useState(false);
+  const [savedPostsPage, setSavedPostsPage] = useState(1);
+  const [savedPostsTotal, setSavedPostsTotal] = useState(0);
+
+  // My Posts Data Table
   const {
     currentPage,
     searchKeyword,
@@ -59,14 +84,28 @@ const ManagePosts = () => {
     deleteDataHandler,
     setCurrentPage,
   } = useDataTable({
-    dataQueryFn: () => getUserPosts(searchKeyword, currentPage, 10, jwt),
+    dataQueryFn: () => {
+      try {
+        return getUserPosts(searchKeyword, currentPage, 10, jwt);
+      } catch (err) {
+        setError("Error loading posts: " + err.message);
+        setShowError(true);
+        throw err;
+      }
+    },
     dataQueryKey: ["userPosts", user?._id],
     deleteDataMessage: "Post borrado",
     mutateDeleteFn: ({ slug }) => {
-      return deleteUserPost({
-        slug,
-        token: jwt,
-      });
+      try {
+        return deleteUserPost({
+          slug,
+          token: jwt,
+        });
+      } catch (err) {
+        setError("Error deleting post: " + err.message);
+        setShowError(true);
+        throw err;
+      }
     },
   });
 
@@ -76,8 +115,108 @@ const ManagePosts = () => {
     setUpdatedPosts(postsData?.data || []);
   }, [postsData]);
 
-  // Empty State Component
-  const EmptyState = () => (
+  // Load saved posts when tab changes
+  useEffect(() => {
+    if (currentTab === 1 && jwt) {
+      loadSavedPosts();
+    }
+  }, [currentTab, savedPostsPage, jwt]);
+
+  // Load saved posts function
+  const loadSavedPosts = async () => {
+    setSavedPostsLoading(true);
+    try {
+      const response = await getSavedPosts({
+        token: jwt,
+        page: savedPostsPage,
+        limit: 10,
+      });
+      setSavedPosts(response.posts || []);
+      setSavedPostsTotal(response.total || 0);
+    } catch (err) {
+      setError("Error cargando publicaciones guardadas: " + err.message);
+      setShowError(true);
+    } finally {
+      setSavedPostsLoading(false);
+    }
+  };
+
+  // Handle unsaving a post
+  const handleUnsavePost = async (postId) => {
+    try {
+      await toggleSavePost({ postId, token: jwt });
+      setSuccess("Publicación eliminada de tus guardados");
+      setShowSuccess(true);
+      // Reload saved posts
+      loadSavedPosts();
+    } catch (err) {
+      setError("Error eliminando de guardados: " + err.message);
+      setShowError(true);
+    }
+  };
+
+  // Enhanced error handler
+  const handleError = (errorMessage, action = "") => {
+    const fullMessage = action ? `${action}: ${errorMessage}` : errorMessage;
+    setError(fullMessage);
+    setShowError(true);
+    console.error(fullMessage);
+  };
+
+  // Enhanced delete handler with error handling
+  const handleDelete = async (slug) => {
+    try {
+      await deleteDataHandler({ slug });
+      setSuccess("Post deleted successfully");
+      setShowSuccess(true);
+    } catch (err) {
+      handleError(err.message, "Error deleting post");
+    }
+  };
+
+  // Handle tab change
+  const handleTabChange = (event, newValue) => {
+    setCurrentTab(newValue);
+  };
+
+  // Success Snackbar component
+  const SuccessSnackbar = () => (
+    <Snackbar
+      open={showSuccess}
+      autoHideDuration={4000}
+      onClose={() => setShowSuccess(false)}
+      anchorOrigin={{ vertical: "top", horizontal: "center" }}
+    >
+      <Alert
+        onClose={() => setShowSuccess(false)}
+        severity="success"
+        sx={{ width: "100%" }}
+      >
+        {success}
+      </Alert>
+    </Snackbar>
+  );
+
+  // Error Snackbar component
+  const ErrorSnackbar = () => (
+    <Snackbar
+      open={showError}
+      autoHideDuration={6000}
+      onClose={() => setShowError(false)}
+      anchorOrigin={{ vertical: "top", horizontal: "center" }}
+    >
+      <Alert
+        onClose={() => setShowError(false)}
+        severity="error"
+        sx={{ width: "100%" }}
+      >
+        {error}
+      </Alert>
+    </Snackbar>
+  );
+
+  // Empty State Component for My Posts
+  const MyPostsEmptyState = () => (
     <Container
       sx={{
         background: theme.palette.background.default,
@@ -96,40 +235,21 @@ const ManagePosts = () => {
             px: 4,
           }}
         >
-          {/* Empty State Illustration */}
           <Box
             sx={{
               width: { xs: 200, sm: 250 },
               height: { xs: 200, sm: 250 },
               mb: 4,
-              position: "relative",
-              "&::before": {
-                content: '""',
-                position: "absolute",
-                animation: "pulse 2s ease-in-out infinite",
-              },
-              "@keyframes pulse": {
-                "0%": { transform: "translate(-50%, -50%) scale(1)" },
-                "50%": { transform: "translate(-50%, -50%) scale(1.05)" },
-                "100%": { transform: "translate(-50%, -50%) scale(1)" },
-              },
             }}
           >
             <Box
               component="img"
               src="/assets/nothing-here.png"
               alt="No hay publicaciones"
-              sx={{
-                width: "100%",
-                height: "100%",
-                objectFit: "contain",
-                position: "relative",
-                zIndex: 1,
-              }}
+              sx={{ width: "100%", height: "100%", objectFit: "contain" }}
             />
           </Box>
 
-          {/* Title */}
           <Typography
             variant="h4"
             sx={{
@@ -137,13 +257,11 @@ const ManagePosts = () => {
               fontWeight: "bold",
               mb: 2,
               fontSize: { xs: "1.75rem", sm: "2.125rem" },
-              fontFamily: theme.typography.h1?.fontFamily,
             }}
           >
             ¡Comienza tu aventura!
           </Typography>
 
-          {/* Subtitle */}
           <Typography
             variant="h6"
             sx={{
@@ -156,18 +274,11 @@ const ManagePosts = () => {
             Aún no has subido ninguna publicación
           </Typography>
 
-          {/* Description */}
-          <Typography
-            sx={{
-              color: theme.palette.text.secondary,
-              mb: 4,
-            }}
-          >
+          <Typography sx={{ color: theme.palette.text.secondary, mb: 4 }}>
             ¡Comparte tus experiencias, aventuras y conocimientos con otros
             usuarios de la comunidad!
           </Typography>
 
-          {/* Action Button */}
           <Button
             variant="contained"
             startIcon={<Plus size={20} />}
@@ -181,13 +292,6 @@ const ManagePosts = () => {
               fontSize: "1.1rem",
               fontWeight: "bold",
               textTransform: "none",
-              boxShadow: theme.shadows[4],
-              "&:hover": {
-                backgroundColor: theme.palette.primary.dark,
-                transform: "translateY(-2px)",
-                boxShadow: theme.shadows[8],
-              },
-              transition: "all 0.2s ease-in-out",
             }}
           >
             Crear mi primera publicación
@@ -197,8 +301,81 @@ const ManagePosts = () => {
     </Container>
   );
 
-  // Mobile Card Component with View Button
-  const PostCard = ({ post }) => (
+  // Empty State Component for Saved Posts
+  const SavedPostsEmptyState = () => (
+    <Container
+      sx={{
+        background: theme.palette.background.default,
+        width: "100%",
+        height: "100%",
+      }}
+    >
+      <Fade in={true} timeout={600}>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            textAlign: "center",
+            py: 8,
+            px: 4,
+          }}
+        >
+          <Heart size={80} color={theme.palette.secondary.main} />
+
+          <Typography
+            variant="h4"
+            sx={{
+              color: theme.palette.primary.main,
+              fontWeight: "bold",
+              mb: 2,
+              fontSize: { xs: "1.75rem", sm: "2.125rem" },
+            }}
+          >
+            No tienes posts guardados
+          </Typography>
+
+          <Typography
+            variant="h6"
+            sx={{
+              color: theme.palette.text.secondary,
+              fontWeight: "medium",
+              mb: 1,
+              fontSize: { xs: "1.1rem", sm: "1.25rem" },
+            }}
+          >
+            Guarda posts que te interesen
+          </Typography>
+
+          <Typography sx={{ color: theme.palette.text.secondary, mb: 4 }}>
+            Explora la comunidad y guarda los posts que más te gusten para
+            leerlos más tarde.
+          </Typography>
+
+          <Button
+            variant="contained"
+            startIcon={<Search size={20} />}
+            onClick={() => navigate("/blog")}
+            sx={{
+              backgroundColor: theme.palette.secondary.main,
+              color: "white",
+              borderRadius: "30rem",
+              px: 4,
+              py: 2,
+              fontSize: "1.1rem",
+              fontWeight: "bold",
+              textTransform: "none",
+            }}
+          >
+            Explorar posts
+          </Button>
+        </Box>
+      </Fade>
+    </Container>
+  );
+
+  // My Post Card Component
+  const MyPostCard = ({ post }) => (
     <Card
       sx={{
         mb: 2,
@@ -211,17 +388,12 @@ const ManagePosts = () => {
         },
       }}
     >
-      {/* Post Image Header */}
       <CardMedia
         component="div"
         sx={{
           height: 180,
           position: "relative",
-          backgroundImage: `url(${
-            post?.photo
-              ? stables.UPLOAD_FOLDER_BASE_URL + post?.photo
-              : images.samplePostImage
-          })`,
+          backgroundImage: `url(${post?.photo ? stables.UPLOAD_FOLDER_BASE_URL + post?.photo : images.samplePostImage})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}
@@ -250,7 +422,6 @@ const ManagePosts = () => {
       </CardMedia>
 
       <CardContent sx={{ p: 3 }}>
-        {/* Post Title */}
         <Typography
           variant="h6"
           sx={{
@@ -266,18 +437,10 @@ const ManagePosts = () => {
           {post.title}
         </Typography>
 
-        {/* Post Info Grid */}
         <Grid container spacing={2} sx={{ mb: 2 }}>
           <Grid item xs={6}>
             <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-              <Calendar
-                size={16}
-                style={{
-                  marginRight: 8,
-                  color:
-                    theme.palette.neutral?.medium || theme.palette.grey[600],
-                }}
-              />
+              <Calendar size={16} style={{ marginRight: 8 }} />
               <Typography variant="body2" color="textSecondary">
                 Creado:
               </Typography>
@@ -293,20 +456,13 @@ const ManagePosts = () => {
 
           <Grid item xs={6}>
             <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-              <FolderOpen
-                size={16}
-                style={{
-                  marginRight: 8,
-                  color:
-                    theme.palette.neutral?.medium || theme.palette.grey[600],
-                }}
-              />
+              <FolderOpen size={16} style={{ marginRight: 8 }} />
               <Typography variant="body2" color="textSecondary">
                 Categoría:
               </Typography>
             </Box>
             <Typography variant="body2" sx={{ fontWeight: "medium" }}>
-              {post.categories.length > 0
+              {post.categories?.length > 0
                 ? post.categories
                     .slice(0, 2)
                     .map((cat) => cat.title)
@@ -316,46 +472,6 @@ const ManagePosts = () => {
           </Grid>
         </Grid>
 
-        {/* Tags */}
-        {post.tags && post.tags.length > 0 && (
-          <Box sx={{ mb: 2 }}>
-            <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-              <Tag
-                size={16}
-                style={{
-                  marginRight: 8,
-                  color:
-                    theme.palette.neutral?.medium || theme.palette.grey[600],
-                }}
-              />
-              <Typography variant="body2" color="textSecondary">
-                Etiquetas:
-              </Typography>
-            </Box>
-            <Stack
-              direction="row"
-              spacing={0.5}
-              sx={{ flexWrap: "wrap", gap: 0.5 }}
-            >
-              {post.tags.slice(0, 3).map((tag, index) => (
-                <Chip
-                  key={index}
-                  size="small"
-                  label={tag}
-                  sx={{
-                    backgroundColor:
-                      theme.palette.secondary.medium ||
-                      theme.palette.secondary.medium,
-                    color: "white",
-                    fontSize: "0.75rem",
-                  }}
-                />
-              ))}
-            </Stack>
-          </Box>
-        )}
-
-        {/* Actions - Updated with View Button */}
         <Box
           sx={{
             display: "flex",
@@ -368,58 +484,28 @@ const ManagePosts = () => {
             component={Link}
             to={`/blog/${post?.slug}`}
             startIcon={<Eye size={16} />}
-            sx={{
-              color: theme.palette.info.main,
-              borderColor: theme.palette.info.main,
-              textTransform: "none",
-              borderRadius: "30rem",
-              "&:hover": {
-                backgroundColor: theme.palette.info.light,
-                borderColor: theme.palette.info.dark,
-              },
-            }}
             variant="outlined"
             size="small"
+            sx={{ borderRadius: "30rem", textTransform: "none" }}
           >
-            Ver detalles
+            Ver
           </Button>
-
           <Button
             component={Link}
             to={`/user/posts/manage/edit/${post?.slug}`}
-            sx={{
-              color: theme.palette.primary.black,
-              borderColor: theme.palette.primary.black,
-              textTransform: "none",
-              borderRadius: "30rem",
-              "&:hover": {
-                backgroundColor: theme.palette.primary.light,
-                borderColor: theme.palette.primary.dark,
-              },
-            }}
             variant="outlined"
             size="small"
+            sx={{ borderRadius: "30rem", textTransform: "none" }}
           >
             <Edit size={16} />
           </Button>
-
           <Button
             disabled={isLoadingDeleteData}
-            onClick={() => deleteDataHandler({ slug: post?.slug })}
-            sx={{
-              color: theme.palette.error.main,
-              textTransform: "none",
-              borderRadius: "30rem",
-              borderColor: theme.palette.error.main,
-              "&:hover": {
-                backgroundColor:
-                  theme.palette.error.lightest ||
-                  `${theme.palette.error.main}15`,
-                borderColor: theme.palette.error.dark,
-              },
-            }}
+            onClick={() => handleDelete(post?.slug)}
             variant="outlined"
             size="small"
+            color="error"
+            sx={{ borderRadius: "30rem", textTransform: "none" }}
           >
             <Trash2 size={16} />
           </Button>
@@ -428,19 +514,144 @@ const ManagePosts = () => {
     </Card>
   );
 
-  // Show empty state when no posts exist
-  if (updatedPosts.length === 0 && !isLoading) {
-    return (
-      <Box
+  // Saved Post Card Component
+  const SavedPostCard = ({ post }) => (
+    <Card
+      sx={{
+        mb: 2,
+        backgroundColor: theme.palette.background.default,
+        borderRadius: 2,
+        transition: "all 0.2s ease-in-out",
+        "&:hover": {
+          boxShadow: theme.shadows[4],
+          transform: "translateY(-2px)",
+        },
+      }}
+    >
+      <CardMedia
+        component="div"
         sx={{
-          minHeight: "100vh",
-          py: 4,
+          height: 180,
+          position: "relative",
+          backgroundImage: `url(${post?.photo ? stables.UPLOAD_FOLDER_BASE_URL + post?.photo : images.samplePostImage})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
         }}
       >
-        <EmptyState />
-      </Box>
-    );
-  }
+        <Box sx={{ position: "absolute", top: 16, left: 16 }}>
+          <Chip
+            size="small"
+            icon={<Bookmark size={14} />}
+            label="Guardado"
+            sx={{
+              backgroundColor: theme.palette.info.main,
+              color: "white",
+              fontWeight: "bold",
+            }}
+          />
+        </Box>
+      </CardMedia>
+
+      <CardContent sx={{ p: 3 }}>
+        <Typography
+          variant="h6"
+          sx={{
+            color: theme.palette.primary.main,
+            fontWeight: "bold",
+            mb: 2,
+            display: "-webkit-box",
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: "vertical",
+            overflow: "hidden",
+          }}
+        >
+          {post.title}
+        </Typography>
+
+        <Grid container spacing={2} sx={{ mb: 2 }}>
+          <Grid item xs={6}>
+            <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+              <Calendar size={16} style={{ marginRight: 8 }} />
+              <Typography variant="body2" color="textSecondary">
+                Publicado:
+              </Typography>
+            </Box>
+            <Typography variant="body2" sx={{ fontWeight: "medium" }}>
+              {new Date(post.createdAt).toLocaleDateString("es-ES", {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+              })}
+            </Typography>
+          </Grid>
+
+          <Grid item xs={6}>
+            <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+              <Typography variant="body2" color="textSecondary">
+                Autor:
+              </Typography>
+            </Box>
+            <Typography variant="body2" sx={{ fontWeight: "medium" }}>
+              {post.user?.name || "Usuario"}
+            </Typography>
+          </Grid>
+        </Grid>
+
+        {post.tags && post.tags.length > 0 && (
+          <Box sx={{ mb: 2 }}>
+            <Stack
+              direction="row"
+              spacing={0.5}
+              sx={{ flexWrap: "wrap", gap: 0.5 }}
+            >
+              {post.tags.slice(0, 3).map((tag, index) => (
+                <Chip
+                  key={index}
+                  size="small"
+                  label={tag}
+                  sx={{
+                    backgroundColor: theme.palette.secondary.main,
+                    color: "white",
+                    fontSize: "0.75rem",
+                  }}
+                />
+              ))}
+            </Stack>
+          </Box>
+        )}
+
+        <Box
+          sx={{
+            display: "flex",
+            gap: 1,
+            justifyContent: "flex-end",
+            flexWrap: "wrap",
+          }}
+        >
+          <Button
+            component={Link}
+            to={`/blog/${post?.slug}`}
+            startIcon={<Eye size={16} />}
+            variant="outlined"
+            size="small"
+            sx={{ borderRadius: "30rem", textTransform: "none" }}
+          >
+            Leer post
+          </Button>
+          <Button
+            onClick={() => handleUnsavePost(post._id)}
+            startIcon={<BookmarkX size={16} />}
+            variant="outlined"
+            size="small"
+            color="warning"
+            sx={{ borderRadius: "30rem", textTransform: "none" }}
+          >
+            Quitar
+          </Button>
+        </Box>
+      </CardContent>
+    </Card>
+  );
 
   return (
     <Box
@@ -449,450 +660,410 @@ const ManagePosts = () => {
         minHeight: "100vh",
       }}
     >
+      <ErrorSnackbar />
+      <SuccessSnackbar />
+
       {/* Header */}
       <Box sx={{ mb: 4, textAlign: "center" }}>
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 2,
-            mb: 2,
-          }}
-        ></Box>
-
-        <Button
-          variant="contained"
-          startIcon={<Plus size={20} />}
-          onClick={() => navigate("/user/posts/manage/create")}
-          sx={{
-            backgroundColor: theme.palette.primary.main,
-            color: "white",
-            borderRadius: "30rem",
-            px: 3,
-            py: 1.5,
-            textTransform: "none",
-            fontWeight: "bold",
-            boxShadow: theme.shadows[3],
-            "&:hover": {
-              backgroundColor: theme.palette.primary.dark,
-              transform: "translateY(-1px)",
-              boxShadow: theme.shadows[6],
-            },
-            transition: "all 0.2s ease-in-out",
-          }}
+        <Typography
+          variant="h4"
+          sx={{ color: theme.palette.primary.main, fontWeight: "bold", mb: 3 }}
         >
-          Crear Nueva Publicación
-        </Button>
-      </Box>
+          Gestión de Posts
+        </Typography>
 
-      {/* Desktop: DataTable with Table Layout */}
-      {!isMobile && (
-        <DataTable
-          pageTitle=""
-          dataListName="Administrar publicaciones"
-          searchInputPlaceHolder="Título de publicación..."
-          searchKeywordOnSubmitHandler={submitSearchKeywordHandler}
-          searchKeywordOnChangeHandler={searchKeywordHandler}
-          searchKeyword={searchKeyword}
-          tableHeaderTitleList={[
-            "Post",
-            "Categorías",
-            "Creado",
-            "Etiquetas",
-            "Estado",
-            "Acciones",
-          ]}
-          isLoading={isLoading}
-          isFetching={isFetching}
-          data={updatedPosts}
-          setCurrentPage={setCurrentPage}
-          currentPage={currentPage}
-          headers={postsData?.headers}
-        >
-          {/* Desktop Table Layout */}
-          {updatedPosts.map((post) => (
-            <tr
-              key={post._id}
-              style={{
-                backgroundColor: theme.palette.background.default,
-                transition: "all 0.2s ease-in-out",
-              }}
-              className="hover:shadow-lg"
-            >
-              {/* Post Thumbnail and Title */}
-              <td
-                style={{
-                  padding: "16px 24px",
-                  borderBottom: `1px solid ${
-                    theme.palette.neutral?.light || theme.palette.grey[200]
-                  }`,
-                  minWidth: "300px",
-                }}
-              >
-                <Box sx={{ display: "flex", alignItems: "center" }}>
-                  <Avatar
-                    src={
-                      post?.photo
-                        ? stables.UPLOAD_FOLDER_BASE_URL + post?.photo
-                        : images.samplePostImage
-                    }
-                    alt={post.title}
-                    variant="rounded"
-                    sx={{
-                      width: 70,
-                      height: 60,
-                      mr: 2,
-                    }}
-                  />
-                  <Box sx={{ flex: 1 }}>
-                    <Typography
-                      variant="subtitle1"
-                      sx={{
-                        color: theme.palette.primary.main,
-                        fontWeight: "bold",
-                        display: "-webkit-box",
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: "vertical",
-                        overflow: "hidden",
-                        lineHeight: 1.3,
-                      }}
-                    >
-                      {post.title}
-                    </Typography>
-                  </Box>
-                </Box>
-              </td>
-
-              {/* Categories */}
-              <td
-                style={{
-                  padding: "16px 24px",
-                  borderBottom: `1px solid ${
-                    theme.palette.neutral?.light || theme.palette.grey[200]
-                  }`,
-                  maxWidth: "200px",
-                }}
-              >
-                <Stack
-                  direction="row"
-                  spacing={0.5}
-                  sx={{ flexWrap: "wrap", gap: 0.5 }}
-                >
-                  {post.categories.length > 0 ? (
-                    post.categories.slice(0, 2).map((category, index) => (
-                      <Chip
-                        key={index}
-                        size="small"
-                        label={category.title}
-                        variant="outlined"
-                        sx={{
-                          borderColor: theme.palette.secondary.medium,
-                          color: theme.palette.secondary.medium,
-                          fontSize: "0.75rem",
-                        }}
-                      />
-                    ))
-                  ) : (
-                    <Typography variant="body2" color="textSecondary">
-                      Sin categorizar
-                    </Typography>
-                  )}
-                </Stack>
-              </td>
-
-              {/* Created Date */}
-              <td
-                style={{
-                  padding: "16px 24px",
-                  borderBottom: `1px solid ${
-                    theme.palette.neutral?.light || theme.palette.grey[200]
-                  }`,
-                }}
-              >
-                <Box sx={{ display: "flex", alignItems: "center" }}>
-                  <Calendar
-                    size={16}
-                    style={{
-                      marginRight: 8,
-                      color:
-                        theme.palette.neutral?.medium ||
-                        theme.palette.grey[600],
-                    }}
-                  />
-                  <Typography variant="body2" color="textPrimary">
-                    {new Date(post.createdAt).toLocaleDateString("es-ES", {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
-                    })}
-                  </Typography>
-                </Box>
-              </td>
-
-              {/* Tags */}
-              <td
-                style={{
-                  padding: "16px 24px",
-                  borderBottom: `1px solid ${
-                    theme.palette.neutral?.light || theme.palette.grey[200]
-                  }`,
-                  maxWidth: "200px",
-                }}
-              >
-                <Stack
-                  direction="row"
-                  spacing={0.5}
-                  sx={{ flexWrap: "wrap", gap: 0.5 }}
-                >
-                  {post.tags.length > 0 ? (
-                    post.tags.slice(0, 3).map((tag, index) => (
-                      <Chip
-                        key={index}
-                        size="small"
-                        label={tag}
-                        sx={{
-                          backgroundColor:
-                            theme.palette.secondary?.medium ||
-                            theme.palette.secondary.main,
-                          color: "white",
-                          fontSize: "0.75rem",
-                        }}
-                      />
-                    ))
-                  ) : (
-                    <Typography variant="body2" color="textSecondary">
-                      Sin etiquetas
-                    </Typography>
-                  )}
-                </Stack>
-              </td>
-
-              {/* Approval Status */}
-              <td
-                style={{
-                  padding: "16px 24px",
-                  borderBottom: `1px solid ${
-                    theme.palette.neutral?.light || theme.palette.grey[200]
-                  }`,
-                }}
-              >
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <IconButton
-                    size="small"
-                    sx={{
-                      backgroundColor: post.approved
-                        ? theme.palette.success.lightest ||
-                          `${theme.palette.success.main}15`
-                        : theme.palette.warning.lightest ||
-                          `${theme.palette.warning.main}15`,
-                      color: post.approved
-                        ? theme.palette.success.main
-                        : theme.palette.warning.main,
-                      width: 40,
-                      height: 40,
-                    }}
-                  >
-                    {post.approved ? (
-                      <CheckCircle size={20} />
-                    ) : (
-                      <XCircle size={20} />
-                    )}
-                  </IconButton>
-                  <Typography variant="body2" color="textSecondary">
-                    {post.approved ? "Aprobado" : "Pendiente"}
-                  </Typography>
-                </Box>
-              </td>
-
-              {/* Actions - Updated with View Button */}
-              <td
-                style={{
-                  padding: "16px 24px",
-                  borderBottom: `1px solid ${
-                    theme.palette.neutral?.light || theme.palette.grey[200]
-                  }`,
-                }}
-              >
-                <Stack
-                  direction="row"
-                  spacing={1}
-                  sx={{ flexWrap: "wrap", gap: 1 }}
-                >
-                  <Button
-                    component={Link}
-                    to={`/blog/${post?.slug}`}
-                    startIcon={<Eye size={16} />}
-                    sx={{
-                      color: theme.palette.info.main,
-                      borderColor: theme.palette.info.main,
-                      textTransform: "none",
-                      borderRadius: "30rem",
-                      "&:hover": {
-                        backgroundColor: theme.palette.info.light,
-                        borderColor: theme.palette.info.dark,
-                        transform: "translateY(-1px)",
-                      },
-                      transition: "all 0.2s ease-in-out",
-                    }}
-                    variant="outlined"
-                    size="small"
-                  >
-                    Ver detalles
-                  </Button>
-
-                  <Button
-                    component={Link}
-                    to={`/user/posts/manage/edit/${post?.slug}`}
-                    sx={{
-                      color: theme.palette.primary.black,
-                      borderColor: theme.palette.primary.black,
-                      textTransform: "none",
-                      borderRadius: "30rem",
-                      "&:hover": {
-                        backgroundColor: theme.palette.primary.light,
-                        borderColor: theme.palette.primary.dark,
-                        transform: "translateY(-1px)",
-                      },
-                      transition: "all 0.2s ease-in-out",
-                    }}
-                    variant="outlined"
-                    size="small"
-                  >
-                    <Edit size={16} />
-                  </Button>
-
-                  <Button
-                    disabled={isLoadingDeleteData}
-                    onClick={() => deleteDataHandler({ slug: post?.slug })}
-                    sx={{
-                      color: theme.palette.error.main,
-                      borderColor: theme.palette.error.main,
-                      textTransform: "none",
-                      borderRadius: "30rem",
-                      "&:hover": {
-                        backgroundColor:
-                          theme.palette.error.lightest ||
-                          `${theme.palette.error.main}15`,
-                        borderColor: theme.palette.error.dark,
-                        transform: "translateY(-1px)",
-                      },
-                      transition: "all 0.2s ease-in-out",
-                    }}
-                    variant="outlined"
-                    size="small"
-                  >
-                    <Trash2 size={16} />
-                  </Button>
-                </Stack>
-              </td>
-            </tr>
-          ))}
-        </DataTable>
-      )}
-
-      {/* Mobile: Card Layout with Custom Search and Pagination */}
-      {isMobile && (
-        <Box>
-          {/* Mobile Search */}
-          <Box
-            component="form"
-            onSubmit={submitSearchKeywordHandler}
+        {/* Tabs */}
+        <Box sx={{ mb: 3, display: "flex", justifyContent: "center" }}>
+          <Tabs
+            value={currentTab}
+            onChange={handleTabChange}
+            variant={isMobile ? "fullWidth" : "standard"}
             sx={{
-              display: "flex",
-              gap: 1,
-              mb: 3,
-              px: 2,
+              "& .MuiTab-root": {
+                textTransform: "none",
+                fontWeight: "bold",
+                fontSize: "1rem",
+                minWidth: isMobile ? "auto" : 200,
+              },
             }}
           >
-            <TextField
-              variant="outlined"
-              placeholder="Título de publicación..."
-              onChange={searchKeywordHandler}
-              value={searchKeyword}
-              size="small"
-              sx={{
-                flex: 1,
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: "30px",
-                },
-              }}
+            <Tab
+              icon={<FileEdit size={20} />}
+              label={
+                <Badge
+                  badgeContent={postsData?.headers?.["x-totalcount"] || 0}
+                  color="primary"
+                  max={999}
+                >
+                  Mis Posts
+                </Badge>
+              }
+              iconPosition="start"
             />
-            <Button
-              type="submit"
-              variant="contained"
-              startIcon={<Search size={16} />}
-              size="small"
-              sx={{
-                borderRadius: "30px",
-                px: 3,
-              }}
-            >
-              Buscar
-            </Button>
-          </Box>
+            <Tab
+              icon={<Bookmark size={20} />}
+              label={
+                <Badge
+                  badgeContent={savedPostsTotal}
+                  color="secondary"
+                  max={999}
+                >
+                  Posts Guardados
+                </Badge>
+              }
+              iconPosition="start"
+            />
+          </Tabs>
+        </Box>
 
-          {/* Mobile Cards */}
-          {isLoading || isFetching ? (
-            <Box sx={{ textAlign: "center", py: 4 }}>
-              <CircularProgress />
-              <Typography sx={{ mt: 2 }}>Cargando datos...</Typography>
+        {/* Create New Post Button - Only show on "My Posts" tab */}
+        {currentTab === 0 && (
+          <Button
+            variant="contained"
+            startIcon={<Plus size={20} />}
+            onClick={() => navigate("/user/posts/manage/create")}
+            sx={{
+              backgroundColor: theme.palette.primary.main,
+              color: "white",
+              borderRadius: "30rem",
+              px: 3,
+              py: 1.5,
+              textTransform: "none",
+              fontWeight: "bold",
+            }}
+          >
+            Crear Nueva Publicación
+          </Button>
+        )}
+      </Box>
+
+      {/* Tab Content */}
+      {currentTab === 0 ? (
+        // MY POSTS TAB
+        <>
+          {/* Show empty state when no posts exist */}
+          {updatedPosts.length === 0 && !isLoading ? (
+            <Box sx={{ minHeight: "50vh", py: 4 }}>
+              <MyPostsEmptyState />
             </Box>
           ) : (
-            <Box sx={{ px: 2 }}>
-              {updatedPosts.map((post) => (
-                <PostCard key={post._id} post={post} />
-              ))}
-            </Box>
-          )}
+            <>
+              {/* Desktop: DataTable */}
+              {!isMobile && (
+                <DataTable
+                  pageTitle=""
+                  dataListName="Mis publicaciones"
+                  searchInputPlaceHolder="Título de publicación..."
+                  searchKeywordOnSubmitHandler={submitSearchKeywordHandler}
+                  searchKeywordOnChangeHandler={searchKeywordHandler}
+                  searchKeyword={searchKeyword}
+                  tableHeaderTitleList={[
+                    "Post",
+                    "Categorías",
+                    "Creado",
+                    "Etiquetas",
+                    "Estado",
+                    "Acciones",
+                  ]}
+                  isLoading={isLoading}
+                  isFetching={isFetching}
+                  data={updatedPosts}
+                  setCurrentPage={setCurrentPage}
+                  currentPage={currentPage}
+                  headers={postsData?.headers}
+                >
+                  {updatedPosts.map((post) => (
+                    <tr key={post._id}>
+                      <td style={{ padding: "16px 24px" }}>
+                        <Box sx={{ display: "flex", alignItems: "center" }}>
+                          <Avatar
+                            src={
+                              post?.photo
+                                ? stables.UPLOAD_FOLDER_BASE_URL + post?.photo
+                                : images.samplePostImage
+                            }
+                            alt={post.title}
+                            variant="rounded"
+                            sx={{ width: 70, height: 60, mr: 2 }}
+                          />
+                          <Typography
+                            variant="subtitle1"
+                            sx={{ fontWeight: "bold" }}
+                          >
+                            {post.title}
+                          </Typography>
+                        </Box>
+                      </td>
+                      <td style={{ padding: "16px 24px" }}>
+                        <Stack
+                          direction="row"
+                          spacing={0.5}
+                          sx={{ flexWrap: "wrap", gap: 0.5 }}
+                        >
+                          {post.categories?.length > 0 ? (
+                            post.categories
+                              .slice(0, 2)
+                              .map((category, index) => (
+                                <Chip
+                                  key={index}
+                                  size="small"
+                                  label={category.title}
+                                  variant="outlined"
+                                />
+                              ))
+                          ) : (
+                            <Typography variant="body2" color="textSecondary">
+                              Sin categorizar
+                            </Typography>
+                          )}
+                        </Stack>
+                      </td>
+                      <td style={{ padding: "16px 24px" }}>
+                        <Typography variant="body2">
+                          {new Date(post.createdAt).toLocaleDateString(
+                            "es-ES",
+                            { day: "numeric", month: "short", year: "numeric" }
+                          )}
+                        </Typography>
+                      </td>
+                      <td style={{ padding: "16px 24px" }}>
+                        <Stack
+                          direction="row"
+                          spacing={0.5}
+                          sx={{ flexWrap: "wrap", gap: 0.5 }}
+                        >
+                          {post.tags?.length > 0 ? (
+                            post.tags.slice(0, 3).map((tag, index) => (
+                              <Chip
+                                key={index}
+                                size="small"
+                                label={tag}
+                                sx={{
+                                  backgroundColor: theme.palette.secondary.main,
+                                  color: "white",
+                                }}
+                              />
+                            ))
+                          ) : (
+                            <Typography variant="body2" color="textSecondary">
+                              Sin etiquetas
+                            </Typography>
+                          )}
+                        </Stack>
+                      </td>
+                      <td style={{ padding: "16px 24px" }}>
+                        <Chip
+                          size="small"
+                          label={post.approved ? "Aprobado" : "Pendiente"}
+                          color={post.approved ? "success" : "warning"}
+                        />
+                      </td>
+                      <td style={{ padding: "16px 24px" }}>
+                        <Stack direction="row" spacing={1}>
+                          <Button
+                            component={Link}
+                            to={`/blog/${post?.slug}`}
+                            startIcon={<Eye size={16} />}
+                            variant="outlined"
+                            size="small"
+                            sx={{ borderRadius: "30rem" }}
+                          >
+                            Ver
+                          </Button>
+                          <Button
+                            component={Link}
+                            to={`/user/posts/manage/edit/${post?.slug}`}
+                            variant="outlined"
+                            size="small"
+                            sx={{ borderRadius: "30rem" }}
+                          >
+                            <Edit size={16} />
+                          </Button>
+                          <Button
+                            disabled={isLoadingDeleteData}
+                            onClick={() => handleDelete(post?.slug)}
+                            variant="outlined"
+                            size="small"
+                            color="error"
+                            sx={{ borderRadius: "30rem" }}
+                          >
+                            <Trash2 size={16} />
+                          </Button>
+                        </Stack>
+                      </td>
+                    </tr>
+                  ))}
+                </DataTable>
+              )}
 
-          {/* Mobile Pagination */}
-          {!isLoading && updatedPosts.length > 0 && (
-            <Box
-              sx={{ mt: 3, display: "flex", justifyContent: "center", px: 2 }}
-            >
-              <Stack direction="row" spacing={1} alignItems="center">
-                <Button
-                  variant="outlined"
-                  size="small"
-                  disabled={currentPage <= 1}
-                  onClick={() => setCurrentPage(currentPage - 1)}
+              {/* Mobile: Card Layout */}
+              {isMobile && (
+                <Box>
+                  {/* Mobile Search */}
+                  <Box
+                    component="form"
+                    onSubmit={submitSearchKeywordHandler}
+                    sx={{ display: "flex", gap: 1, mb: 3, px: 2 }}
+                  >
+                    <TextField
+                      variant="outlined"
+                      placeholder="Título de publicación..."
+                      onChange={searchKeywordHandler}
+                      value={searchKeyword}
+                      size="small"
+                      sx={{
+                        flex: 1,
+                        "& .MuiOutlinedInput-root": { borderRadius: "30px" },
+                      }}
+                    />
+                    <Button
+                      type="submit"
+                      variant="contained"
+                      startIcon={<Search size={16} />}
+                      size="small"
+                      sx={{ borderRadius: "30px", px: 3 }}
+                    >
+                      Buscar
+                    </Button>
+                  </Box>
+
+                  {/* Loading State */}
+                  {(isLoading || isFetching) && (
+                    <Box sx={{ textAlign: "center", py: 4 }}>
+                      <CircularProgress />
+                      <Typography sx={{ mt: 2 }}>Cargando datos...</Typography>
+                    </Box>
+                  )}
+
+                  {/* Mobile Cards */}
+                  {!isLoading && !isFetching && (
+                    <Box sx={{ px: 2 }}>
+                      {updatedPosts.map((post) => (
+                        <MyPostCard key={post._id} post={post} />
+                      ))}
+                    </Box>
+                  )}
+
+                  {/* Mobile Pagination */}
+                  {!isLoading && updatedPosts.length > 0 && (
+                    <Box
+                      sx={{
+                        mt: 3,
+                        display: "flex",
+                        justifyContent: "center",
+                        px: 2,
+                      }}
+                    >
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          disabled={currentPage <= 1}
+                          onClick={() => setCurrentPage(currentPage - 1)}
+                          sx={{ minWidth: "auto", px: 2, borderRadius: 30 }}
+                        >
+                          Anterior
+                        </Button>
+                        <Typography variant="body2" sx={{ mx: 2 }}>
+                          Página {currentPage} de{" "}
+                          {postsData?.headers?.["x-totalpagecount"] || 1}
+                        </Typography>
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          disabled={
+                            currentPage >=
+                            parseInt(
+                              postsData?.headers?.["x-totalpagecount"] || "1"
+                            )
+                          }
+                          onClick={() => setCurrentPage(currentPage + 1)}
+                          sx={{ minWidth: "auto", px: 2, borderRadius: 30 }}
+                        >
+                          Siguiente
+                        </Button>
+                      </Stack>
+                    </Box>
+                  )}
+                </Box>
+              )}
+            </>
+          )}
+        </>
+      ) : (
+        // SAVED POSTS TAB
+        <>
+          {/* Show empty state when no saved posts exist */}
+          {savedPosts.length === 0 && !savedPostsLoading ? (
+            <Box sx={{ minHeight: "50vh", py: 4 }}>
+              <SavedPostsEmptyState />
+            </Box>
+          ) : (
+            <Box>
+              {/* Loading State */}
+              {savedPostsLoading && (
+                <Box sx={{ textAlign: "center", py: 4 }}>
+                  <CircularProgress />
+                  <Typography sx={{ mt: 2 }}>
+                    Cargando posts guardados...
+                  </Typography>
+                </Box>
+              )}
+
+              {/* Saved Posts Cards */}
+              {!savedPostsLoading && (
+                <Box sx={{ px: isMobile ? 2 : 4 }}>
+                  <Grid container spacing={isMobile ? 2 : 3}>
+                    {savedPosts.map((post) => (
+                      <Grid item xs={12} sm={6} md={4} key={post._id}>
+                        <SavedPostCard post={post} />
+                      </Grid>
+                    ))}
+                  </Grid>
+                </Box>
+              )}
+
+              {/* Saved Posts Pagination */}
+              {!savedPostsLoading && savedPosts.length > 0 && (
+                <Box
                   sx={{
-                    minWidth: "auto",
+                    mt: 3,
+                    display: "flex",
+                    justifyContent: "center",
                     px: 2,
-                    textTransform: "none",
-                    borderRadius: 30,
                   }}
                 >
-                  Anterior
-                </Button>
-
-                <Typography variant="body2" sx={{ mx: 2 }}>
-                  Página {currentPage} de{" "}
-                  {postsData?.headers?.["x-totalpagecount"] || 1}
-                </Typography>
-
-                <Button
-                  variant="outlined"
-                  size="small"
-                  disabled={
-                    currentPage >=
-                    parseInt(postsData?.headers?.["x-totalpagecount"] || "1")
-                  }
-                  onClick={() => setCurrentPage(currentPage + 1)}
-                  sx={{
-                    minWidth: "auto",
-                    px: 2,
-                    textTransform: "none",
-                    borderRadius: 30,
-                  }}
-                >
-                  Siguiente
-                </Button>
-              </Stack>
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      disabled={savedPostsPage <= 1}
+                      onClick={() => setSavedPostsPage(savedPostsPage - 1)}
+                      sx={{ minWidth: "auto", px: 2, borderRadius: 30 }}
+                    >
+                      Anterior
+                    </Button>
+                    <Typography variant="body2" sx={{ mx: 2 }}>
+                      Página {savedPostsPage} de{" "}
+                      {Math.ceil(savedPostsTotal / 10)}
+                    </Typography>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      disabled={
+                        savedPostsPage >= Math.ceil(savedPostsTotal / 10)
+                      }
+                      onClick={() => setSavedPostsPage(savedPostsPage + 1)}
+                      sx={{ minWidth: "auto", px: 2, borderRadius: 30 }}
+                    >
+                      Siguiente
+                    </Button>
+                  </Stack>
+                </Box>
+              )}
             </Box>
           )}
-        </Box>
+        </>
       )}
     </Box>
   );

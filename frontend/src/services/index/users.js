@@ -497,3 +497,89 @@ export const updateCoverImage = async ({ token, formData }) => {
     throw new Error(error.message);
   }
 };
+
+export const getSavedPosts = async ({ token, page = 1, limit = 10 }) => {
+  try {
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    };
+
+    const params = new URLSearchParams({
+      page,
+      limit,
+    });
+
+    const { data } = await axios.get(
+      `${API_URL}/api/users/saved-posts?${params.toString()}`,
+      config
+    );
+
+    return data;
+  } catch (error) {
+    if (error.response && error.response.data.message) {
+      throw new Error(error.response.data.message);
+    }
+    throw new Error(error.message);
+  }
+};
+
+/**
+ * Remove multiple saved posts
+ * @param {Object} params - The parameters
+ * @param {string[]} params.postIds - Array of post IDs to remove
+ * @param {string} params.token - The user's authentication token
+ * @returns {Promise<Object>} Updated user object
+ */
+export const removeSavedPosts = async ({ postIds, token }) => {
+  try {
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    };
+
+    const { data } = await axios.delete(`${API_URL}/api/users/saved-posts`, {
+      ...config,
+      data: { postIds },
+    });
+
+    return data.user;
+  } catch (error) {
+    if (error.response && error.response.data.message) {
+      throw new Error(error.response.data.message);
+    }
+    throw new Error(error.message);
+  }
+};
+
+/**
+ * Check if a post is saved by the current user
+ * @param {Object} params - The parameters
+ * @param {string} params.postId - The ID of the post to check
+ * @param {string} params.token - The user's authentication token
+ * @returns {Promise<boolean>} True if the post is saved
+ */
+export const checkIfPostSaved = async ({ postId, token }) => {
+  try {
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    };
+
+    const { data } = await axios.get(
+      `${API_URL}/api/users/${postId}/saved`,
+      config
+    );
+
+    return data.isSaved;
+  } catch (error) {
+    if (error.response && error.response.data.message) {
+      throw new Error(error.response.data.message);
+    }
+    throw new Error(error.message);
+  }
+};
