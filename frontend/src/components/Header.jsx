@@ -33,7 +33,9 @@ const NavItem = ({ item, theme, location }) => (
       className="px-4 py-2 font-medium transition-colors duration-300"
       style={{
         color:
-          location.pathname === item.href ? theme.palette.primary.mid : "white",
+          location.pathname === item.href
+            ? theme.palette.primary.main
+            : "white",
       }}
     >
       {item.name}
