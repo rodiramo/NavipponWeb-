@@ -1,4 +1,4 @@
-// Complete ItineraryDetailPage.jsx with Permanent Auto-Favorites Fix
+// Complete Fixed ItineraryDetailPage.jsx
 import React, { useState, useEffect, useCallback } from "react";
 import { Box, useTheme, useMediaQuery } from "@mui/material";
 import { toast } from "react-hot-toast";
@@ -50,11 +50,12 @@ const ItineraryDetailPage = () => {
 
   const theme = useTheme();
   const [userRole, setUserRole] = useState("viewer");
-  const isMobile = useMediaQuery(theme.breakpoints.down("md")); // Hide on tablet and mobile
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
   const { id } = useParams();
   const navigate = useNavigate();
   const { user, jwt } = useUser();
+
   // DnD Kit sensors
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -67,7 +68,7 @@ const ItineraryDetailPage = () => {
     })
   );
 
-  // Existing State
+  // State
   const [isPrivate, setIsPrivate] = useState(false);
   const [isEditingDates, setIsEditingDates] = useState(false);
   const [friendsList, setFriendsList] = useState([]);
@@ -97,7 +98,7 @@ const ItineraryDetailPage = () => {
   const [activeId, setActiveId] = useState(null);
   const [activeData, setActiveData] = useState(null);
 
-  // NEW: API Detection State
+  // API Detection State
   const [apiConfig, setApiConfig] = useState(null);
   const [apiDetectionComplete, setApiDetectionComplete] = useState(false);
 
@@ -119,6 +120,17 @@ const ItineraryDetailPage = () => {
   }, {});
 
   const isInvited = creator && user && String(creator._id) !== String(user._id);
+
+  // FIXED: Enhanced duplicate detection helper
+  const isExperienceInBoard = (experience, boardFavorites) => {
+    if (!boardFavorites || !Array.isArray(boardFavorites)) return false;
+
+    return boardFavorites.some((boardFav) => {
+      const existingExpId = boardFav.experienceId?._id || boardFav.experienceId;
+      const newExpId = experience._id;
+      return existingExpId === newExpId;
+    });
+  };
 
   const deleteFavorite = useCallback(
     async (favoriteId) => {
@@ -146,7 +158,7 @@ const ItineraryDetailPage = () => {
     [jwt, user._id, API_URL]
   );
 
-  // NEW: Test different API patterns to find the working one
+  // Test different API patterns to find the working one
   const testAPIPatterns = useCallback(async () => {
     const patterns = [
       {
@@ -194,7 +206,6 @@ const ItineraryDetailPage = () => {
       try {
         console.log(`🧪 Testing ${pattern.name}...`);
 
-        // Use a real experience if available, otherwise use test data
         const testExperience = allExperiences[0] || {
           _id: "test-experience-id",
           title: "Test Experience",
@@ -210,17 +221,10 @@ const ItineraryDetailPage = () => {
           body: JSON.stringify(testBody),
         });
 
-        console.log(
-          `${pattern.name} response:`,
-          response.status,
-          response.statusText
-        );
-
         if (response.ok) {
           const result = await response.json();
           console.log(`✅ ${pattern.name} works! Response:`, result);
 
-          // If this was a real request, clean it up
           if (testExperience._id !== "test-experience-id" && result._id) {
             try {
               await deleteFavorite(result._id);
@@ -230,13 +234,6 @@ const ItineraryDetailPage = () => {
           }
 
           return { working: pattern };
-        } else if (response.status === 400) {
-          const errorText = await response.text();
-          console.log(`${pattern.name} returned 400:`, errorText);
-        } else if (response.status === 404) {
-          console.log(`${pattern.name} endpoint not found`);
-        } else {
-          console.log(`${pattern.name} failed with:`, response.status);
         }
       } catch (error) {
         console.log(`${pattern.name} failed:`, error.message);
@@ -246,7 +243,7 @@ const ItineraryDetailPage = () => {
     return { working: null };
   }, [allExperiences, deleteFavorite, jwt, user, API_URL]);
 
-  // NEW: API Configuration Detection
+  // API Configuration Detection
   useEffect(() => {
     const detectFavoritesAPI = async () => {
       if (!user?._id || !jwt || apiDetectionComplete) return;
@@ -254,7 +251,6 @@ const ItineraryDetailPage = () => {
       console.log("🔍 Detecting favorites API configuration...");
 
       try {
-        // Test different API patterns to find the working one
         const apiPatterns = await testAPIPatterns();
 
         if (apiPatterns.working) {
@@ -277,197 +273,7 @@ const ItineraryDetailPage = () => {
     detectFavoritesAPI();
   }, [user?._id, jwt, allExperiences, apiDetectionComplete, testAPIPatterns]);
 
-  const handleMoveBoard = async (fromIndex, toIndex) => {
-    // Check permissions
-    if (!hasPermission("edit")) {
-      toast.error("No tienes permisos para reordenar días");
-      return;
-    }
-
-    // Validate indices
-    if (toIndex < 0 || toIndex >= boards.length || fromIndex === toIndex) {
-      return;
-    }
-
-    try {
-      // Get the start date for chronological ordering
-      const baseDate =
-        startDate || (boards[0]?.date ? new Date(boards[0].date) : new Date());
-
-      // Reorder the boards using arrayMove (same as drag & drop)
-      let newBoards = [...boards];
-      newBoards = arrayMove(newBoards, fromIndex, toIndex);
-
-      // Update dates to maintain chronological order
-      newBoards = newBoards.map((board, index) => {
-        const newDate = new Date(baseDate);
-        newDate.setDate(newDate.getDate() + index);
-
-        return {
-          ...board,
-          date: newDate.toISOString().split("T")[0], // Format as YYYY-MM-DD
-        };
-      });
-
-      // Update UI state immediately
-      setBoards(newBoards);
-      updateTotalBudget(newBoards);
-
-      // Save to backend
-      await saveBoardChanges(newBoards);
-
-      toast.success("Días reordenados y fechas actualizadas");
-    } catch (error) {
-      console.error("Error moving board:", error);
-      toast.error("Error al reordenar días");
-
-      // Revert changes on error
-      fetchItinerary();
-    }
-  };
-
-  // Add this handler function to your ItineraryDetailPage component
-  const handlePrivacyToggle = async (newPrivateStatus) => {
-    if (userRole !== "owner") {
-      toast.error(
-        "Solo el propietario puede cambiar la privacidad del itinerario"
-      );
-      return;
-    }
-
-    const previousStatus = isPrivate;
-
-    // Update UI immediately for better UX
-    setIsPrivate(newPrivateStatus);
-
-    try {
-      // Save to backend
-      await updateItinerary(id, { isPrivate: newPrivateStatus }, jwt);
-
-      toast.success(
-        newPrivateStatus
-          ? "Itinerario marcado como privado"
-          : "Itinerario marcado como público"
-      );
-    } catch (error) {
-      console.error("Error updating privacy:", error);
-      toast.error("Error al cambiar la privacidad del itinerario");
-
-      // Revert the change if it failed
-      setIsPrivate(previousStatus);
-    }
-  };
-  const handleAddExperienceToBoard = async (
-    experience,
-    targetBoardIndex = null
-  ) => {
-    if (!hasPermission("addExperience")) {
-      toast.error("No tienes permisos para añadir experiencias");
-      return;
-    }
-
-    if (!isEditable) return;
-
-    const boardIndex =
-      targetBoardIndex !== null
-        ? targetBoardIndex
-        : selectedBoardIndex !== null
-          ? selectedBoardIndex
-          : 0;
-
-    if (!boards[boardIndex]) {
-      toast.error("Selecciona un día válido para añadir la experiencia");
-      return;
-    }
-
-    if (!experience || !experience._id) {
-      console.error("Invalid experience object:", experience);
-      toast.error("Error: experiencia inválida");
-      return;
-    }
-
-    // Check if favorite already exists
-    const existingFavorite = favorites.find(
-      (fav) => fav.experienceId?._id === experience._id
-    );
-
-    if (existingFavorite) {
-      // Use existing favorite immediately
-      console.log("✅ Using existing favorite:", existingFavorite._id);
-      await addExistingFavoriteToBoard(
-        existingFavorite,
-        experience,
-        boardIndex
-      );
-    } else {
-      // AUTO-CREATE FAVORITE SEAMLESSLY (no confirmation needed)
-      console.log("🚀 Auto-creating favorite for:", experience.title);
-      await createFavoriteAndAddToBoard(experience, boardIndex);
-    }
-  };
-
-  // Add this function to your component - it's the missing piece!
-
-  // ENHANCED: Auto-creation with multiple fallback strategies
-  const createFavoriteAndAddToBoard = async (experience, boardIndex) => {
-    try {
-      // Show subtle loading indicator
-      toast.loading("Añadiendo experiencia...", { id: "adding-experience" });
-
-      // Strategy 1: Use detected API if available
-      if (apiConfig && !apiConfig.manual) {
-        const result = await tryCreateFavoriteWithConfig(experience, apiConfig);
-        if (result.success) {
-          // Update local state with new favorite
-          const updatedFavorites = [...favorites, result.favorite];
-          setFavorites(updatedFavorites);
-          setDrawerFavorites(updatedFavorites);
-
-          await addExistingFavoriteToBoard(
-            result.favorite,
-            experience,
-            boardIndex
-          );
-          toast.success("Experiencia añadida", { id: "adding-experience" });
-          return;
-        }
-        console.warn("Detected API failed, trying fallback strategies...");
-      }
-
-      // Strategy 2: Try all known API patterns aggressively
-      const result = await tryAllAPIPatterns(experience);
-      if (result.success) {
-        // Update local state with new favorite
-        const updatedFavorites = [...favorites, result.favorite];
-        setFavorites(updatedFavorites);
-        setDrawerFavorites(updatedFavorites);
-
-        await addExistingFavoriteToBoard(
-          result.favorite,
-          experience,
-          boardIndex
-        );
-        toast.success("Experiencia añadida", { id: "adding-experience" });
-        return;
-      }
-
-      // Strategy 3: Create a local-only favorite (if backend doesn't support it)
-      console.log("📱 Creating local-only favorite as fallback...");
-      const localFavorite = await createLocalFavorite(experience);
-
-      // Update local state
-      const updatedFavorites = [...favorites, localFavorite];
-      setFavorites(updatedFavorites);
-      setDrawerFavorites(updatedFavorites);
-
-      await addExistingFavoriteToBoard(localFavorite, experience, boardIndex);
-      toast.success("Experiencia añadida", { id: "adding-experience" });
-    } catch (error) {
-      console.error("❌ All auto-creation strategies failed:", error);
-      toast.error("Error al añadir experiencia", { id: "adding-experience" });
-    }
-  };
-  // Try creating favorite with detected API configuration
+  // FIXED: Try creating favorite with detected API configuration
   const tryCreateFavoriteWithConfig = async (experience, config) => {
     try {
       const requestBody = config.bodyFormat(experience, user);
@@ -496,10 +302,9 @@ const ItineraryDetailPage = () => {
     }
   };
 
-  // Aggressively try all possible API patterns
+  // FIXED: Try all possible API patterns
   const tryAllAPIPatterns = async (experience) => {
     const patterns = [
-      // Standard patterns
       {
         name: "Standard",
         endpoint: `${API_URL}/api/favorites`,
@@ -535,46 +340,16 @@ const ItineraryDetailPage = () => {
       },
       {
         name: "Singular user",
-        endpoint: "/api/user/favorites",
+        endpoint: `${API_URL}/api/user/favorites`,
         method: "POST",
         bodyFormat: () => ({ experienceId: experience._id }),
       },
-      {
-        name: "Experience nested",
-        endpoint: `${API_URL}/api/experiences/${experience._id}/favorite`,
-        method: "POST",
-        bodyFormat: () => ({ userId: user._id }),
-      },
-      {
-        name: "User nested",
-        endpoint: `${API_URL}/api/users/${user._id}/favorites`,
-        method: "POST",
-        bodyFormat: () => ({ experience: experience._id }),
-      },
-      {
-        name: "Direct add",
-        endpoint: `${API_URL}/api/favorites/add`,
-        method: "POST",
-        bodyFormat: () => ({ experienceId: experience._id, userId: user._id }),
-      },
-      {
-        name: "Like endpoint",
-        endpoint: `${API_URL}/api/experiences/${experience._id}/like`,
-        method: "POST",
-        bodyFormat: () => ({}),
-      },
     ];
 
-    console.log(
-      `🧪 Trying ${patterns.length} API patterns for auto-creation...`
-    );
+    console.log(`🧪 Trying ${patterns.length} API patterns...`);
 
     for (const pattern of patterns) {
       try {
-        console.log(
-          `Testing ${pattern.name}: ${pattern.method} ${pattern.endpoint}`
-        );
-
         const requestBody = pattern.bodyFormat();
         const response = await fetch(pattern.endpoint, {
           method: pattern.method,
@@ -591,10 +366,7 @@ const ItineraryDetailPage = () => {
 
           // Update API config for future use
           setApiConfig(pattern);
-
           return { success: true, favorite: result };
-        } else {
-          console.log(`❌ ${pattern.name} failed: ${response.status}`);
         }
       } catch (error) {
         console.log(`❌ ${pattern.name} threw error:`, error.message);
@@ -605,26 +377,28 @@ const ItineraryDetailPage = () => {
     return { success: false };
   };
 
-  // Create a local-only favorite when backend doesn't support it
-  const createLocalFavorite = async (experience) => {
+  // FIXED: Create local favorite with better structure
+  const createLocalFavorite = (experience) => {
     console.log("📱 Creating local-only favorite for:", experience.title);
 
-    // Generate a local favorite that matches the structure
     const localFavorite = {
       _id: `local-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       experienceId: experience,
       userId: user._id,
       createdAt: new Date().toISOString(),
-      isLocal: true, // Flag to indicate this is local-only
+      isLocal: true,
     };
 
-    // Optionally, try to save to localStorage for persistence
+    // Save to localStorage for persistence
     try {
       const localFavorites = JSON.parse(
-        localStorage.getItem("localFavorites") || "[]"
+        localStorage.getItem(`localFavorites_${user._id}`) || "[]"
       );
       localFavorites.push(localFavorite);
-      localStorage.setItem("localFavorites", JSON.stringify(localFavorites));
+      localStorage.setItem(
+        `localFavorites_${user._id}`,
+        JSON.stringify(localFavorites)
+      );
       console.log("💾 Saved local favorite to localStorage");
     } catch (storageError) {
       console.warn("Could not save to localStorage:", storageError);
@@ -633,89 +407,154 @@ const ItineraryDetailPage = () => {
     return localFavorite;
   };
 
-  // Load local favorites on component mount
-  useEffect(() => {
-    const loadLocalFavorites = () => {
-      try {
-        const localFavorites = JSON.parse(
-          localStorage.getItem("localFavorites") || "[]"
-        );
-        if (localFavorites.length > 0) {
-          console.log(`📱 Loaded ${localFavorites.length} local favorites`);
+  // FIXED: Enhanced auto-creation function
+  const createFavoriteAndAddToBoard = async (experience, boardIndex) => {
+    try {
+      toast.loading("Añadiendo experiencia...", { id: "adding-experience" });
 
-          // Add local favorites to the state
-          setFavorites((prev) => [...prev, ...localFavorites]);
-          setDrawerFavorites((prev) => [...prev, ...localFavorites]);
+      let newFavorite = null;
+      let createdSuccessfully = false;
+
+      // Strategy 1: Use detected API if available
+      if (apiConfig && !apiConfig.manual) {
+        const result = await tryCreateFavoriteWithConfig(experience, apiConfig);
+        if (result.success) {
+          newFavorite = result.favorite;
+          createdSuccessfully = true;
+          console.log("✅ Created with detected API");
         }
-      } catch (error) {
-        console.warn("Could not load local favorites:", error);
       }
-    };
 
-    if (user?._id) {
-      loadLocalFavorites();
+      // Strategy 2: Try all known API patterns if detected API failed
+      if (!createdSuccessfully) {
+        const result = await tryAllAPIPatterns(experience);
+        if (result.success) {
+          newFavorite = result.favorite;
+          createdSuccessfully = true;
+          console.log("✅ Created with fallback API pattern");
+        }
+      }
+
+      // Strategy 3: Create local favorite as last resort
+      if (!createdSuccessfully) {
+        console.log("📱 Creating local-only favorite as fallback...");
+        newFavorite = createLocalFavorite(experience);
+      }
+
+      if (!newFavorite) {
+        throw new Error("Failed to create favorite");
+      }
+
+      // FIXED: Update favorites state immediately
+      const updatedFavorites = [...favorites, newFavorite];
+      setFavorites(updatedFavorites);
+      setDrawerFavorites(updatedFavorites);
+
+      // Add to board
+      await addExistingFavoriteToBoard(newFavorite, experience, boardIndex);
+
+      toast.success("Experiencia añadida", { id: "adding-experience" });
+    } catch (error) {
+      console.error("❌ All strategies failed:", error);
+      toast.error("Error al añadir experiencia", { id: "adding-experience" });
     }
-  }, [user?._id]);
+  };
 
-  // Add this debugging to your addExistingFavoriteToBoard function
+  // FIXED: Main function to handle adding experience to board
+  const handleAddExperienceToBoard = async (
+    experience,
+    targetBoardIndex = null
+  ) => {
+    if (!hasPermission("addExperience")) {
+      toast.error("No tienes permisos para añadir experiencias");
+      return;
+    }
+
+    if (!isEditable) return;
+
+    const boardIndex =
+      targetBoardIndex !== null
+        ? targetBoardIndex
+        : selectedBoardIndex !== null
+          ? selectedBoardIndex
+          : 0;
+
+    if (!boards[boardIndex]) {
+      toast.error("Selecciona un día válido para añadir la experiencia");
+      return;
+    }
+
+    if (!experience || !experience._id) {
+      console.error("Invalid experience object:", experience);
+      toast.error("Error: experiencia inválida");
+      return;
+    }
+
+    // FIXED: Better duplicate checking logic
+    const targetBoard = boards[boardIndex];
+    if (isExperienceInBoard(experience, targetBoard.favorites)) {
+      toast.error("Esta experiencia ya está añadida en este día");
+      return;
+    }
+
+    // Check if favorite already exists in user's favorites
+    const existingFavorite = favorites.find(
+      (fav) => fav.experienceId?._id === experience._id
+    );
+
+    if (existingFavorite) {
+      // Use existing favorite
+      console.log("✅ Using existing favorite:", existingFavorite._id);
+      await addExistingFavoriteToBoard(
+        existingFavorite,
+        experience,
+        boardIndex
+      );
+    } else {
+      // Create new favorite and add to board
+      console.log("🚀 Creating new favorite for:", experience.title);
+      await createFavoriteAndAddToBoard(experience, boardIndex);
+    }
+  };
+
+  // FIXED: Improved addExistingFavoriteToBoard function
   const addExistingFavoriteToBoard = async (
     favoriteDoc,
     experience,
     boardIndex
   ) => {
-    console.log("🎯 DEBUG addExistingFavoriteToBoard:");
-    console.log("📄 favoriteDoc:", favoriteDoc);
-    console.log("🎪 experience:", experience);
-    console.log("📍 boardIndex:", boardIndex);
-    console.log(
-      "🗂️ Current boards before:",
-      JSON.parse(JSON.stringify(boards))
-    );
+    console.log("🎯 Adding favorite to board:", {
+      favoriteId: favoriteDoc._id,
+      experienceTitle: experience.title,
+      boardIndex,
+    });
 
     try {
       const newBoards = [...boards];
       const targetBoard = newBoards[boardIndex];
 
-      console.log(
-        "🎯 Target board before:",
-        JSON.parse(JSON.stringify(targetBoard))
-      );
-
-      // Check for duplicates
-      const isDuplicate = targetBoard.favorites?.some((boardFav) => {
-        const boardFavId =
-          typeof boardFav === "object" ? boardFav._id : boardFav;
-        console.log(
-          "🔍 Checking duplicate:",
-          boardFavId,
-          "vs",
-          favoriteDoc._id
-        );
-        return boardFavId === favoriteDoc._id;
-      });
-
-      if (isDuplicate) {
+      // FIXED: Better duplicate checking
+      if (isExperienceInBoard(experience, targetBoard.favorites)) {
         console.log("❌ Duplicate found, aborting");
         toast.error("Esta experiencia ya está añadida en este día");
         return;
       }
 
-      // Add to UI state
+      // Initialize favorites array if needed
       if (!targetBoard.favorites) {
-        console.log("📝 Creating new favorites array");
         targetBoard.favorites = [];
       }
 
-      const uiFavorite = {
+      // Create board favorite object
+      const boardFavorite = {
         _id: favoriteDoc._id,
         experienceId: experience,
         uniqueId: `${boardIndex}-${targetBoard.favorites.length}-${favoriteDoc._id}`,
-        isLocal: favoriteDoc.isLocal,
+        isLocal: favoriteDoc.isLocal || false,
       };
 
-      console.log("✨ Creating UI favorite:", uiFavorite);
-
-      targetBoard.favorites.push(uiFavorite);
+      // Add to board
+      targetBoard.favorites.push(boardFavorite);
 
       // Update budget
       targetBoard.dailyBudget = targetBoard.favorites.reduce(
@@ -723,94 +562,158 @@ const ItineraryDetailPage = () => {
         0
       );
 
-      console.log("💰 Updated board budget:", targetBoard.dailyBudget);
-      console.log(
-        "🎯 Target board after:",
-        JSON.parse(JSON.stringify(targetBoard))
-      );
-
+      // Update state
       setBoards(newBoards);
       updateTotalBudget(newBoards);
 
-      console.log(
-        "🚀 About to call saveBoardChanges with:",
-        JSON.parse(JSON.stringify(newBoards))
-      );
-
-      // Save to backend (this will filter out local favorites automatically)
+      // Save to backend
       await saveBoardChanges(newBoards);
 
-      console.log("✅ saveBoardChanges completed successfully");
+      console.log("✅ Successfully added to board");
     } catch (error) {
       console.error("❌ Error in addExistingFavoriteToBoard:", error);
       toast.error("Error al añadir la experiencia al día");
 
       // Revert changes on error
-      setBoards([...boards]);
-      updateTotalBudget(boards);
+      fetchItinerary();
     }
   };
 
-  // Enhanced saveBoardChanges that handles local favorites
-  // 1. Enhanced saveBoardChanges function
+  // FIXED: Enhanced saveBoardChanges with better local favorite handling
   const saveBoardChanges = async (boardsToSave) => {
-    const cleanBoards = boardsToSave.map((board, index) => {
-      const cleanBoard = {
-        date:
-          board.date ||
-          new Date(Date.now() + index * 24 * 60 * 60 * 1000)
-            .toISOString()
-            .split("T")[0],
-        dailyBudget: 0,
-        favorites: [],
-      };
+    try {
+      const cleanBoards = boardsToSave.map((board, index) => {
+        const cleanBoard = {
+          date:
+            board.date ||
+            new Date(Date.now() + index * 24 * 60 * 60 * 1000)
+              .toISOString()
+              .split("T")[0],
+          dailyBudget: 0,
+          favorites: [],
+        };
 
-      if (
-        board._id &&
-        !board._id.toString().startsWith("board-") &&
-        !board._id.toString().startsWith("temp-")
-      ) {
-        cleanBoard._id = board._id;
-      }
+        // Keep existing board ID if it's valid
+        if (
+          board._id &&
+          !board._id.toString().startsWith("board-") &&
+          !board._id.toString().startsWith("temp-")
+        ) {
+          cleanBoard._id = board._id;
+        }
 
-      if (board.favorites && Array.isArray(board.favorites)) {
-        // Filter out local favorites when saving to backend
-        cleanBoard.favorites = board.favorites
-          .filter((fav) => fav && fav._id)
-          .filter((fav) => !fav._id.toString().startsWith("temp-"))
-          .filter((fav) => !fav._id.toString().startsWith("local-"))
-          .map((fav) => fav._id);
+        if (board.favorites && Array.isArray(board.favorites)) {
+          // FIXED: Only filter out temp IDs and invalid favorites, keep real favorites
+          const validFavorites = board.favorites
+            .filter((fav) => fav && fav._id)
+            .filter((fav) => !fav._id.toString().startsWith("temp-"))
+            .filter((fav) => {
+              // Keep real API-created favorites, filter only local-only ones
+              const isLocalOnly =
+                fav._id.toString().startsWith("local-") && fav.isLocal === true;
+              return !isLocalOnly;
+            });
 
-        cleanBoard.dailyBudget = board.favorites.reduce(
-          (sum, fav) => sum + (fav.experienceId?.price || 0),
-          0
-        );
-      }
+          cleanBoard.favorites = validFavorites.map((fav) => fav._id);
 
-      return cleanBoard;
-    });
+          // Calculate budget from all favorites (including local ones in UI)
+          cleanBoard.dailyBudget = board.favorites.reduce(
+            (sum, fav) => sum + (fav.experienceId?.price || 0),
+            0
+          );
+        }
 
-    // Calculate the total budget from the clean boards
-    const calculatedTotalBudget = cleanBoards.reduce(
-      (sum, board) => sum + (board.dailyBudget || 0),
-      0
-    );
+        return cleanBoard;
+      });
 
-    console.log("Sending clean boards:", JSON.stringify(cleanBoards, null, 2));
-    console.log("Calculated total budget:", calculatedTotalBudget);
+      const calculatedTotalBudget = cleanBoards.reduce(
+        (sum, board) => sum + (board.dailyBudget || 0),
+        0
+      );
 
-    // Include totalBudget in the update
-    await updateItinerary(
-      id,
-      {
-        boards: cleanBoards,
-        totalBudget: calculatedTotalBudget,
-      },
-      jwt
-    );
+      console.log("💾 Saving boards:", cleanBoards);
+
+      await updateItinerary(
+        id,
+        {
+          boards: cleanBoards,
+          totalBudget: calculatedTotalBudget,
+        },
+        jwt
+      );
+
+      console.log("✅ Successfully saved to backend");
+    } catch (error) {
+      console.error("❌ Error saving boards:", error);
+      throw error;
+    }
   };
 
-  // 2. NEWWWW Enhanced updateTotalBudget function that also saves to DB
+  const handleMoveBoard = async (fromIndex, toIndex) => {
+    if (!hasPermission("edit")) {
+      toast.error("No tienes permisos para reordenar días");
+      return;
+    }
+
+    if (toIndex < 0 || toIndex >= boards.length || fromIndex === toIndex) {
+      return;
+    }
+
+    try {
+      const baseDate =
+        startDate || (boards[0]?.date ? new Date(boards[0].date) : new Date());
+
+      let newBoards = [...boards];
+      newBoards = arrayMove(newBoards, fromIndex, toIndex);
+
+      newBoards = newBoards.map((board, index) => {
+        const newDate = new Date(baseDate);
+        newDate.setDate(newDate.getDate() + index);
+
+        return {
+          ...board,
+          date: newDate.toISOString().split("T")[0],
+        };
+      });
+
+      setBoards(newBoards);
+      updateTotalBudget(newBoards);
+
+      await saveBoardChanges(newBoards);
+
+      toast.success("Días reordenados y fechas actualizadas");
+    } catch (error) {
+      console.error("Error moving board:", error);
+      toast.error("Error al reordenar días");
+      fetchItinerary();
+    }
+  };
+
+  const handlePrivacyToggle = async (newPrivateStatus) => {
+    if (userRole !== "owner") {
+      toast.error(
+        "Solo el propietario puede cambiar la privacidad del itinerario"
+      );
+      return;
+    }
+
+    const previousStatus = isPrivate;
+    setIsPrivate(newPrivateStatus);
+
+    try {
+      await updateItinerary(id, { isPrivate: newPrivateStatus }, jwt);
+      toast.success(
+        newPrivateStatus
+          ? "Itinerario marcado como privado"
+          : "Itinerario marcado como público"
+      );
+    } catch (error) {
+      console.error("Error updating privacy:", error);
+      toast.error("Error al cambiar la privacidad del itinerario");
+      setIsPrivate(previousStatus);
+    }
+  };
+
   const updateTotalBudget = async (boardsArray, shouldSave = false) => {
     if (!Array.isArray(boardsArray)) return;
 
@@ -821,7 +724,6 @@ const ItineraryDetailPage = () => {
 
     setTotalBudget(total);
 
-    // Optionally save to database immediately
     if (shouldSave) {
       try {
         await updateItinerary(id, { totalBudget: total }, jwt);
@@ -834,7 +736,6 @@ const ItineraryDetailPage = () => {
     return total;
   };
 
-  // 3. NEW Enhanced handleAddBoard function
   const handleAddBoard = async () => {
     if (!hasPermission("edit")) {
       toast.error("No tienes permisos para añadir días");
@@ -856,7 +757,6 @@ const ItineraryDetailPage = () => {
 
     try {
       await saveBoardChanges(updatedBoards);
-      // Also update travel days - totalBudget is now included in saveBoardChanges
       await updateItinerary(id, { travelDays: updatedBoards.length }, jwt);
       toast.success("Nuevo día añadido");
     } catch (error) {
@@ -868,7 +768,6 @@ const ItineraryDetailPage = () => {
     }
   };
 
-  // 4. NEW Enhanced handleRemoveBoard function
   const handleRemoveBoard = async (index) => {
     if (!hasPermission("edit")) {
       toast.error("No tienes permisos para eliminar días");
@@ -881,7 +780,6 @@ const ItineraryDetailPage = () => {
 
     try {
       await saveBoardChanges(updatedBoards);
-      // Also update travel days - totalBudget is now included in saveBoardChanges
       await updateItinerary(id, { travelDays: updatedBoards.length }, jwt);
       toast.success("Día eliminado");
     } catch (error) {
@@ -892,7 +790,14 @@ const ItineraryDetailPage = () => {
       updateTotalBudget(boards);
     }
   };
-  // FIXED: NEWWWWWW Enhanced handleUpdateItineraryDates with proper date handling
+
+  const formatDateForLocal = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
   const handleUpdateItineraryDates = async (newStartDate) => {
     if (!hasPermission("edit")) {
       toast.error("No tienes permisos para cambiar las fechas");
@@ -900,57 +805,36 @@ const ItineraryDetailPage = () => {
     }
 
     try {
-      console.log("🗓️ Original newStartDate:", newStartDate);
-      console.log("🗓️ newStartDate type:", typeof newStartDate);
-      console.log("🗓️ newStartDate ISO:", newStartDate.toISOString());
-
-      // FIXED: Create a clean date object and avoid timezone issues
       const baseDate = new Date(newStartDate);
-      console.log("🗓️ Base date created:", baseDate);
-
-      // FIXED: Format the start date properly for local timezone
       const startDateString = formatDateForLocal(baseDate);
-      console.log("🗓️ Start date string:", startDateString);
 
-      // FIXED: Update all board dates based on the new start date
       const updatedBoards = boards.map((board, index) => {
-        // Create a new date for each board day (don't mutate the original)
         const boardDate = new Date(baseDate);
         boardDate.setDate(boardDate.getDate() + index);
-
         const boardDateString = formatDateForLocal(boardDate);
-
-        console.log(`🗓️ Board ${index + 1} date: ${boardDateString}`);
 
         return {
           ...board,
-          date: boardDateString, // Use local formatted date
+          date: boardDateString,
         };
       });
 
-      console.log("🗓️ Updated boards with new dates:", updatedBoards);
-
-      // Update local state first
       setBoards(updatedBoards);
       setStartDate(baseDate);
 
-      // Calculate total budget
       const newTotalBudget = updatedBoards.reduce(
         (sum, board) => sum + (board?.dailyBudget || 0),
         0
       );
 
-      // FIXED: Save to backend with proper date formatting
       const updatePayload = {
-        date: baseDate.toISOString(), // Keep ISO for backend
+        date: baseDate.toISOString(),
         boards: updatedBoards.map((board) => ({
           ...board,
-          date: board.date, // This is now properly formatted
+          date: board.date,
         })),
         totalBudget: newTotalBudget,
       };
-
-      console.log("🗓️ Sending update payload:", updatePayload);
 
       await updateItinerary(id, updatePayload, jwt);
 
@@ -959,20 +843,10 @@ const ItineraryDetailPage = () => {
     } catch (error) {
       console.error("❌ Error updating itinerary dates:", error);
       toast.error("Error al actualizar las fechas");
-      // Revert changes on error
       fetchItinerary();
     }
   };
 
-  // NEWWW HELPER: Format date for local timezone (avoids timezone offset issues)
-  const formatDateForLocal = (date) => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
-  };
-
-  // NEWWW FIXED: Enhanced fetchItinerary to handle dates properly
   const fetchItinerary = useCallback(async () => {
     if (!user || !user._id) return;
 
@@ -981,8 +855,6 @@ const ItineraryDetailPage = () => {
       setName(data.name || "");
       setTravelDays(data.travelDays || 0);
       setTotalBudget(data.totalBudget || 0);
-
-      // Add this line to set the privacy status
       setIsPrivate(data.isPrivate || false);
 
       const boardsWithIds = (data.boards || []).map((board, index) => ({
@@ -1006,7 +878,6 @@ const ItineraryDetailPage = () => {
 
       setCreator(data.user || null);
 
-      // Determine user's role from travelers array
       let role = "viewer";
       if (String(data.user?._id) === String(user._id)) {
         role = "owner";
@@ -1035,6 +906,46 @@ const ItineraryDetailPage = () => {
     }
   }, [id, jwt, user]);
 
+  // Load local favorites with user-specific key
+  useEffect(() => {
+    const loadLocalFavorites = () => {
+      if (!user?._id || favorites.length === 0) return;
+
+      try {
+        const localFavorites = JSON.parse(
+          localStorage.getItem(`localFavorites_${user._id}`) || "[]"
+        );
+
+        if (localFavorites.length > 0) {
+          console.log(
+            `📱 Loaded ${localFavorites.length} local favorites for user ${user._id}`
+          );
+
+          // Filter out any that might already be in the real favorites
+          const newLocalFavorites = localFavorites.filter(
+            (localFav) =>
+              !favorites.some(
+                (realFav) =>
+                  realFav.experienceId?._id === localFav.experienceId?._id
+              )
+          );
+
+          if (newLocalFavorites.length > 0) {
+            setFavorites((prev) => [...prev, ...newLocalFavorites]);
+            setDrawerFavorites((prev) => [...prev, ...newLocalFavorites]);
+          }
+        }
+      } catch (error) {
+        console.warn("Could not load local favorites:", error);
+      }
+    };
+
+    // Only load local favorites after real favorites are loaded
+    if (user?._id && favorites.length > 0) {
+      loadLocalFavorites();
+    }
+  }, [user?._id, favorites.length]);
+
   // Effects
   useEffect(() => {
     if (id && jwt && user?._id) {
@@ -1060,6 +971,7 @@ const ItineraryDetailPage = () => {
 
     fetchFavorites();
   }, [user?._id, jwt]);
+
   const hasPermission = (action) => {
     const permissions = {
       viewer: {
@@ -1099,7 +1011,7 @@ const ItineraryDetailPage = () => {
 
     return permissions[userRole]?.[action] || false;
   };
-  // Fetch experiences function
+
   const fetchAllExperiences = useCallback(async () => {
     setLoadingExperiences(true);
     try {
@@ -1125,6 +1037,7 @@ const ItineraryDetailPage = () => {
       setLoadingExperiences(false);
     }
   }, [jwt, API_URL]);
+
   useEffect(() => {
     const fetchFriends = async () => {
       if (!user?._id || !jwt) return;
@@ -1141,22 +1054,26 @@ const ItineraryDetailPage = () => {
     fetchFriends();
   }, [user?._id, jwt]);
 
-  // Handler for board-specific add experience
   const handleBoardAddExperience = (boardIndex) => {
     setSelectedBoardIndex(boardIndex);
     setAddExperienceModalOpen(true);
   };
 
-  // Enhanced handler for board selection
-  const handleAddExperienceWithBoardSelection = (experience) => {
-    if (selectedBoardIndex !== null) {
-      handleAddExperienceToBoard(experience, selectedBoardIndex);
-      setSelectedBoardIndex(null);
+  // FIXED: Enhanced experience modal handler
+  const handleAddExperienceWithBoardSelection = async (experience) => {
+    // Close the modal immediately for better UX
+    setAddExperienceModalOpen(false);
+
+    const targetBoardIndex = selectedBoardIndex;
+    setSelectedBoardIndex(null);
+
+    if (targetBoardIndex !== null) {
+      await handleAddExperienceToBoard(experience, targetBoardIndex);
       return;
     }
 
     if (boards.length === 1) {
-      handleAddExperienceToBoard(experience, 0);
+      await handleAddExperienceToBoard(experience, 0);
     } else if (boards.length > 1) {
       const boardOptions = boards
         .map((board, index) => {
@@ -1176,7 +1093,7 @@ const ItineraryDetailPage = () => {
       if (selection) {
         const boardIndex = parseInt(selection) - 1;
         if (boardIndex >= 0 && boardIndex < boards.length) {
-          handleAddExperienceToBoard(experience, boardIndex);
+          await handleAddExperienceToBoard(experience, boardIndex);
         } else {
           toast.error("Selección inválida");
         }
@@ -1255,7 +1172,6 @@ const ItineraryDetailPage = () => {
     }
   };
 
-  // Add this new handler function
   const handleToggleChecklistItem = async (itemId) => {
     if (!hasPermission("addNotes")) {
       toast.error("No tienes permisos para modificar la lista");
@@ -1273,11 +1189,10 @@ const ItineraryDetailPage = () => {
     } catch (error) {
       console.error("Error updating checklist item:", error);
       toast.error("Error al actualizar la tarea");
-
-      // Revert changes on error
       fetchItinerary();
     }
   };
+
   const handleDeleteChecklistItem = async (itemId) => {
     if (!hasPermission("addNotes")) {
       toast.error("No tienes permisos para eliminar tareas");
@@ -1286,11 +1201,7 @@ const ItineraryDetailPage = () => {
 
     try {
       const updatedNotes = notes.filter((note) => note._id !== itemId);
-
-      // Update backend first
       await updateItinerary(id, { notes: updatedNotes }, jwt);
-
-      // Then update local state
       setNotes(updatedNotes);
       toast.success("Tarea eliminada");
     } catch (error) {
@@ -1298,6 +1209,7 @@ const ItineraryDetailPage = () => {
       toast.error("Error al eliminar la tarea");
     }
   };
+
   const handleEditChecklistItem = async (itemId, newText) => {
     if (!hasPermission("addNotes")) {
       toast.error("No tienes permisos para editar tareas");
@@ -1309,28 +1221,23 @@ const ItineraryDetailPage = () => {
         note._id === itemId ? { ...note, text: newText } : note
       );
 
-      // Update backend first
       await updateItinerary(id, { notes: updatedNotes }, jwt);
-
-      // Then update local state
       setNotes(updatedNotes);
       toast.success("Tarea actualizada");
     } catch (error) {
       console.error("Error editing checklist item:", error);
       toast.error("Error al editar la tarea");
-
-      // Optionally refetch to ensure consistency
       fetchItinerary();
     }
   };
-  // Update the handleAddNote function to add checklist items
+
   const handleAddNote = async () => {
     if (!newNote.trim() || !user?._id) return;
 
     const checklistItem = {
       text: newNote,
       completed: false,
-      author: user.name || user._id, // Use name if available, fallback to ID
+      author: user.name || user._id,
     };
 
     const updatedNotes = [...notes, checklistItem];
@@ -1342,14 +1249,13 @@ const ItineraryDetailPage = () => {
     } catch (error) {
       console.error("Error adding checklist item:", error);
       toast.error("Error al añadir tarea");
-
-      // Revert changes on error
       setNotes(notes);
     }
 
     setNewNote("");
     setNotesModalOpen(false);
   };
+
   const handleClearFilters = () => {
     setSelectedCategory("All");
     setSelectedRegion("All");
@@ -1391,14 +1297,13 @@ const ItineraryDetailPage = () => {
       }
     }
   };
+
   const handleMoveActivity = async (boardIndex, fromIndex, toIndex) => {
-    // Check permissions
     if (userRole === "viewer") {
       toast.error("No tienes permisos para reordenar actividades");
       return;
     }
 
-    // Validate indices
     if (toIndex < 0 || fromIndex === toIndex) {
       return;
     }
@@ -1411,45 +1316,38 @@ const ItineraryDetailPage = () => {
         return;
       }
 
-      // Reorder activities within the board using arrayMove
       const reorderedActivities = arrayMove(
         targetBoard.favorites,
         fromIndex,
         toIndex
       );
 
-      // Update uniqueIds to maintain consistency
       targetBoard.favorites = reorderedActivities.map((fav, idx) => ({
         ...fav,
         uniqueId: `${boardIndex}-${idx}-${fav._id}`,
       }));
 
-      // Update UI state immediately
       setBoards(newBoards);
-
-      // Save to backend
       await saveBoardChanges(newBoards);
-
       toast.success("Actividades reordenadas");
     } catch (error) {
       console.error("Error moving activity:", error);
       toast.error("Error al reordenar actividades");
-
-      // Revert changes on error
       fetchItinerary();
     }
   };
+
+  // FIXED: Enhanced drag end handler with better duplicate detection
   const handleDragEnd = async (event) => {
     const { active, over } = event;
 
     setActiveId(null);
     setActiveData(null);
 
-    if (!over || !isEditable) return;
     if (!over || !hasPermission("dragDrop")) {
-      // Exit silently if no permission
       return;
     }
+
     const activeId = active.id;
     const overId = over.id;
 
@@ -1470,22 +1368,19 @@ const ItineraryDetailPage = () => {
         );
 
         if (oldIndex !== newIndex && oldIndex !== -1 && newIndex !== -1) {
-          // Get the start date
           const baseDate =
             startDate ||
             (boards[0]?.date ? new Date(boards[0].date) : new Date());
 
-          // Reorder the boards
           newBoards = arrayMove(boards, oldIndex, newIndex);
 
-          // Update dates to maintain chronological order
           newBoards = newBoards.map((board, index) => {
             const newDate = new Date(baseDate);
             newDate.setDate(newDate.getDate() + index);
 
             return {
               ...board,
-              date: newDate.toISOString().split("T")[0], // Format as YYYY-MM-DD
+              date: newDate.toISOString().split("T")[0],
             };
           });
 
@@ -1513,17 +1408,12 @@ const ItineraryDetailPage = () => {
 
         const targetBoard = newBoards[boardIndex];
 
-        const isDuplicate = targetBoard.favorites?.some((boardFav) => {
-          const boardFavId =
-            typeof boardFav === "object" ? boardFav._id : boardFav;
-          return boardFavId === movedFavorite._id;
-        });
-
-        if (isDuplicate) {
-          const confirmDuplicate = window.confirm(
-            "Esta experiencia ya está añadida en este día. ¿Quieres añadirla de nuevo?"
-          );
-          if (!confirmDuplicate) return;
+        // FIXED: Better duplicate checking for drag and drop
+        if (
+          isExperienceInBoard(movedFavorite.experienceId, targetBoard.favorites)
+        ) {
+          toast.error("Esta experiencia ya está añadida en este día");
+          return;
         }
 
         if (targetBoard.favorites?.length > 0) {
@@ -1542,6 +1432,7 @@ const ItineraryDetailPage = () => {
           _id: movedFavorite._id,
           experienceId: movedFavorite.experienceId,
           uniqueId: `${boardIndex}-${targetBoard.favorites.length}-${movedFavorite._id}`,
+          isLocal: movedFavorite.isLocal || false,
         };
         targetBoard.favorites.push(newFavWithId);
         targetBoard.dailyBudget = targetBoard.favorites.reduce(
@@ -1549,11 +1440,7 @@ const ItineraryDetailPage = () => {
           0
         );
 
-        const newDrawerFavorites = [...drawerFavorites];
-        newDrawerFavorites.splice(favoriteIndex, 1);
-
         setBoards(newBoards);
-        setDrawerFavorites(newDrawerFavorites);
         updateTotalBudget(newBoards);
         shouldSave = true;
         toast.success("Experiencia añadida");
@@ -1612,17 +1499,12 @@ const ItineraryDetailPage = () => {
 
         const movedFavorite = sourceBoard.favorites[sourceFavIndex];
 
-        const isDuplicate = targetBoard.favorites?.some((boardFav) => {
-          const boardFavId =
-            typeof boardFav === "object" ? boardFav._id : boardFav;
-          return boardFavId === movedFavorite._id;
-        });
-
-        if (isDuplicate) {
-          const confirmDuplicate = window.confirm(
-            "Esta experiencia ya está añadida en este día. ¿Quieres añadirla de nuevo?"
-          );
-          if (!confirmDuplicate) return;
+        // FIXED: Better duplicate checking
+        if (
+          isExperienceInBoard(movedFavorite.experienceId, targetBoard.favorites)
+        ) {
+          toast.error("Esta experiencia ya está añadida en este día");
+          return;
         }
 
         if (targetBoard.favorites?.length > 0) {
@@ -1765,7 +1647,7 @@ const ItineraryDetailPage = () => {
               onEditDates={() => setIsEditingDates(true)}
               canEditDates={hasPermission("edit")}
               onBackClick={() => navigate(-1)}
-              onNotesClick={() => setNotesModalOpen(true)} // Add this if missing
+              onNotesClick={() => setNotesModalOpen(true)}
               onAddTraveler={
                 hasPermission("manageTravelers") ? handleAddTraveler : undefined
               }
@@ -1781,7 +1663,6 @@ const ItineraryDetailPage = () => {
               }
               userRole={userRole}
               currentUserId={user?._id}
-              // NEW PROPS FOR PRIVACY
               isPrivate={isPrivate}
               onPrivacyToggle={handlePrivacyToggle}
             />
@@ -1791,7 +1672,7 @@ const ItineraryDetailPage = () => {
                 (board) => `board-${board.id || board._id || "temp"}`
               )}
               strategy={horizontalListSortingStrategy}
-              disabled={userRole === "viewer"} // Disable sorting for viewers
+              disabled={userRole === "viewer"}
             >
               <Box
                 sx={{
@@ -1822,7 +1703,7 @@ const ItineraryDetailPage = () => {
                     }
                     onMoveActivity={
                       hasPermission("edit") ? handleMoveActivity : undefined
-                    } // ← Add this line
+                    }
                     onRemoveBoard={
                       hasPermission("edit") ? handleRemoveBoard : undefined
                     }
@@ -1843,7 +1724,6 @@ const ItineraryDetailPage = () => {
                     userRole={userRole}
                   />
                 ))}
-                {/* Only show AddBoardCard if user can edit */}
                 {hasPermission("edit") && (
                   <AddBoardCard onAddBoard={handleAddBoard} />
                 )}
@@ -1851,7 +1731,6 @@ const ItineraryDetailPage = () => {
             </SortableContext>
           </Box>
 
-          {/* Only show FavoritesDrawer if user can edit */}
           {hasPermission("edit") && !isMobile && (
             <FavoritesDrawer
               isOpen={isDrawerOpen}
@@ -1869,7 +1748,6 @@ const ItineraryDetailPage = () => {
           )}
         </Box>
 
-        {/* Only show DragOverlay for non-viewers */}
         {userRole !== "viewer" && (
           <DragOverlay dropAnimation={null}>
             {activeId && activeData ? (
@@ -1899,6 +1777,7 @@ const ItineraryDetailPage = () => {
         open={offlineModalOpen}
         onClose={() => setOfflineModalOpen(false)}
       />
+
       {userRole !== "viewer" && (
         <DateChangeDialog
           open={isEditingDates}
@@ -1908,7 +1787,7 @@ const ItineraryDetailPage = () => {
           onConfirm={handleUpdateItineraryDates}
         />
       )}
-      {/* Only show AddExperienceModal if user can add experiences */}
+
       {hasPermission("addExperience") && (
         <AddExperienceModal
           open={addExperienceModalOpen}
@@ -1921,6 +1800,7 @@ const ItineraryDetailPage = () => {
           loading={loadingExperiences}
         />
       )}
+
       {hasPermission("addNotes") && (
         <NotesModal
           open={notesModalOpen}
@@ -1930,8 +1810,8 @@ const ItineraryDetailPage = () => {
           setNewNote={setNewNote}
           onAddNote={handleAddNote}
           onToggleCheck={handleToggleChecklistItem}
-          onDeleteItem={handleDeleteChecklistItem} // ✅ Add this
-          onEditItem={handleEditChecklistItem} // ✅ Add this
+          onDeleteItem={handleDeleteChecklistItem}
+          onEditItem={handleEditChecklistItem}
           currentUser={user}
         />
       )}

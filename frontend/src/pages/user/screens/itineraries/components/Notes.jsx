@@ -161,7 +161,7 @@ const Checklist = ({
             </Box>
             <Box>
               <Typography variant="h5" fontWeight={800}>
-                Lista de Tareas
+                Lista de tareas
               </Typography>
               <Typography variant="body2" sx={{ opacity: 0.9 }}>
                 Organiza y completa tareas del viaje

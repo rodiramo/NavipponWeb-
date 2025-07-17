@@ -221,7 +221,7 @@ const ManagePosts = () => {
                     label={tag}
                     sx={{
                       backgroundColor: theme.palette.primary.light,
-                      color: theme.palette.primary.main,
+                      color: theme.palette.primary.dark,
                       fontSize: "0.75rem",
                     }}
                   />
@@ -530,7 +530,8 @@ const ManagePosts = () => {
                         label={tag}
                         sx={{
                           backgroundColor: theme.palette.primary.light,
-                          color: theme.palette.primary.main,
+                          color: theme.palette.primary.dark,
+
                           fontSize: "0.75rem",
                         }}
                       />

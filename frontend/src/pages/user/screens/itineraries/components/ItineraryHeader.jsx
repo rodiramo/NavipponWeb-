@@ -24,13 +24,12 @@ import {
   CalendarDays,
   HandCoins,
   Download,
-  MessagesSquare,
   ArrowLeft,
   Crown,
   Lock,
   Globe,
+  ListCheck,
   MoreVertical,
-  Users,
 } from "lucide-react";
 import Travelers from "./Travelers";
 
@@ -67,7 +66,6 @@ const ItineraryHeader = ({
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [anchorEl, setAnchorEl] = useState(null);
-  const [showTravelers, setShowTravelers] = useState(false);
   const open = Boolean(anchorEl);
 
   const endDate =
@@ -120,11 +118,6 @@ const ItineraryHeader = ({
     handleMenuClose();
   };
 
-  const handleTravelersClick = () => {
-    setShowTravelers(true);
-    handleMenuClose();
-  };
-
   return (
     <>
       <Box
@@ -135,7 +128,7 @@ const ItineraryHeader = ({
         }}
       >
         <Container maxWidth="xl" sx={{ position: "relative", zIndex: 1 }}>
-          <Box sx={{ py: { xs: 2.5, sm: 1.5 } }}>
+          <Box sx={{ py: { xs: 3, sm: 2 } }}>
             {/* Left: Back Button */}
             <Button
               variant="outlined"
@@ -150,10 +143,11 @@ const ItineraryHeader = ({
                 backdropFilter: "blur(10px)",
                 backgroundColor: "rgba(255,255,255,0.1)",
                 fontSize: "0.75rem",
-                px: 2,
+                px: { xs: 1.5, sm: 2 },
                 py: 0.5,
-                mt: 3,
+                mb: { xs: 2, sm: 1 },
                 minWidth: "auto",
+                minHeight: { xs: 40, sm: 32 },
                 "&:hover": {
                   borderColor: "rgba(255,255,255,0.5)",
                   backgroundColor: "rgba(255,255,255,0.2)",
@@ -162,13 +156,15 @@ const ItineraryHeader = ({
             >
               {isMobile ? "" : "Volver"}
             </Button>
+
             <Box
               sx={{
                 display: "flex",
-                pt: 2,
+                pt: { xs: 1, sm: 2 },
                 alignItems: "center",
                 justifyContent: "space-between",
-                gap: 1,
+                gap: { xs: 1, sm: 2 },
+                flexDirection: { xs: "column", sm: "row" },
               }}
             >
               {/* Center: Title */}
@@ -178,6 +174,8 @@ const ItineraryHeader = ({
                   display: "flex",
                   alignItems: "center",
                   gap: 1,
+                  width: "100%",
+                  justifyContent: { xs: "center", sm: "flex-start" },
                 }}
               >
                 {isEditingName && canEdit ? (
@@ -199,20 +197,30 @@ const ItineraryHeader = ({
                     size="small"
                     sx={{
                       flex: 1,
+                      maxWidth: { xs: "280px", sm: "400px" },
                       "& .MuiOutlinedInput-root": {
-                        backgroundColor: "rgba(255,255,255,0.98)",
+                        backgroundColor: "rgba(255,255,255,0.95)",
                         backdropFilter: "blur(20px)",
-                        borderRadius: 20,
-                        border: "none",
+                        borderRadius: { xs: 16, sm: 20 },
+                        border: `2px solid rgba(255,255,255,0.3)`,
                         fontSize: { xs: "1rem", sm: "1.25rem" },
                         fontWeight: 600,
                         color: theme.palette.text.primary,
+                        boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
                         "& fieldset": {
                           border: "none",
                         },
+                        "&:hover": {
+                          backgroundColor: "rgba(255,255,255,1)",
+                          border: `2px solid rgba(255,255,255,0.5)`,
+                        },
+                        "&.Mui-focused": {
+                          backgroundColor: "rgba(255,255,255,1)",
+                          border: `2px solid ${theme.palette.primary.main}`,
+                        },
                       },
                       "& .MuiOutlinedInput-input": {
-                        padding: "8px 12px",
+                        padding: { xs: "12px 16px", sm: "8px 12px" },
                         "&::placeholder": {
                           color: theme.palette.text.secondary,
                           opacity: 0.7,
@@ -229,12 +237,13 @@ const ItineraryHeader = ({
                       fontWeight: "bold",
                       color: "white",
                       cursor: canEdit ? "pointer" : "default",
-                      fontSize: { xs: "1.75rem", sm: "2rem", md: "2.25rem" },
+                      fontSize: { xs: "1.5rem", sm: "2rem", md: "2.25rem" },
                       lineHeight: 1.2,
-                      textAlign: "center",
+                      textAlign: { xs: "center", sm: "left" },
                       overflow: "hidden",
                       textOverflow: "ellipsis",
                       whiteSpace: "nowrap",
+                      maxWidth: "100%",
                       "&:hover": canEdit
                         ? {
                             opacity: 0.8,
@@ -252,8 +261,8 @@ const ItineraryHeader = ({
                     onClick={handleEditClick}
                     size="small"
                     sx={{
-                      width: 32,
-                      height: 32,
+                      width: { xs: 36, sm: 32 },
+                      height: { xs: 36, sm: 32 },
                       color: isEditingName
                         ? theme.palette.success.main
                         : "white",
@@ -269,24 +278,47 @@ const ItineraryHeader = ({
                 )}
               </Box>
 
-              {/* Right: Notes + Menu */}
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                {/* Notes Button - Always Visible */}
-                <Tooltip title="Notas del viaje">
+              {/* Right: Travelers + Action Buttons */}
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: { xs: 2, sm: 1.5 },
+                  mt: { xs: 1, sm: 0 },
+                }}
+              >
+                {/* Travelers Avatar Group */}
+                <Travelers
+                  travelers={travelers}
+                  friendsList={friendsList}
+                  onAddTraveler={canManageTravelers ? onAddTraveler : undefined}
+                  onUpdateTraveler={
+                    canManageTravelers ? onUpdateTraveler : undefined
+                  }
+                  onRemoveTraveler={
+                    canManageTravelers ? onRemoveTraveler : undefined
+                  }
+                  creator={creator}
+                  userRole={userRole}
+                  currentUserId={currentUserId}
+                />
+
+                {/* Notes Button */}
+                <Tooltip title="Lista del viaje">
                   <IconButton
                     onClick={onNotesClick}
                     size="small"
                     sx={{
                       backgroundColor: theme.palette.primary.main,
                       color: "white",
-                      width: 36,
-                      height: 36,
+                      width: { xs: 44, sm: 36 },
+                      height: { xs: 44, sm: 36 },
                       "&:hover": {
                         backgroundColor: theme.palette.primary.dark,
                       },
                     }}
                   >
-                    <MessagesSquare size={16} />
+                    <ListCheck size={isMobile ? 18 : 16} />
                   </IconButton>
                 </Tooltip>
 
@@ -298,15 +330,15 @@ const ItineraryHeader = ({
                     sx={{
                       backgroundColor: "rgba(255,255,255,0.15)",
                       color: "white",
-                      width: 36,
-                      height: 36,
+                      width: { xs: 44, sm: 36 },
+                      height: { xs: 44, sm: 36 },
                       backdropFilter: "blur(10px)",
                       "&:hover": {
                         backgroundColor: "rgba(255,255,255,0.25)",
                       },
                     }}
                   >
-                    <MoreVertical size={16} />
+                    <MoreVertical size={isMobile ? 18 : 16} />
                   </IconButton>
                 </Tooltip>
               </Box>
@@ -317,10 +349,10 @@ const ItineraryHeader = ({
               sx={{
                 display: "flex",
                 alignItems: "center",
-                justifyContent: "flex-start",
-                gap: 1,
-                mt: 2,
-                mb: 1.5,
+                justifyContent: { xs: "center", sm: "flex-start" },
+                gap: { xs: 1.5, sm: 1 },
+                mt: { xs: 2.5, sm: 2 },
+                mb: { xs: 2, sm: 1.5 },
                 flexWrap: "wrap",
               }}
             >
@@ -331,13 +363,12 @@ const ItineraryHeader = ({
                 sx={{
                   backgroundColor: "rgba(255,255,255,0.2)",
                   color: "white",
-                  fontSize: "0.7rem",
-                  height: 24,
+                  fontSize: { xs: "0.75rem", sm: "0.7rem" },
+                  height: { xs: 28, sm: 24 },
                   backdropFilter: "blur(10px)",
                   "& .MuiChip-icon": { color: "white", width: 14, height: 14 },
                 }}
               />
-
               <Chip
                 icon={<HandCoins size={14} />}
                 label={`¥ ${totalBudget.toLocaleString()}`}
@@ -345,13 +376,12 @@ const ItineraryHeader = ({
                 sx={{
                   backgroundColor: "rgba(255,255,255,0.2)",
                   color: "white",
-                  fontSize: "0.7rem",
-                  height: 24,
+                  fontSize: { xs: "0.75rem", sm: "0.7rem" },
+                  height: { xs: 28, sm: 24 },
                   backdropFilter: "blur(10px)",
                   "& .MuiChip-icon": { color: "white", width: 14, height: 14 },
                 }}
               />
-
               <Chip
                 icon={isPrivate ? <Lock size={12} /> : <Globe size={12} />}
                 label={isPrivate ? "Privado" : "Público"}
@@ -361,8 +391,8 @@ const ItineraryHeader = ({
                     ? "rgba(255, 152, 0, 0.8)"
                     : "rgba(76, 175, 80, 0.8)",
                   color: "white",
-                  fontSize: "0.7rem",
-                  height: 24,
+                  fontSize: { xs: "0.75rem", sm: "0.7rem" },
+                  height: { xs: 28, sm: 24 },
                   backdropFilter: "blur(10px)",
                   "& .MuiChip-icon": { color: "white", width: 12, height: 12 },
                 }}
@@ -385,7 +415,8 @@ const ItineraryHeader = ({
             borderRadius: 3,
             boxShadow: theme.shadows[8],
             border: `1px solid ${theme.palette.divider}`,
-            minWidth: 280,
+            minWidth: { xs: 300, sm: 280 },
+            maxWidth: "90vw",
           },
         }}
       >
@@ -427,18 +458,6 @@ const ItineraryHeader = ({
                 {endDate ? endDate.toLocaleDateString() : "Sin fecha"}
               </Typography>
             </Box>
-          </ListItemText>
-        </MenuItem>
-
-        {/* Travelers */}
-        <MenuItem onClick={handleTravelersClick}>
-          <ListItemIcon>
-            <Users size={18} />
-          </ListItemIcon>
-          <ListItemText>
-            <Typography variant="body2">
-              Viajeros ({travelers?.length || 0})
-            </Typography>
           </ListItemText>
         </MenuItem>
 
@@ -492,22 +511,6 @@ const ItineraryHeader = ({
           </Typography>
         </Box>
       </Menu>
-
-      {/* Travelers Modal */}
-      {showTravelers && (
-        <Travelers
-          travelers={travelers}
-          friendsList={friendsList}
-          onAddTraveler={canManageTravelers ? onAddTraveler : undefined}
-          onUpdateTraveler={canManageTravelers ? onUpdateTraveler : undefined}
-          onRemoveTraveler={canManageTravelers ? onRemoveTraveler : undefined}
-          creator={creator}
-          userRole={userRole}
-          currentUserId={currentUserId}
-          open={showTravelers}
-          onClose={() => setShowTravelers(false)}
-        />
-      )}
     </>
   );
 };

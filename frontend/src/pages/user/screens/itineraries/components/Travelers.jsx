@@ -18,16 +18,18 @@ import {
   Chip,
   Divider,
   Fade,
-  Zoom,
   Tooltip,
   Slide,
+  useMediaQuery,
+  AvatarGroup,
+  Badge,
 } from "@mui/material";
-import { Plus, Edit, Eye } from "lucide-react";
+import { Plus, Edit, Eye, Crown } from "lucide-react";
 import { stables } from "../../../../../constants";
 
 const Travelers = ({
-  travelers,
-  friendsList,
+  travelers = [],
+  friendsList = [],
   onAddTraveler,
   onUpdateTraveler,
   onRemoveTraveler,
@@ -36,6 +38,7 @@ const Travelers = ({
   currentUserId,
 }) => {
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const [openAddModal, setOpenAddModal] = useState(false);
   const [selectedFriendId, setSelectedFriendId] = useState("");
@@ -89,6 +92,7 @@ const Travelers = ({
       popoverTraveler.userId._id || popoverTraveler.userId,
       newRole
     );
+    handlePopoverClose();
   };
 
   const handleRemove = () => {
@@ -116,7 +120,6 @@ const Travelers = ({
           color: theme.palette.warning.main,
           bgColor: `${theme.palette.warning.main}15`,
           label: "Propietario",
-          borderRadius: 30,
           gradient: `linear-gradient(135deg, ${theme.palette.warning.main}, ${theme.palette.warning.dark})`,
         };
       case "editor":
@@ -124,24 +127,21 @@ const Travelers = ({
           color: theme.palette.primary.main,
           bgColor: `${theme.palette.primary.main}15`,
           label: "Editor",
-          borderRadius: 30,
-          gradient: `linear-gradient(135deg, ${theme.palette.primary.main})`,
+          gradient: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
         };
       case "viewer":
         return {
-          color: theme.palette.secondary.main,
+          color: theme.palette.grey[600],
           bgColor: `${theme.palette.grey[600]}15`,
           label: "Invitado",
-          borderRadius: 30,
-          gradient: `linear-gradient(135deg, ${theme.palette.grey[600]})`,
+          gradient: `linear-gradient(135deg, ${theme.palette.grey[600]}, ${theme.palette.grey[700]})`,
         };
       default:
         return {
-          color: "white",
+          color: theme.palette.grey[600],
           bgColor: `${theme.palette.grey[600]}15`,
-          borderRadius: 30,
           label: "Invitado",
-          gradient: `linear-gradient(135deg, ${theme.palette.grey[600]})`,
+          gradient: `linear-gradient(135deg, ${theme.palette.grey[600]}, ${theme.palette.grey[700]})`,
         };
     }
   };
@@ -153,248 +153,141 @@ const Travelers = ({
     (popoverTraveler.userId._id || popoverTraveler.userId).toString() ===
       currentUserId.toString();
 
+  // Create avatar data for display
+  const allTravelers = [
+    ...(creator
+      ? [
+          {
+            userId: creator,
+            role: "owner",
+            isCreator: true,
+          },
+        ]
+      : []),
+    ...travelers,
+  ];
+
   return (
     <>
-      <Box>
-        <Box sx={{}}>
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-            }}
-          ></Box>
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+        {/* Avatar Group */}
+        <AvatarGroup
+          max={isMobile ? 3 : 5}
+          sx={{
+            "& .MuiAvatar-root": {
+              width: { xs: 32, sm: 36 },
+              height: { xs: 32, sm: 36 },
+              border: `2px solid ${theme.palette.background.default}`,
+              fontSize: { xs: "0.875rem", sm: "1rem" },
+              fontWeight: 600,
+              cursor: "pointer",
+              transition: "all 0.3s ease",
+              "&:hover": {
+                transform: "scale(1.1)",
+                zIndex: 10,
+              },
+            },
+            "& .MuiAvatarGroup-avatar": {
+              color: "white",
+              fontSize: { xs: "0.75rem", sm: "0.875rem" },
+              fontWeight: 600,
+            },
+          }}
+        >
+          {allTravelers.map((traveler, index) => {
+            const { userId, role, isCreator } = traveler;
+            const roleConfig = getRoleConfig(role);
+            const isCurrentUser =
+              currentUserId &&
+              (userId._id || userId).toString() === currentUserId.toString();
 
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              gap: -2,
-              flexWrap: "wrap",
-              position: "relative",
-            }}
-          >
-            {/* Show Creator Avatar if exists */}
-            {creator && (
+            return (
               <Tooltip
+                key={index}
                 title={
                   <Box sx={{ textAlign: "center", p: 0.5 }}>
                     <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                      {creator.name}
+                      {userId.name} {isCurrentUser && "(Tú)"}
                     </Typography>
                     <Typography
                       variant="caption"
-                      sx={{ color: theme.palette.warning.main }}
+                      sx={{ color: roleConfig.color }}
                     >
-                      Propietario
+                      {roleConfig.label}
                     </Typography>
                   </Box>
                 }
                 arrow
               >
-                <Zoom in={true} style={{ transitionDelay: `${0 * 150}ms` }}>
-                  <Box
-                    sx={{
-                      position: "relative",
-                      zIndex: 100,
-                      ml: 2,
-                      mr: travelers?.length > 0 ? -1.5 : 0,
-                    }}
-                  >
-                    <Box
-                      sx={{
-                        position: "relative",
-                        "&::before": {
-                          content: '""',
-                          position: "absolute",
-                          inset: -3,
+                <Badge
+                  overlap="circular"
+                  anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+                  badgeContent={
+                    isCreator ? (
+                      <Crown
+                        size={10}
+                        style={{
+                          color: theme.palette.warning.main,
+                          background: theme.palette.background.default,
                           borderRadius: "50%",
-                          background: `linear-gradient(135deg, ${theme.palette.warning.main}, ${theme.palette.warning.dark})`,
-                          opacity: 0.6,
-                        },
-                      }}
-                    >
-                      <Avatar
-                        src={
-                          creator.avatar
-                            ? `${stables.UPLOAD_FOLDER_BASE_URL}/${creator.avatar}`
-                            : ""
-                        }
-                        sx={{
-                          width: 56,
-                          height: 56,
-                          position: "relative",
-                          zIndex: 1,
-                          border: `3px solid ${theme.palette.background.default}`,
-                          boxShadow: "0 12px 32px rgba(0,0,0,0.12)",
-                          background: !creator.avatar
-                            ? `linear-gradient(135deg, ${theme.palette.warning.main}, ${theme.palette.warning.dark})`
-                            : undefined,
-                          color: "white",
-                          fontSize: "1.3rem",
-                          fontWeight: 700,
+                          padding: 1,
                         }}
-                      >
-                        {!creator.avatar &&
-                          creator.name?.charAt(0).toUpperCase()}
-                      </Avatar>
-                    </Box>
-                  </Box>
-                </Zoom>
-              </Tooltip>
-            )}
-
-            {/* Travelers */}
-            {travelers?.map((traveler, index) => {
-              const { userId, role } = traveler;
-              const avatarUrl = userId.avatar
-                ? `${stables.UPLOAD_FOLDER_BASE_URL}/${userId.avatar}`
-                : "";
-              const firstLetter = userId.name
-                ? userId.name.charAt(0).toUpperCase()
-                : "";
-              const roleConfig = getRoleConfig(role);
-              const isCurrentUser =
-                currentUserId &&
-                (userId._id || userId).toString() === currentUserId.toString();
-
-              return (
-                <Tooltip
-                  key={index}
-                  title={
-                    <Box sx={{ textAlign: "center", p: 0.5 }}>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                        {userId.name} {isCurrentUser && "(Tú)"}
-                      </Typography>
-                      <Typography
-                        variant="caption"
-                        sx={{ color: roleConfig.color }}
-                      >
-                        {roleConfig.label}
-                      </Typography>
-                    </Box>
+                      />
+                    ) : null
                   }
-                  arrow
                 >
-                  <Zoom
-                    in={true}
-                    style={{ transitionDelay: `${(index + 1) * 150}ms` }}
-                  >
-                    <Box
-                      sx={{
-                        position: "relative",
-                        zIndex: 99 - index,
-                        cursor:
-                          canManageTravelers || isCurrentUser
-                            ? "pointer"
-                            : "default",
-                        transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
-                        ml: index === 0 && !creator ? 2 : -1.5,
-                        "&:hover":
-                          canManageTravelers || isCurrentUser
-                            ? {
-                                transform: "translateY(-8px) scale(1.05)",
-                                zIndex: 200,
-                              }
-                            : {},
-                      }}
-                      onClick={(e) => handleAvatarClick(e, traveler)}
-                    >
-                      <Box
-                        sx={{
-                          position: "relative",
-                          "&::before": {
-                            content: '""',
-                            position: "absolute",
-                            inset: -3,
-                            borderRadius: "50%",
-                            background: roleConfig.gradient,
-                            opacity: 0.6,
-                            transition: "all 0.3s ease",
-                          },
-                          "&:hover::before":
-                            canManageTravelers || isCurrentUser
-                              ? {
-                                  opacity: 1,
-                                  inset: -5,
-                                }
-                              : {},
-                        }}
-                      >
-                        <Avatar
-                          src={avatarUrl}
-                          sx={{
-                            width: 56,
-                            height: 56,
-                            position: "relative",
-                            zIndex: 1,
-                            border: `3px solid ${theme.palette.background.default}`,
-                            boxShadow: "0 12px 32px rgba(0,0,0,0.12)",
-                            transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
-                            "&:hover":
-                              canManageTravelers || isCurrentUser
-                                ? {
-                                    boxShadow: `0 20px 40px ${roleConfig.color}30`,
-                                  }
-                                : {},
-                            background: !avatarUrl
-                              ? roleConfig.gradient
-                              : undefined,
-                            color: "white",
-                            fontSize: "1.3rem",
-                            fontWeight: 700,
-                          }}
-                        >
-                          {!avatarUrl && firstLetter}
-                        </Avatar>
-                      </Box>
-                    </Box>
-                  </Zoom>
-                </Tooltip>
-              );
-            })}
-
-            {/* Add Traveler Button - Only show for owners */}
-            {canManageTravelers && (
-              <Tooltip title="Añadir compañero" arrow>
-                <Box
-                  sx={{
-                    ml: travelers?.length > 0 || creator ? -0.5 : 2,
-                    position: "relative",
-                  }}
-                >
-                  <IconButton
-                    onClick={handleOpenAddModal}
+                  <Avatar
+                    src={
+                      userId.avatar
+                        ? `${stables.UPLOAD_FOLDER_BASE_URL}/${userId.avatar}`
+                        : ""
+                    }
                     sx={{
-                      width: 56,
-                      height: 56,
-                      background: `linear-gradient(135deg, ${theme.palette.primary.main})`,
+                      background: !userId.avatar
+                        ? roleConfig.gradient
+                        : undefined,
                       color: "white",
-                      border: `3px solid ${theme.palette.background.default}`,
-                      boxShadow: "0 12px 32px rgba(0,0,0,0.12)",
-                      transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
-                      position: "relative",
-                      overflow: "hidden",
-                      "&:hover": {
-                        boxShadow: `0 20px 40px ${theme.palette.primary.main}40`,
-                        transform: "translateY(-8px) scale(1.05)",
-                        background: `linear-gradient(135deg, ${theme.palette.primary.dark})`,
-                      },
-                      "&:active": {
-                        transform: "translateY(-6px) scale(1.02)",
-                      },
+                      boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
                     }}
+                    onClick={(e) =>
+                      !isCreator && handleAvatarClick(e, traveler)
+                    }
                   >
-                    <Plus size={28} />
-                  </IconButton>
-                </Box>
+                    {!userId.avatar && userId.name?.charAt(0).toUpperCase()}
+                  </Avatar>
+                </Badge>
               </Tooltip>
-            )}
-          </Box>
-        </Box>
+            );
+          })}
+        </AvatarGroup>
+
+        {/* Add Traveler Button - Only show for owners */}
+        {canManageTravelers && (
+          <Tooltip title="Añadir compañero" arrow>
+            <IconButton
+              onClick={handleOpenAddModal}
+              size="small"
+              sx={{
+                width: { xs: 32, sm: 36 },
+                height: { xs: 32, sm: 36 },
+                background: "rgba(255,255,255,0.2)",
+                color: "white",
+                backdropFilter: "blur(10px)",
+                border: `2px solid ${theme.palette.background.default}`,
+                transition: "all 0.3s ease",
+                "&:hover": {
+                  background: "rgba(255,255,255,0.3)",
+                  transform: "scale(1.1)",
+                },
+              }}
+            >
+              <Plus size={isMobile ? 14 : 16} />
+            </IconButton>
+          </Tooltip>
+        )}
       </Box>
 
-      {/* Popover - Show for owners or when viewing own profile */}
+      {/* Popover for role management */}
       <Popover
         open={openPopover}
         anchorEl={anchorEl}
@@ -418,11 +311,12 @@ const Travelers = ({
             border: `1px solid ${theme.palette.divider}40`,
             boxShadow: "0 32px 64px rgba(0,0,0,0.2)",
             overflow: "visible",
+            maxWidth: isMobile ? "90vw" : 380,
           },
         }}
       >
         {popoverTraveler && (
-          <Box sx={{ p: 4, minWidth: 320, maxWidth: 380 }}>
+          <Box sx={{ p: { xs: 3, sm: 4 }, minWidth: { xs: 280, sm: 320 } }}>
             {/* Header */}
             <Box sx={{ mb: 3, textAlign: "center" }}>
               <Avatar
@@ -432,12 +326,12 @@ const Travelers = ({
                     : undefined
                 }
                 sx={{
-                  width: 80,
-                  height: 80,
+                  width: { xs: 72, sm: 80 },
+                  height: { xs: 72, sm: 80 },
                   mx: "auto",
                   mb: 2,
                   background: !popoverTraveler.userId.avatar
-                    ? `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`
+                    ? getRoleConfig(popoverTraveler.role).gradient
                     : undefined,
                 }}
               >
@@ -450,6 +344,7 @@ const Travelers = ({
                 sx={{
                   fontWeight: 700,
                   mb: 0.5,
+                  fontSize: { xs: "1.25rem", sm: "1.5rem" },
                 }}
               >
                 {popoverTraveler.userId.name}
@@ -473,8 +368,8 @@ const Travelers = ({
                   fontWeight: 600,
                   px: 2,
                   py: 1,
-                  height: 36,
-                  fontSize: "0.875rem",
+                  height: { xs: 32, sm: 36 },
+                  fontSize: { xs: "0.8rem", sm: "0.875rem" },
                   borderRadius: "30rem",
                 }}
               />
@@ -500,7 +395,11 @@ const Travelers = ({
                   color: theme.palette.primary.main,
                   textDecoration: "none",
                   fontWeight: 600,
+                  fontSize: { xs: "0.875rem", sm: "1rem" },
                   transition: "all 0.3s ease",
+                  "&:hover": {
+                    background: `linear-gradient(135deg, ${theme.palette.primary.main}25, ${theme.palette.secondary.main}25)`,
+                  },
                 }}
               >
                 <Eye size={16} />
@@ -538,7 +437,7 @@ const Travelers = ({
                             width: 32,
                             height: 32,
                             borderRadius: "50%",
-                            background: `linear-gradient(135deg, ${theme.palette.grey[600]}, ${theme.palette.grey[700]})`,
+                            background: getRoleConfig("viewer").gradient,
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
@@ -566,7 +465,7 @@ const Travelers = ({
                             width: 32,
                             height: 32,
                             borderRadius: "50%",
-                            background: `linear-gradient(135deg, ${theme.palette.primary.main})`,
+                            background: getRoleConfig("editor").gradient,
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
@@ -628,17 +527,18 @@ const Travelers = ({
         )}
       </Popover>
 
-      {/* Add Traveler Modal - Only accessible by owners */}
+      {/* Add Traveler Modal */}
       {canManageTravelers && (
         <Dialog
           open={openAddModal}
           onClose={handleCloseAddModal}
           maxWidth="sm"
           fullWidth
+          fullScreen={isMobile}
           TransitionComponent={Fade}
           PaperProps={{
             sx: {
-              borderRadius: 4,
+              borderRadius: isMobile ? 0 : 4,
               background: `linear-gradient(135deg, ${theme.palette.background.default}95, ${theme.palette.background.default}85)`,
               backdropFilter: "blur(20px)",
               border: `1px solid ${theme.palette.divider}40`,
@@ -649,8 +549,8 @@ const Travelers = ({
         >
           <Box
             sx={{
-              background: `linear-gradient(135deg, ${theme.palette.primary.main})`,
-              p: 4,
+              background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
+              p: { xs: 3, sm: 4 },
               textAlign: "center",
               position: "relative",
             }}
@@ -663,6 +563,7 @@ const Travelers = ({
                 mb: 1,
                 position: "relative",
                 zIndex: 1,
+                fontSize: { xs: "1.5rem", sm: "2rem" },
               }}
             >
               Añadir compañero
@@ -673,153 +574,166 @@ const Travelers = ({
                 color: "rgba(255,255,255,0.9)",
                 position: "relative",
                 zIndex: 1,
+                fontSize: { xs: "0.875rem", sm: "1rem" },
               }}
             >
               Invita a un amigo a unirse a tu aventura
             </Typography>
           </Box>
 
-          <DialogContent sx={{ p: 4 }}>
-            <FormControl fullWidth sx={{ mb: 3 }}>
-              <InputLabel
-                id="friend-select-label"
-                sx={{
-                  fontWeight: 600,
-                  color: `${theme.palette.primary.black} !important`,
-                  "&.Mui-focused": {
-                    color: `${theme.palette.primary.black} !important`,
-                  },
-                }}
-              >
-                Selecciona un amigo
-              </InputLabel>
-              <Select
-                labelId="friend-select-label"
-                value={selectedFriendId}
-                label="Selecciona un amigo"
-                onChange={(e) => setSelectedFriendId(e.target.value)}
-                sx={{
-                  borderRadius: 3,
-                  "& .MuiOutlinedInput-root": {
-                    background: `${theme.palette.background.default}50`,
-                    backdropFilter: "blur(10px)",
-                  },
-                }}
-              >
-                {availableFriendsForAdd?.map((friend) => (
-                  <MenuItem key={friend._id} value={friend._id}>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                      <img
-                        src={
-                          friend.avatar
-                            ? stables.UPLOAD_FOLDER_BASE_URL + friend.avatar
-                            : "/assets/default-avatar.jpg"
-                        }
-                        alt={friend.name}
-                        onError={(e) => {
-                          e.target.src =
-                            "https://via.placeholder.com/36x36/cccccc/666666?text=" +
-                            friend.name.charAt(0).toUpperCase();
-                        }}
-                        style={{
-                          width: "36px",
-                          height: "36px",
-                          borderRadius: "50%",
-                          objectFit: "cover",
-                        }}
-                      />
-                      <Typography sx={{ fontWeight: 600 }}>
-                        {friend.name}
-                      </Typography>
-                    </Box>
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+          <DialogContent sx={{ p: { xs: 3, sm: 4 } }}>
+            {availableFriendsForAdd.length === 0 ? (
+              <Box sx={{ textAlign: "center", py: 4 }}>
+                <Typography variant="h6" color="text.secondary" gutterBottom>
+                  No hay amigos disponibles
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Todos tus amigos ya están en este viaje o no tienes amigos
+                  añadidos aún.
+                </Typography>
+              </Box>
+            ) : (
+              <>
+                <FormControl fullWidth sx={{ mb: 3 }}>
+                  <InputLabel
+                    id="friend-select-label"
+                    sx={{
+                      fontWeight: 600,
+                      color: `${theme.palette.text.primary} !important`,
+                      "&.Mui-focused": {
+                        color: `${theme.palette.primary.main} !important`,
+                      },
+                    }}
+                  >
+                    Selecciona un amigo
+                  </InputLabel>
+                  <Select
+                    labelId="friend-select-label"
+                    value={selectedFriendId}
+                    label="Selecciona un amigo"
+                    onChange={(e) => setSelectedFriendId(e.target.value)}
+                    sx={{
+                      borderRadius: 3,
+                      "& .MuiOutlinedInput-root": {
+                        background: `${theme.palette.background.default}50`,
+                        backdropFilter: "blur(10px)",
+                      },
+                    }}
+                  >
+                    {availableFriendsForAdd?.map((friend) => (
+                      <MenuItem key={friend._id} value={friend._id}>
+                        <Box
+                          sx={{ display: "flex", alignItems: "center", gap: 2 }}
+                        >
+                          <Avatar
+                            src={
+                              friend.avatar
+                                ? `${stables.UPLOAD_FOLDER_BASE_URL}/${friend.avatar}`
+                                : undefined
+                            }
+                            sx={{ width: 36, height: 36 }}
+                          >
+                            {!friend.avatar &&
+                              friend.name?.charAt(0).toUpperCase()}
+                          </Avatar>
+                          <Typography sx={{ fontWeight: 600 }}>
+                            {friend.name}
+                          </Typography>
+                        </Box>
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
 
-            <FormControl fullWidth>
-              <InputLabel
-                id="role-select-label"
-                sx={{
-                  fontWeight: 600,
-                  color: `${theme.palette.primary.black} !important`,
-                  "&.Mui-focused": {
-                    color: `${theme.palette.primary.black} !important`,
-                  },
-                }}
-              >
-                Asignar rol
-              </InputLabel>
-              <Select
-                labelId="role-select-label"
-                value={selectedFriendRole}
-                label="Asignar rol"
-                onChange={(e) => setSelectedFriendRole(e.target.value)}
-                sx={{
-                  borderRadius: 3,
-                  "& .MuiOutlinedInput-root": {
-                    background: `${theme.palette.background.default}50`,
-                    backdropFilter: "blur(10px)",
-                  },
-                }}
-              >
-                <MenuItem value="viewer">
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                    <Box
-                      sx={{
-                        width: 32,
-                        height: 32,
-                        borderRadius: "50%",
-                        background: `linear-gradient(135deg, ${theme.palette.grey[600]}, ${theme.palette.grey[700]})`,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        color: "white",
-                      }}
-                    >
-                      <Eye size={16} />
-                    </Box>
-                    <Box>
-                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                        Invitado
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        Solo puede ver
-                      </Typography>
-                    </Box>
-                  </Box>
-                </MenuItem>
-                <MenuItem value="editor">
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                    <Box
-                      sx={{
-                        width: 32,
-                        height: 32,
-                        borderRadius: "50%",
-                        background: `linear-gradient(135deg, ${theme.palette.primary.main})`,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        color: "white",
-                      }}
-                    >
-                      <Edit size={16} />
-                    </Box>
-                    <Box>
-                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                        Editor
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        Puede editar
-                      </Typography>
-                    </Box>
-                  </Box>
-                </MenuItem>
-              </Select>
-            </FormControl>
+                <FormControl fullWidth>
+                  <InputLabel
+                    id="role-select-label"
+                    sx={{
+                      fontWeight: 600,
+                      color: `${theme.palette.text.primary} !important`,
+                      "&.Mui-focused": {
+                        color: `${theme.palette.primary.main} !important`,
+                      },
+                    }}
+                  >
+                    Asignar rol
+                  </InputLabel>
+                  <Select
+                    labelId="role-select-label"
+                    value={selectedFriendRole}
+                    label="Asignar rol"
+                    onChange={(e) => setSelectedFriendRole(e.target.value)}
+                    sx={{
+                      borderRadius: 3,
+                      "& .MuiOutlinedInput-root": {
+                        background: `${theme.palette.background.default}50`,
+                        backdropFilter: "blur(10px)",
+                      },
+                    }}
+                  >
+                    <MenuItem value="viewer">
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 2 }}
+                      >
+                        <Box
+                          sx={{
+                            width: 32,
+                            height: 32,
+                            borderRadius: "50%",
+                            background: getRoleConfig("viewer").gradient,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            color: "white",
+                          }}
+                        >
+                          <Eye size={16} />
+                        </Box>
+                        <Box>
+                          <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                            Invitado
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            Solo puede ver
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </MenuItem>
+                    <MenuItem value="editor">
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 2 }}
+                      >
+                        <Box
+                          sx={{
+                            width: 32,
+                            height: 32,
+                            borderRadius: "50%",
+                            background: getRoleConfig("editor").gradient,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            color: "white",
+                          }}
+                        >
+                          <Edit size={16} />
+                        </Box>
+                        <Box>
+                          <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                            Editor
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            Puede editar
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </MenuItem>
+                  </Select>
+                </FormControl>
+              </>
+            )}
           </DialogContent>
 
-          <DialogActions sx={{ p: 4, gap: 2 }}>
+          <DialogActions sx={{ p: { xs: 3, sm: 4 }, gap: 2 }}>
             <Button
               onClick={handleCloseAddModal}
               variant="outlined"
@@ -836,32 +750,34 @@ const Travelers = ({
             >
               Cancelar
             </Button>
-            <Button
-              onClick={handleAddTravelerSubmit}
-              variant="contained"
-              disabled={!selectedFriendId}
-              sx={{
-                borderRadius: 30,
-                textTransform: "none",
-                px: 4,
-                py: 1.5,
-                fontWeight: 700,
-                flex: 1,
-                background: `linear-gradient(135deg, ${theme.palette.primary.main})`,
-                boxShadow: `0 8px 24px ${theme.palette.primary.main}40`,
-                transition: "all 0.3s ease",
-                "&:hover": {
-                  transform: "translateY(-2px)",
-                  boxShadow: `0 12px 32px ${theme.palette.primary.main}50`,
-                },
-                "&:disabled": {
-                  background: theme.palette.grey[300],
-                  color: theme.palette.grey[500],
-                },
-              }}
-            >
-              Añadir compañero
-            </Button>
+            {availableFriendsForAdd.length > 0 && (
+              <Button
+                onClick={handleAddTravelerSubmit}
+                variant="contained"
+                disabled={!selectedFriendId}
+                sx={{
+                  borderRadius: 30,
+                  textTransform: "none",
+                  px: 4,
+                  py: 1.5,
+                  fontWeight: 700,
+                  flex: 1,
+                  background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
+                  boxShadow: `0 8px 24px ${theme.palette.primary.main}40`,
+                  transition: "all 0.3s ease",
+                  "&:hover": {
+                    transform: "translateY(-2px)",
+                    boxShadow: `0 12px 32px ${theme.palette.primary.main}50`,
+                  },
+                  "&:disabled": {
+                    background: theme.palette.grey[300],
+                    color: theme.palette.grey[500],
+                  },
+                }}
+              >
+                Añadir compañero
+              </Button>
+            )}
           </DialogActions>
         </Dialog>
       )}
