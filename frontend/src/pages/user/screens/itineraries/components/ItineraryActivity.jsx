@@ -64,8 +64,8 @@ const ExperienceDetailsModal = ({ open, onClose, experience, category }) => {
   };
 
   const getCategoryColor = (cat) => {
-    if (cat === "Hoteles") return theme.palette.secondary.medium;
-    if (cat === "Atractivos") return theme.palette.primary.main;
+    if (cat === "Hoteles") return theme.palette.secondary.dark;
+    if (cat === "Atractivos") return theme.palette.secondary.dark;
     if (cat === "Restaurantes") return theme.palette.secondary.dark;
     return theme.palette.primary.main;
   };
@@ -81,7 +81,7 @@ const ExperienceDetailsModal = ({ open, onClose, experience, category }) => {
       PaperProps={{
         sx: {
           borderRadius: isMobile ? 0 : 4,
-          background: `linear-gradient(135deg, ${theme.palette.background.paper}95)`,
+          background: `linear-gradient(135deg, ${theme.palette.background.default})`,
           backdropFilter: "blur(20px)",
           border: `1px solid ${theme.palette.divider}40`,
           overflow: "hidden",
@@ -568,7 +568,7 @@ const ActivityCard = ({
                 sm: "0 4px 20px rgba(0,0,0,0.08)",
               },
           overflow: "visible",
-          background: `linear-gradient(135deg, ${theme.palette.background.paper}95, ${theme.palette.background.paper}85)`,
+          background: `linear-gradient(135deg, ${theme.palette.background.default}95, ${theme.palette.background.default}85)`,
           backdropFilter: "blur(10px)",
           border: `1px solid ${theme.palette.divider}40`,
           cursor: isDragging
@@ -607,7 +607,7 @@ const ActivityCard = ({
           >
             <Box
               sx={{
-                backgroundColor: theme.palette.background.paper,
+                backgroundColor: theme.palette.background.default,
                 border: `2px solid ${theme.palette.primary.main}`,
                 borderRadius: "50%",
                 p: { xs: 0.5, sm: 1 },
@@ -627,7 +627,7 @@ const ActivityCard = ({
             <Box
               sx={{
                 width: "100%",
-                height: { xs: 70, sm: 120 },
+                height: { xs: 70, sm: 80 },
                 overflow: "hidden",
                 borderRadius: { xs: 2, sm: 4 },
                 position: "relative",
@@ -681,7 +681,7 @@ const ActivityCard = ({
             </Box>
 
             {/* Enhanced Content */}
-            <Box sx={{ p: { xs: 1, sm: 2 }, pt: { xs: 1, sm: 2 } }}>
+            <Box sx={{ pt: { xs: 1, sm: 2 } }}>
               <Box
                 sx={{
                   display: "flex",
@@ -811,7 +811,6 @@ const ActivityCard = ({
                     textTransform: "none",
                     fontWeight: 600,
                     width: "fit-content",
-                    mb: { xs: 0.5, sm: 1 },
                     background: `${theme.palette.primary.main}10`,
                     borderColor: `${theme.palette.primary.main}30`,
                     color: theme.palette.primary.main,

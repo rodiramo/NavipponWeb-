@@ -65,6 +65,7 @@ const ItineraryHeader = ({
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const isTablet = useMediaQuery(theme.breakpoints.down("md"));
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
 
@@ -129,222 +130,442 @@ const ItineraryHeader = ({
       >
         <Container maxWidth="xl" sx={{ position: "relative", zIndex: 1 }}>
           <Box sx={{ py: { xs: 3, sm: 2 } }}>
-            {/* Left: Back Button */}
-            <Button
-              variant="outlined"
-              onClick={onBackClick}
-              startIcon={<ArrowLeft size={16} />}
-              size="small"
-              sx={{
-                borderColor: "rgba(255,255,255,0.3)",
-                color: "white",
-                borderRadius: "20px",
-                textTransform: "none",
-                backdropFilter: "blur(10px)",
-                backgroundColor: "rgba(255,255,255,0.1)",
-                fontSize: "0.75rem",
-                px: { xs: 1.5, sm: 2 },
-                py: 0.5,
-                mb: { xs: 2, sm: 1 },
-                minWidth: "auto",
-                minHeight: { xs: 40, sm: 32 },
-                "&:hover": {
-                  borderColor: "rgba(255,255,255,0.5)",
-                  backgroundColor: "rgba(255,255,255,0.2)",
-                },
-              }}
-            >
-              {isMobile ? "" : "Volver"}
-            </Button>
-
-            <Box
-              sx={{
-                display: "flex",
-                pt: { xs: 1, sm: 2 },
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: { xs: 1, sm: 2 },
-                flexDirection: { xs: "column", sm: "row" },
-              }}
-            >
-              {/* Center: Title */}
-              <Box
-                sx={{
-                  flex: 1,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1,
-                  width: "100%",
-                  justifyContent: { xs: "center", sm: "flex-start" },
-                }}
-              >
-                {isEditingName && canEdit ? (
-                  <TextField
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    onBlur={handleSaveName}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        handleSaveName();
-                      }
-                      if (e.key === "Escape") {
-                        setIsEditingName(false);
-                      }
-                    }}
-                    autoFocus
-                    variant="outlined"
-                    placeholder="Nombre del itinerario..."
-                    size="small"
-                    sx={{
-                      flex: 1,
-                      maxWidth: { xs: "280px", sm: "400px" },
-                      "& .MuiOutlinedInput-root": {
-                        backgroundColor: "rgba(255,255,255,0.95)",
-                        backdropFilter: "blur(20px)",
-                        borderRadius: { xs: 16, sm: 20 },
-                        border: `2px solid rgba(255,255,255,0.3)`,
-                        fontSize: { xs: "1rem", sm: "1.25rem" },
-                        fontWeight: 600,
-                        color: theme.palette.text.primary,
-                        boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
-                        "& fieldset": {
-                          border: "none",
-                        },
-                        "&:hover": {
-                          backgroundColor: "rgba(255,255,255,1)",
-                          border: `2px solid rgba(255,255,255,0.5)`,
-                        },
-                        "&.Mui-focused": {
-                          backgroundColor: "rgba(255,255,255,1)",
-                          border: `2px solid ${theme.palette.primary.main}`,
-                        },
-                      },
-                      "& .MuiOutlinedInput-input": {
-                        padding: { xs: "12px 16px", sm: "8px 12px" },
-                        "&::placeholder": {
-                          color: theme.palette.text.secondary,
-                          opacity: 0.7,
-                          fontStyle: "italic",
-                        },
-                      },
-                    }}
-                  />
-                ) : (
-                  <Typography
-                    variant={isMobile ? "h4" : "h3"}
-                    component="h1"
-                    sx={{
-                      fontWeight: "bold",
-                      color: "white",
-                      cursor: canEdit ? "pointer" : "default",
-                      fontSize: { xs: "1.5rem", sm: "2rem", md: "2.25rem" },
-                      lineHeight: 1.2,
-                      textAlign: { xs: "center", sm: "left" },
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                      maxWidth: "100%",
-                      "&:hover": canEdit
-                        ? {
-                            opacity: 0.8,
-                          }
-                        : {},
-                    }}
-                    onClick={handleNameClick}
-                  >
-                    {name || "Nuevo Itinerario"}
-                  </Typography>
-                )}
-
-                {canEdit && (
-                  <IconButton
-                    onClick={handleEditClick}
-                    size="small"
-                    sx={{
-                      width: { xs: 36, sm: 32 },
-                      height: { xs: 36, sm: 32 },
-                      color: isEditingName
-                        ? theme.palette.success.main
-                        : "white",
-                      background: "rgba(255,255,255,0.15)",
-                      backdropFilter: "blur(10px)",
-                      "&:hover": {
-                        background: "rgba(255,255,255,0.25)",
-                      },
-                    }}
-                  >
-                    {isEditingName ? <Save size={16} /> : <Edit size={16} />}
-                  </IconButton>
-                )}
-              </Box>
-
-              {/* Right: Travelers + Action Buttons */}
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: { xs: 2, sm: 1.5 },
-                  mt: { xs: 1, sm: 0 },
-                }}
-              >
-                {/* Travelers Avatar Group */}
-                <Travelers
-                  travelers={travelers}
-                  friendsList={friendsList}
-                  onAddTraveler={canManageTravelers ? onAddTraveler : undefined}
-                  onUpdateTraveler={
-                    canManageTravelers ? onUpdateTraveler : undefined
-                  }
-                  onRemoveTraveler={
-                    canManageTravelers ? onRemoveTraveler : undefined
-                  }
-                  creator={creator}
-                  userRole={userRole}
-                  currentUserId={currentUserId}
+            {/* MOBILE LAYOUT: Stack vertically for better UX */}
+            {isMobile && (
+              <>
+                {/* Mobile: Back Button on its own line */}
+                <Button
+                  variant="outlined"
+                  onClick={onBackClick}
+                  startIcon={<ArrowLeft size={16} />}
+                  size="small"
+                  sx={{
+                    borderColor: "rgba(255,255,255,0.3)",
+                    color: "white",
+                    borderRadius: "20px",
+                    textTransform: "none",
+                    backdropFilter: "blur(10px)",
+                    backgroundColor: "rgba(255,255,255,0.1)",
+                    fontSize: "0.75rem",
+                    px: 1.5,
+                    py: 0.5,
+                    mb: 2,
+                    minWidth: "auto",
+                    minHeight: 40,
+                    "&:hover": {
+                      borderColor: "rgba(255,255,255,0.5)",
+                      backgroundColor: "rgba(255,255,255,0.2)",
+                    },
+                  }}
                 />
 
-                {/* Notes Button */}
-                <Tooltip title="Lista del viaje">
-                  <IconButton
-                    onClick={onNotesClick}
-                    size="small"
+                {/* Mobile: Title Section */}
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: 2,
+                    mb: 2,
+                  }}
+                >
+                  {/* Title */}
+                  <Box
                     sx={{
-                      backgroundColor: theme.palette.primary.main,
-                      color: "white",
-                      width: { xs: 44, sm: 36 },
-                      height: { xs: 44, sm: 36 },
-                      "&:hover": {
-                        backgroundColor: theme.palette.primary.dark,
-                      },
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                      width: "100%",
+                      justifyContent: "center",
                     }}
                   >
-                    <ListCheck size={isMobile ? 18 : 16} />
-                  </IconButton>
-                </Tooltip>
+                    {isEditingName && canEdit ? (
+                      <TextField
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        onBlur={handleSaveName}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            handleSaveName();
+                          }
+                          if (e.key === "Escape") {
+                            setIsEditingName(false);
+                          }
+                        }}
+                        autoFocus
+                        variant="outlined"
+                        placeholder="Nombre del itinerario..."
+                        size="small"
+                        sx={{
+                          flex: 1,
+                          maxWidth: "280px",
+                          "& .MuiOutlinedInput-root": {
+                            backgroundColor: "rgba(255,255,255,0.95)",
+                            backdropFilter: "blur(20px)",
+                            borderRadius: 16,
+                            border: `2px solid rgba(255,255,255,0.3)`,
+                            fontSize: "1rem",
+                            fontWeight: 600,
+                            color: theme.palette.text.primary,
+                            boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
+                            "& fieldset": {
+                              border: "none",
+                            },
+                            "&:hover": {
+                              backgroundColor: "rgba(255,255,255,1)",
+                              border: `2px solid rgba(255,255,255,0.5)`,
+                            },
+                            "&.Mui-focused": {
+                              backgroundColor: "rgba(255,255,255,1)",
+                              border: `2px solid ${theme.palette.primary.main}`,
+                            },
+                          },
+                          "& .MuiOutlinedInput-input": {
+                            padding: "12px 16px",
+                            "&::placeholder": {
+                              color: theme.palette.text.secondary,
+                              opacity: 0.7,
+                              fontStyle: "italic",
+                            },
+                          },
+                        }}
+                      />
+                    ) : (
+                      <Typography
+                        variant="h4"
+                        component="h1"
+                        sx={{
+                          fontWeight: "bold",
+                          color: "white",
+                          cursor: canEdit ? "pointer" : "default",
+                          fontSize: "1.5rem",
+                          lineHeight: 1.2,
+                          textAlign: "center",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                          maxWidth: "100%",
+                          "&:hover": canEdit
+                            ? {
+                                opacity: 0.8,
+                              }
+                            : {},
+                        }}
+                        onClick={handleNameClick}
+                      >
+                        {name || "Nuevo Itinerario"}
+                      </Typography>
+                    )}
 
-                {/* Menu Button */}
-                <Tooltip title="Más opciones">
-                  <IconButton
-                    onClick={handleMenuClick}
-                    size="small"
+                    {canEdit && (
+                      <IconButton
+                        onClick={handleEditClick}
+                        size="small"
+                        sx={{
+                          width: 36,
+                          height: 36,
+                          color: isEditingName
+                            ? theme.palette.success.main
+                            : "white",
+                          background: "rgba(255,255,255,0.15)",
+                          backdropFilter: "blur(10px)",
+                          "&:hover": {
+                            background: "rgba(255,255,255,0.25)",
+                          },
+                        }}
+                      >
+                        {isEditingName ? (
+                          <Save size={16} />
+                        ) : (
+                          <Edit size={16} />
+                        )}
+                      </IconButton>
+                    )}
+                  </Box>
+
+                  {/* Mobile: Action Buttons */}
+                  <Box
                     sx={{
-                      backgroundColor: "rgba(255,255,255,0.15)",
-                      color: "white",
-                      width: { xs: 44, sm: 36 },
-                      height: { xs: 44, sm: 36 },
-                      backdropFilter: "blur(10px)",
-                      "&:hover": {
-                        backgroundColor: "rgba(255,255,255,0.25)",
-                      },
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 2,
                     }}
                   >
-                    <MoreVertical size={isMobile ? 18 : 16} />
-                  </IconButton>
-                </Tooltip>
+                    <Travelers
+                      travelers={travelers}
+                      friendsList={friendsList}
+                      onAddTraveler={
+                        canManageTravelers ? onAddTraveler : undefined
+                      }
+                      onUpdateTraveler={
+                        canManageTravelers ? onUpdateTraveler : undefined
+                      }
+                      onRemoveTraveler={
+                        canManageTravelers ? onRemoveTraveler : undefined
+                      }
+                      creator={creator}
+                      userRole={userRole}
+                      currentUserId={currentUserId}
+                    />
+
+                    <Tooltip title="Lista del viaje">
+                      <IconButton
+                        onClick={onNotesClick}
+                        size="small"
+                        sx={{
+                          backgroundColor: theme.palette.primary.main,
+                          color: "white",
+                          width: 44,
+                          height: 44,
+                          "&:hover": {
+                            backgroundColor: theme.palette.primary.dark,
+                          },
+                        }}
+                      >
+                        <ListCheck size={18} />
+                      </IconButton>
+                    </Tooltip>
+
+                    <Tooltip title="Más opciones">
+                      <IconButton
+                        onClick={handleMenuClick}
+                        size="small"
+                        sx={{
+                          backgroundColor: "rgba(255,255,255,0.15)",
+                          color: "white",
+                          width: 44,
+                          height: 44,
+                          backdropFilter: "blur(10px)",
+                          "&:hover": {
+                            backgroundColor: "rgba(255,255,255,0.25)",
+                          },
+                        }}
+                      >
+                        <MoreVertical size={18} />
+                      </IconButton>
+                    </Tooltip>
+                  </Box>
+                </Box>
+              </>
+            )}
+
+            {/* DESKTOP/TABLET LAYOUT: Everything in one line */}
+            {!isMobile && (
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: { sm: 2, md: 3 },
+                  width: "100%",
+                  py: 1,
+                }}
+              >
+                {/* Desktop: Back Button */}
+                <Button
+                  variant="outlined"
+                  onClick={onBackClick}
+                  startIcon={<ArrowLeft size={16} />}
+                  size="small"
+                  sx={{
+                    borderColor: "rgba(255,255,255,0.3)",
+                    color: "white",
+                    borderRadius: "20px",
+                    textTransform: "none",
+                    backdropFilter: "blur(10px)",
+                    backgroundColor: "rgba(255,255,255,0.1)",
+                    fontSize: "0.75rem",
+                    px: 2,
+                    py: 0.5,
+                    minWidth: "auto",
+                    minHeight: 32,
+                    flexShrink: 0,
+                    "&:hover": {
+                      borderColor: "rgba(255,255,255,0.5)",
+                      backgroundColor: "rgba(255,255,255,0.2)",
+                    },
+                  }}
+                >
+                  Volver
+                </Button>
+
+                {/* Desktop: Title Section */}
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1,
+                    flex: 1,
+                    minWidth: 0, // Allow text truncation
+                  }}
+                >
+                  {isEditingName && canEdit ? (
+                    <TextField
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      onBlur={handleSaveName}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          handleSaveName();
+                        }
+                        if (e.key === "Escape") {
+                          setIsEditingName(false);
+                        }
+                      }}
+                      autoFocus
+                      variant="outlined"
+                      placeholder="Nombre del itinerario..."
+                      size="small"
+                      sx={{
+                        flex: 1,
+                        maxWidth: { sm: "300px", md: "400px" },
+                        "& .MuiOutlinedInput-root": {
+                          backgroundColor: "rgba(255,255,255,0.95)",
+                          backdropFilter: "blur(20px)",
+                          borderRadius: 20,
+                          border: `2px solid rgba(255,255,255,0.3)`,
+                          fontSize: { sm: "1.125rem", md: "1.25rem" },
+                          fontWeight: 600,
+                          color: theme.palette.text.primary,
+                          boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
+                          "& fieldset": {
+                            border: "none",
+                          },
+                          "&:hover": {
+                            backgroundColor: "rgba(255,255,255,1)",
+                            border: `2px solid rgba(255,255,255,0.5)`,
+                          },
+                          "&.Mui-focused": {
+                            backgroundColor: "rgba(255,255,255,1)",
+                            border: `2px solid ${theme.palette.primary.main}`,
+                          },
+                        },
+                        "& .MuiOutlinedInput-input": {
+                          padding: "8px 12px",
+                          "&::placeholder": {
+                            color: theme.palette.text.secondary,
+                            opacity: 0.7,
+                            fontStyle: "italic",
+                          },
+                        },
+                      }}
+                    />
+                  ) : (
+                    <Typography
+                      variant="h3"
+                      component="h1"
+                      sx={{
+                        fontWeight: "bold",
+                        color: "white",
+                        cursor: canEdit ? "pointer" : "default",
+                        fontSize: { sm: "1.5rem", md: "2rem", lg: "2.25rem" },
+                        lineHeight: 1.2,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                        flex: 1,
+                        minWidth: 0,
+                        "&:hover": canEdit
+                          ? {
+                              opacity: 0.8,
+                            }
+                          : {},
+                      }}
+                      onClick={handleNameClick}
+                    >
+                      {name || "Nuevo Itinerario"}
+                    </Typography>
+                  )}
+
+                  {canEdit && (
+                    <IconButton
+                      onClick={handleEditClick}
+                      size="small"
+                      sx={{
+                        width: 32,
+                        height: 32,
+                        color: isEditingName
+                          ? theme.palette.success.main
+                          : "white",
+                        background: "rgba(255,255,255,0.15)",
+                        backdropFilter: "blur(10px)",
+                        flexShrink: 0,
+                        "&:hover": {
+                          background: "rgba(255,255,255,0.25)",
+                        },
+                      }}
+                    >
+                      {isEditingName ? <Save size={16} /> : <Edit size={16} />}
+                    </IconButton>
+                  )}
+                </Box>
+
+                {/* Desktop: Action Buttons */}
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1.5,
+                    flexShrink: 0,
+                  }}
+                >
+                  <Travelers
+                    travelers={travelers}
+                    friendsList={friendsList}
+                    onAddTraveler={
+                      canManageTravelers ? onAddTraveler : undefined
+                    }
+                    onUpdateTraveler={
+                      canManageTravelers ? onUpdateTraveler : undefined
+                    }
+                    onRemoveTraveler={
+                      canManageTravelers ? onRemoveTraveler : undefined
+                    }
+                    creator={creator}
+                    userRole={userRole}
+                    currentUserId={currentUserId}
+                  />
+
+                  <Tooltip title="Lista del viaje">
+                    <IconButton
+                      onClick={onNotesClick}
+                      size="small"
+                      sx={{
+                        backgroundColor: theme.palette.primary.main,
+                        color: "white",
+                        width: 36,
+                        height: 36,
+                        "&:hover": {
+                          backgroundColor: theme.palette.primary.dark,
+                        },
+                      }}
+                    >
+                      <ListCheck size={16} />
+                    </IconButton>
+                  </Tooltip>
+
+                  <Tooltip title="Más opciones">
+                    <IconButton
+                      onClick={handleMenuClick}
+                      size="small"
+                      sx={{
+                        backgroundColor: "rgba(255,255,255,0.15)",
+                        color: "white",
+                        width: 36,
+                        height: 36,
+                        backdropFilter: "blur(10px)",
+                        "&:hover": {
+                          backgroundColor: "rgba(255,255,255,0.25)",
+                        },
+                      }}
+                    >
+                      <MoreVertical size={16} />
+                    </IconButton>
+                  </Tooltip>
+                </Box>
               </Box>
-            </Box>
+            )}
 
-            {/* Quick Info Bar - Minimal */}
+            {/* Quick Info Bar - Always below main content */}
             <Box
               sx={{
                 display: "flex",
@@ -402,7 +623,7 @@ const ItineraryHeader = ({
         </Container>
       </Box>
 
-      {/* Dropdown Menu */}
+      {/* Dropdown Menu - Same as before */}
       <Menu
         anchorEl={anchorEl}
         open={open}

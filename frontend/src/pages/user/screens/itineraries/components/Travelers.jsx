@@ -306,7 +306,7 @@ const Travelers = ({
           mt: 2,
           "& .MuiPopover-paper": {
             borderRadius: 4,
-            background: `linear-gradient(135deg, ${theme.palette.background.default}95, ${theme.palette.background.default}80)`,
+            background: theme.palette.background.default,
             backdropFilter: "blur(20px)",
             border: `1px solid ${theme.palette.divider}40`,
             boxShadow: "0 32px 64px rgba(0,0,0,0.2)",
@@ -539,7 +539,7 @@ const Travelers = ({
           PaperProps={{
             sx: {
               borderRadius: isMobile ? 0 : 4,
-              background: `linear-gradient(135deg, ${theme.palette.background.default}95, ${theme.palette.background.default}85)`,
+              background: theme.palette.background.default,
               backdropFilter: "blur(20px)",
               border: `1px solid ${theme.palette.divider}40`,
               boxShadow: "0 32px 64px rgba(0,0,0,0.25)",
