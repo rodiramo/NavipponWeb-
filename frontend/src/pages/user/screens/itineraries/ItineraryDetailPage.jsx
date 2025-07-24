@@ -1,10 +1,11 @@
-// Complete Fixed ItineraryDetailPage.jsx
 import React, { useState, useEffect, useCallback } from "react";
 import { Box, useTheme, useMediaQuery } from "@mui/material";
 import { toast } from "react-hot-toast";
 import { useNavigate, useParams } from "react-router-dom";
 import DateChangeDialog from "./components/DateChangeDialog";
 import OfflineManager from "./components/OfflineManager";
+import RouteSettings from "./components/RouteSettings"; // NEW: Import route settings
+
 // DnD Kit imports
 import {
   DndContext,
@@ -41,6 +42,8 @@ import {
   addTravelerToItinerary,
   updateTravelerRole,
   removeTravelerFromItinerary,
+  addExperienceToItinerary,
+  removeExperienceFromItinerary,
 } from "../../../../services/index/itinerary";
 import { getUserFriends } from "../../../../services/index/users";
 
@@ -98,9 +101,10 @@ const ItineraryDetailPage = () => {
   const [activeId, setActiveId] = useState(null);
   const [activeData, setActiveData] = useState(null);
 
-  // API Detection State
-  const [apiConfig, setApiConfig] = useState(null);
-  const [apiDetectionComplete, setApiDetectionComplete] = useState(false);
+  // NEW: State for transport mode and route features
+  const [transportMode, setTransportMode] = useState("walking");
+  const [showDistanceIndicators, setShowDistanceIndicators] = useState(true);
+  const [showRouteOptimizer, setShowRouteOptimizer] = useState(true);
 
   // Helper function to safely filter favorites
   const filterValidFavorites = (favoritesArray) => {
@@ -121,346 +125,228 @@ const ItineraryDetailPage = () => {
 
   const isInvited = creator && user && String(creator._id) !== String(user._id);
 
-  // FIXED: Enhanced duplicate detection helper
+  // Helper function to get the correct experience ID from different data structures
+  const getExperienceId = (experience) => {
+    // Handle different data structures:
+    // 1. Direct experience object: { _id: "...", title: "...", ... }
+    // 2. Favorite object: { _id: "favorite_id", experienceId: { _id: "...", title: "..." } }
+
+    if (experience.experienceId && experience.experienceId._id) {
+      // This is a favorite object with nested experience
+      return experience.experienceId._id;
+    } else if (experience._id) {
+      // This is a direct experience object
+      return experience._id;
+    } else {
+      console.error("❌ Cannot extract experience ID from:", experience);
+      return null;
+    }
+  };
+
+  // Helper function to get the actual experience object
+  const getExperienceObject = (experience) => {
+    if (experience.experienceId) {
+      // This is a favorite object with nested experience
+      return experience.experienceId;
+    } else {
+      // This is a direct experience object
+      return experience;
+    }
+  };
+
+  // Check if experience already exists in board
   const isExperienceInBoard = (experience, boardFavorites) => {
     if (!boardFavorites || !Array.isArray(boardFavorites)) return false;
 
+    const targetExperienceId = getExperienceId(experience);
+    if (!targetExperienceId) return false;
+
     return boardFavorites.some((boardFav) => {
-      const existingExpId = boardFav.experienceId?._id || boardFav.experienceId;
-      const newExpId = experience._id;
-      return existingExpId === newExpId;
+      const existingExpId = getExperienceId(boardFav);
+      return existingExpId === targetExperienceId;
     });
   };
 
-  const deleteFavorite = useCallback(
-    async (favoriteId) => {
-      const deleteEndpoints = [
-        `${API_URL}/api/favorites/${favoriteId}`,
-        `${API_URL}/api/users/${user._id}/favorites/${favoriteId}`,
-        `${API_URL}/api/user/favorites/${favoriteId}`,
-      ];
+  // State for managing multiple additions with better concurrency control
+  const [isAddingExperience, setIsAddingExperience] = useState(false);
+  const [pendingAdditions, setPendingAdditions] = useState(new Set());
 
-      for (const endpoint of deleteEndpoints) {
-        try {
-          const response = await fetch(endpoint, {
-            method: "DELETE",
-            headers: { Authorization: `Bearer ${jwt}` },
-          });
-          if (response.ok) {
-            console.log(`✅ Cleaned up test favorite via ${endpoint}`);
-            return;
-          }
-        } catch (error) {
-          // Continue to next endpoint
-        }
-      }
-    },
-    [jwt, user._id, API_URL]
-  );
+  // Enhanced function to prevent concurrent additions
+  const addExperienceWithQueue = async (experience, boardIndex) => {
+    const experienceId = getExperienceId(experience);
+    const queueKey = `${experienceId}-${boardIndex}`;
 
-  // Test different API patterns to find the working one
-  const testAPIPatterns = useCallback(async () => {
-    const patterns = [
-      {
-        name: "Standard Pattern",
-        endpoint: `${API_URL}/api/favorites`,
-        method: "POST",
-        bodyFormat: (exp, usr) => ({ experienceId: exp._id, userId: usr._id }),
-      },
-      {
-        name: "User-specific Pattern",
-        endpoint: `${API_URL}/api/users/${user._id}/favorites`,
-        method: "POST",
-        bodyFormat: (exp, usr) => ({ experienceId: exp._id }),
-      },
-      {
-        name: "Alternative Field Names",
-        endpoint: `${API_URL}/api/favorites`,
-        method: "POST",
-        bodyFormat: (exp, usr) => ({ experience: exp._id, user: usr._id }),
-      },
-      {
-        name: "Snake Case Pattern",
-        endpoint: `${API_URL}/api/favorites`,
-        method: "POST",
-        bodyFormat: (exp, usr) => ({
-          experience_id: exp._id,
-          user_id: usr._id,
-        }),
-      },
-      {
-        name: "Experience-centric Pattern",
-        endpoint: `${API_URL}/api/experiences/favorite`,
-        method: "POST",
-        bodyFormat: (exp, usr) => ({ experienceId: exp._id, userId: usr._id }),
-      },
-      {
-        name: "Singular User Pattern",
-        endpoint: `${API_URL}/api/user/favorites`,
-        method: "POST",
-        bodyFormat: (exp, usr) => ({ experienceId: exp._id }),
-      },
-    ];
-
-    for (const pattern of patterns) {
-      try {
-        console.log(`🧪 Testing ${pattern.name}...`);
-
-        const testExperience = allExperiences[0] || {
-          _id: "test-experience-id",
-          title: "Test Experience",
-        };
-        const testBody = pattern.bodyFormat(testExperience, user);
-
-        const response = await fetch(pattern.endpoint, {
-          method: pattern.method,
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${jwt}`,
-          },
-          body: JSON.stringify(testBody),
-        });
-
-        if (response.ok) {
-          const result = await response.json();
-          console.log(`✅ ${pattern.name} works! Response:`, result);
-
-          if (testExperience._id !== "test-experience-id" && result._id) {
-            try {
-              await deleteFavorite(result._id);
-            } catch (cleanupError) {
-              console.warn("Could not clean up test favorite:", cleanupError);
-            }
-          }
-
-          return { working: pattern };
-        }
-      } catch (error) {
-        console.log(`${pattern.name} failed:`, error.message);
-      }
+    // Check if this exact addition is already in progress
+    if (pendingAdditions.has(queueKey)) {
+      toast.error("Esta experiencia ya se está añadiendo");
+      return;
     }
 
-    return { working: null };
-  }, [allExperiences, deleteFavorite, jwt, user, API_URL]);
-
-  // API Configuration Detection
-  useEffect(() => {
-    const detectFavoritesAPI = async () => {
-      if (!user?._id || !jwt || apiDetectionComplete) return;
-
-      console.log("🔍 Detecting favorites API configuration...");
-
-      try {
-        const apiPatterns = await testAPIPatterns();
-
-        if (apiPatterns.working) {
-          setApiConfig(apiPatterns.working);
-          console.log("✅ API configuration detected:", apiPatterns.working);
-        } else {
-          console.warn(
-            "⚠️ No working API pattern found, will use manual favorites only"
-          );
-          setApiConfig({ manual: true });
-        }
-      } catch (error) {
-        console.error("❌ Error detecting API:", error);
-        setApiConfig({ manual: true });
-      } finally {
-        setApiDetectionComplete(true);
-      }
-    };
-
-    detectFavoritesAPI();
-  }, [user?._id, jwt, allExperiences, apiDetectionComplete, testAPIPatterns]);
-
-  // FIXED: Try creating favorite with detected API configuration
-  const tryCreateFavoriteWithConfig = async (experience, config) => {
     try {
-      const requestBody = config.bodyFormat(experience, user);
+      // Add to pending set
+      setPendingAdditions((prev) => new Set([...prev, queueKey]));
 
-      const response = await fetch(config.endpoint, {
-        method: config.method,
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${jwt}`,
-        },
-        body: JSON.stringify(requestBody),
+      // Small delay to prevent rapid-fire requests
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      await performExperienceAddition(experience, boardIndex);
+    } finally {
+      // Remove from pending set
+      setPendingAdditions((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(queueKey);
+        return newSet;
+      });
+    }
+  };
+
+  // Actual addition logic separated out
+  const performExperienceAddition = async (experience, boardIndex) => {
+    const targetBoard = boards[boardIndex];
+    const experienceId = getExperienceId(experience);
+    const experienceObj = getExperienceObject(experience);
+
+    const toastId = `adding-${experienceId}-${Date.now()}`;
+    toast.loading("Añadiendo experiencia...", { id: toastId });
+
+    try {
+      console.log("🚀 Adding experience to board:", {
+        experienceId,
+        experienceTitle: experienceObj.title,
+        boardIndex,
+        boardDate: targetBoard.date,
+        itineraryId: id,
       });
 
-      if (response.ok) {
-        const newFavorite = await response.json();
-        console.log("✅ Created favorite with detected API:", newFavorite);
-        return { success: true, favorite: newFavorite };
-      } else {
-        const errorText = await response.text();
-        console.warn(`Detected API failed: ${response.status} - ${errorText}`);
-        return { success: false, error: errorText };
-      }
+      // OPTIMISTIC UPDATE - Add to UI immediately
+      const optimisticFavorite = {
+        _id: `temp-${Date.now()}`,
+        experienceId: experienceObj,
+        uniqueId: `${boardIndex}-${targetBoard.favorites.length}-temp`,
+        isOptimistic: true, // Flag to identify optimistic updates
+      };
+
+      // Update the boards state immediately for instant feedback
+      const updatedBoards = [...boards];
+      updatedBoards[boardIndex] = {
+        ...targetBoard,
+        favorites: [...targetBoard.favorites, optimisticFavorite],
+      };
+      setBoards(updatedBoards);
+
+      console.log(
+        "⚡ Optimistic update applied - experience should be visible"
+      );
+
+      // Use direct API call with retry logic
+      await testDirectAPICallWithRetry(experience, boardIndex);
+
+      // After successful API call, refresh from server to get real data
+      console.log("🔄 Refreshing data from server...");
+      await fetchItinerary();
+
+      toast.success(`${experienceObj.title || "Experiencia"} añadida`, {
+        id: toastId,
+      });
+      console.log("✅ Successfully added experience:", experienceObj.title);
     } catch (error) {
-      console.warn("Detected API threw error:", error);
-      return { success: false, error: error.message };
+      console.error("❌ Error adding experience:", error);
+
+      // ROLLBACK OPTIMISTIC UPDATE on error
+      console.log("⏪ Rolling back optimistic update due to error");
+      await fetchItinerary(); // Refresh to remove the optimistic update
+
+      let errorMessage = "Error al añadir experiencia";
+      if (error.message) {
+        if (error.message.includes("No matching document found")) {
+          errorMessage = "Error de concurrencia. Intenta de nuevo.";
+        } else if (error.message.includes("version")) {
+          errorMessage = "Conflicto de versión. Intenta de nuevo.";
+        } else {
+          errorMessage = error.message;
+        }
+      }
+
+      toast.error(errorMessage, { id: toastId });
+      throw error; // Re-throw to be caught by caller
     }
   };
 
-  // FIXED: Try all possible API patterns
-  const tryAllAPIPatterns = async (experience) => {
-    const patterns = [
-      {
-        name: "Standard",
-        endpoint: `${API_URL}/api/favorites`,
-        method: "POST",
-        bodyFormat: () => ({ experienceId: experience._id, userId: user._id }),
-      },
-      {
-        name: "User-specific",
-        endpoint: `${API_URL}/api/users/${user._id}/favorites`,
-        method: "POST",
-        bodyFormat: () => ({ experienceId: experience._id }),
-      },
-      {
-        name: "Alternative fields",
-        endpoint: `${API_URL}/api/favorites`,
-        method: "POST",
-        bodyFormat: () => ({ experience: experience._id, user: user._id }),
-      },
-      {
-        name: "Snake case",
-        endpoint: `${API_URL}/api/favorites`,
-        method: "POST",
-        bodyFormat: () => ({
-          experience_id: experience._id,
-          user_id: user._id,
-        }),
-      },
-      {
-        name: "Experience-centric",
-        endpoint: `${API_URL}/api/experiences/favorite`,
-        method: "POST",
-        bodyFormat: () => ({ experienceId: experience._id, userId: user._id }),
-      },
-      {
-        name: "Singular user",
-        endpoint: `${API_URL}/api/user/favorites`,
-        method: "POST",
-        bodyFormat: () => ({ experienceId: experience._id }),
-      },
-    ];
+  // Direct API call with retry logic for concurrency conflicts
+  const testDirectAPICallWithRetry = async (
+    experience,
+    boardIndex,
+    maxRetries = 3
+  ) => {
+    const targetBoard = boards[boardIndex];
+    const experienceId = getExperienceId(experience);
 
-    console.log(`🧪 Trying ${patterns.length} API patterns...`);
-
-    for (const pattern of patterns) {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        const requestBody = pattern.bodyFormat();
-        const response = await fetch(pattern.endpoint, {
-          method: pattern.method,
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${jwt}`,
-          },
-          body: JSON.stringify(requestBody),
-        });
+        console.log(
+          `🔄 Attempt ${attempt}/${maxRetries} for experience ${experienceId}`
+        );
 
-        if (response.ok) {
-          const result = await response.json();
-          console.log(`✅ SUCCESS with ${pattern.name}:`, result);
+        const requestBody = {
+          experienceId: experienceId,
+          boardDate: targetBoard.date,
+        };
 
-          // Update API config for future use
-          setApiConfig(pattern);
-          return { success: true, favorite: result };
+        const response = await fetch(
+          `${API_URL}/api/itineraries/${id}/experiences`,
+          {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${jwt}`,
+            },
+            body: JSON.stringify(requestBody),
+          }
+        );
+
+        const responseText = await response.text();
+
+        if (!response.ok) {
+          const isVersionConflict =
+            responseText.includes("No matching document found") ||
+            responseText.includes("version");
+
+          if (isVersionConflict && attempt < maxRetries) {
+            console.log(
+              `⚠️ Version conflict on attempt ${attempt}, retrying...`
+            );
+            // Wait before retry with exponential backoff
+            await new Promise((resolve) => setTimeout(resolve, attempt * 200));
+            continue;
+          }
+
+          throw new Error(responseText);
         }
+
+        const result = JSON.parse(responseText);
+        console.log(`✅ Success on attempt ${attempt}:`, result);
+        return result;
       } catch (error) {
-        console.log(`❌ ${pattern.name} threw error:`, error.message);
-      }
-    }
+        const isVersionConflict =
+          error.message.includes("No matching document found") ||
+          error.message.includes("version");
 
-    console.warn("⚠️ All API patterns failed");
-    return { success: false };
-  };
-
-  // FIXED: Create local favorite with better structure
-  const createLocalFavorite = (experience) => {
-    console.log("📱 Creating local-only favorite for:", experience.title);
-
-    const localFavorite = {
-      _id: `local-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      experienceId: experience,
-      userId: user._id,
-      createdAt: new Date().toISOString(),
-      isLocal: true,
-    };
-
-    // Save to localStorage for persistence
-    try {
-      const localFavorites = JSON.parse(
-        localStorage.getItem(`localFavorites_${user._id}`) || "[]"
-      );
-      localFavorites.push(localFavorite);
-      localStorage.setItem(
-        `localFavorites_${user._id}`,
-        JSON.stringify(localFavorites)
-      );
-      console.log("💾 Saved local favorite to localStorage");
-    } catch (storageError) {
-      console.warn("Could not save to localStorage:", storageError);
-    }
-
-    return localFavorite;
-  };
-
-  // FIXED: Enhanced auto-creation function
-  const createFavoriteAndAddToBoard = async (experience, boardIndex) => {
-    try {
-      toast.loading("Añadiendo experiencia...", { id: "adding-experience" });
-
-      let newFavorite = null;
-      let createdSuccessfully = false;
-
-      // Strategy 1: Use detected API if available
-      if (apiConfig && !apiConfig.manual) {
-        const result = await tryCreateFavoriteWithConfig(experience, apiConfig);
-        if (result.success) {
-          newFavorite = result.favorite;
-          createdSuccessfully = true;
-          console.log("✅ Created with detected API");
+        if (isVersionConflict && attempt < maxRetries) {
+          console.log(
+            `⚠️ Error on attempt ${attempt}, retrying:`,
+            error.message
+          );
+          await new Promise((resolve) => setTimeout(resolve, attempt * 200));
+          continue;
         }
+
+        console.log(`❌ Final error on attempt ${attempt}:`, error);
+        throw error;
       }
-
-      // Strategy 2: Try all known API patterns if detected API failed
-      if (!createdSuccessfully) {
-        const result = await tryAllAPIPatterns(experience);
-        if (result.success) {
-          newFavorite = result.favorite;
-          createdSuccessfully = true;
-          console.log("✅ Created with fallback API pattern");
-        }
-      }
-
-      // Strategy 3: Create local favorite as last resort
-      if (!createdSuccessfully) {
-        console.log("📱 Creating local-only favorite as fallback...");
-        newFavorite = createLocalFavorite(experience);
-      }
-
-      if (!newFavorite) {
-        throw new Error("Failed to create favorite");
-      }
-
-      // FIXED: Update favorites state immediately
-      const updatedFavorites = [...favorites, newFavorite];
-      setFavorites(updatedFavorites);
-      setDrawerFavorites(updatedFavorites);
-
-      // Add to board
-      await addExistingFavoriteToBoard(newFavorite, experience, boardIndex);
-
-      toast.success("Experiencia añadida", { id: "adding-experience" });
-    } catch (error) {
-      console.error("❌ All strategies failed:", error);
-      toast.error("Error al añadir experiencia", { id: "adding-experience" });
     }
   };
 
-  // FIXED: Main function to handle adding experience to board
+  // Main function to handle adding experience to board
   const handleAddExperienceToBoard = async (
     experience,
     targetBoardIndex = null
@@ -471,6 +357,12 @@ const ItineraryDetailPage = () => {
     }
 
     if (!isEditable) return;
+
+    // Global check to prevent too many simultaneous requests
+    if (isAddingExperience) {
+      toast.error("Espera a que se complete la adición anterior");
+      return;
+    }
 
     const boardIndex =
       targetBoardIndex !== null
@@ -484,168 +376,33 @@ const ItineraryDetailPage = () => {
       return;
     }
 
-    if (!experience || !experience._id) {
-      console.error("Invalid experience object:", experience);
+    // Extract the correct experience ID and object
+    const experienceId = getExperienceId(experience);
+    const experienceObj = getExperienceObject(experience);
+
+    if (!experienceId || !experienceObj) {
+      console.error("❌ Invalid experience object:", experience);
       toast.error("Error: experiencia inválida");
       return;
     }
 
-    // FIXED: Better duplicate checking logic
+    // Check for duplicates using current state
     const targetBoard = boards[boardIndex];
     if (isExperienceInBoard(experience, targetBoard.favorites)) {
       toast.error("Esta experiencia ya está añadida en este día");
       return;
     }
 
-    // Check if favorite already exists in user's favorites
-    const existingFavorite = favorites.find(
-      (fav) => fav.experienceId?._id === experience._id
-    );
-
-    if (existingFavorite) {
-      // Use existing favorite
-      console.log("✅ Using existing favorite:", existingFavorite._id);
-      await addExistingFavoriteToBoard(
-        existingFavorite,
-        experience,
-        boardIndex
-      );
-    } else {
-      // Create new favorite and add to board
-      console.log("🚀 Creating new favorite for:", experience.title);
-      await createFavoriteAndAddToBoard(experience, boardIndex);
-    }
-  };
-
-  // FIXED: Improved addExistingFavoriteToBoard function
-  const addExistingFavoriteToBoard = async (
-    favoriteDoc,
-    experience,
-    boardIndex
-  ) => {
-    console.log("🎯 Adding favorite to board:", {
-      favoriteId: favoriteDoc._id,
-      experienceTitle: experience.title,
-      boardIndex,
-    });
-
     try {
-      const newBoards = [...boards];
-      const targetBoard = newBoards[boardIndex];
+      setIsAddingExperience(true);
 
-      // FIXED: Better duplicate checking
-      if (isExperienceInBoard(experience, targetBoard.favorites)) {
-        console.log("❌ Duplicate found, aborting");
-        toast.error("Esta experiencia ya está añadida en este día");
-        return;
-      }
-
-      // Initialize favorites array if needed
-      if (!targetBoard.favorites) {
-        targetBoard.favorites = [];
-      }
-
-      // Create board favorite object
-      const boardFavorite = {
-        _id: favoriteDoc._id,
-        experienceId: experience,
-        uniqueId: `${boardIndex}-${targetBoard.favorites.length}-${favoriteDoc._id}`,
-        isLocal: favoriteDoc.isLocal || false,
-      };
-
-      // Add to board
-      targetBoard.favorites.push(boardFavorite);
-
-      // Update budget
-      targetBoard.dailyBudget = targetBoard.favorites.reduce(
-        (sum, fav) => sum + (fav.experienceId?.price || 0),
-        0
-      );
-
-      // Update state
-      setBoards(newBoards);
-      updateTotalBudget(newBoards);
-
-      // Save to backend
-      await saveBoardChanges(newBoards);
-
-      console.log("✅ Successfully added to board");
+      // Use the queued addition approach to prevent concurrency conflicts
+      await addExperienceWithQueue(experience, boardIndex);
     } catch (error) {
-      console.error("❌ Error in addExistingFavoriteToBoard:", error);
-      toast.error("Error al añadir la experiencia al día");
-
-      // Revert changes on error
-      fetchItinerary();
-    }
-  };
-
-  // FIXED: Enhanced saveBoardChanges with better local favorite handling
-  const saveBoardChanges = async (boardsToSave) => {
-    try {
-      const cleanBoards = boardsToSave.map((board, index) => {
-        const cleanBoard = {
-          date:
-            board.date ||
-            new Date(Date.now() + index * 24 * 60 * 60 * 1000)
-              .toISOString()
-              .split("T")[0],
-          dailyBudget: 0,
-          favorites: [],
-        };
-
-        // Keep existing board ID if it's valid
-        if (
-          board._id &&
-          !board._id.toString().startsWith("board-") &&
-          !board._id.toString().startsWith("temp-")
-        ) {
-          cleanBoard._id = board._id;
-        }
-
-        if (board.favorites && Array.isArray(board.favorites)) {
-          // FIXED: Only filter out temp IDs and invalid favorites, keep real favorites
-          const validFavorites = board.favorites
-            .filter((fav) => fav && fav._id)
-            .filter((fav) => !fav._id.toString().startsWith("temp-"))
-            .filter((fav) => {
-              // Keep real API-created favorites, filter only local-only ones
-              const isLocalOnly =
-                fav._id.toString().startsWith("local-") && fav.isLocal === true;
-              return !isLocalOnly;
-            });
-
-          cleanBoard.favorites = validFavorites.map((fav) => fav._id);
-
-          // Calculate budget from all favorites (including local ones in UI)
-          cleanBoard.dailyBudget = board.favorites.reduce(
-            (sum, fav) => sum + (fav.experienceId?.price || 0),
-            0
-          );
-        }
-
-        return cleanBoard;
-      });
-
-      const calculatedTotalBudget = cleanBoards.reduce(
-        (sum, board) => sum + (board.dailyBudget || 0),
-        0
-      );
-
-      console.log("💾 Saving boards:", cleanBoards);
-
-      await updateItinerary(
-        id,
-        {
-          boards: cleanBoards,
-          totalBudget: calculatedTotalBudget,
-        },
-        jwt
-      );
-
-      console.log("✅ Successfully saved to backend");
-    } catch (error) {
-      console.error("❌ Error saving boards:", error);
-      throw error;
+      // Error handling is done in addExperienceWithQueue
+      console.error("❌ Error in handleAddExperienceToBoard:", error);
+    } finally {
+      setIsAddingExperience(false);
     }
   };
 
@@ -662,14 +419,12 @@ const ItineraryDetailPage = () => {
     try {
       const baseDate =
         startDate || (boards[0]?.date ? new Date(boards[0].date) : new Date());
-
       let newBoards = [...boards];
       newBoards = arrayMove(newBoards, fromIndex, toIndex);
 
       newBoards = newBoards.map((board, index) => {
         const newDate = new Date(baseDate);
         newDate.setDate(newDate.getDate() + index);
-
         return {
           ...board,
           date: newDate.toISOString().split("T")[0],
@@ -679,8 +434,7 @@ const ItineraryDetailPage = () => {
       setBoards(newBoards);
       updateTotalBudget(newBoards);
 
-      await saveBoardChanges(newBoards);
-
+      await updateItinerary(id, { boards: newBoards }, jwt);
       toast.success("Días reordenados y fechas actualizadas");
     } catch (error) {
       console.error("Error moving board:", error);
@@ -736,6 +490,49 @@ const ItineraryDetailPage = () => {
     return total;
   };
 
+  // NEW: Handle route optimization/reordering
+  const handleReorderExperiences = async (boardIndex, optimizedRoute) => {
+    if (!hasPermission("edit")) {
+      toast.error("No tienes permisos para reordenar experiencias");
+      return;
+    }
+
+    try {
+      const newBoards = [...boards];
+      const targetBoard = newBoards[boardIndex];
+
+      if (!targetBoard) {
+        toast.error("Día no encontrado");
+        return;
+      }
+
+      // Update the board with the optimized route
+      targetBoard.favorites = optimizedRoute.map((experience, index) => ({
+        ...experience,
+        uniqueId: `${boardIndex}-${index}-${experience._id}`,
+      }));
+
+      // Recalculate daily budget
+      targetBoard.dailyBudget = targetBoard.favorites.reduce(
+        (sum, fav) => sum + (fav.experienceId?.price || 0),
+        0
+      );
+
+      setBoards(newBoards);
+      updateTotalBudget(newBoards);
+
+      // Save to backend
+      await updateItinerary(id, { boards: newBoards }, jwt);
+
+      toast.success("Ruta optimizada aplicada correctamente");
+    } catch (error) {
+      console.error("Error optimizing route:", error);
+      toast.error("Error al optimizar la ruta");
+      // Refresh data on error
+      fetchItinerary();
+    }
+  };
+
   const handleAddBoard = async () => {
     if (!hasPermission("edit")) {
       toast.error("No tienes permisos para añadir días");
@@ -756,8 +553,14 @@ const ItineraryDetailPage = () => {
     setTravelDays(updatedBoards.length);
 
     try {
-      await saveBoardChanges(updatedBoards);
-      await updateItinerary(id, { travelDays: updatedBoards.length }, jwt);
+      await updateItinerary(
+        id,
+        {
+          boards: updatedBoards,
+          travelDays: updatedBoards.length,
+        },
+        jwt
+      );
       toast.success("Nuevo día añadido");
     } catch (error) {
       console.error("Error adding new board", error);
@@ -779,8 +582,14 @@ const ItineraryDetailPage = () => {
     setTravelDays(updatedBoards.length);
 
     try {
-      await saveBoardChanges(updatedBoards);
-      await updateItinerary(id, { travelDays: updatedBoards.length }, jwt);
+      await updateItinerary(
+        id,
+        {
+          boards: updatedBoards,
+          travelDays: updatedBoards.length,
+        },
+        jwt
+      );
       toast.success("Día eliminado");
     } catch (error) {
       console.error("Error removing board", error);
@@ -806,8 +615,6 @@ const ItineraryDetailPage = () => {
 
     try {
       const baseDate = new Date(newStartDate);
-      const startDateString = formatDateForLocal(baseDate);
-
       const updatedBoards = boards.map((board, index) => {
         const boardDate = new Date(baseDate);
         boardDate.setDate(boardDate.getDate() + index);
@@ -827,21 +634,20 @@ const ItineraryDetailPage = () => {
         0
       );
 
-      const updatePayload = {
-        date: baseDate.toISOString(),
-        boards: updatedBoards.map((board) => ({
-          ...board,
-          date: board.date,
-        })),
-        totalBudget: newTotalBudget,
-      };
-
-      await updateItinerary(id, updatePayload, jwt);
+      await updateItinerary(
+        id,
+        {
+          date: baseDate.toISOString(),
+          boards: updatedBoards,
+          totalBudget: newTotalBudget,
+        },
+        jwt
+      );
 
       toast.success("Fechas del itinerario actualizadas");
       setIsEditingDates(false);
     } catch (error) {
-      console.error("❌ Error updating itinerary dates:", error);
+      console.error("Error updating itinerary dates:", error);
       toast.error("Error al actualizar las fechas");
       fetchItinerary();
     }
@@ -851,22 +657,35 @@ const ItineraryDetailPage = () => {
     if (!user || !user._id) return;
 
     try {
+      console.log("🔄 Fetching itinerary data...");
       const data = await getSingleItineraryForEdit(id, jwt);
+
+      console.log("📦 Raw itinerary data:", data);
+      console.log("📦 Boards in response:", data.boards);
+
       setName(data.name || "");
       setTravelDays(data.travelDays || 0);
       setTotalBudget(data.totalBudget || 0);
       setIsPrivate(data.isPrivate || false);
 
-      const boardsWithIds = (data.boards || []).map((board, index) => ({
-        ...board,
-        id: board.id || board._id || `board-${index}`,
-        date: board.date
-          ? board.date.split("T")[0]
-          : formatDateForLocal(
-              new Date(Date.now() + index * 24 * 60 * 60 * 1000)
-            ),
-      }));
+      const boardsWithIds = (data.boards || []).map((board, index) => {
+        console.log(`📦 Processing board ${index}:`, board);
+        console.log(`📦 Board favorites:`, board.favorites);
 
+        return {
+          ...board,
+          id: board.id || board._id || `board-${index}`,
+          date: board.date
+            ? board.date.split("T")[0]
+            : formatDateForLocal(
+                new Date(Date.now() + index * 24 * 60 * 60 * 1000)
+              ),
+          // Ensure favorites is always an array
+          favorites: Array.isArray(board.favorites) ? board.favorites : [],
+        };
+      });
+
+      console.log("🎯 Processed boards:", boardsWithIds);
       setBoards(boardsWithIds);
       setTravelers(data.travelers || []);
       setNotes(data.notes || []);
@@ -900,51 +719,13 @@ const ItineraryDetailPage = () => {
             ? "Editor"
             : "Invitado"
       );
+
+      console.log("✅ Itinerary data updated successfully");
     } catch (error) {
       console.error("Error fetching itinerary", error);
       toast.error("Error loading itinerary");
     }
   }, [id, jwt, user]);
-
-  // Load local favorites with user-specific key
-  useEffect(() => {
-    const loadLocalFavorites = () => {
-      if (!user?._id || favorites.length === 0) return;
-
-      try {
-        const localFavorites = JSON.parse(
-          localStorage.getItem(`localFavorites_${user._id}`) || "[]"
-        );
-
-        if (localFavorites.length > 0) {
-          console.log(
-            `📱 Loaded ${localFavorites.length} local favorites for user ${user._id}`
-          );
-
-          // Filter out any that might already be in the real favorites
-          const newLocalFavorites = localFavorites.filter(
-            (localFav) =>
-              !favorites.some(
-                (realFav) =>
-                  realFav.experienceId?._id === localFav.experienceId?._id
-              )
-          );
-
-          if (newLocalFavorites.length > 0) {
-            setFavorites((prev) => [...prev, ...newLocalFavorites]);
-            setDrawerFavorites((prev) => [...prev, ...newLocalFavorites]);
-          }
-        }
-      } catch (error) {
-        console.warn("Could not load local favorites:", error);
-      }
-    };
-
-    // Only load local favorites after real favorites are loaded
-    if (user?._id && favorites.length > 0) {
-      loadLocalFavorites();
-    }
-  }, [user?._id, favorites.length]);
 
   // Effects
   useEffect(() => {
@@ -1026,8 +807,7 @@ const ItineraryDetailPage = () => {
       }
 
       const data = await response.json();
-      console.log("🔍 Total experiences fetched:", data.length);
-
+      console.log("Total experiences fetched:", data.length);
       setAllExperiences(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Error fetching experiences:", error);
@@ -1059,13 +839,9 @@ const ItineraryDetailPage = () => {
     setAddExperienceModalOpen(true);
   };
 
-  // FIXED: Enhanced experience modal handler
   const handleAddExperienceWithBoardSelection = async (experience) => {
-    // Close the modal immediately for better UX
-    setAddExperienceModalOpen(false);
-
+    // Don't close the modal immediately - let user add multiple experiences
     const targetBoardIndex = selectedBoardIndex;
-    setSelectedBoardIndex(null);
 
     if (targetBoardIndex !== null) {
       await handleAddExperienceToBoard(experience, targetBoardIndex);
@@ -1115,23 +891,43 @@ const ItineraryDetailPage = () => {
   };
 
   const handleRemoveFavorite = async (boardIndex, favoriteIndex) => {
-    const newBoards = [...boards];
-    if (newBoards[boardIndex]?.favorites) {
-      newBoards[boardIndex].favorites.splice(favoriteIndex, 1);
-      newBoards[boardIndex].dailyBudget = newBoards[
-        boardIndex
-      ].favorites.reduce((sum, fav) => sum + (fav.experienceId?.price || 0), 0);
-      setBoards(newBoards);
-      updateTotalBudget(newBoards);
+    if (!hasPermission("removeExperience")) {
+      toast.error("No tienes permisos para eliminar experiencias");
+      return;
+    }
 
-      try {
-        await saveBoardChanges(newBoards);
-        toast.success("Experiencia eliminada");
-      } catch (error) {
-        console.error("Error saving changes:", error);
-        toast.error("Error al eliminar experiencia");
-        fetchItinerary();
+    try {
+      const board = boards[boardIndex];
+      const favorite = board.favorites[favoriteIndex];
+
+      if (!favorite) {
+        toast.error("Error: experiencia inválida");
+        return;
       }
+
+      const experienceId = getExperienceId(favorite);
+
+      if (!experienceId) {
+        console.error("❌ Could not extract experience ID from:", favorite);
+        toast.error("Error: ID de experiencia inválido");
+        return;
+      }
+
+      // FIXED: Don't send userId - backend gets it from JWT
+      await removeExperienceFromItinerary({
+        itineraryId: id,
+        experienceId: experienceId,
+        boardDate: board.date,
+        token: jwt,
+        // userId removed - backend gets it from req.user._id
+      });
+
+      // Refresh the itinerary data
+      await fetchItinerary();
+      toast.success("Experiencia eliminada");
+    } catch (error) {
+      console.error("Error removing experience:", error);
+      toast.error("Error al eliminar experiencia");
     }
   };
 
@@ -1279,12 +1075,14 @@ const ItineraryDetailPage = () => {
       const activeIdStr = event.active.id.toString();
 
       if (activeIdStr.startsWith("fav-")) {
+        // Dragging from favorites drawer
         const favoriteId = activeIdStr.replace("fav-", "");
         const favorite = drawerFavorites.find((fav) => fav._id === favoriteId);
         if (favorite) {
           setActiveData({ favorite, type: "favorite" });
         }
       } else if (activeIdStr.includes("-")) {
+        // Dragging from a board (day)
         const [boardIndex, favIndex] = activeIdStr.split("-").map(Number);
         if (
           !isNaN(boardIndex) &&
@@ -1298,46 +1096,6 @@ const ItineraryDetailPage = () => {
     }
   };
 
-  const handleMoveActivity = async (boardIndex, fromIndex, toIndex) => {
-    if (userRole === "viewer") {
-      toast.error("No tienes permisos para reordenar actividades");
-      return;
-    }
-
-    if (toIndex < 0 || fromIndex === toIndex) {
-      return;
-    }
-
-    try {
-      const newBoards = [...boards];
-      const targetBoard = newBoards[boardIndex];
-
-      if (!targetBoard?.favorites || toIndex >= targetBoard.favorites.length) {
-        return;
-      }
-
-      const reorderedActivities = arrayMove(
-        targetBoard.favorites,
-        fromIndex,
-        toIndex
-      );
-
-      targetBoard.favorites = reorderedActivities.map((fav, idx) => ({
-        ...fav,
-        uniqueId: `${boardIndex}-${idx}-${fav._id}`,
-      }));
-
-      setBoards(newBoards);
-      await saveBoardChanges(newBoards);
-      toast.success("Actividades reordenadas");
-    } catch (error) {
-      console.error("Error moving activity:", error);
-      toast.error("Error al reordenar actividades");
-      fetchItinerary();
-    }
-  };
-
-  // FIXED: Enhanced drag end handler with better duplicate detection
   const handleDragEnd = async (event) => {
     const { active, over } = event;
 
@@ -1352,43 +1110,89 @@ const ItineraryDetailPage = () => {
     const overId = over.id;
 
     try {
-      let shouldSave = false;
-      let newBoards = [...boards];
-
+      // Handle moving experience from one day to another day
       if (
-        activeId.toString().startsWith("board-") &&
-        overId.toString().startsWith("board-") &&
-        activeId !== overId
+        activeId.toString().includes("-") &&
+        overId.toString().startsWith("board-")
       ) {
-        const oldIndex = boards.findIndex(
-          (board) => (board.id || board._id) === activeId.replace("board-", "")
+        const [sourceBoardIndex, sourceFavIndex] = activeId
+          .split("-")
+          .map(Number);
+        const targetBoardId = overId.toString().replace("board-", "");
+        const targetBoardIndex = boards.findIndex(
+          (board) => (board.id || board._id) === targetBoardId
         );
-        const newIndex = boards.findIndex(
-          (board) => (board.id || board._id) === overId.replace("board-", "")
-        );
 
-        if (oldIndex !== newIndex && oldIndex !== -1 && newIndex !== -1) {
-          const baseDate =
-            startDate ||
-            (boards[0]?.date ? new Date(boards[0].date) : new Date());
+        if (
+          isNaN(sourceBoardIndex) ||
+          isNaN(sourceFavIndex) ||
+          targetBoardIndex === -1
+        )
+          return;
 
-          newBoards = arrayMove(boards, oldIndex, newIndex);
+        // If moving to the same board, handle reordering
+        if (sourceBoardIndex === targetBoardIndex) return;
 
-          newBoards = newBoards.map((board, index) => {
-            const newDate = new Date(baseDate);
-            newDate.setDate(newDate.getDate() + index);
+        const sourceBoard = boards[sourceBoardIndex];
+        const targetBoard = boards[targetBoardIndex];
+        const movedFavorite = sourceBoard.favorites[sourceFavIndex];
 
-            return {
-              ...board,
-              date: newDate.toISOString().split("T")[0],
-            };
-          });
+        if (!movedFavorite) return;
 
-          setBoards(newBoards);
-          shouldSave = true;
-          toast.success("Días reordenados y fechas actualizadas");
+        const experienceId = getExperienceId(movedFavorite);
+        const experienceObj = getExperienceObject(movedFavorite);
+
+        if (!experienceId || !experienceObj) {
+          toast.error("Error: experiencia inválida");
+          return;
         }
-      } else if (
+
+        // Check for duplicates
+        if (isExperienceInBoard(movedFavorite, targetBoard.favorites)) {
+          toast.error("Esta experiencia ya está añadida en este día");
+          return;
+        }
+
+        // Confirm prefecture mismatch if needed
+        if (targetBoard.favorites?.length > 0) {
+          const boardPrefecture = getExperienceObject(
+            targetBoard.favorites[0]
+          )?.prefecture;
+          if (experienceObj?.prefecture !== boardPrefecture) {
+            const confirmMismatch = window.confirm(
+              "La prefectura de esta experiencia no coincide con las otras de este día. ¿Quieres moverla de todos modos?"
+            );
+            if (!confirmMismatch) return;
+          }
+        }
+
+        toast.loading("Moviendo experiencia...", { id: "moving-experience" });
+
+        // FIXED: Don't send userId - backend gets it from JWT
+        // Remove from source day
+        await removeExperienceFromItinerary({
+          itineraryId: id,
+          experienceId: experienceId,
+          boardDate: sourceBoard.date,
+          token: jwt,
+        });
+
+        // Add to target day
+        await addExperienceToItinerary({
+          itineraryId: id,
+          experienceId: experienceId,
+          boardDate: targetBoard.date,
+          token: jwt,
+        });
+
+        // Refresh the itinerary data
+        await fetchItinerary();
+
+        toast.success("Experiencia movida", { id: "moving-experience" });
+      }
+
+      // Handle moving from favorites drawer to a day
+      else if (
         activeId.toString().startsWith("fav-") &&
         overId.toString().startsWith("board-")
       ) {
@@ -1401,25 +1205,32 @@ const ItineraryDetailPage = () => {
         if (favoriteIndex === -1) return;
 
         const movedFavorite = drawerFavorites[favoriteIndex];
-        const boardIndex = newBoards.findIndex(
+        const boardIndex = boards.findIndex(
           (board) => (board.id || board._id) === boardId
         );
         if (boardIndex === -1) return;
 
-        const targetBoard = newBoards[boardIndex];
+        const targetBoard = boards[boardIndex];
+        const experienceId = getExperienceId(movedFavorite);
+        const experienceObj = getExperienceObject(movedFavorite);
 
-        // FIXED: Better duplicate checking for drag and drop
-        if (
-          isExperienceInBoard(movedFavorite.experienceId, targetBoard.favorites)
-        ) {
+        if (!experienceId || !experienceObj) {
+          toast.error("Error: experiencia inválida");
+          return;
+        }
+
+        // Check for duplicates
+        if (isExperienceInBoard(movedFavorite, targetBoard.favorites)) {
           toast.error("Esta experiencia ya está añadida en este día");
           return;
         }
 
+        // Confirm prefecture mismatch if needed
         if (targetBoard.favorites?.length > 0) {
-          const boardPrefecture =
-            targetBoard.favorites[0].experienceId?.prefecture;
-          if (movedFavorite.experienceId?.prefecture !== boardPrefecture) {
+          const boardPrefecture = getExperienceObject(
+            targetBoard.favorites[0]
+          )?.prefecture;
+          if (experienceObj?.prefecture !== boardPrefecture) {
             const confirmMismatch = window.confirm(
               "La prefectura de esta experiencia no coincide con las otras de este día. ¿Quieres añadirla de todos modos?"
             );
@@ -1427,167 +1238,45 @@ const ItineraryDetailPage = () => {
           }
         }
 
-        if (!targetBoard.favorites) targetBoard.favorites = [];
-        const newFavWithId = {
-          _id: movedFavorite._id,
-          experienceId: movedFavorite.experienceId,
-          uniqueId: `${boardIndex}-${targetBoard.favorites.length}-${movedFavorite._id}`,
-          isLocal: movedFavorite.isLocal || false,
-        };
-        targetBoard.favorites.push(newFavWithId);
-        targetBoard.dailyBudget = targetBoard.favorites.reduce(
-          (sum, fav) => sum + (fav.experienceId?.price || 0),
-          0
-        );
+        toast.loading("Añadiendo experiencia...", { id: "adding-from-fav" });
 
-        setBoards(newBoards);
-        updateTotalBudget(newBoards);
-        shouldSave = true;
-        toast.success("Experiencia añadida");
-      } else if (activeId.toString().includes("-") && overId === "drawer") {
-        const [boardIndex, favIndex] = activeId.split("-").map(Number);
+        // FIXED: Don't send userId - backend gets it from JWT
+        // Add to target day
+        await addExperienceToItinerary({
+          itineraryId: id,
+          experienceId: experienceId,
+          boardDate: targetBoard.date,
+          token: jwt,
+        });
 
-        if (isNaN(boardIndex) || isNaN(favIndex)) return;
+        // Refresh the itinerary data
+        await fetchItinerary();
 
-        const sourceBoard = newBoards[boardIndex];
-        if (!sourceBoard?.favorites?.[favIndex]) return;
-
-        const removedFavorite = sourceBoard.favorites.splice(favIndex, 1)[0];
-
-        const { uniqueId, ...cleanFavorite } = removedFavorite;
-        sourceBoard.favorites = sourceBoard.favorites.map((fav, idx) => ({
-          ...fav,
-          uniqueId: `${boardIndex}-${idx}-${fav._id}`,
-        }));
-
-        sourceBoard.dailyBudget = sourceBoard.favorites.reduce(
-          (sum, fav) => sum + (fav.experienceId?.price || 0),
-          0
-        );
-
-        const newDrawerFavorites = [...drawerFavorites, cleanFavorite];
-
-        setBoards(newBoards);
-        setDrawerFavorites(newDrawerFavorites);
-        updateTotalBudget(newBoards);
-        shouldSave = true;
-        toast.success("Experiencia movida a favoritos");
-      } else if (
-        activeId.toString().includes("-") &&
-        overId.toString().startsWith("board-")
-      ) {
-        const [sourceBoardIndex, sourceFavIndex] = activeId
-          .split("-")
-          .map(Number);
-        const targetBoardId = overId.toString().replace("board-", "");
-        const targetBoardIndex = newBoards.findIndex(
-          (board) => (board.id || board._id) === targetBoardId
-        );
-
-        if (
-          isNaN(sourceBoardIndex) ||
-          isNaN(sourceFavIndex) ||
-          targetBoardIndex === -1
-        )
-          return;
-        if (sourceBoardIndex === targetBoardIndex) return;
-
-        const sourceBoard = newBoards[sourceBoardIndex];
-        const targetBoard = newBoards[targetBoardIndex];
-
-        if (!sourceBoard?.favorites?.[sourceFavIndex]) return;
-
-        const movedFavorite = sourceBoard.favorites[sourceFavIndex];
-
-        // FIXED: Better duplicate checking
-        if (
-          isExperienceInBoard(movedFavorite.experienceId, targetBoard.favorites)
-        ) {
-          toast.error("Esta experiencia ya está añadida en este día");
-          return;
-        }
-
-        if (targetBoard.favorites?.length > 0) {
-          const boardPrefecture =
-            targetBoard.favorites[0].experienceId?.prefecture;
-          if (movedFavorite.experienceId?.prefecture !== boardPrefecture) {
-            const confirmMismatch = window.confirm(
-              "La prefectura de esta experiencia no coincide con las otras de este día. ¿Quieres añadirla de todos modos?"
-            );
-            if (!confirmMismatch) return;
-          }
-        }
-
-        sourceBoard.favorites.splice(sourceFavIndex, 1);
-        sourceBoard.favorites = sourceBoard.favorites.map((fav, idx) => ({
-          ...fav,
-          uniqueId: `${sourceBoardIndex}-${idx}-${fav._id}`,
-        }));
-        sourceBoard.dailyBudget = sourceBoard.favorites.reduce(
-          (sum, fav) => sum + (fav.experienceId?.price || 0),
-          0
-        );
-
-        if (!targetBoard.favorites) targetBoard.favorites = [];
-        const newFavWithId = {
-          ...movedFavorite,
-          uniqueId: `${targetBoardIndex}-${targetBoard.favorites.length}-${movedFavorite._id}`,
-        };
-        targetBoard.favorites.push(newFavWithId);
-        targetBoard.dailyBudget = targetBoard.favorites.reduce(
-          (sum, fav) => sum + (fav.experienceId?.price || 0),
-          0
-        );
-
-        setBoards(newBoards);
-        updateTotalBudget(newBoards);
-        shouldSave = true;
-        toast.success("Experiencia movida");
-      } else if (
-        activeId.toString().includes("-") &&
-        overId.toString().includes("-")
-      ) {
-        const [activeBoardIndex, activeFavIndex] = activeId
-          .split("-")
-          .map(Number);
-        const [overBoardIndex, overFavIndex] = overId.split("-").map(Number);
-
-        if (
-          activeBoardIndex === overBoardIndex &&
-          activeFavIndex !== overFavIndex
-        ) {
-          const board = newBoards[activeBoardIndex];
-
-          if (board?.favorites) {
-            board.favorites = arrayMove(
-              board.favorites,
-              activeFavIndex,
-              overFavIndex
-            );
-            board.favorites = board.favorites.map((fav, idx) => ({
-              ...fav,
-              uniqueId: `${activeBoardIndex}-${idx}-${fav._id}`,
-            }));
-
-            setBoards(newBoards);
-            shouldSave = true;
-            toast.success("Experiencias reordenadas");
-          }
-        }
+        toast.success("Experiencia añadida", { id: "adding-from-fav" });
       }
 
-      if (shouldSave) {
-        try {
-          await saveBoardChanges(newBoards);
-        } catch (error) {
-          console.error("Error saving to database:", error);
-          toast.error("Error al guardar cambios");
-          fetchItinerary();
+      // Handle reordering boards (days)
+      else if (
+        activeId.toString().startsWith("board-") &&
+        overId.toString().startsWith("board-") &&
+        activeId !== overId
+      ) {
+        const oldIndex = boards.findIndex(
+          (board) => (board.id || board._id) === activeId.replace("board-", "")
+        );
+        const newIndex = boards.findIndex(
+          (board) => (board.id || board._id) === overId.replace("board-", "")
+        );
+
+        if (oldIndex !== newIndex && oldIndex !== -1 && newIndex !== -1) {
+          await handleMoveBoard(oldIndex, newIndex);
         }
       }
     } catch (error) {
       console.error("Error in drag handler:", error);
       toast.error("Error al procesar el movimiento");
+      // Refresh data on error to ensure UI is in sync
+      fetchItinerary();
     }
   };
 
@@ -1692,38 +1381,53 @@ const ItineraryDetailPage = () => {
                   },
                 }}
               >
-                {boards.map((board, boardIndex) => (
-                  <BoardCard
-                    key={board._id || board.id || `board-${boardIndex}`}
-                    board={board}
-                    boardIndex={boardIndex}
-                    totalBoards={boards.length}
-                    onMoveBoard={
-                      hasPermission("edit") ? handleMoveBoard : undefined
-                    }
-                    onMoveActivity={
-                      hasPermission("edit") ? handleMoveActivity : undefined
-                    }
-                    onRemoveBoard={
-                      hasPermission("edit") ? handleRemoveBoard : undefined
-                    }
-                    onRemoveFavorite={
-                      hasPermission("removeExperience")
-                        ? handleRemoveFavorite
-                        : undefined
-                    }
-                    onAddExperience={
-                      hasPermission("addExperience")
-                        ? handleBoardAddExperience
-                        : undefined
-                    }
-                    isDragDisabled={
-                      !hasPermission("dragDrop") ||
-                      (activeId && !activeId.toString().startsWith("board-"))
-                    }
-                    userRole={userRole}
-                  />
-                ))}
+                {boards.map((board, boardIndex) => {
+                  // Debug each board being rendered
+                  console.log(`🎨 Rendering board ${boardIndex}:`, {
+                    boardId: board._id || board.id,
+                    date: board.date,
+                    favoritesCount: board.favorites?.length || 0,
+                    favorites: board.favorites,
+                  });
+
+                  return (
+                    <BoardCard
+                      key={board._id || board.id || `board-${boardIndex}`}
+                      board={board}
+                      boardIndex={boardIndex}
+                      totalBoards={boards.length}
+                      onMoveBoard={
+                        hasPermission("edit") ? handleMoveBoard : undefined
+                      }
+                      onRemoveBoard={
+                        hasPermission("edit") ? handleRemoveBoard : undefined
+                      }
+                      onRemoveFavorite={
+                        hasPermission("removeExperience")
+                          ? handleRemoveFavorite
+                          : undefined
+                      }
+                      onAddExperience={
+                        hasPermission("addExperience")
+                          ? handleBoardAddExperience
+                          : undefined
+                      }
+                      onReorderExperiences={
+                        hasPermission("edit")
+                          ? handleReorderExperiences
+                          : undefined
+                      }
+                      isDragDisabled={
+                        !hasPermission("dragDrop") ||
+                        (activeId && !activeId.toString().startsWith("board-"))
+                      }
+                      userRole={userRole}
+                      transportMode={transportMode}
+                      showDistanceIndicators={showDistanceIndicators}
+                      showRouteOptimizer={showRouteOptimizer}
+                    />
+                  );
+                })}
                 {hasPermission("edit") && (
                   <AddBoardCard onAddBoard={handleAddBoard} />
                 )}
@@ -1748,13 +1452,25 @@ const ItineraryDetailPage = () => {
           )}
         </Box>
 
+        {/* NEW: Route Settings Component */}
+        <RouteSettings
+          transportMode={transportMode}
+          onTransportModeChange={setTransportMode}
+          showDistanceIndicators={showDistanceIndicators}
+          onToggleDistanceIndicators={setShowDistanceIndicators}
+          showRouteOptimizer={showRouteOptimizer}
+          onToggleRouteOptimizer={setShowRouteOptimizer}
+          userRole={userRole}
+        />
+
         {userRole !== "viewer" && (
           <DragOverlay dropAnimation={null}>
-            {activeId && activeData ? (
+            {activeId && activeData && activeData.favorite ? (
               <ExperienceDragPreview
-                experience={activeData.favorite?.experienceId}
+                experience={getExperienceObject(activeData.favorite)}
                 category={
-                  activeData.favorite?.experienceId?.categories || "Other"
+                  getExperienceObject(activeData.favorite)?.categories ||
+                  "Other"
                 }
               />
             ) : null}
@@ -1793,7 +1509,7 @@ const ItineraryDetailPage = () => {
           open={addExperienceModalOpen}
           onClose={() => {
             setAddExperienceModalOpen(false);
-            setSelectedBoardIndex(null);
+            setSelectedBoardIndex(null); // Reset board selection when manually closing
           }}
           onAddExperience={handleAddExperienceWithBoardSelection}
           allExperiences={allExperiences}

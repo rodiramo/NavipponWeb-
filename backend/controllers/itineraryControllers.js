@@ -565,14 +565,14 @@ const addExperienceToItinerary = asyncHandler(async (req, res) => {
 
     // Check if a favorite already exists for this experience and user
     let favorite = await Favorite.findOne({
-      user: userId,
+      userId: userId,
       experienceId: experienceId,
     });
 
     // If no favorite exists, create one
     if (!favorite) {
       favorite = await Favorite.create({
-        user: userId,
+        userId: userId,
         experienceId: experienceId,
       });
     }
@@ -658,7 +658,7 @@ const removeExperienceFromItinerary = asyncHandler(async (req, res) => {
 
     // Find the favorite for this experience and user
     const favorite = await Favorite.findOne({
-      user: userId,
+      userId: userId,
       experienceId: experienceId,
     });
 

@@ -209,14 +209,21 @@ const ExperienceDetailsModal = ({ open, onClose, experience, category }) => {
                 sx={{
                   color: "white",
                   fontWeight: 500,
-                  fontSize: { xs: "0.875rem", sm: "1rem" },
+                  fontSize: { xs: "0.875rem", sm: "1.2rem" },
                 }}
               >
                 {experience.prefecture || "Ubicación desconocida"}
               </Typography>
             </Box>
             {experience.price !== null && experience.price !== undefined ? (
-              <Box>
+              <Box
+                sx={{
+                  background: theme.palette.background.default,
+                  borderRadius: 30,
+                  px: 2,
+                  py: 0.5,
+                }}
+              >
                 <Typography
                   variant={isMobile ? "subtitle1" : "h6"}
                   sx={{
@@ -793,65 +800,64 @@ const ActivityCard = ({
                   {fav?.experienceId?.prefecture || "Ubicación desconocida"}
                 </Typography>
               </Box>
+              <Box display="flex" alignItems="center" gap={1}>
+                {/* Enhanced Details Button */}
+                <Button
+                  variant="outlined"
+                  size="small"
+                  onClick={handleDetailsClick}
+                  sx={{
+                    borderRadius: { xs: 15, sm: 30 },
+                    textTransform: "none",
+                    fontWeight: 600,
+                    width: "fit-content",
+                    mb: { xs: 0.5, sm: 1 },
+                    background: `${theme.palette.primary.main}10`,
+                    borderColor: `${theme.palette.primary.main}30`,
+                    color: theme.palette.primary.main,
+                    transition: "all 0.3s ease",
+                    fontSize: { xs: "0.65rem", sm: "0.875rem" },
+                    py: { xs: 0.25, sm: 1 },
+                    px: { xs: 1, sm: 2 },
+                    minHeight: { xs: "24px", sm: "auto" },
+                    "&:hover": {
+                      background: `${theme.palette.primary.main}20`,
+                      borderColor: theme.palette.primary.main,
+                      transform: isTabletOrMobile ? "none" : "translateY(-1px)",
+                    },
+                  }}
+                >
+                  {" "}
+                  <Info size={isMobile ? 12 : 20} />
+                </Button>
 
-              {/* Enhanced Details Button */}
-              <Button
-                variant="outlined"
-                size="small"
-                startIcon={<Info size={isMobile ? 12 : 16} />}
-                onClick={handleDetailsClick}
-                sx={{
-                  borderRadius: { xs: 15, sm: 30 },
-                  textTransform: "none",
-                  fontWeight: 600,
-                  width: "fit-content",
-                  mb: { xs: 0.5, sm: 1 },
-                  background: `${theme.palette.primary.main}10`,
-                  borderColor: `${theme.palette.primary.main}30`,
-                  color: theme.palette.primary.main,
-                  transition: "all 0.3s ease",
-                  fontSize: { xs: "0.65rem", sm: "0.875rem" },
-                  py: { xs: 0.25, sm: 1 },
-                  px: { xs: 1, sm: 2 },
-                  minHeight: { xs: "24px", sm: "auto" },
-                  "&:hover": {
-                    background: `${theme.palette.primary.main}20`,
-                    borderColor: theme.palette.primary.main,
-                    transform: isTabletOrMobile ? "none" : "translateY(-1px)",
-                  },
-                }}
-              >
-                Ver detalles
-              </Button>
-
-              {fav?.experienceId?.price != null &&
-                fav.experienceId.price !== "" &&
-                fav.experienceId.price !== 0 && (
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 1,
-                      width: "fit-content",
-                      py: { xs: 0.25, sm: 1 },
-                      px: { xs: 1, sm: 2 },
-                      borderRadius: { xs: 15, sm: 30 },
-                      background: `${theme.palette.secondary.medium}15`,
-                      border: `1px solid ${theme.palette.secondary.medium}30`,
-                    }}
-                  >
-                    <Typography
-                      variant="caption"
+                {fav?.experienceId?.price != null &&
+                  fav.experienceId.price !== "" &&
+                  fav.experienceId.price !== 0 && (
+                    <Box
                       sx={{
-                        color: theme.palette.secondary.medium,
-                        fontWeight: 700,
-                        fontSize: { xs: "0.65rem", sm: "0.875rem" },
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1,
+                        width: "fit-content",
+                        py: { xs: 0.25, sm: 1 },
+                        px: { xs: 1, sm: 2 },
+                        borderRadius: { xs: 15, sm: 30 },
                       }}
                     >
-                      ¥ {fav?.experienceId?.price}
-                    </Typography>
-                  </Box>
-                )}
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          color: theme.palette.secondary.medium,
+                          fontWeight: 700,
+                          fontSize: { xs: "0.65rem", sm: "1rem" },
+                        }}
+                      >
+                        ¥ {fav?.experienceId?.price}
+                      </Typography>
+                    </Box>
+                  )}
+              </Box>
             </Box>
           </Box>
         </Box>

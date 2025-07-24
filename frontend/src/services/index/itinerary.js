@@ -232,59 +232,121 @@ export const removeTravelerFromItinerary = async (
   }
 };
 
-// Add these functions to your existing itinerary service file
-
-// Add an experience to an itinerary
 export const addExperienceToItinerary = async ({
   itineraryId,
   experienceId,
   boardDate,
   token,
+  // Remove userId parameter - backend gets it from JWT token
 }) => {
   try {
+    console.log("🚀 Service: Adding experience with params:", {
+      itineraryId,
+      experienceId,
+      boardDate,
+      hasToken: !!token,
+    });
+
+    if (!experienceId) {
+      throw new Error("experienceId is required but not provided to service");
+    }
+
     const config = {
       headers: {
+        "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
     };
-    const { data } = await axios.patch(
+
+    // FIXED: Only send what your backend expects
+    const requestBody = {
+      experienceId: experienceId,
+      boardDate: boardDate,
+      // DO NOT send userId - backend gets it from req.user._id via JWT
+    };
+
+    console.log(
+      "📤 Service: Request body being sent:",
+      JSON.stringify(requestBody, null, 2)
+    );
+    console.log(
+      "📤 Service: Request URL:",
+      `${API_URL}/api/itineraries/${itineraryId}/experiences`
+    );
+
+    const response = await axios.patch(
       `${API_URL}/api/itineraries/${itineraryId}/experiences`,
-      { experienceId, boardDate },
+      requestBody,
       config
     );
-    return data;
+
+    console.log("✅ Service: Success response:", response.data);
+    return response.data;
   } catch (error) {
-    if (error.response && error.response.data.message)
+    console.error("❌ Service: Error details:", {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status,
+      config: error.config,
+    });
+
+    if (error.response && error.response.data && error.response.data.message) {
       throw new Error(error.response.data.message);
-    throw new Error(error.message);
+    }
+    throw new Error(
+      error.message || "Unknown error in addExperienceToItinerary"
+    );
   }
 };
 
-// Remove an experience from an itinerary
+// FIXED: Remove an experience from an itinerary (matching your backend exactly)
 export const removeExperienceFromItinerary = async ({
   itineraryId,
   experienceId,
   boardDate,
   token,
+  // Remove userId parameter - backend gets it from JWT token
 }) => {
   try {
+    console.log("🗑️ Service: Removing experience with params:", {
+      itineraryId,
+      experienceId,
+      boardDate,
+      hasToken: !!token,
+    });
+
     const config = {
       headers: {
         Authorization: `Bearer ${token}`,
       },
     };
 
-    // Add boardDate as query parameter if provided
-    const url = boardDate
-      ? `${API_URL}/api/itineraries/${itineraryId}/experiences/${experienceId}?boardDate=${boardDate}`
-      : `${API_URL}/api/itineraries/${itineraryId}/experiences/${experienceId}`;
+    // FIXED: Only include boardDate in query params if provided
+    const queryParams = new URLSearchParams();
+    if (boardDate) queryParams.append("boardDate", boardDate);
+    // Do NOT send userId - backend gets it from req.user._id via JWT
 
-    const { data } = await axios.delete(url, config);
-    return data;
+    const url = `${API_URL}/api/itineraries/${itineraryId}/experiences/${experienceId}?${queryParams.toString()}`;
+
+    console.log("📤 Service: Request URL:", url);
+
+    const response = await axios.delete(url, config);
+
+    console.log("✅ Service: Success response:", response.data);
+    return response.data;
   } catch (error) {
-    if (error.response && error.response.data.message)
+    console.error("❌ Service: Error in removeExperienceFromItinerary:", {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status,
+    });
+
+    if (error.response && error.response.data && error.response.data.message) {
       throw new Error(error.response.data.message);
-    throw new Error(error.message);
+    }
+    throw new Error(
+      error.message || "Unknown error in removeExperienceFromItinerary"
+    );
   }
 };
 
@@ -322,6 +384,49 @@ export const getItineraryExperiences = async (itineraryId, token) => {
     };
     const { data } = await axios.get(
       `${API_URL}/api/itineraries/${itineraryId}/experiences`,
+      config
+    );
+    return data;
+  } catch (error) {
+    if (error.response && error.response.data.message)
+      throw new Error(error.response.data.message);
+    throw new Error(error.message);
+  }
+};
+
+// Add this to your services/index/itinerary.js file:
+
+export const createFavorite = async ({ experienceId, userId, token }) => {
+  try {
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    const { data } = await axios.post(
+      `${API_URL}/api/favorites`,
+      { experienceId, userId },
+      config
+    );
+    return data;
+  } catch (error) {
+    if (error.response && error.response.data.message)
+      throw new Error(error.response.data.message);
+    throw new Error(error.message);
+  }
+};
+
+// Alternative endpoints you might need to try:
+export const createUserFavorite = async ({ experienceId, userId, token }) => {
+  try {
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    const { data } = await axios.post(
+      `${API_URL}/api/users/${userId}/favorites`,
+      { experienceId },
       config
     );
     return data;
