@@ -443,6 +443,57 @@ const ItineraryDetailPage = () => {
     }
   };
 
+  // 🆕 NEW: Enhanced handleMoveActivity function for manual up/down buttons
+  const handleMoveActivity = async (boardIndex, fromIndex, toIndex) => {
+    if (!hasPermission("edit")) {
+      toast.error("No tienes permisos para reordenar experiencias");
+      return;
+    }
+
+    if (fromIndex === toIndex || toIndex < 0) return;
+
+    const board = boards[boardIndex];
+    if (!board || !board.favorites || toIndex >= board.favorites.length) return;
+
+    try {
+      console.log(
+        `🔄 Manual move in board ${boardIndex}: ${fromIndex} → ${toIndex}`
+      );
+
+      const newBoards = [...boards];
+      const targetBoard = newBoards[boardIndex];
+
+      // Use arrayMove to reorder
+      const reorderedFavorites = arrayMove(
+        targetBoard.favorites,
+        fromIndex,
+        toIndex
+      );
+
+      // Update with new unique IDs
+      newBoards[boardIndex] = {
+        ...targetBoard,
+        favorites: reorderedFavorites.map((fav, index) => ({
+          ...fav,
+          uniqueId: `${boardIndex}-${index}-${fav._id}`,
+        })),
+      };
+
+      // Update state immediately
+      setBoards(newBoards);
+      updateTotalBudget(newBoards);
+
+      // Save to backend
+      await updateItinerary(id, { boards: newBoards }, jwt);
+      toast.success("Experiencia reordenada");
+    } catch (error) {
+      console.error("Error moving activity:", error);
+      toast.error("Error al reordenar experiencia");
+      // Refresh on error
+      fetchItinerary();
+    }
+  };
+
   const handlePrivacyToggle = async (newPrivateStatus) => {
     if (userRole !== "owner") {
       toast.error(
@@ -752,6 +803,21 @@ const ItineraryDetailPage = () => {
 
     fetchFavorites();
   }, [user?._id, jwt]);
+
+  // 🆕 NEW: Debug useEffect to monitor board state
+  useEffect(() => {
+    console.log(
+      "🔍 Current boards state:",
+      boards.map((board, index) => ({
+        boardIndex: index,
+        boardId: board._id || board.id,
+        favoritesCount: board.favorites?.length || 0,
+        activityIds: (board.favorites || []).map(
+          (fav, favIndex) => `${index}-${favIndex}-${fav._id}`
+        ),
+      }))
+    );
+  }, [boards]);
 
   const hasPermission = (action) => {
     const permissions = {
@@ -1065,6 +1131,7 @@ const ItineraryDetailPage = () => {
     }
   }, [addExperienceModalOpen, allExperiences.length, fetchAllExperiences]);
 
+  // 🆕 ENHANCED: Better drag start with activity parsing
   const handleDragStart = (event) => {
     setActiveId(event.active.id);
 
@@ -1082,20 +1149,35 @@ const ItineraryDetailPage = () => {
           setActiveData({ favorite, type: "favorite" });
         }
       } else if (activeIdStr.includes("-")) {
-        // Dragging from a board (day)
-        const [boardIndex, favIndex] = activeIdStr.split("-").map(Number);
-        if (
-          !isNaN(boardIndex) &&
-          !isNaN(favIndex) &&
-          boards[boardIndex]?.favorites?.[favIndex]
-        ) {
-          const favorite = boards[boardIndex].favorites[favIndex];
-          setActiveData({ favorite, type: "activity", boardIndex, favIndex });
+        // 🆕 ENHANCED: Better parsing for activity drags
+        const parts = activeIdStr.split("-");
+        if (parts.length >= 3) {
+          const boardIndex = parseInt(parts[0]);
+          const favIndex = parseInt(parts[1]);
+
+          if (
+            !isNaN(boardIndex) &&
+            !isNaN(favIndex) &&
+            boards[boardIndex]?.favorites?.[favIndex]
+          ) {
+            const favorite = boards[boardIndex].favorites[favIndex];
+            setActiveData({
+              favorite,
+              type: "activity",
+              boardIndex,
+              favIndex,
+            });
+
+            console.log(
+              `🎯 Dragging activity from board ${boardIndex}, position ${favIndex}`
+            );
+          }
         }
       }
     }
   };
 
+  // 🆕 ENHANCED: Complete drag end handler with same-board reordering
   const handleDragEnd = async (event) => {
     const { active, over } = event;
 
@@ -1110,85 +1192,114 @@ const ItineraryDetailPage = () => {
     const overId = over.id;
 
     try {
-      // Handle moving experience from one day to another day
+      // 🆕 NEW: Handle reordering activities WITHIN the same board
       if (
         activeId.toString().includes("-") &&
-        overId.toString().startsWith("board-")
+        overId.toString().includes("-") &&
+        !overId.toString().startsWith("board-")
       ) {
         const [sourceBoardIndex, sourceFavIndex] = activeId
           .split("-")
           .map(Number);
-        const targetBoardId = overId.toString().replace("board-", "");
-        const targetBoardIndex = boards.findIndex(
-          (board) => (board.id || board._id) === targetBoardId
-        );
+        const [targetBoardIndex, targetFavIndex] = overId
+          .split("-")
+          .map(Number);
 
+        // Only proceed if we have valid indices
         if (
-          isNaN(sourceBoardIndex) ||
-          isNaN(sourceFavIndex) ||
-          targetBoardIndex === -1
-        )
-          return;
-
-        // If moving to the same board, handle reordering
-        if (sourceBoardIndex === targetBoardIndex) return;
-
-        const sourceBoard = boards[sourceBoardIndex];
-        const targetBoard = boards[targetBoardIndex];
-        const movedFavorite = sourceBoard.favorites[sourceFavIndex];
-
-        if (!movedFavorite) return;
-
-        const experienceId = getExperienceId(movedFavorite);
-        const experienceObj = getExperienceObject(movedFavorite);
-
-        if (!experienceId || !experienceObj) {
-          toast.error("Error: experiencia inválida");
-          return;
-        }
-
-        // Check for duplicates
-        if (isExperienceInBoard(movedFavorite, targetBoard.favorites)) {
-          toast.error("Esta experiencia ya está añadida en este día");
-          return;
-        }
-
-        // Confirm prefecture mismatch if needed
-        if (targetBoard.favorites?.length > 0) {
-          const boardPrefecture = getExperienceObject(
-            targetBoard.favorites[0]
-          )?.prefecture;
-          if (experienceObj?.prefecture !== boardPrefecture) {
-            const confirmMismatch = window.confirm(
-              "La prefectura de esta experiencia no coincide con las otras de este día. ¿Quieres moverla de todos modos?"
+          !isNaN(sourceBoardIndex) &&
+          !isNaN(sourceFavIndex) &&
+          !isNaN(targetBoardIndex) &&
+          !isNaN(targetFavIndex)
+        ) {
+          // Same board reordering
+          if (
+            sourceBoardIndex === targetBoardIndex &&
+            sourceFavIndex !== targetFavIndex
+          ) {
+            console.log(
+              `🔄 Reordering within board ${sourceBoardIndex}: ${sourceFavIndex} → ${targetFavIndex}`
             );
-            if (!confirmMismatch) return;
+
+            const newBoards = [...boards];
+            const board = newBoards[sourceBoardIndex];
+
+            if (board && board.favorites && board.favorites[sourceFavIndex]) {
+              // Use arrayMove to reorder the favorites array
+              const reorderedFavorites = arrayMove(
+                board.favorites,
+                sourceFavIndex,
+                targetFavIndex
+              );
+
+              // Update the board with reordered favorites and new unique IDs
+              newBoards[sourceBoardIndex] = {
+                ...board,
+                favorites: reorderedFavorites.map((fav, index) => ({
+                  ...fav,
+                  uniqueId: `${sourceBoardIndex}-${index}-${fav._id}`,
+                })),
+              };
+
+              // Update state immediately for smooth UX
+              setBoards(newBoards);
+              updateTotalBudget(newBoards);
+
+              // Save to backend
+              await updateItinerary(id, { boards: newBoards }, jwt);
+              toast.success("Experiencia reordenada");
+
+              return; // Early return to prevent other drag handlers
+            }
+          }
+          // Different board reordering (move between boards)
+          else if (sourceBoardIndex !== targetBoardIndex) {
+            const sourceBoard = boards[sourceBoardIndex];
+            const targetBoard = boards[targetBoardIndex];
+            const movedFavorite = sourceBoard.favorites[sourceFavIndex];
+
+            if (!movedFavorite) return;
+
+            const experienceId = getExperienceId(movedFavorite);
+            const experienceObj = getExperienceObject(movedFavorite);
+
+            if (!experienceId || !experienceObj) {
+              toast.error("Error: experiencia inválida");
+              return;
+            }
+
+            // Check for duplicates
+            if (isExperienceInBoard(movedFavorite, targetBoard.favorites)) {
+              toast.error("Esta experiencia ya está añadida en este día");
+              return;
+            }
+
+            toast.loading("Moviendo experiencia...", {
+              id: "moving-experience",
+            });
+
+            // Remove from source day
+            await removeExperienceFromItinerary({
+              itineraryId: id,
+              experienceId: experienceId,
+              boardDate: sourceBoard.date,
+              token: jwt,
+            });
+
+            // Add to target day
+            await addExperienceToItinerary({
+              itineraryId: id,
+              experienceId: experienceId,
+              boardDate: targetBoard.date,
+              token: jwt,
+            });
+
+            // Refresh the itinerary data
+            await fetchItinerary();
+            toast.success("Experiencia movida", { id: "moving-experience" });
+            return;
           }
         }
-
-        toast.loading("Moviendo experiencia...", { id: "moving-experience" });
-
-        // FIXED: Don't send userId - backend gets it from JWT
-        // Remove from source day
-        await removeExperienceFromItinerary({
-          itineraryId: id,
-          experienceId: experienceId,
-          boardDate: sourceBoard.date,
-          token: jwt,
-        });
-
-        // Add to target day
-        await addExperienceToItinerary({
-          itineraryId: id,
-          experienceId: experienceId,
-          boardDate: targetBoard.date,
-          token: jwt,
-        });
-
-        // Refresh the itinerary data
-        await fetchItinerary();
-
-        toast.success("Experiencia movida", { id: "moving-experience" });
       }
 
       // Handle moving from favorites drawer to a day
@@ -1225,22 +1336,8 @@ const ItineraryDetailPage = () => {
           return;
         }
 
-        // Confirm prefecture mismatch if needed
-        if (targetBoard.favorites?.length > 0) {
-          const boardPrefecture = getExperienceObject(
-            targetBoard.favorites[0]
-          )?.prefecture;
-          if (experienceObj?.prefecture !== boardPrefecture) {
-            const confirmMismatch = window.confirm(
-              "La prefectura de esta experiencia no coincide con las otras de este día. ¿Quieres añadirla de todos modos?"
-            );
-            if (!confirmMismatch) return;
-          }
-        }
-
         toast.loading("Añadiendo experiencia...", { id: "adding-from-fav" });
 
-        // FIXED: Don't send userId - backend gets it from JWT
         // Add to target day
         await addExperienceToItinerary({
           itineraryId: id,
@@ -1251,7 +1348,6 @@ const ItineraryDetailPage = () => {
 
         // Refresh the itinerary data
         await fetchItinerary();
-
         toast.success("Experiencia añadida", { id: "adding-from-fav" });
       }
 
@@ -1315,7 +1411,15 @@ const ItineraryDetailPage = () => {
             },
           }}
         >
-          <Box sx={{ transition: "margin 0.3s ease-in-out", width: "100%" }}>
+          <Box
+            sx={{
+              transition: "margin 0.3s ease-in-out",
+              width: "100%",
+              height: "100vh", // Use full viewport height
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
             <ItineraryHeader
               name={name}
               setName={setName}
@@ -1365,35 +1469,80 @@ const ItineraryDetailPage = () => {
             >
               <Box
                 sx={{
+                  flex: 1, // Take remaining height after header
                   display: "flex",
-                  gap: 2,
+                  gap: { xs: 0.75, sm: 1, md: 1.25 }, // Much smaller gaps
                   overflowX: "auto",
-                  p: 1,
-                  paddingBottom: "20px",
-                  height: "min-content",
-                  whiteSpace: "nowrap",
+                  overflowY: "visible",
+                  px: { xs: 0.5, sm: 0.75, md: 1 }, // Minimal horizontal padding
+                  py: { xs: 0.5, sm: 0.75 }, // Minimal vertical padding
+                  alignItems: "flex-start",
+
+                  // Optimize for mobile scrolling
+                  WebkitOverflowScrolling: "touch",
+                  scrollbarWidth: "thin",
+
+                  // Each board takes less space, fits more on screen
+                  "& > *": {
+                    minWidth: {
+                      xs: "240px", // Much narrower on mobile - fit 1.5+ boards
+                      sm: "260px", // Fit ~2.5 boards on tablet
+                      md: "280px", // Fit ~4+ boards on desktop
+                      lg: "300px", // Fit 5+ boards on larger screens
+                    },
+                    maxWidth: {
+                      xs: "240px",
+                      sm: "260px",
+                      md: "280px",
+                      lg: "300px",
+                    },
+                    height: {
+                      xs: "calc(100vh - 140px)", // Use almost full height on mobile
+                      sm: "calc(100vh - 150px)",
+                      md: "calc(100vh - 160px)",
+                    },
+                    flexShrink: 0, // Don't shrink boards
+                  },
+
+                  // Thinner, less intrusive scrollbar
                   "&::-webkit-scrollbar": {
-                    height: "8px",
+                    height: { xs: "3px", sm: "4px", md: "5px" },
                   },
                   "&::-webkit-scrollbar-thumb": {
-                    backgroundColor: theme.palette.secondary.dark,
-                    borderRadius: "4px",
+                    backgroundColor: "rgba(255,255,255,0.3)",
+                    borderRadius: "2px",
+                    "&:hover": {
+                      backgroundColor: "rgba(255,255,255,0.5)",
+                    },
+                  },
+                  "&::-webkit-scrollbar-track": {
+                    backgroundColor: "transparent",
                   },
                 }}
               >
                 {boards.map((board, boardIndex) => {
-                  // Debug each board being rendered
+                  // 🆕 ENHANCED: Ensure each favorite has a proper uniqueId for drag and drop
+                  const boardWithUniqueIds = {
+                    ...board,
+                    favorites: (board.favorites || []).map((fav, favIndex) => ({
+                      ...fav,
+                      uniqueId: `${boardIndex}-${favIndex}-${fav._id}`,
+                    })),
+                  };
+
                   console.log(`🎨 Rendering board ${boardIndex}:`, {
                     boardId: board._id || board.id,
                     date: board.date,
                     favoritesCount: board.favorites?.length || 0,
-                    favorites: board.favorites,
+                    activityIds: (board.favorites || []).map(
+                      (fav, favIndex) => `${boardIndex}-${favIndex}-${fav._id}`
+                    ),
                   });
 
                   return (
                     <BoardCard
                       key={board._id || board.id || `board-${boardIndex}`}
-                      board={board}
+                      board={boardWithUniqueIds}
                       boardIndex={boardIndex}
                       totalBoards={boards.length}
                       onMoveBoard={
@@ -1417,6 +1566,10 @@ const ItineraryDetailPage = () => {
                           ? handleReorderExperiences
                           : undefined
                       }
+                      // 🆕 NEW: Add the manual move handler for up/down buttons
+                      onMoveActivity={
+                        hasPermission("edit") ? handleMoveActivity : undefined
+                      }
                       isDragDisabled={
                         !hasPermission("dragDrop") ||
                         (activeId && !activeId.toString().startsWith("board-"))
@@ -1425,31 +1578,51 @@ const ItineraryDetailPage = () => {
                       transportMode={transportMode}
                       showDistanceIndicators={showDistanceIndicators}
                       showRouteOptimizer={showRouteOptimizer}
+                      // Enable compact mode for better space utilization
+                      compact={true}
+                      dense={true}
                     />
                   );
                 })}
+
                 {hasPermission("edit") && (
-                  <AddBoardCard onAddBoard={handleAddBoard} />
+                  <Box
+                    sx={{
+                      minWidth: { xs: "200px", sm: "220px", md: "240px" }, // Smaller add board card
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <AddBoardCard onAddBoard={handleAddBoard} />
+                  </Box>
                 )}
               </Box>
             </SortableContext>
-          </Box>
 
-          {hasPermission("edit") && !isMobile && (
-            <FavoritesDrawer
-              isOpen={isDrawerOpen}
-              onToggle={() => setIsDrawerOpen(!isDrawerOpen)}
-              groupedFavorites={groupedFavorites}
-              selectedCategory={selectedCategory}
-              setSelectedCategory={setSelectedCategory}
-              selectedRegion={selectedRegion}
-              setSelectedRegion={setSelectedRegion}
-              selectedPrefecture={selectedPrefecture}
-              setSelectedPrefecture={setSelectedPrefecture}
-              onClearFilters={handleClearFilters}
-              userRole={userRole}
-            />
-          )}
+            {/* 3. Optimize favorites drawer for mobile */}
+            {hasPermission("edit") && !isMobile && (
+              <FavoritesDrawer
+                isOpen={isDrawerOpen}
+                onToggle={() => setIsDrawerOpen(!isDrawerOpen)}
+                groupedFavorites={groupedFavorites}
+                selectedCategory={selectedCategory}
+                setSelectedCategory={setSelectedCategory}
+                selectedRegion={selectedRegion}
+                setSelectedRegion={setSelectedRegion}
+                selectedPrefecture={selectedPrefecture}
+                setSelectedPrefecture={setSelectedPrefecture}
+                onClearFilters={handleClearFilters}
+                userRole={userRole}
+                // Make drawer more compact
+                sx={{
+                  "& .MuiDrawer-paper": {
+                    width: { sm: 280, md: 320 }, // Smaller drawer width
+                  },
+                }}
+              />
+            )}
+          </Box>
         </Box>
 
         {/* NEW: Route Settings Component */}

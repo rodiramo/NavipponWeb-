@@ -1,5 +1,3 @@
-// Enhanced BoardCard.jsx with Distance Indicators and Route Optimization
-
 import React, { useState } from "react";
 import {
   Box,
@@ -8,8 +6,6 @@ import {
   useTheme,
   Button,
   useMediaQuery,
-  Collapse,
-  Chip,
 } from "@mui/material";
 import {
   useSortable,
@@ -27,6 +23,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Route,
+  Sparkles,
   Navigation,
   Clock,
   TrendingDown,
@@ -36,7 +33,7 @@ import {
 import ActivityCard from "./ItineraryActivity";
 import MapModal from "./MapModal";
 
-// Distance calculation utilities
+// ... (keep all your existing utility functions: calculateDistance, getExperienceCoordinates, etc.)
 const calculateDistance = (lat1, lon1, lat2, lon2) => {
   const R = 6371;
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
@@ -135,7 +132,7 @@ const optimizeRoute = (experiences) => {
   return optimized;
 };
 
-// Distance Indicator Component
+// COMPACT Distance Indicator Component
 const DistanceIndicator = ({
   fromExperience,
   toExperience,
@@ -152,17 +149,17 @@ const DistanceIndicator = ({
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          py: 0.5,
-          my: 0.5,
+          py: 0.25, // Reduced from 0.5
+          my: 0.25, // Reduced from 0.5
           backgroundColor: theme.palette.grey[100],
-          borderRadius: 1,
-          fontSize: "0.7rem",
+          borderRadius: 0.5, // Reduced from 1
+          fontSize: "0.65rem", // Reduced from 0.7rem
         }}
       >
-        <Navigation size={10} color={theme.palette.grey[500]} />
+        <Navigation size={8} color={theme.palette.grey[500]} />
         <Typography
           variant="caption"
-          sx={{ ml: 0.5, fontSize: "0.6rem", color: theme.palette.grey[600] }}
+          sx={{ ml: 0.25, fontSize: "0.55rem", color: theme.palette.grey[600] }}
         >
           Sin ubicación
         </Typography>
@@ -182,24 +179,24 @@ const DistanceIndicator = ({
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        py: 0.5,
-        my: 0.5,
+        py: 0.25, // Compact padding
+        my: 0.25,
         backgroundColor: theme.palette.background.paper,
-        borderRadius: 1,
+        borderRadius: 0.5,
         border: `1px solid ${getDistanceColor(distance)}`,
         opacity: 0.8,
       }}
     >
       <Navigation
-        size={10}
+        size={8} // Smaller icon
         color={getDistanceColor(distance)}
         style={{ transform: "rotate(45deg)" }}
       />
       <Typography
         variant="caption"
         sx={{
-          ml: 0.5,
-          fontSize: "0.6rem",
+          ml: 0.25,
+          fontSize: "0.55rem", // Smaller text
           fontWeight: 600,
           color: getDistanceColor(distance),
         }}
@@ -209,15 +206,15 @@ const DistanceIndicator = ({
       {travelTime && (
         <>
           <Clock
-            size={8}
+            size={6} // Smaller clock icon
             color={theme.palette.grey[600]}
-            style={{ marginLeft: 4 }}
+            style={{ marginLeft: 2 }}
           />
           <Typography
             variant="caption"
             sx={{
-              ml: 0.3,
-              fontSize: "0.6rem",
+              ml: 0.2,
+              fontSize: "0.55rem",
               color: theme.palette.grey[700],
             }}
           >
@@ -229,7 +226,7 @@ const DistanceIndicator = ({
   );
 };
 
-// Route Optimizer Component
+// COMPACT Route Optimizer Component
 const RouteOptimizerPanel = ({
   experiences,
   onApplyOptimization,
@@ -260,17 +257,21 @@ const RouteOptimizerPanel = ({
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          p: 1,
+          p: 0.5, // Reduced padding
           backgroundColor: theme.palette.success.light + "20",
-          borderRadius: 1,
+          borderRadius: 0.5,
           border: `1px solid ${theme.palette.success.light}`,
-          my: 1,
+          my: 0.5,
         }}
       >
-        <CheckCircle size={16} color={theme.palette.success.main} />
+        <CheckCircle size={12} color={theme.palette.success.main} />
         <Typography
           variant="caption"
-          sx={{ ml: 1, fontSize: "0.7rem", color: theme.palette.success.dark }}
+          sx={{
+            ml: 0.5,
+            fontSize: "0.6rem",
+            color: theme.palette.success.dark,
+          }}
         >
           Ruta optimizada ✨
         </Typography>
@@ -283,9 +284,9 @@ const RouteOptimizerPanel = ({
       sx={{
         backgroundColor: theme.palette.primary.light + "15",
         border: `1px solid ${theme.palette.primary.light}`,
-        borderRadius: 2,
-        p: 1.5,
-        my: 1,
+        borderRadius: 1, // Reduced from 2
+        p: 0.75, // Reduced from 1.5
+        my: 0.5,
       }}
     >
       <Box
@@ -293,33 +294,33 @@ const RouteOptimizerPanel = ({
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          mb: 1,
+          mb: 0.5, // Reduced from 1
         }}
       >
         <Box sx={{ display: "flex", alignItems: "center" }}>
-          <Route size={16} color={theme.palette.primary.main} />
+          <Route size={12} color={theme.palette.primary.main} />
           <Typography
             variant="subtitle2"
-            sx={{ ml: 1, fontSize: "0.8rem", fontWeight: 600 }}
+            sx={{ ml: 0.5, fontSize: "0.7rem", fontWeight: 600 }}
           >
-            Optimización de Ruta
+            Optimización
           </Typography>
         </Box>
         <IconButton
           size="small"
           onClick={() => setShowDetails(!showDetails)}
-          sx={{ p: 0.5 }}
+          sx={{ p: 0.25 }}
         >
-          <Settings size={14} />
+          <Settings size={10} />
         </IconButton>
       </Box>
 
       <Box
         sx={{
           backgroundColor: theme.palette.background.paper,
-          borderRadius: 1,
-          p: 1,
-          mb: 1,
+          borderRadius: 0.5,
+          p: 0.5, // Reduced padding
+          mb: 0.5,
         }}
       >
         <Box
@@ -327,27 +328,27 @@ const RouteOptimizerPanel = ({
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            mb: 0.5,
+            mb: 0.25,
           }}
         >
           <Typography
             variant="caption"
-            sx={{ fontSize: "0.7rem", color: theme.palette.text.secondary }}
+            sx={{ fontSize: "0.6rem", color: theme.palette.text.secondary }}
           >
-            Mejora posible:
+            Mejora:
           </Typography>
           <Box sx={{ display: "flex", alignItems: "center" }}>
-            <TrendingDown size={12} color={theme.palette.success.main} />
+            <TrendingDown size={10} color={theme.palette.success.main} />
             <Typography
               variant="caption"
               sx={{
-                ml: 0.5,
-                fontSize: "0.7rem",
+                ml: 0.25,
+                fontSize: "0.6rem",
                 fontWeight: 600,
                 color: theme.palette.success.main,
               }}
             >
-              {formatDistance(distanceSaved)} menos (
+              {formatDistance(distanceSaved)} (
               {percentageImprovement.toFixed(1)}%)
             </Typography>
           </Box>
@@ -357,108 +358,54 @@ const RouteOptimizerPanel = ({
           sx={{
             display: "grid",
             gridTemplateColumns: "1fr 1fr",
-            gap: 1,
-            fontSize: "0.65rem",
+            gap: 0.5,
+            fontSize: "0.55rem",
           }}
         >
           <Box>
             <Typography
               variant="caption"
-              sx={{ fontSize: "0.6rem", color: theme.palette.text.secondary }}
+              sx={{ fontSize: "0.55rem", color: theme.palette.text.secondary }}
             >
-              Actual:
-            </Typography>
-            <Typography
-              variant="caption"
-              sx={{ display: "block", fontWeight: 500, fontSize: "0.65rem" }}
-            >
-              {formatDistance(originalDistance)}
+              Actual: {formatDistance(originalDistance)}
             </Typography>
           </Box>
           <Box>
             <Typography
               variant="caption"
-              sx={{ fontSize: "0.6rem", color: theme.palette.text.secondary }}
-            >
-              Optimizada:
-            </Typography>
-            <Typography
-              variant="caption"
               sx={{
-                display: "block",
+                fontSize: "0.55rem",
                 fontWeight: 500,
-                fontSize: "0.65rem",
                 color: theme.palette.success.main,
               }}
             >
-              {formatDistance(optimizedDistance)}
+              Optimizada: {formatDistance(optimizedDistance)}
             </Typography>
           </Box>
         </Box>
       </Box>
 
-      <Collapse in={showDetails}>
-        <Box sx={{ mb: 1 }}>
-          <Typography
-            variant="caption"
-            sx={{
-              fontSize: "0.7rem",
-              fontWeight: 600,
-              mb: 1,
-              display: "block",
-            }}
-          >
-            Ruta optimizada:
-          </Typography>
-          {optimizedRoute.map((exp, index) => (
-            <Box
-              key={index}
-              sx={{ display: "flex", alignItems: "center", mb: 0.5 }}
-            >
-              <Chip
-                label={index + 1}
-                size="small"
-                sx={{
-                  width: 20,
-                  height: 20,
-                  fontSize: "0.6rem",
-                  mr: 1,
-                  backgroundColor: theme.palette.primary.light,
-                  color: theme.palette.primary.contrastText,
-                }}
-              />
-              <Typography
-                variant="caption"
-                sx={{ fontSize: "0.65rem", flex: 1 }}
-              >
-                {exp.experienceId?.title?.substring(0, 25) || "Sin nombre"}
-                {(exp.experienceId?.title?.length || 0) > 25 && "..."}
-              </Typography>
-            </Box>
-          ))}
-        </Box>
-      </Collapse>
-
       <Button
         fullWidth
         variant="contained"
         size="small"
-        startIcon={<Route size={14} />}
+        startIcon={<Route size={10} />}
         onClick={() =>
           onApplyOptimization && onApplyOptimization(optimizedRoute)
         }
         sx={{
           textTransform: "none",
-          fontSize: "0.7rem",
-          py: 0.5,
-          borderRadius: 1.5,
+          fontSize: "0.6rem",
+          py: 0.25,
+          borderRadius: 1,
         }}
       >
-        Aplicar Ruta Optimizada
+        Aplicar Optimizada
       </Button>
     </Box>
   );
 };
+// BoardCard with buttons moved to header for better space utilization
 
 const BoardCard = ({
   board,
@@ -468,19 +415,21 @@ const BoardCard = ({
   onRemoveFavorite,
   onMoveActivity,
   onMoveBoard,
-  onReorderExperiences, // New prop for handling route optimization
+  onReorderExperiences,
   totalBoards = 1,
   userRole = "viewer",
   isDragDisabled = false,
-  transportMode = "walking", // New prop for transport mode
-  showDistanceIndicators = true, // New prop to toggle distance indicators
-  showRouteOptimizer = true, // New prop to toggle route optimizer
+  transportMode = "walking",
+  showDistanceIndicators = true,
+  showRouteOptimizer = true,
+  compact = false,
+  dense = false,
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [mapModalOpen, setMapModalOpen] = useState(false);
 
-  // ... (keep all the existing sortable and droppable logic from original BoardCard)
+  // ... (keep all existing sortable and droppable logic)
   const {
     attributes: boardAttributes,
     listeners: boardListeners,
@@ -561,16 +510,24 @@ const BoardCard = ({
       ref={setDropRef}
       sx={{
         position: "relative",
-        mb: 3,
-        borderRadius: 5,
-        boxShadow: 2,
+        mb: { xs: 1.5, sm: 2 },
+        borderRadius: { xs: 3, sm: 4 },
+        boxShadow: 1,
         backgroundColor: theme.palette.primary.white,
-        height: "80vh",
-        minWidth: { xs: "300px", sm: "350px" },
-        maxWidth: { xs: "300px", sm: "350px" },
+        minHeight: "fit-content", // Let content determine height
+        height: "auto", // Fully dynamic height
+        minWidth: {
+          xs: compact ? "260px" : "280px",
+          sm: compact ? "280px" : "320px",
+          md: compact ? "300px" : "350px",
+        },
+        maxWidth: {
+          xs: compact ? "260px" : "280px",
+          sm: compact ? "280px" : "320px",
+          md: compact ? "300px" : "350px",
+        },
         display: "flex",
         flexDirection: "column",
-        overflow: "hidden",
         border: isOver
           ? `2px dashed ${theme.palette.primary.main}`
           : isBoardDragging
@@ -587,116 +544,106 @@ const BoardCard = ({
         sx={{
           display: "flex",
           flexDirection: "column",
-          height: "100%",
           position: "relative",
+          width: "100%", // Take full width of parent
         }}
       >
-        {/* Header with route statistics */}
+        {/* ENHANCED Header with Buttons */}
         <Box
           sx={{
             backgroundColor: theme.palette.primary.white,
             borderBottom: `1px solid ${theme.palette.secondary.light}`,
             display: "flex",
-            alignItems: "center",
-            gap: 1,
-            p: { xs: 1.5, sm: 2 },
-            minHeight: { xs: "90px", sm: "100px" }, // Increased height for route stats
+            flexDirection: "column",
+            gap: { xs: 0.75, sm: 1 },
+            p: { xs: 1, sm: 1.25 },
             flexShrink: 0,
           }}
         >
-          {/* Existing header content (move buttons, title, remove button) */}
-          {userRole !== "viewer" && (
-            <>
-              {isMobile ? (
-                <Box sx={{ display: "flex", flexDirection: "row", gap: 0.5 }}>
-                  <IconButton
-                    size="small"
-                    onClick={handleMoveLeft}
-                    disabled={boardIndex === 0}
-                    sx={{
-                      width: 28,
-                      height: 28,
-                      backgroundColor:
-                        boardIndex === 0
-                          ? theme.palette.grey[200]
-                          : theme.palette.primary.light,
-                      color:
-                        boardIndex === 0
-                          ? theme.palette.grey[400]
-                          : theme.palette.primary.main,
-                      "&:hover": {
+          {/* Top Row: Move buttons, Title, Remove button */}
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: { xs: 0.5, sm: 1 },
+            }}
+          >
+            {/* Move buttons */}
+            {userRole !== "viewer" && (
+              <>
+                {isMobile ? (
+                  <Box
+                    sx={{ display: "flex", flexDirection: "row", gap: 0.25 }}
+                  >
+                    <IconButton
+                      size="small"
+                      onClick={handleMoveLeft}
+                      disabled={boardIndex === 0}
+                      sx={{
+                        width: 24,
+                        height: 24,
                         backgroundColor:
                           boardIndex === 0
                             ? theme.palette.grey[200]
-                            : theme.palette.primary.main,
+                            : theme.palette.primary.light,
                         color:
-                          boardIndex === 0 ? theme.palette.grey[400] : "white",
-                      },
-                    }}
-                  >
-                    <ChevronLeft size={16} />
-                  </IconButton>
-                  <IconButton
-                    size="small"
-                    onClick={handleMoveRight}
-                    disabled={boardIndex === totalBoards - 1}
-                    sx={{
-                      width: 28,
-                      height: 28,
-                      backgroundColor:
-                        boardIndex === totalBoards - 1
-                          ? theme.palette.grey[200]
-                          : theme.palette.primary.light,
-                      color:
-                        boardIndex === totalBoards - 1
-                          ? theme.palette.grey[400]
-                          : theme.palette.primary.main,
-                      "&:hover": {
+                          boardIndex === 0
+                            ? theme.palette.grey[400]
+                            : theme.palette.primary.main,
+                      }}
+                    >
+                      <ChevronLeft size={14} />
+                    </IconButton>
+                    <IconButton
+                      size="small"
+                      onClick={handleMoveRight}
+                      disabled={boardIndex === totalBoards - 1}
+                      sx={{
+                        width: 24,
+                        height: 24,
                         backgroundColor:
                           boardIndex === totalBoards - 1
                             ? theme.palette.grey[200]
-                            : theme.palette.primary.main,
+                            : theme.palette.primary.light,
                         color:
                           boardIndex === totalBoards - 1
                             ? theme.palette.grey[400]
-                            : "white",
+                            : theme.palette.primary.main,
+                      }}
+                    >
+                      <ChevronRight size={14} />
+                    </IconButton>
+                  </Box>
+                ) : (
+                  <Box
+                    {...boardAttributes}
+                    {...boardListeners}
+                    sx={{
+                      cursor: isBoardDragging ? "grabbing" : "grab",
+                      display: "flex",
+                      alignItems: "center",
+                      p: 0.25,
+                      borderRadius: 0.5,
+                      "&:hover": {
+                        backgroundColor: theme.palette.grey[100],
                       },
                     }}
                   >
-                    <ChevronRight size={16} />
-                  </IconButton>
-                </Box>
-              ) : (
-                <Box
-                  {...boardAttributes}
-                  {...boardListeners}
-                  sx={{
-                    cursor: isBoardDragging ? "grabbing" : "grab",
-                    display: "flex",
-                    alignItems: "center",
-                    p: 0.5,
-                    borderRadius: 1,
-                    "&:hover": {
-                      backgroundColor: theme.palette.grey[100],
-                    },
-                  }}
-                >
-                  <GripVertical size={20} color={theme.palette.grey[600]} />
-                </Box>
-              )}
-            </>
-          )}
+                    <GripVertical size={16} color={theme.palette.grey[600]} />
+                  </Box>
+                )}
+              </>
+            )}
 
-          <Box sx={{ flex: 1 }}>
-            <Box
-              display="flex"
-              justifyContent="space-between"
-              alignItems="center"
-            >
-              <Box display="flex" alignItems="center" gap={1}>
+            {/* Title Section */}
+            <Box sx={{ flex: 1 }}>
+              <Box display="flex" alignItems="center" gap={0.5}>
                 <Typography
-                  variant={isMobile ? "subtitle1" : "h6"}
-                  sx={{ fontWeight: "bold" }}
+                  variant={isMobile ? "subtitle2" : "subtitle1"}
+                  sx={{
+                    fontWeight: "bold",
+                    fontSize: { xs: "0.875rem", sm: "1rem" },
+                  }}
                 >
                   Día {boardIndex + 1}
                 </Typography>
@@ -705,75 +652,207 @@ const BoardCard = ({
                     component="span"
                     sx={{
                       color: theme.palette.primary.main,
-                      fontSize: { xs: "0.75rem", sm: "0.875rem" },
+                      fontSize: { xs: "0.65rem", sm: "0.75rem" },
                     }}
                   >
-                    - {new Date(board.date).toLocaleDateString()}
+                    -{" "}
+                    {new Date(board.date).toLocaleDateString("es-ES", {
+                      day: "numeric",
+                      month: "long",
+                    })}
                   </Typography>
                 )}
               </Box>
-              {userRole !== "viewer" && (
-                <IconButton
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onRemoveBoard(boardIndex);
-                  }}
-                  size="small"
-                  sx={{
-                    pointerEvents: "auto",
-                    color: theme.palette.error.main,
-                    "&:hover": {
-                      backgroundColor: theme.palette.error.light,
-                    },
-                  }}
-                >
-                  <Trash2 size={18} />
-                </IconButton>
-              )}
-            </Box>
 
-            <Box display="flex" alignItems="center" mt={1} gap={1}>
-              <Coins size={16} color={theme.palette.secondary.medium} />
-              <Typography
-                variant="body2"
-                sx={{ fontSize: { xs: "0.75rem", sm: "0.875rem" } }}
-              >
-                Presupuesto: ¥ {board.dailyBudget || 0}
-              </Typography>
-            </Box>
+              {/* Compact Budget and Route Stats */}
+              <Box display="flex" alignItems="center" gap={1} flexWrap="wrap">
+                <Box display="flex" alignItems="center" gap={0.5}>
+                  <Coins size={10} color={theme.palette.secondary.medium} />
+                  <Typography
+                    variant="caption"
+                    sx={{ fontSize: { xs: "0.6rem", sm: "0.7rem" } }}
+                  >
+                    ¥ {board.dailyBudget || 0}
+                  </Typography>
+                </Box>
 
-            {/* NEW: Route statistics */}
-            {routeStats && (
-              <Box display="flex" alignItems="center" mt={0.5} gap={1}>
-                <Route size={14} color={theme.palette.info.main} />
-                <Typography
-                  variant="caption"
-                  sx={{
-                    fontSize: { xs: "0.65rem", sm: "0.75rem" },
-                    color: theme.palette.info.main,
-                  }}
-                >
-                  Distancia total: {formatDistance(routeStats.totalDistance)} •{" "}
-                  {routeStats.totalTime}
-                </Typography>
+                {routeStats && (
+                  <>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        mx: 0.25,
+                        color: theme.palette.grey[400],
+                        fontSize: "0.6rem",
+                      }}
+                    >
+                      •
+                    </Typography>
+                    <Box display="flex" alignItems="center" gap={0.5}>
+                      <Route size={9} color={theme.palette.info.main} />
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          fontSize: { xs: "0.55rem", sm: "0.65rem" },
+                          color: theme.palette.info.main,
+                        }}
+                      >
+                        {formatDistance(routeStats.totalDistance)}
+                      </Typography>
+                    </Box>
+                    <Box display="flex" alignItems="center" gap={0.25}>
+                      <Clock size={8} color={theme.palette.info.dark} />
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          fontSize: { xs: "0.55rem", sm: "0.65rem" },
+                          color: theme.palette.info.dark,
+                        }}
+                      >
+                        {routeStats.totalTime}
+                      </Typography>
+                    </Box>
+                  </>
+                )}
               </Box>
+            </Box>
+
+            {/* Remove button */}
+            {userRole !== "viewer" && (
+              <IconButton
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onRemoveBoard(boardIndex);
+                }}
+                size="small"
+                sx={{
+                  pointerEvents: "auto",
+                  color: theme.palette.error.main,
+                  width: 28,
+                  height: 28,
+                  "&:hover": {
+                    backgroundColor: theme.palette.error.light,
+                  },
+                }}
+              >
+                <Trash2 size={14} />
+              </IconButton>
             )}
+          </Box>
+
+          {/* Much Smaller Action Buttons Row */}
+          <Box
+            sx={{
+              display: "flex",
+              gap: { xs: 0.5, sm: 0.75 },
+            }}
+          >
+            {userRole !== "viewer" && (
+              <Button
+                variant="contained"
+                startIcon={<Sparkles size={10} />}
+                onClick={() => onAddExperience?.(boardIndex)}
+                size="small"
+                sx={{
+                  flex: 1,
+                  borderRadius: 8,
+                  textTransform: "none",
+                  fontWeight: 600,
+                  background: `linear-gradient(135deg, ${theme.palette.primary.main}E6, ${theme.palette.primary.dark}CC)`,
+                  color: "white",
+                  py: { xs: 0.25, sm: 0.35 }, // Much smaller padding
+                  px: { xs: 0.75, sm: 1 }, // Much smaller padding
+                  fontSize: { xs: "0.6rem", sm: "0.7rem" }, // Even smaller text
+                  letterSpacing: "0.02em",
+                  boxShadow: `0 1px 4px ${theme.palette.primary.main}25`,
+                  border: `1px solid ${theme.palette.primary.light}40`,
+                  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                  minHeight: { xs: "24px", sm: "28px" }, // Much smaller height
+                  "&:hover": {
+                    background: `linear-gradient(135deg, ${theme.palette.primary.dark}F0, ${theme.palette.primary.main}E6)`,
+                    boxShadow: `0 2px 6px ${theme.palette.primary.main}35`,
+                    transform: "translateY(-0.5px)",
+                    borderColor: theme.palette.primary.main,
+                  },
+                  "&:active": {
+                    transform: "translateY(0px)",
+                    boxShadow: `0 1px 3px ${theme.palette.primary.main}50`,
+                  },
+                }}
+              >
+                {isMobile ? "Añadir" : " Añadir Experiencia"}
+              </Button>
+            )}
+
+            <Button
+              variant="outlined"
+              startIcon={<Map size={10} />}
+              onClick={handleMapClick}
+              size="small"
+              disabled={
+                !board.favorites?.some(
+                  (fav) =>
+                    fav?.experienceId?.location?.coordinates?.length === 2
+                )
+              }
+              sx={{
+                flex: userRole === "viewer" ? 1 : 0.75,
+                borderRadius: 8,
+                textTransform: "none",
+                fontWeight: 600,
+                py: { xs: 0.25, sm: 0.35 }, // Much smaller padding
+                px: { xs: 0.75, sm: 1 }, // Much smaller padding
+                fontSize: { xs: "0.6rem", sm: "0.7rem" }, // Even smaller text
+                letterSpacing: "0.02em",
+                background: `linear-gradient(135deg, ${theme.palette.background.paper}F8, ${theme.palette.grey[50]}F0)`,
+                borderColor: `${theme.palette.secondary.main}60`,
+                color: theme.palette.secondary.dark,
+                backdropFilter: "blur(6px)",
+                boxShadow: `0 1px 3px ${theme.palette.secondary.main}10`,
+                minHeight: { xs: "24px", sm: "28px" }, // Much smaller height
+                transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                "&:hover": {
+                  background: `linear-gradient(135deg, ${theme.palette.secondary.light}15, ${theme.palette.secondary.main}10)`,
+                  borderColor: theme.palette.secondary.main,
+                  color: theme.palette.secondary.dark,
+                  boxShadow: `0 2px 6px ${theme.palette.secondary.main}20`,
+                  transform: "translateY(-0.5px)",
+                },
+                "&:disabled": {
+                  opacity: 0.5,
+                  cursor: "not-allowed",
+                  background: `${theme.palette.grey[100]}60`,
+                  borderColor: `${theme.palette.grey[300]}40`,
+                  color: theme.palette.grey[500],
+                  "&:hover": {
+                    transform: "none",
+                    boxShadow: "none",
+                  },
+                },
+                "&:active": {
+                  transform: "translateY(0px)",
+                  boxShadow: `0 1px 3px ${theme.palette.secondary.main}25`,
+                },
+              }}
+            >
+              Ver mapa
+            </Button>
           </Box>
         </Box>
 
+        {/* DYNAMIC Content Area - Grows naturally with content */}
         <Box
           sx={{
-            flex: 1,
             display: "flex",
             flexDirection: "column",
-            overflow: "hidden",
+            minHeight: "200px", // Small minimum to ensure empty boards are usable
           }}
         >
-          {/* NEW: Route Optimizer (if enabled and has edit permissions) */}
+          {/* Route Optimizer */}
           {showRouteOptimizer &&
             userRole !== "viewer" &&
             board.favorites?.length > 2 && (
-              <Box sx={{ px: { xs: 1.5, sm: 2 }, pt: 1 }}>
+              <Box sx={{ px: { xs: 1, sm: 1.25 }, pt: 0.5 }}>
                 <RouteOptimizerPanel
                   experiences={board.favorites}
                   onApplyOptimization={(optimizedRoute) =>
@@ -785,64 +864,50 @@ const BoardCard = ({
               </Box>
             )}
 
+          {/* Activities List - Now grows naturally with content */}
           <Box
             sx={{
-              flex: 1,
-              overflowY: "auto",
-              overflowX: "hidden",
-              px: { xs: 1.5, sm: 2 },
-              py: 1,
-              WebkitOverflowScrolling: "touch",
-              "&::-webkit-scrollbar": {
-                width: isMobile ? "4px" : "6px",
-              },
-              "&::-webkit-scrollbar-track": {
-                backgroundColor: theme.palette.grey[100],
-                borderRadius: "3px",
-              },
-              "&::-webkit-scrollbar-thumb": {
-                backgroundColor: theme.palette.grey[400],
-                borderRadius: "3px",
-                "&:hover": {
-                  backgroundColor: theme.palette.grey[600],
-                },
-              },
+              px: { xs: 1, sm: 1.25 },
+              py: 0.5,
+              pb: 1.5, // Extra bottom padding for better spacing
             }}
           >
-            <Box
-              sx={{ display: "flex", flexDirection: "row", minHeight: "100%" }}
-            >
+            <Box sx={{ display: "flex", flexDirection: "row" }}>
+              {/* Timeline - Dynamic height */}
               <Box
                 sx={{
                   position: "relative",
-                  width: { xs: "20px", sm: "25px" },
+                  width: { xs: "16px", sm: "20px" },
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "center",
-                  pt: 2,
+                  pt: 1,
+                  pb: 1, // Add bottom padding to complete the timeline
                   flexShrink: 0,
                 }}
               >
-                <Box
-                  sx={{
-                    position: "absolute",
-                    left: "50%",
-                    top: 0,
-                    bottom: 0,
-                    width: "2px",
-                    backgroundColor: theme.palette.secondary.main,
-                    transform: "translateX(-50%)",
-                    zIndex: 0,
-                    minHeight: "100px",
-                  }}
-                />
+                {/* Timeline line grows with content */}
+                {board.favorites?.length > 0 && (
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      left: "50%",
+                      top: 8,
+                      bottom: 8,
+                      width: "1px",
+                      backgroundColor: theme.palette.secondary.main,
+                      transform: "translateX(-50%)",
+                      zIndex: 0,
+                    }}
+                  />
+                )}
               </Box>
 
               <SortableContext
                 items={activityIds}
                 strategy={verticalListSortingStrategy}
               >
-                <Box sx={{ flex: 1, ml: { xs: 1.5, sm: 2 }, pb: 2 }}>
+                <Box sx={{ flex: 1, ml: { xs: 1, sm: 1.5 }, pb: 2 }}>
                   {board.favorites?.length > 0 ? (
                     board.favorites.map((fav, favIndex) => (
                       <Box
@@ -862,9 +927,10 @@ const BoardCard = ({
                           }
                           onMoveActivity={onMoveActivity}
                           totalActivities={board.favorites.length}
+                          compact={compact}
+                          dense={dense}
                         />
 
-                        {/* NEW: Distance indicator between consecutive experiences */}
                         {showDistanceIndicators &&
                           favIndex < board.favorites.length - 1 && (
                             <DistanceIndicator
@@ -885,24 +951,25 @@ const BoardCard = ({
                         py: 4,
                         textAlign: "center",
                         color: theme.palette.text.secondary,
+                        minHeight: "120px", // Minimum height for empty state
                       }}
                     >
                       <Typography
                         variant="body2"
                         sx={{
-                          mb: 1,
-                          fontSize: { xs: "0.8rem", sm: "0.875rem" },
+                          mb: 0.5,
+                          fontSize: { xs: "0.75rem", sm: "0.8rem" },
                         }}
                       >
-                        No hay experiencias programadas
+                        No hay experiencias
                       </Typography>
                       <Typography
                         variant="caption"
-                        sx={{ fontSize: { xs: "0.7rem", sm: "0.75rem" } }}
+                        sx={{ fontSize: { xs: "0.65rem", sm: "0.7rem" } }}
                       >
                         {isMobile
-                          ? "Usa los botones para añadir experiencias"
-                          : "Arrastra experiencias desde favoritos"}
+                          ? "Toca 'Añadir' arriba"
+                          : "Arrastra desde favoritos o usa 'Añadir'"}
                       </Typography>
                     </Box>
                   )}
@@ -911,109 +978,9 @@ const BoardCard = ({
             </Box>
           </Box>
         </Box>
-
-        {/* Bottom Buttons - keep existing layout */}
-        <Box
-          sx={{
-            backgroundColor: theme.palette.primary.white,
-            p: { xs: 1.5, sm: 2 },
-            textAlign: "center",
-            boxShadow: `0px -2px 6px ${theme.palette.secondary.main}20`,
-            borderTop: `1px solid ${theme.palette.secondary.light}`,
-            borderRadius: "0 0 20px 20px",
-            flexShrink: 0,
-            minHeight: { xs: "80px", sm: "100px" },
-          }}
-        >
-          <Box
-            sx={{
-              background: `linear-gradient(135deg, ${theme.palette.background.paper}90, ${theme.palette.background.paper}70)`,
-              backdropFilter: "blur(20px)",
-              p: { xs: 2, sm: 3 },
-              borderTop: `1px solid ${theme.palette.divider}40`,
-              borderRadius: "0 0 16px 16px",
-              flexShrink: 0,
-              minHeight: { xs: "100px", sm: "120px" },
-            }}
-          >
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: isMobile ? "column" : "column",
-                gap: { xs: 1.5, sm: 2 },
-              }}
-            >
-              {userRole !== "viewer" && (
-                <Button
-                  variant="contained"
-                  startIcon={<Plus size={isMobile ? 16 : 18} />}
-                  onClick={() => onAddExperience?.(boardIndex)}
-                  size={isMobile ? "small" : "medium"}
-                  sx={{
-                    borderRadius: 30,
-                    textTransform: "none",
-                    fontWeight: 600,
-                    background: `linear-gradient(135deg, ${theme.palette.primary.main})`,
-                    color: "white",
-                    py: { xs: 1, sm: 1.5 },
-                    fontSize: { xs: "0.8rem", sm: "0.875rem" },
-                    boxShadow: `0 4px 16px ${theme.palette.primary.main}40`,
-                    transition: "all 0.3s ease",
-                    "&:hover": {
-                      background: `linear-gradient(135deg, ${theme.palette.primary.dark})`,
-                      boxShadow: `0 8px 24px ${theme.palette.primary.main}50`,
-                    },
-                    "&:active": {
-                      transform: "scale(0.98)",
-                    },
-                  }}
-                >
-                  Añadir Experiencia
-                </Button>
-              )}
-
-              <Button
-                variant="outlined"
-                startIcon={<Map size={isMobile ? 16 : 18} />}
-                onClick={handleMapClick}
-                size={isMobile ? "small" : "medium"}
-                disabled={
-                  !board.favorites?.some(
-                    (fav) =>
-                      fav?.experienceId?.location?.coordinates?.length === 2
-                  )
-                }
-                sx={{
-                  borderRadius: 30,
-                  textTransform: "none",
-                  fontWeight: 600,
-                  py: { xs: 1, sm: 1.5 },
-                  fontSize: { xs: "0.8rem", sm: "0.875rem" },
-                  background: `${theme.palette.secondary.medium}10`,
-                  borderColor: `${theme.palette.secondary.medium}`,
-                  color: theme.palette.secondary.medium,
-                  transition: "all 0.3s ease",
-                  "&:hover": {
-                    background: `${theme.palette.secondary.main}20`,
-                    borderColor: theme.palette.secondary.main,
-                  },
-                  "&:disabled": {
-                    opacity: 0.5,
-                    cursor: "not-allowed",
-                  },
-                  "&:active": {
-                    transform: "scale(0.98)",
-                  },
-                }}
-              >
-                Ver en Mapa
-              </Button>
-            </Box>
-          </Box>
-        </Box>
       </Box>
 
-      {/* Enhanced Drop zone indicator */}
+      {/* Drop zone indicator */}
       {isOver && (
         <Box
           sx={{
@@ -1023,7 +990,7 @@ const BoardCard = ({
             right: 0,
             bottom: 0,
             backgroundColor: theme.palette.primary.main + "10",
-            borderRadius: 5,
+            borderRadius: { xs: 3, sm: 4 },
             pointerEvents: "none",
             display: "flex",
             alignItems: "center",
@@ -1036,9 +1003,9 @@ const BoardCard = ({
             sx={{
               backgroundColor: theme.palette.primary.main,
               color: "white",
-              px: { xs: 2, sm: 3 },
-              py: 1,
-              borderRadius: 30,
+              px: { xs: 1.5, sm: 2 },
+              py: 0.5,
+              borderRadius: 15,
               boxShadow: 2,
             }}
           >
