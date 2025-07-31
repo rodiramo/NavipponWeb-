@@ -1,4 +1,4 @@
-// Enhanced ActivityCard with improved drag and drop functionality
+// Enhanced ActivityCard with improved style and functional experience details
 import React, { useState } from "react";
 import {
   Box,
@@ -15,6 +15,10 @@ import {
   Divider,
   Fade,
   useMediaQuery,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
 } from "@mui/material";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -31,12 +35,12 @@ import {
   ChevronUp,
   ChevronDown,
   GripVertical,
-  Move,
+  Globe,
+  Star,
+  Navigation,
 } from "lucide-react";
 import { MdOutlineTempleBuddhist, MdOutlineRamenDining } from "react-icons/md";
 import { stables, images } from "../../../../../constants";
-
-// ExperienceDetailsModal component (unchanged from original)
 const ExperienceDetailsModal = ({ open, onClose, experience, category }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
@@ -77,28 +81,28 @@ const ExperienceDetailsModal = ({ open, onClose, experience, category }) => {
     <Dialog
       open={open}
       onClose={onClose}
-      maxWidth="sm"
+      maxWidth="md" // 🔧 IMPROVED: Larger modal for better content display
       fullWidth
       fullScreen={isMobile}
       TransitionComponent={Fade}
       PaperProps={{
         sx: {
           borderRadius: isMobile ? 0 : 3,
-          background: `linear-gradient(135deg, ${theme.palette.background.default})`,
+          background: theme.palette.background.default,
           backdropFilter: "blur(20px)",
           border: `1px solid ${theme.palette.divider}40`,
           overflow: "hidden",
           m: isMobile ? 0 : 1,
+          maxHeight: isMobile ? "100vh" : "90vh", // 🔧 IMPROVED: Better height management
         },
       }}
     >
+      {/* 🎨 ENHANCED: Hero Section */}
       <Box
         sx={{
           position: "relative",
-          height: { xs: 180, sm: 220 },
-          background: `linear-gradient(135deg, ${getCategoryColor(
-            category
-          )}20)`,
+          height: { xs: 200, sm: 250, md: 300 },
+          background: `linear-gradient(135deg, ${getCategoryColor(category)}20)`,
           overflow: "hidden",
         }}
       >
@@ -135,6 +139,26 @@ const ExperienceDetailsModal = ({ open, onClose, experience, category }) => {
             },
           }}
         />
+
+        <IconButton
+          onClick={onClose}
+          sx={{
+            position: "absolute",
+            top: 16,
+            fontSize: "1rem",
+            right: 16,
+            p: "0.5rem 0.80rem",
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            color: "white",
+            zIndex: 2,
+            "&:hover": {
+              backgroundColor: "rgba(0, 0, 0, 0.7)",
+            },
+          }}
+        >
+          ✕
+        </IconButton>
+
         <Box
           sx={{
             position: "relative",
@@ -143,7 +167,7 @@ const ExperienceDetailsModal = ({ open, onClose, experience, category }) => {
             display: "flex",
             flexDirection: "column",
             justifyContent: "flex-end",
-            p: { xs: 2, sm: 3 },
+            p: { xs: 2, sm: 3, md: 4 },
             background: "linear-gradient(transparent, rgba(0,0,0,0.7))",
           }}
         >
@@ -157,27 +181,29 @@ const ExperienceDetailsModal = ({ open, onClose, experience, category }) => {
                 color: theme.palette.primary.white,
                 fontWeight: 600,
                 backdropFilter: "blur(10px)",
-                fontSize: { xs: "0.65rem", sm: "0.75rem" },
-                height: { xs: 20, sm: 24 },
+                fontSize: { xs: "0.7rem", sm: "0.8rem" },
+                height: { xs: 24, sm: 28 },
               }}
             />
           </Box>
+
           <Typography
-            variant={isMobile ? "h6" : "h5"}
+            variant={isMobile ? "h5" : "h4"}
             sx={{
               color: "white",
               fontWeight: 800,
-              mb: 0.5,
+              mb: 1,
               textShadow: "0 2px 8px rgba(0,0,0,0.5)",
-              fontSize: { xs: "1.1rem", sm: "1.4rem" },
+              fontSize: { xs: "1.3rem", sm: "1.6rem", md: "2rem" },
               lineHeight: 1.2,
             }}
           >
             {experience.title || "Experiencia sin título"}
           </Typography>
+
           {experience.rating && (
             <Box
-              sx={{ display: "flex", alignItems: "center", gap: 0.5, mb: 1 }}
+              sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1.5 }}
             >
               <Rating
                 value={experience.rating}
@@ -185,98 +211,328 @@ const ExperienceDetailsModal = ({ open, onClose, experience, category }) => {
                 size="small"
                 sx={{
                   "& .MuiRating-iconFilled": {
-                    color: theme.palette.primary.main,
+                    color: "#FFD700",
                   },
                   "& .MuiRating-icon": {
-                    fontSize: { xs: "1rem", sm: "1.2rem" },
+                    fontSize: { xs: "1.1rem", sm: "1.3rem" },
                   },
                 }}
               />
               <Typography
-                variant="caption"
+                variant="body2"
                 sx={{
                   color: "white",
                   fontWeight: 600,
-                  fontSize: { xs: "0.65rem", sm: "0.7rem" },
+                  fontSize: { xs: "0.8rem", sm: "0.9rem" },
                 }}
               >
-                ({experience.rating})
+                {experience.rating} / 5
               </Typography>
             </Box>
           )}
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 2,
+              flexWrap: "wrap",
+            }}
+          >
             <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-              <MapPin size={isMobile ? 12 : 14} color="white" />
+              <MapPin size={isMobile ? 14 : 16} color="white" />
               <Typography
                 variant="body2"
                 sx={{
                   color: "white",
                   fontWeight: 500,
-                  fontSize: { xs: "0.75rem", sm: "0.9rem" },
+                  fontSize: { xs: "0.8rem", sm: "1rem" },
                 }}
               >
                 {experience.prefecture || "Ubicación desconocida"}
               </Typography>
             </Box>
+
             {experience.price !== null && experience.price !== undefined ? (
               <Box
                 sx={{
-                  background: theme.palette.background.default,
+                  background: "rgba(255, 255, 255, 0.9)",
                   borderRadius: 20,
-                  px: 1.5,
-                  py: 0.25,
+                  px: 2,
+                  py: 0.5,
                 }}
               >
                 <Typography
-                  variant="subtitle2"
+                  variant="subtitle1"
                   sx={{
                     fontWeight: 700,
                     color:
                       experience.price === 0
                         ? theme.palette.success.main
                         : theme.palette.primary.main,
-                    fontSize: { xs: "0.85rem", sm: "1rem" },
+                    fontSize: { xs: "0.9rem", sm: "1.1rem" },
                   }}
                 >
-                  ¥ {experience.price}
+                  {experience.price === 0
+                    ? "Gratis"
+                    : `¥${experience.price.toLocaleString()}`}
                 </Typography>
               </Box>
             ) : (
-              <Typography
-                variant="caption"
+              <Chip
+                label="Precio a consultar"
+                size="small"
                 sx={{
-                  color: theme.palette.text.secondary,
-                  background: `${theme.palette.warning.main}15`,
-                  fontStyle: "italic",
-                  fontSize: { xs: "0.65rem", sm: "0.75rem" },
-                  px: 1,
-                  py: 0.25,
-                  borderRadius: 1,
+                  background: "rgba(255, 193, 7, 0.9)",
+                  color: "white",
+                  fontWeight: 600,
                 }}
-              >
-                Precio a consultar
-              </Typography>
+              />
             )}
           </Box>
         </Box>
       </Box>
-      <DialogContent sx={{ p: { xs: 2, sm: 3 } }}>
-        <Typography variant="body2">Experience details...</Typography>
+
+      {/* 🔧 FIXED: Proper DialogContent with real experience details */}
+      <DialogContent
+        sx={{ p: { xs: 2, sm: 3, md: 4 }, maxHeight: "50vh", overflow: "auto" }}
+      >
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+          {/* Description */}
+          {experience.description && (
+            <Box>
+              <Typography
+                variant="h6"
+                gutterBottom
+                sx={{ fontWeight: 600, color: theme.palette.primary.main }}
+              >
+                📋 Descripción
+              </Typography>
+              <Typography
+                variant="body1"
+                sx={{
+                  lineHeight: 1.6,
+                  color: theme.palette.text.primary,
+                  fontSize: { xs: "0.9rem", sm: "1rem" },
+                }}
+              >
+                {experience.description}
+              </Typography>
+            </Box>
+          )}
+
+          {/* 🆕 NEW: Details List */}
+          <Box>
+            <List dense>
+              {experience.caption && (
+                <ListItem sx={{ px: 0, py: 0.5 }}>
+                  <ListItemText>
+                    <Typography variant="body2">
+                      {experience.caption}
+                    </Typography>
+                  </ListItemText>
+                </ListItem>
+              )}
+
+              {/* Location Details */}
+              {experience.region && (
+                <ListItem sx={{ px: 0, py: 0.5 }}>
+                  <ListItemIcon sx={{ minWidth: 36 }}>
+                    <Navigation
+                      size={18}
+                      color={theme.palette.secondary.main}
+                    />
+                  </ListItemIcon>
+                  <ListItemText>
+                    <Typography variant="body2">
+                      <strong>Región:</strong> {experience.region}
+                    </Typography>
+                  </ListItemText>
+                </ListItem>
+              )}
+
+              {experience.prefecture && (
+                <ListItem sx={{ px: 0, py: 0.5 }}>
+                  <ListItemIcon sx={{ minWidth: 36 }}>
+                    <MapPin size={18} color={theme.palette.secondary.main} />
+                  </ListItemIcon>
+                  <ListItemText>
+                    <Typography variant="body2">
+                      <strong>Prefectura:</strong> {experience.prefecture}
+                    </Typography>
+                  </ListItemText>
+                </ListItem>
+              )}
+
+              {/* Address */}
+              {experience.address && (
+                <ListItem sx={{ px: 0, py: 0.5 }}>
+                  <ListItemIcon sx={{ minWidth: 36 }}>
+                    <Map size={18} color={theme.palette.secondary.main} />
+                  </ListItemIcon>
+                  <ListItemText>
+                    <Typography variant="body2">
+                      <strong>Dirección:</strong> {experience.address}
+                    </Typography>
+                  </ListItemText>
+                </ListItem>
+              )}
+
+              {/* Phone */}
+              {experience.phone && (
+                <ListItem sx={{ px: 0, py: 0.5 }}>
+                  <ListItemIcon sx={{ minWidth: 36 }}>
+                    <Phone size={18} color={theme.palette.secondary.main} />
+                  </ListItemIcon>
+                  <ListItemText>
+                    <Typography variant="body2">
+                      <strong>Teléfono:</strong> {experience.phone}
+                    </Typography>
+                  </ListItemText>
+                </ListItem>
+              )}
+
+              {/* Website */}
+              {experience.website && (
+                <ListItem sx={{ px: 0, py: 0.5 }}>
+                  <ListItemIcon sx={{ minWidth: 36 }}>
+                    <Globe size={18} color={theme.palette.secondary.main} />
+                  </ListItemIcon>
+                  <ListItemText>
+                    <Typography variant="body2">
+                      <strong>Sitio web:</strong>{" "}
+                      <Button
+                        variant="text"
+                        size="small"
+                        onClick={() =>
+                          window.open(experience.website, "_blank")
+                        }
+                        sx={{ p: 0, minWidth: "auto", textTransform: "none" }}
+                      >
+                        {experience.website}
+                      </Button>
+                    </Typography>
+                  </ListItemText>
+                </ListItem>
+              )}
+
+              {/* Opening Hours */}
+              {experience.openingHours && (
+                <ListItem sx={{ px: 0, py: 0.5 }}>
+                  <ListItemIcon sx={{ minWidth: 36 }}>
+                    <Clock size={18} color={theme.palette.secondary.main} />
+                  </ListItemIcon>
+                  <ListItemText>
+                    <Typography variant="body2">
+                      <strong>Horarios:</strong> {experience.openingHours}
+                    </Typography>
+                  </ListItemText>
+                </ListItem>
+              )}
+            </List>
+          </Box>
+
+          {/* 🆕 NEW: Additional Information */}
+          {(experience.tags ||
+            experience.duration ||
+            experience.difficulty) && (
+            <>
+              <Divider />
+              <Box>
+                <Typography
+                  variant="h6"
+                  gutterBottom
+                  sx={{ fontWeight: 600, color: theme.palette.primary.main }}
+                >
+                  🏷️ Información Adicional
+                </Typography>
+
+                {experience.duration && (
+                  <Box sx={{ mb: 1 }}>
+                    <Chip
+                      icon={<Clock size={14} />}
+                      label={`Duración: ${experience.duration}`}
+                      variant="outlined"
+                      size="small"
+                      sx={{ mr: 1, mb: 1 }}
+                    />
+                  </Box>
+                )}
+
+                {experience.difficulty && (
+                  <Box sx={{ mb: 1 }}>
+                    <Chip
+                      icon={<Star size={14} />}
+                      label={`Dificultad: ${experience.difficulty}`}
+                      variant="outlined"
+                      size="small"
+                      sx={{ mr: 1, mb: 1 }}
+                    />
+                  </Box>
+                )}
+
+                {experience.tags &&
+                  Array.isArray(experience.tags) &&
+                  experience.tags.length > 0 && (
+                    <Box>
+                      <Typography variant="subtitle2" gutterBottom>
+                        Etiquetas:
+                      </Typography>
+                      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+                        {experience.tags.map((tag, index) => (
+                          <Chip
+                            key={index}
+                            label={tag}
+                            size="small"
+                            variant="outlined"
+                            sx={{
+                              fontSize: "0.75rem",
+                              backgroundColor:
+                                theme.palette.primary.main + "10",
+                            }}
+                          />
+                        ))}
+                      </Box>
+                    </Box>
+                  )}
+              </Box>
+            </>
+          )}
+        </Box>
       </DialogContent>
-      <DialogActions sx={{ p: { xs: 2, sm: 3 }, pt: 0 }}>
+
+      {/* 🔧 ENHANCED: Better action buttons */}
+      <DialogActions sx={{ p: { xs: 2, sm: 3 }, pt: 1, gap: 1 }}>
+        {experience.website && (
+          <Button
+            variant="outlined"
+            startIcon={<ExternalLink size={16} />}
+            onClick={() => window.open(experience.website, "_blank")}
+            sx={{
+              borderRadius: 20,
+              textTransform: "none",
+              fontWeight: 600,
+              px: 3,
+              fontSize: { xs: "0.8rem", sm: "0.9rem" },
+            }}
+          >
+            Visitar sitio web
+          </Button>
+        )}
+
         <Button
           onClick={onClose}
-          variant="outlined"
-          size="small"
+          variant="contained"
           sx={{
             borderRadius: 20,
             textTransform: "none",
-            px: { xs: 2.5, sm: 3 },
+            px: 4,
             fontWeight: 600,
-            borderColor: theme.palette.grey[300],
-            color: theme.palette.text.primary,
-            fontSize: { xs: "0.75rem", sm: "0.8rem" },
-            py: 0.5,
+            background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
+            fontSize: { xs: "0.8rem", sm: "0.9rem" },
+            "&:hover": {
+              background: `linear-gradient(135deg, ${theme.palette.primary.dark}, ${theme.palette.primary.main})`,
+            },
           }}
         >
           Cerrar
@@ -286,7 +542,7 @@ const ExperienceDetailsModal = ({ open, onClose, experience, category }) => {
   );
 };
 
-// Enhanced ActivityCard with improved drag functionality
+// 🔧 IMPROVED: Enhanced ActivityCard with better styling
 const ActivityCard = ({
   fav,
   boardIndex,
@@ -305,7 +561,7 @@ const ActivityCard = ({
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const isTablet = useMediaQuery(theme.breakpoints.down("md"));
 
-  // Enhanced sortable configuration for better drag experience
+  // Enhanced sortable configuration
   const {
     attributes,
     listeners,
@@ -328,16 +584,16 @@ const ActivityCard = ({
         items: [sortableId || `${boardIndex}-${favIndex}-${fav?._id}`],
       },
     },
-    disabled: userRole === "viewer", // Disable drag for viewers
+    disabled: userRole === "viewer",
   });
 
-  // Enhanced drag styling with better visual feedback
+  // 🔧 IMPROVED: Better drag styling
   const style = {
     transform: CSS.Transform.toString(transform),
     transition: isDragging ? "none" : transition,
-    opacity: isDragging ? 0.8 : 1,
+    opacity: isDragging ? 0.9 : 1,
     zIndex: isDragging ? 1000 : isOver ? 500 : 1,
-    scale: isDragging ? 1.02 : 1,
+    scale: isDragging ? 1.03 : 1,
   };
 
   const getCategoryIcon = (category) => {
@@ -359,13 +615,14 @@ const ActivityCard = ({
           size={iconSize}
         />
       );
-    return null;
+    return <Sparkles color={theme.palette.primary.main} size={iconSize} />;
   };
 
   const category = fav?.experienceId?.categories || "Other";
 
   const handleDetailsClick = (e) => {
     e.stopPropagation();
+    console.log("🔍 Opening details for experience:", fav?.experienceId); // Debug log
     setDetailsOpen(true);
   };
 
@@ -397,23 +654,23 @@ const ActivityCard = ({
           position: "relative",
           mb: compact ? { xs: 1, sm: 1.5 } : { xs: 2, sm: 3 },
           mt: compact ? { xs: 0.75, sm: 1 } : { xs: 1.5, sm: 2 },
-          borderRadius: { xs: 1.5, sm: 2 },
+          borderRadius: { xs: 2, sm: 3 }, // 🔧 IMPROVED: Better border radius
           boxShadow: isDragging
             ? "0 12px 36px rgba(0,0,0,0.25)"
             : isOver
               ? "0 6px 20px rgba(0,0,0,0.15)"
               : {
-                  xs: "0 1px 6px rgba(0,0,0,0.06)",
-                  sm: "0 2px 12px rgba(0,0,0,0.06)",
+                  xs: "0 2px 8px rgba(0,0,0,0.08)", // 🔧 IMPROVED: Better shadows
+                  sm: "0 4px 16px rgba(0,0,0,0.08)",
                 },
           overflow: "visible",
           background: isDragging
             ? `linear-gradient(135deg, ${theme.palette.primary.main}15, ${theme.palette.background.default}95)`
-            : `linear-gradient(135deg, ${theme.palette.background.default}95, ${theme.palette.background.default}85)`,
+            : theme.palette.background.paper, // 🔧 IMPROVED: Cleaner background
           backdropFilter: "blur(10px)",
           border: isDragging
             ? `2px solid ${theme.palette.primary.main}`
-            : `1px solid ${theme.palette.divider}40`,
+            : `1px solid ${theme.palette.divider}`,
           cursor: isDragging
             ? "grabbing"
             : userRole === "viewer"
@@ -423,13 +680,13 @@ const ActivityCard = ({
             ? "none"
             : "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
           "&:hover": !isDragging && {
-            boxShadow: "0 4px 16px rgba(0,0,0,0.1)",
-            transform: "translateY(-2px)",
+            boxShadow: "0 6px 24px rgba(0,0,0,0.12)", // 🔧 IMPROVED: Better hover shadow
+            transform: "translateY(-3px)", // 🔧 IMPROVED: Subtle lift
             borderColor: theme.palette.primary.main + "60",
           },
           ...(isDragging && {
-            transform: `${CSS.Transform.toString(transform)} rotate(1deg)`,
-            boxShadow: "0 16px 48px rgba(0,0,0,0.3)",
+            transform: `${CSS.Transform.toString(transform)} rotate(2deg)`, // 🔧 IMPROVED: More rotation
+            boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
           }),
           ...(isOver &&
             !isDragging && {
@@ -439,17 +696,16 @@ const ActivityCard = ({
         }}
         {...(userRole !== "viewer" ? attributes : {})}
       >
-        <Box sx={{ display: "flex", flexDirection: "row" }}>
-          {/* Category Icon */}
+        <Box
+          sx={{ display: "flex", flexDirection: "row", position: "relative" }}
+        >
+          {/* 🔧 IMPROVED: Better positioned category icon */}
           <Box
             sx={{
               position: "absolute",
-              top: { xs: "8px", sm: "10px" },
-              marginLeft: {
-                xs: compact ? "-32px" : "-36px",
-                sm: compact ? "-40px" : "-46px",
-              },
-              zIndex: 2,
+              top: { xs: 8, sm: 12 },
+              left: { xs: -30, sm: -38 },
+              zIndex: 3,
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
@@ -458,15 +714,15 @@ const ActivityCard = ({
           >
             <Box
               sx={{
-                backgroundColor: theme.palette.background.default,
-                border: `2px solid ${theme.palette.primary.main}`,
+                backgroundColor: theme.palette.background.paper,
+                border: `2px solid ${theme.palette.primary.main}`, // 🔧 IMPROVED: Thicker border
                 borderRadius: "50%",
-                p: compact ? { xs: 0.4, sm: 0.6 } : { xs: 0.6, sm: 0.8 },
-                boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+                p: compact ? { xs: 0.5, sm: 0.7 } : { xs: 0.7, sm: 0.9 },
+                boxShadow: "0 4px 12px rgba(0,0,0,0.15)", // 🔧 IMPROVED: Better shadow
                 transition: "all 0.3s ease",
                 "&:hover": {
                   borderColor: theme.palette.primary.dark,
-                  transform: "scale(1.05)",
+                  boxShadow: "0 6px 16px rgba(0,0,0,0.2)",
                 },
               }}
             >
@@ -477,17 +733,18 @@ const ActivityCard = ({
           <Box
             sx={{
               flex: 1,
-              p: compact ? { xs: 0.75, sm: 1 } : { xs: 1, sm: 1.5 },
+              p: compact ? { xs: 1, sm: 1.25 } : { xs: 1.25, sm: 1.75 }, // 🔧 IMPROVED: Better padding
             }}
           >
-            {/* Image */}
+            {/* 🔧 IMPROVED: Better image styling */}
             <Box
               sx={{
                 width: "100%",
-                height: compact ? { xs: 55, sm: 65 } : { xs: 65, sm: 75 },
+                height: compact ? { xs: 60, sm: 70 } : { xs: 70, sm: 85 }, // 🔧 IMPROVED: Better heights
                 overflow: "hidden",
-                borderRadius: { xs: 1, sm: 2 },
+                borderRadius: { xs: 2, sm: 3 }, // 🔧 IMPROVED: Better border radius
                 position: "relative",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.1)", // 🔧 NEW: Image shadow
               }}
             >
               <img
@@ -531,21 +788,21 @@ const ActivityCard = ({
                   right: 0,
                   height: "40%",
                   background: "linear-gradient(transparent, rgba(0,0,0,0.4))",
-                  borderRadius: { xs: "0 0 4px 4px", sm: "0 0 8px 8px" },
+                  borderRadius: { xs: "0 0 8px 8px", sm: "0 0 12px 12px" },
                 }}
               />
             </Box>
 
             {/* Content */}
             <Box
-              sx={{ pt: compact ? { xs: 0.5, sm: 0.75 } : { xs: 0.75, sm: 1 } }}
+              sx={{ pt: compact ? { xs: 0.75, sm: 1 } : { xs: 1, sm: 1.25 } }}
             >
               <Box
                 sx={{
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "flex-start",
-                  mb: compact ? { xs: 0.25, sm: 0.5 } : { xs: 0.5, sm: 0.75 },
+                  mb: compact ? { xs: 0.5, sm: 0.75 } : { xs: 0.75, sm: 1 },
                 }}
               >
                 <Typography
@@ -553,18 +810,18 @@ const ActivityCard = ({
                   sx={{
                     fontWeight: 700,
                     color: theme.palette.text.primary,
-                    maxWidth: { xs: "110px", sm: "150px" },
+                    maxWidth: { xs: "120px", sm: "160px" }, // 🔧 IMPROVED: Better max width
                     width: "100%",
                     display: "-webkit-box",
                     WebkitBoxOrient: "vertical",
                     WebkitLineClamp: compact ? 1 : 2,
                     overflow: "hidden",
                     textOverflow: "ellipsis",
-                    lineHeight: 1.1,
+                    lineHeight: 1.2,
                     wordBreak: "break-word",
                     fontSize: compact
-                      ? { xs: "0.75rem", sm: "0.85rem" }
-                      : { xs: "0.8rem", sm: "0.95rem" },
+                      ? { xs: "0.8rem", sm: "0.9rem" }
+                      : { xs: "0.85rem", sm: "1rem" }, // 🔧 IMPROVED: Better font sizes
                   }}
                 >
                   {fav?.experienceId?.title || "Actividad sin título"}
@@ -576,8 +833,8 @@ const ActivityCard = ({
                     sx={{
                       display: "flex",
                       flexDirection: "column",
-                      gap: 0.2,
-                      ml: 0.5,
+                      gap: 0.25, // 🔧 IMPROVED: Better gap
+                      ml: 0.75,
                     }}
                   >
                     <IconButton
@@ -586,11 +843,11 @@ const ActivityCard = ({
                       disabled={favIndex === 0}
                       sx={{
                         width: compact
-                          ? { xs: 20, sm: 24 }
-                          : { xs: 22, sm: 26 },
+                          ? { xs: 22, sm: 26 }
+                          : { xs: 24, sm: 28 },
                         height: compact
-                          ? { xs: 20, sm: 24 }
-                          : { xs: 22, sm: 26 },
+                          ? { xs: 22, sm: 26 }
+                          : { xs: 24, sm: 28 },
                         backgroundColor:
                           favIndex === 0
                             ? theme.palette.grey[200]
@@ -599,6 +856,7 @@ const ActivityCard = ({
                           favIndex === 0
                             ? theme.palette.grey[400]
                             : theme.palette.primary.main,
+                        transition: "all 0.2s ease", // 🔧 IMPROVED: Smoother transition
                         "&:hover": {
                           backgroundColor:
                             favIndex === 0
@@ -606,10 +864,11 @@ const ActivityCard = ({
                               : theme.palette.primary.main,
                           color:
                             favIndex === 0 ? theme.palette.grey[400] : "white",
+                          transform: favIndex === 0 ? "none" : "scale(1.05)", // 🔧 NEW: Hover scale
                         },
                       }}
                     >
-                      <ChevronUp size={compact ? 10 : 12} />
+                      <ChevronUp size={compact ? 11 : 13} />
                     </IconButton>
                     <IconButton
                       size="small"
@@ -617,11 +876,11 @@ const ActivityCard = ({
                       disabled={favIndex === totalActivities - 1}
                       sx={{
                         width: compact
-                          ? { xs: 20, sm: 24 }
-                          : { xs: 22, sm: 26 },
+                          ? { xs: 22, sm: 26 }
+                          : { xs: 24, sm: 28 },
                         height: compact
-                          ? { xs: 20, sm: 24 }
-                          : { xs: 22, sm: 26 },
+                          ? { xs: 22, sm: 26 }
+                          : { xs: 24, sm: 28 },
                         backgroundColor:
                           favIndex === totalActivities - 1
                             ? theme.palette.grey[200]
@@ -630,6 +889,7 @@ const ActivityCard = ({
                           favIndex === totalActivities - 1
                             ? theme.palette.grey[400]
                             : theme.palette.primary.main,
+                        transition: "all 0.2s ease",
                         "&:hover": {
                           backgroundColor:
                             favIndex === totalActivities - 1
@@ -639,10 +899,14 @@ const ActivityCard = ({
                             favIndex === totalActivities - 1
                               ? theme.palette.grey[400]
                               : "white",
+                          transform:
+                            favIndex === totalActivities - 1
+                              ? "none"
+                              : "scale(1.05)",
                         },
                       }}
                     >
-                      <ChevronDown size={compact ? 10 : 12} />
+                      <ChevronDown size={compact ? 11 : 13} />
                     </IconButton>
                   </Box>
                 )}
@@ -653,12 +917,12 @@ const ActivityCard = ({
                 sx={{
                   display: "flex",
                   alignItems: "center",
-                  gap: 0.3,
-                  mb: compact ? { xs: 0.5, sm: 0.75 } : { xs: 0.75, sm: 1 },
+                  gap: 0.4, // 🔧 IMPROVED: Better gap
+                  mb: compact ? { xs: 0.75, sm: 1 } : { xs: 1, sm: 1.25 },
                 }}
               >
                 <MapPin
-                  size={compact ? 10 : 12}
+                  size={compact ? 11 : 13} // 🔧 IMPROVED: Better icon size
                   color={theme.palette.text.secondary}
                 />
                 <Typography
@@ -666,8 +930,9 @@ const ActivityCard = ({
                   color="text.secondary"
                   sx={{
                     fontSize: compact
-                      ? { xs: "0.6rem", sm: "0.7rem" }
-                      : { xs: "0.65rem", sm: "0.8rem" },
+                      ? { xs: "0.65rem", sm: "0.75rem" }
+                      : { xs: "0.7rem", sm: "0.85rem" }, // 🔧 IMPROVED: Better font sizes
+                    fontWeight: 500, // 🔧 NEW: Medium weight
                   }}
                 >
                   {fav?.experienceId?.prefecture || "Ubicación desconocida"}
@@ -675,46 +940,43 @@ const ActivityCard = ({
               </Box>
 
               {/* Action Row */}
-              <Box display="flex" alignItems="center" gap={0.75}>
-                {/* Details Button */}
+              <Box display="flex" alignItems="center" gap={1}>
+                {" "}
                 <Button
-                  variant="outlined"
+                  variant="contained"
                   size="small"
                   onClick={handleDetailsClick}
                   sx={{
-                    borderRadius: compact ? 12 : 16,
+                    borderRadius: compact ? 16 : 20,
                     textTransform: "none",
                     fontWeight: 600,
                     width: "fit-content",
-                    background: `${theme.palette.primary.main}10`,
-                    borderColor: `${theme.palette.primary.main}30`,
-                    color: theme.palette.primary.main,
+                    background: `linear-gradient(135deg, ${theme.palette.secondary.light})`, // 🔧 IMPROVED: Gradient
+                    color: theme.palette.secondary.dark,
                     transition: "all 0.3s ease",
+                    boxShadow: "none",
                     fontSize: compact
-                      ? { xs: "0.6rem", sm: "0.7rem" }
-                      : { xs: "0.65rem", sm: "0.8rem" },
-                    py: compact ? { xs: 0.2, sm: 0.3 } : { xs: 0.25, sm: 0.4 },
-                    px: compact ? { xs: 0.6, sm: 0.8 } : { xs: 0.8, sm: 1.1 },
+                      ? { xs: "0.65rem", sm: "0.75rem" }
+                      : { xs: "0.7rem", sm: "0.85rem" },
+                    py: compact ? { xs: 0.3, sm: 0.4 } : { xs: 0.4, sm: 0.5 },
+                    px: compact ? { xs: 0.8, sm: 1 } : { xs: 1, sm: 1.3 },
                     minHeight: compact
-                      ? { xs: "22px", sm: "26px" }
-                      : { xs: "26px", sm: "30px" },
-                    minWidth: compact
-                      ? { xs: "22px", sm: "26px" }
-                      : { xs: "26px", sm: "30px" },
+                      ? { xs: "24px", sm: "28px" }
+                      : { xs: "28px", sm: "32px" },
                     "&:hover": {
-                      background: `${theme.palette.primary.main}20`,
-                      borderColor: theme.palette.primary.main,
-                      transform: "translateY(-1px)",
+                      background: `linear-gradient(135deg, ${theme.palette.secondary.dark})`,
+                      color: "white",
+                      transform: "translateY(-2px) scale(1.02)", // 🔧 IMPROVED: Better hover effect
+                      boxShadow: `0 4px 16px ${theme.palette.primary.main}40`,
                     },
                   }}
                 >
-                  <Info size={compact ? 10 : 12} />
+                  <Info size={compact ? 11 : 13} style={{ marginRight: 4 }} />
+                  Detalles
                 </Button>
-
                 {/* Price */}
                 {fav?.experienceId?.price != null &&
-                  fav.experienceId.price !== "" &&
-                  fav.experienceId.price !== 0 && (
+                  fav.experienceId.price !== "" && (
                     <Box
                       sx={{
                         display: "flex",
@@ -722,23 +984,27 @@ const ActivityCard = ({
                         gap: 0.5,
                         width: "fit-content",
                         py: compact
-                          ? { xs: 0.2, sm: 0.3 }
-                          : { xs: 0.25, sm: 0.4 },
-                        px: compact ? { xs: 0.6, sm: 0.8 } : { xs: 0.8, sm: 1 },
-                        borderRadius: compact ? 10 : 14,
+                          ? { xs: 0.3, sm: 0.4 }
+                          : { xs: 0.4, sm: 0.5 },
+                        px: compact ? { xs: 0.8, sm: 1 } : { xs: 1, sm: 1.2 },
+                        borderRadius: compact ? 12 : 16,
+                        backgroundColor: theme.palette.success.main + "15", // 🔧 NEW: Background color
+                        border: `1px solid ${theme.palette.success.main}30`, // 🔧 NEW: Border
                       }}
                     >
                       <Typography
                         variant="caption"
                         sx={{
-                          color: theme.palette.secondary.medium,
+                          color: theme.palette.success.dark, // 🔧 IMPROVED: Better color
                           fontWeight: 700,
                           fontSize: compact
-                            ? { xs: "0.6rem", sm: "0.7rem" }
-                            : { xs: "0.65rem", sm: "0.85rem" },
+                            ? { xs: "0.65rem", sm: "0.75rem" }
+                            : { xs: "0.7rem", sm: "0.9rem" },
                         }}
                       >
-                        ¥ {fav?.experienceId?.price}
+                        {fav?.experienceId?.price === 0
+                          ? "Gratis"
+                          : `¥${fav?.experienceId?.price.toLocaleString()}`}
                       </Typography>
                     </Box>
                   )}
@@ -754,26 +1020,26 @@ const ActivityCard = ({
             size="small"
             sx={{
               position: "absolute",
-              top: compact ? { xs: 5, sm: 7 } : { xs: 7, sm: 9 },
-              right: compact ? { xs: 5, sm: 7 } : { xs: 7, sm: 9 },
-              width: compact ? { xs: 20, sm: 24 } : { xs: 22, sm: 28 },
-              height: compact ? { xs: 20, sm: 24 } : { xs: 22, sm: 28 },
+              top: compact ? { xs: 6, sm: 8 } : { xs: 8, sm: 10 },
+              right: compact ? { xs: 6, sm: 8 } : { xs: 8, sm: 10 },
+              width: compact ? { xs: 22, sm: 26 } : { xs: 24, sm: 30 },
+              height: compact ? { xs: 22, sm: 26 } : { xs: 24, sm: 30 },
               background: "rgba(255,255,255,0.95)",
               backdropFilter: "blur(10px)",
-              border: `1px solid ${theme.palette.error.main}30`,
+              border: `2px solid ${theme.palette.error.main}`, // 🔧 IMPROVED: Thicker border
               color: theme.palette.error.main,
               transition: "all 0.3s ease",
               "&:hover": {
                 background: theme.palette.error.main,
                 color: "white",
-                transform: "scale(1.05)",
-                boxShadow: `0 2px 8px ${theme.palette.error.main}40`,
+                transform: "scale(1.1)", // 🔧 IMPROVED: Better scale
+                boxShadow: `0 4px 12px ${theme.palette.error.main}40`,
               },
               pointerEvents: "auto",
               zIndex: 10,
             }}
           >
-            <Trash2 size={compact ? 10 : 12} />
+            <Trash2 size={compact ? 24 : 24} />
           </IconButton>
         )}
 
@@ -784,14 +1050,14 @@ const ActivityCard = ({
             {...(userRole !== "viewer" ? listeners : {})}
             sx={{
               position: "absolute",
-              top: compact ? 10 : 12,
-              left: compact ? 10 : 12,
-              opacity: isDragging ? 1 : isDragHovered ? 0.9 : 0.5,
+              top: compact ? 12 : 14,
+              left: compact ? 12 : 14,
+              opacity: isDragging ? 1 : isDragHovered ? 0.9 : 0.6, // 🔧 IMPROVED: Better opacity
               transition: "all 0.2s ease",
               cursor: isDragging ? "grabbing" : "grab",
               "&:hover": {
                 opacity: 1,
-                transform: "scale(1.1)",
+                transform: "scale(1.15)", // 🔧 IMPROVED: Better scale
               },
             }}
             onMouseEnter={() => setIsDragHovered(true)}
@@ -799,9 +1065,9 @@ const ActivityCard = ({
           >
             <Box
               sx={{
-                width: compact ? 18 : 22,
-                height: compact ? 18 : 22,
-                borderRadius: 1,
+                width: compact ? 20 : 24, // 🔧 IMPROVED: Better size
+                height: compact ? 20 : 24,
+                borderRadius: 2, // 🔧 IMPROVED: Better border radius
                 background: isDragging
                   ? `linear-gradient(135deg, ${theme.palette.primary.dark}, ${theme.palette.primary.main})`
                   : `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
@@ -812,14 +1078,14 @@ const ActivityCard = ({
                 fontSize: compact ? "10px" : "12px",
                 fontWeight: 600,
                 boxShadow: isDragging
-                  ? "0 4px 12px rgba(0,0,0,0.3)"
-                  : "0 2px 8px rgba(0,0,0,0.15)",
+                  ? "0 6px 16px rgba(0,0,0,0.3)"
+                  : "0 3px 10px rgba(0,0,0,0.2)", // 🔧 IMPROVED: Better shadows
                 "&:active": {
                   cursor: "grabbing",
                 },
               }}
             >
-              <GripVertical size={compact ? 10 : 12} />
+              <GripVertical size={compact ? 11 : 13} />
             </Box>
           </Box>
         )}
@@ -834,8 +1100,8 @@ const ActivityCard = ({
               right: 0,
               bottom: 0,
               border: `2px dashed ${theme.palette.primary.main}`,
-              borderRadius: { xs: 1.5, sm: 2 },
-              background: `${theme.palette.primary.main}05`,
+              borderRadius: { xs: 2, sm: 3 },
+              background: `${theme.palette.primary.main}08`, // 🔧 IMPROVED: More subtle background
               pointerEvents: "none",
               zIndex: 5,
             }}

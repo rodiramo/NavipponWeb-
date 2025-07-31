@@ -157,7 +157,7 @@ const ArticleCard = ({ post, className, currentUser, token, onEdit }) => {
         <div className="absolute top-3 left-3 flex flex-col gap-2 z-10">
           {/* Verification Badge */}
           <Chip
-            label={post.approved ? "Artículo Verificado" : "Sin Verificar"}
+            label={post.approved ? "Artículo verificado" : "Sin verificar"}
             sx={{
               backgroundColor: post.approved
                 ? theme.palette.success.light
@@ -173,7 +173,7 @@ const ArticleCard = ({ post, className, currentUser, token, onEdit }) => {
           <div
             className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium backdrop-blur-md border transition-all duration-300"
             style={{
-              backgroundColor: `${theme.palette.secondary.main}20`,
+              backgroundColor: `${theme.palette.secondary.dark}90`,
               borderColor: `${theme.palette.secondary.main}30`,
               color: "white",
               width: "fit-content",

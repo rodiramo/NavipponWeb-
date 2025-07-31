@@ -1,3 +1,4 @@
+// OPTION 2: Enhanced BoardCard with individual transport mode controls
 import React, { useState } from "react";
 import {
   Box,
@@ -6,6 +7,11 @@ import {
   useTheme,
   Button,
   useMediaQuery,
+  Chip,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
 } from "@mui/material";
 import {
   useSortable,
@@ -17,7 +23,6 @@ import { CSS } from "@dnd-kit/utilities";
 import {
   Trash2,
   Coins,
-  Plus,
   Map,
   GripVertical,
   ChevronLeft,
@@ -29,11 +34,15 @@ import {
   TrendingDown,
   CheckCircle,
   Settings,
+  Car,
+  Train,
+  Footprints,
+  Bike,
+  ChevronDown,
 } from "lucide-react";
 import ActivityCard from "./ItineraryActivity";
 import MapModal from "./MapModal";
 
-// ... (keep all your existing utility functions: calculateDistance, getExperienceCoordinates, etc.)
 const calculateDistance = (lat1, lon1, lat2, lon2) => {
   const R = 6371;
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
@@ -132,7 +141,150 @@ const optimizeRoute = (experiences) => {
   return optimized;
 };
 
-// COMPACT Distance Indicator Component
+// 🆕 NEW: Transport Mode Selector Component
+const TransportModeSelector = ({
+  transportMode,
+  onTransportModeChange,
+  size = "small",
+  showLabel = true,
+}) => {
+  const theme = useTheme();
+  const [anchorEl, setAnchorEl] = useState(null);
+  const open = Boolean(anchorEl);
+
+  const transportModes = [
+    {
+      value: "walking",
+      label: "Caminando",
+      icon: <Footprints size={14} />,
+      speed: "5 km/h",
+      color: theme.palette.success.main,
+    },
+    {
+      value: "cycling",
+      label: "Bicicleta",
+      icon: <Bike size={14} />,
+      speed: "15 km/h",
+      color: theme.palette.info.main,
+    },
+    {
+      value: "driving",
+      label: "Coche",
+      icon: <Car size={14} />,
+      speed: "30 km/h",
+      color: theme.palette.warning.main,
+    },
+    {
+      value: "transit",
+      label: "Transporte",
+      icon: <Train size={14} />,
+      speed: "20 km/h",
+      color: theme.palette.secondary.main,
+    },
+  ];
+
+  const currentMode =
+    transportModes.find((mode) => mode.value === transportMode) ||
+    transportModes[0];
+
+  const handleClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleModeSelect = (mode) => {
+    onTransportModeChange && onTransportModeChange(mode);
+    handleClose();
+  };
+
+  return (
+    <>
+      <Chip
+        icon={currentMode.icon}
+        label={showLabel ? currentMode.label : ""}
+        size={size}
+        onClick={handleClick}
+        deleteIcon={<ChevronDown size={12} />}
+        onDelete={handleClick} // Hack to show dropdown icon
+        sx={{
+          backgroundColor: currentMode.color + "20",
+          color: currentMode.color,
+          fontSize: size === "small" ? "0.65rem" : "0.75rem",
+          height: size === "small" ? 20 : 24,
+          cursor: "pointer",
+          transition: "all 0.2s ease",
+          "&:hover": {
+            backgroundColor: currentMode.color + "30",
+            transform: "scale(1.02)",
+          },
+          "& .MuiChip-icon": {
+            color: currentMode.color,
+            width: 12,
+            height: 12,
+          },
+          "& .MuiChip-deleteIcon": {
+            color: currentMode.color,
+            width: 12,
+            height: 12,
+            "&:hover": {
+              color: currentMode.color,
+            },
+          },
+        }}
+      />
+
+      <Menu
+        anchorEl={anchorEl}
+        open={open}
+        onClose={handleClose}
+        sx={{
+          "& .MuiPaper-root": {
+            borderRadius: 2,
+            minWidth: 160,
+            boxShadow: theme.shadows[8],
+          },
+        }}
+      >
+        {transportModes.map((mode) => (
+          <MenuItem
+            key={mode.value}
+            onClick={() => handleModeSelect(mode.value)}
+            selected={transportMode === mode.value}
+            sx={{
+              py: 1,
+              "&:hover": {
+                backgroundColor: mode.color + "15",
+              },
+              "&.Mui-selected": {
+                backgroundColor: mode.color + "20",
+                "&:hover": {
+                  backgroundColor: mode.color + "25",
+                },
+              },
+            }}
+          >
+            <ListItemIcon sx={{ color: mode.color, minWidth: 32 }}>
+              {mode.icon}
+            </ListItemIcon>
+            <ListItemText>
+              <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                {mode.label}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                {mode.speed}
+              </Typography>
+            </ListItemText>
+          </MenuItem>
+        ))}
+      </Menu>
+    </>
+  );
+};
+
+// Updated Distance Indicator Component
 const DistanceIndicator = ({
   fromExperience,
   toExperience,
@@ -149,11 +301,11 @@ const DistanceIndicator = ({
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          py: 0.25, // Reduced from 0.5
-          my: 0.25, // Reduced from 0.5
+          py: 0.25,
+          my: 0.25,
           backgroundColor: theme.palette.grey[100],
-          borderRadius: 0.5, // Reduced from 1
-          fontSize: "0.65rem", // Reduced from 0.7rem
+          borderRadius: 0.5,
+          fontSize: "0.65rem",
         }}
       >
         <Navigation size={8} color={theme.palette.grey[500]} />
@@ -179,7 +331,7 @@ const DistanceIndicator = ({
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        py: 0.25, // Compact padding
+        py: 0.25,
         my: 0.25,
         backgroundColor: theme.palette.background.paper,
         borderRadius: 0.5,
@@ -188,7 +340,7 @@ const DistanceIndicator = ({
       }}
     >
       <Navigation
-        size={8} // Smaller icon
+        size={8}
         color={getDistanceColor(distance)}
         style={{ transform: "rotate(45deg)" }}
       />
@@ -196,7 +348,7 @@ const DistanceIndicator = ({
         variant="caption"
         sx={{
           ml: 0.25,
-          fontSize: "0.55rem", // Smaller text
+          fontSize: "0.55rem",
           fontWeight: 600,
           color: getDistanceColor(distance),
         }}
@@ -206,7 +358,7 @@ const DistanceIndicator = ({
       {travelTime && (
         <>
           <Clock
-            size={6} // Smaller clock icon
+            size={6}
             color={theme.palette.grey[600]}
             style={{ marginLeft: 2 }}
           />
@@ -226,7 +378,7 @@ const DistanceIndicator = ({
   );
 };
 
-// COMPACT Route Optimizer Component
+// Updated Route Optimizer Component
 const RouteOptimizerPanel = ({
   experiences,
   onApplyOptimization,
@@ -257,7 +409,7 @@ const RouteOptimizerPanel = ({
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          p: 0.5, // Reduced padding
+          p: 0.5,
           backgroundColor: theme.palette.success.light + "20",
           borderRadius: 0.5,
           border: `1px solid ${theme.palette.success.light}`,
@@ -284,8 +436,8 @@ const RouteOptimizerPanel = ({
       sx={{
         backgroundColor: theme.palette.primary.light + "15",
         border: `1px solid ${theme.palette.primary.light}`,
-        borderRadius: 1, // Reduced from 2
-        p: 0.75, // Reduced from 1.5
+        borderRadius: 1,
+        p: 0.75,
         my: 0.5,
       }}
     >
@@ -294,7 +446,7 @@ const RouteOptimizerPanel = ({
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          mb: 0.5, // Reduced from 1
+          mb: 0.5,
         }}
       >
         <Box sx={{ display: "flex", alignItems: "center" }}>
@@ -319,7 +471,7 @@ const RouteOptimizerPanel = ({
         sx={{
           backgroundColor: theme.palette.background.paper,
           borderRadius: 0.5,
-          p: 0.5, // Reduced padding
+          p: 0.5,
           mb: 0.5,
         }}
       >
@@ -405,8 +557,6 @@ const RouteOptimizerPanel = ({
     </Box>
   );
 };
-// BoardCard with buttons moved to header for better space utilization
-
 const BoardCard = ({
   board,
   boardIndex,
@@ -422,6 +572,7 @@ const BoardCard = ({
   transportMode = "walking",
   showDistanceIndicators = true,
   showRouteOptimizer = true,
+  onTransportModeChange,
   compact = false,
   dense = false,
 }) => {
@@ -429,7 +580,7 @@ const BoardCard = ({
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [mapModalOpen, setMapModalOpen] = useState(false);
 
-  // ... (keep all existing sortable and droppable logic)
+  // Existing sortable and droppable logic
   const {
     attributes: boardAttributes,
     listeners: boardListeners,
@@ -493,7 +644,7 @@ const BoardCard = ({
       (fav, index) => fav.uniqueId || `${boardIndex}-${index}-${fav._id}`
     ) || [];
 
-  // Calculate route statistics
+  // Calculate route statistics with current transport mode
   const routeStats =
     board.favorites?.length > 1
       ? {
@@ -511,11 +662,11 @@ const BoardCard = ({
       sx={{
         position: "relative",
         mb: { xs: 1.5, sm: 2 },
-        borderRadius: { xs: 3, sm: 4 },
-        boxShadow: 1,
+        borderRadius: { xs: 4, sm: 4 },
+        boxShadow: "none",
         backgroundColor: theme.palette.primary.white,
-        minHeight: "fit-content", // Let content determine height
-        height: "auto", // Fully dynamic height
+        minHeight: "fit-content",
+        height: "auto",
         minWidth: {
           xs: compact ? "260px" : "280px",
           sm: compact ? "280px" : "320px",
@@ -543,17 +694,18 @@ const BoardCard = ({
         style={boardStyle}
         sx={{
           display: "flex",
+          borderRadius: { xs: 4, sm: 4 },
           flexDirection: "column",
           position: "relative",
-          width: "100%", // Take full width of parent
+          width: "100%",
         }}
       >
-        {/* ENHANCED Header with Buttons */}
         <Box
           sx={{
             backgroundColor: theme.palette.primary.white,
             borderBottom: `1px solid ${theme.palette.secondary.light}`,
             display: "flex",
+            borderRadius: { xs: 4, sm: 4 },
             flexDirection: "column",
             gap: { xs: 0.75, sm: 1 },
             p: { xs: 1, sm: 1.25 },
@@ -740,13 +892,24 @@ const BoardCard = ({
             )}
           </Box>
 
-          {/* Much Smaller Action Buttons Row */}
+          {/* 🆕 NEW: Transport Mode and Action Buttons Row */}
           <Box
             sx={{
               display: "flex",
+              alignItems: "center",
               gap: { xs: 0.5, sm: 0.75 },
             }}
           >
+            {/* 🆕 Individual Transport Mode Selector */}
+            {onTransportModeChange && (
+              <TransportModeSelector
+                transportMode={transportMode}
+                onTransportModeChange={onTransportModeChange}
+                size="small"
+                showLabel={!isMobile}
+              />
+            )}
+
             {userRole !== "viewer" && (
               <Button
                 variant="contained"
@@ -760,14 +923,14 @@ const BoardCard = ({
                   fontWeight: 600,
                   background: `linear-gradient(135deg, ${theme.palette.primary.main}E6, ${theme.palette.primary.dark}CC)`,
                   color: "white",
-                  py: { xs: 0.25, sm: 0.35 }, // Much smaller padding
-                  px: { xs: 0.75, sm: 1 }, // Much smaller padding
-                  fontSize: { xs: "0.6rem", sm: "0.7rem" }, // Even smaller text
+                  py: { xs: 0.25, sm: 0.35 },
+                  px: { xs: 0.75, sm: 1 },
+                  fontSize: { xs: "0.6rem", sm: "0.7rem" },
                   letterSpacing: "0.02em",
                   boxShadow: `0 1px 4px ${theme.palette.primary.main}25`,
                   border: `1px solid ${theme.palette.primary.light}40`,
                   transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                  minHeight: { xs: "24px", sm: "28px" }, // Much smaller height
+                  minHeight: { xs: "24px", sm: "28px" },
                   "&:hover": {
                     background: `linear-gradient(135deg, ${theme.palette.primary.dark}F0, ${theme.palette.primary.main}E6)`,
                     boxShadow: `0 2px 6px ${theme.palette.primary.main}35`,
@@ -800,16 +963,16 @@ const BoardCard = ({
                 borderRadius: 8,
                 textTransform: "none",
                 fontWeight: 600,
-                py: { xs: 0.25, sm: 0.35 }, // Much smaller padding
-                px: { xs: 0.75, sm: 1 }, // Much smaller padding
-                fontSize: { xs: "0.6rem", sm: "0.7rem" }, // Even smaller text
+                py: { xs: 0.25, sm: 0.35 },
+                px: { xs: 0.75, sm: 1 },
+                fontSize: { xs: "0.6rem", sm: "0.7rem" },
                 letterSpacing: "0.02em",
                 background: `linear-gradient(135deg, ${theme.palette.background.paper}F8, ${theme.palette.grey[50]}F0)`,
                 borderColor: `${theme.palette.secondary.main}60`,
                 color: theme.palette.secondary.dark,
                 backdropFilter: "blur(6px)",
                 boxShadow: `0 1px 3px ${theme.palette.secondary.main}10`,
-                minHeight: { xs: "24px", sm: "28px" }, // Much smaller height
+                minHeight: { xs: "24px", sm: "28px" },
                 transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
                 "&:hover": {
                   background: `linear-gradient(135deg, ${theme.palette.secondary.light}15, ${theme.palette.secondary.main}10)`,
@@ -840,12 +1003,12 @@ const BoardCard = ({
           </Box>
         </Box>
 
-        {/* DYNAMIC Content Area - Grows naturally with content */}
+        {/* DYNAMIC Content Area */}
         <Box
           sx={{
             display: "flex",
             flexDirection: "column",
-            minHeight: "200px", // Small minimum to ensure empty boards are usable
+            minHeight: "200px",
           }}
         >
           {/* Route Optimizer */}
@@ -864,16 +1027,16 @@ const BoardCard = ({
               </Box>
             )}
 
-          {/* Activities List - Now grows naturally with content */}
+          {/* Activities List */}
           <Box
             sx={{
               px: { xs: 1, sm: 1.25 },
               py: 0.5,
-              pb: 1.5, // Extra bottom padding for better spacing
+              pb: 1.5,
             }}
           >
             <Box sx={{ display: "flex", flexDirection: "row" }}>
-              {/* Timeline - Dynamic height */}
+              {/* Timeline */}
               <Box
                 sx={{
                   position: "relative",
@@ -882,11 +1045,10 @@ const BoardCard = ({
                   flexDirection: "column",
                   alignItems: "center",
                   pt: 1,
-                  pb: 1, // Add bottom padding to complete the timeline
+                  pb: 1,
                   flexShrink: 0,
                 }}
               >
-                {/* Timeline line grows with content */}
                 {board.favorites?.length > 0 && (
                   <Box
                     sx={{
@@ -951,7 +1113,7 @@ const BoardCard = ({
                         py: 4,
                         textAlign: "center",
                         color: theme.palette.text.secondary,
-                        minHeight: "120px", // Minimum height for empty state
+                        minHeight: "120px",
                       }}
                     >
                       <Typography

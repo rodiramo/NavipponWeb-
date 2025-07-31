@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Settings, MapPin, Route, Eye, EyeOff } from "lucide-react";
+import { Settings, MapPin, Route } from "lucide-react";
 
 const RouteSettings = ({
   transportMode,

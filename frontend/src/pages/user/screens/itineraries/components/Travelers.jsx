@@ -124,21 +124,21 @@ const Travelers = ({
         };
       case "editor":
         return {
-          color: theme.palette.primary.main,
+          color: theme.palette.primary.white,
           bgColor: `${theme.palette.primary.main}15`,
           label: "Editor",
           gradient: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
         };
       case "viewer":
         return {
-          color: theme.palette.grey[600],
+          color: theme.palette.primary.white,
           bgColor: `${theme.palette.grey[600]}15`,
           label: "Invitado",
           gradient: `linear-gradient(135deg, ${theme.palette.grey[600]}, ${theme.palette.grey[700]})`,
         };
       default:
         return {
-          color: theme.palette.grey[600],
+          color: theme.palette.primary.white,
           bgColor: `${theme.palette.grey[600]}15`,
           label: "Invitado",
           gradient: `linear-gradient(135deg, ${theme.palette.grey[600]}, ${theme.palette.grey[700]})`,

@@ -1,4 +1,4 @@
-// ItineraryHeader with Quick Navigation Menu instead of simple back button
+// Improved ItineraryHeader with better tablet support and interactive elements
 import React, { useState, useEffect } from "react";
 import {
   Box,
@@ -6,7 +6,6 @@ import {
   TextField,
   IconButton,
   Chip,
-  Button,
   useTheme,
   Container,
   Tooltip,
@@ -18,12 +17,13 @@ import {
   ListItemIcon,
   ListItemText,
   Fade,
-  Avatar,
   MenuList,
   Paper,
   ClickAwayListener,
   Popper,
   Grow,
+  FormControlLabel,
+  FormGroup,
 } from "@mui/material";
 import {
   Save,
@@ -36,19 +36,17 @@ import {
   Globe,
   ListCheck,
   MoreVertical,
-  Menu as MenuIcon,
   Home,
-  MapPin,
-  Heart,
-  Users,
-  Settings,
   Search,
   Plus,
   BookOpen,
-  Compass,
-  Camera,
-  Star,
-  LogOut,
+  ArrowLeft,
+  Car,
+  Train,
+  Footprints,
+  Bike,
+  Navigation,
+  Zap,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Travelers from "./Travelers";
@@ -72,7 +70,7 @@ const ItineraryHeader = ({
   onUpdateTraveler,
   onRemoveTraveler,
   onNotesClick,
-  onBackClick, // Keep for backwards compatibility but won't use
+  onBackClick,
   userRole = "viewer",
   currentUserId,
   startDate,
@@ -81,6 +79,12 @@ const ItineraryHeader = ({
   canEditDates,
   isPrivate = false,
   onPrivacyToggle,
+  transportMode = "walking",
+  onTransportModeChange,
+  showDistanceIndicators = true,
+  onToggleDistanceIndicators,
+  showRouteOptimizer = true,
+  onToggleRouteOptimizer,
 }) => {
   const theme = useTheme();
   const navigate = useNavigate();
@@ -91,10 +95,14 @@ const ItineraryHeader = ({
   const [anchorEl, setAnchorEl] = useState(null);
   const [navMenuOpen, setNavMenuOpen] = useState(false);
   const [navMenuAnchor, setNavMenuAnchor] = useState(null);
+  const [transportMenuOpen, setTransportMenuOpen] = useState(false);
+  const [transportMenuAnchor, setTransportMenuAnchor] = useState(null);
+  const [privacyMenuOpen, setPrivacyMenuOpen] = useState(false);
+  const [privacyMenuAnchor, setPrivacyMenuAnchor] = useState(null);
 
   const open = Boolean(anchorEl);
 
-  // NEW: Prevent website nav from appearing
+  // Prevent website nav from appearing
   useEffect(() => {
     document.body.classList.add("itinerary-page-active");
     return () => {
@@ -119,6 +127,14 @@ const ItineraryHeader = ({
   // Navigation menu items
   const navigationItems = [
     {
+      icon: <ArrowLeft size={18} />,
+      label: "Volver Atrás",
+      description: "Regresar a la página anterior",
+      action: "back",
+      color: theme.palette.warning.main,
+    },
+    null,
+    {
       icon: <Home size={18} />,
       label: "Inicio",
       description: "Página principal",
@@ -132,7 +148,6 @@ const ItineraryHeader = ({
       path: "/user/itineraries/manage",
       color: theme.palette.secondary.medium,
     },
-
     {
       icon: <Search size={18} />,
       label: "Explorar",
@@ -140,7 +155,6 @@ const ItineraryHeader = ({
       path: "/experience",
       color: theme.palette.info.main,
     },
-
     {
       icon: <Plus size={18} />,
       label: "Crear Itinerario",
@@ -149,6 +163,45 @@ const ItineraryHeader = ({
       color: theme.palette.primary.dark,
     },
   ];
+
+  // Transport mode options
+  const transportModes = [
+    {
+      value: "walking",
+      label: "Caminando",
+      icon: <Footprints size={16} />,
+      speed: "5 km/h",
+      color: theme.palette.success.main,
+    },
+    {
+      value: "cycling",
+      label: "Bicicleta",
+      icon: <Bike size={16} />,
+      speed: "15 km/h",
+      color: theme.palette.info.main,
+    },
+    {
+      value: "driving",
+      label: "Coche",
+      icon: <Car size={16} />,
+      speed: "30 km/h",
+      color: theme.palette.warning.main,
+    },
+    {
+      value: "transit",
+      label: "Transporte",
+      icon: <Train size={16} />,
+      speed: "20 km/h",
+      color: theme.palette.secondary.main,
+    },
+  ];
+
+  const getCurrentTransportMode = () => {
+    return (
+      transportModes.find((mode) => mode.value === transportMode) ||
+      transportModes[0]
+    );
+  };
 
   const handleMenuClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -169,8 +222,40 @@ const ItineraryHeader = ({
     setNavMenuAnchor(null);
   };
 
-  const handleNavigate = (path) => {
-    navigate(path);
+  // Transport menu handlers
+  const handleTransportMenuClick = (event) => {
+    setTransportMenuAnchor(event.currentTarget);
+    setTransportMenuOpen(true);
+  };
+
+  const handleTransportMenuClose = () => {
+    setTransportMenuOpen(false);
+    setTransportMenuAnchor(null);
+  };
+
+  // 🆕 NEW: Privacy menu handlers
+  const handlePrivacyMenuClick = (event) => {
+    if (canChangePrivacy) {
+      setPrivacyMenuAnchor(event.currentTarget);
+      setPrivacyMenuOpen(true);
+    }
+  };
+
+  const handlePrivacyMenuClose = () => {
+    setPrivacyMenuOpen(false);
+    setPrivacyMenuAnchor(null);
+  };
+
+  const handleNavigate = (path, action) => {
+    if (action === "back") {
+      if (onBackClick) {
+        onBackClick();
+      } else {
+        navigate(-1);
+      }
+    } else {
+      navigate(path);
+    }
     handleNavMenuClose();
   };
 
@@ -190,16 +275,40 @@ const ItineraryHeader = ({
     }
   };
 
-  const handlePrivacyChange = (event) => {
+  const handlePrivacyChange = (newPrivateStatus) => {
     if (canChangePrivacy && onPrivacyToggle) {
-      onPrivacyToggle(event.target.checked);
+      onPrivacyToggle(newPrivateStatus);
     }
-    handleMenuClose();
+    handlePrivacyMenuClose();
   };
 
   const handleOfflineClick = () => {
     onOfflineClick();
     handleMenuClose();
+  };
+
+  // Transport mode handlers
+  const handleTransportModeChange = (mode) => {
+    console.log("🚀 Header: Changing transport mode to:", mode);
+    if (onTransportModeChange) {
+      onTransportModeChange(mode);
+    }
+    handleTransportMenuClose();
+  };
+
+  // Toggle handlers
+  const handleToggleDistanceIndicators = (event) => {
+    console.log("🚀 Header: Toggle distance indicators:", event.target.checked);
+    if (onToggleDistanceIndicators) {
+      onToggleDistanceIndicators(event.target.checked);
+    }
+  };
+
+  const handleToggleRouteOptimizer = (event) => {
+    console.log("🚀 Header: Toggle route optimizer:", event.target.checked);
+    if (onToggleRouteOptimizer) {
+      onToggleRouteOptimizer(event.target.checked);
+    }
   };
 
   // Event handlers to prevent website nav triggering
@@ -211,6 +320,13 @@ const ItineraryHeader = ({
     e.stopPropagation();
   };
 
+  // Debug current values
+  useEffect(() => {
+    console.log("🔍 Header: Current transport mode:", transportMode);
+    console.log("🔍 Header: Show distance indicators:", showDistanceIndicators);
+    console.log("🔍 Header: Show route optimizer:", showRouteOptimizer);
+  }, [transportMode, showDistanceIndicators, showRouteOptimizer]);
+
   return (
     <>
       <Box
@@ -219,8 +335,6 @@ const ItineraryHeader = ({
           position: "relative",
           overflow: "hidden",
           zIndex: 1100,
-
-          // Buffer Zone - Invisible area above header
           "&::before": {
             content: '""',
             position: "absolute",
@@ -233,7 +347,6 @@ const ItineraryHeader = ({
             pointerEvents: "auto",
             display: { xs: "block", sm: "block" },
           },
-
           "&::after": {
             content: '""',
             position: "absolute",
@@ -250,19 +363,19 @@ const ItineraryHeader = ({
         onMouseMove={handleMouseMove}
       >
         <Container maxWidth="xl" sx={{ position: "relative", zIndex: 1102 }}>
-          <Box sx={{ py: { xs: 3, sm: 2 }, position: "relative" }}>
-            {/* 🆕 ENHANCED NAVIGATION MENU BUTTON */}
-            <Tooltip title="Navegación rápida">
+          <Box sx={{ py: { xs: 3, sm: 2, md: 2.5 }, position: "relative" }}>
+            {/* Navigation Menu Button */}
+            <Tooltip title="Navegación rápida" arrow>
               <IconButton
                 onClick={handleNavMenuClick}
                 size="small"
                 sx={{
                   position: "absolute",
                   left: 0,
-                  top: { xs: 16, sm: 12 },
+                  top: { xs: 16, sm: 12, md: 16 },
                   zIndex: 1103,
-                  width: { xs: 44, sm: 40 },
-                  height: { xs: 44, sm: 40 },
+                  width: { xs: 44, sm: 40, md: 42 },
+                  height: { xs: 44, sm: 40, md: 42 },
                   borderRadius: "50%",
                   background: `linear-gradient(135deg, ${theme.palette.primary.main}E6, ${theme.palette.primary.dark}CC)`,
                   color: "white",
@@ -310,7 +423,7 @@ const ItineraryHeader = ({
                     display: "flex",
                     flexDirection: "column",
                     alignItems: "center",
-                    gap: 1.5,
+                    gap: 2,
                     width: "100%",
                   }}
                 >
@@ -319,8 +432,20 @@ const ItineraryHeader = ({
                     sx={{
                       display: "flex",
                       alignItems: "center",
-                      gap: 1,
+                      gap: 1.5,
                       justifyContent: "center",
+                      width: "100%",
+                      backgroundColor: isEditingName
+                        ? "#FFFFFF"
+                        : "transparent",
+                      padding: isEditingName ? "16px 20px" : "0",
+                      borderRadius: isEditingName ? 12 : 0,
+                      boxShadow: isEditingName
+                        ? "0 8px 32px rgba(0, 0, 0, 0.2)"
+                        : "none",
+                      transition: "all 0.3s ease",
+                      position: "relative",
+                      zIndex: isEditingName ? 1200 : "auto",
                     }}
                   >
                     {isEditingName && canEdit ? (
@@ -334,164 +459,351 @@ const ItineraryHeader = ({
                         }}
                         autoFocus
                         variant="outlined"
-                        placeholder="Nombre del itinerario..."
+                        placeholder="Escribe el nombre de tu itinerario..."
                         size="small"
                         sx={{
                           flex: 1,
-                          maxWidth: "240px",
+                          maxWidth: "300px",
                           "& .MuiOutlinedInput-root": {
-                            backgroundColor: "rgba(255,255,255,0.95)",
-                            backdropFilter: "blur(20px)",
-                            borderRadius: 16,
-                            border: `2px solid rgba(255,255,255,0.3)`,
-                            fontSize: "1rem",
-                            fontWeight: 600,
-                            color: theme.palette.text.primary,
-                            boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
-                            "& fieldset": { border: "none" },
+                            backgroundColor: "#FFFFFF",
+                            backdropFilter: "none",
+                            borderRadius: 8,
+                            border: "3px solid #E0E0E0",
+                            fontSize: "1.2rem",
+                            fontWeight: 400,
+                            color: "#000000",
+                            boxShadow: "0 4px 20px rgba(0, 0, 0, 0.3)",
+                            transition: "all 0.2s ease",
+                            "& fieldset": {
+                              border: "none",
+                            },
                             "&:hover": {
-                              backgroundColor: "rgba(255,255,255,1)",
-                              border: `2px solid rgba(255,255,255,0.5)`,
+                              backgroundColor: "#FFFFFF",
+                              border: "3px solid #BDBDBD",
+                              boxShadow: "0 6px 24px rgba(0, 0, 0, 0.35)",
                             },
                             "&.Mui-focused": {
-                              backgroundColor: "rgba(255,255,255,1)",
-                              border: `2px solid ${theme.palette.primary.main}`,
+                              backgroundColor: "#FFFFFF",
+                              border: `3px solid ${theme.palette.primary.main}`,
+                              boxShadow: `0 0 0 3px ${theme.palette.primary.main}30`,
                             },
                           },
                           "& .MuiOutlinedInput-input": {
-                            padding: "12px 16px",
+                            padding: "16px 20px",
+                            color: "#000000",
+                            fontSize: "1.2rem",
+                            fontWeight: 400,
+                            lineHeight: 1.4,
                             "&::placeholder": {
-                              color: theme.palette.text.secondary,
-                              opacity: 0.7,
-                              fontStyle: "italic",
+                              color: "#666666",
+                              opacity: 1,
+                              fontStyle: "normal",
+                              fontWeight: 400,
                             },
+                            "&::selection": {
+                              backgroundColor:
+                                theme.palette.primary.main + "40",
+                              color: "#000000",
+                            },
+                            "&:focus": {
+                              color: "#000000",
+                            },
+                            "&:active": {
+                              color: "#000000",
+                            },
+                          },
+                          "& input": {
+                            color: "#000000 !important",
+                            WebkitTextFillColor: "#000000 !important",
+                          },
+                          "& input:focus": {
+                            color: "#000000 !important",
+                            WebkitTextFillColor: "#000000 !important",
+                          },
+                          "& input:active": {
+                            color: "#000000 !important",
+                            WebkitTextFillColor: "#000000 !important",
+                          },
+                        }}
+                        inputProps={{
+                          style: {
+                            color: "#000000",
+                            backgroundColor: "transparent",
                           },
                         }}
                         onMouseEnter={handleMouseEnter}
                         onMouseMove={handleMouseMove}
                       />
                     ) : (
-                      <Typography
-                        variant="h4"
-                        component="h1"
-                        sx={{
-                          fontWeight: "bold",
-                          color: "white",
-                          cursor: canEdit ? "pointer" : "default",
-                          fontSize: "1.5rem",
-                          lineHeight: 1.2,
-                          textAlign: "center",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                          maxWidth: "100%",
-                          "&:hover": canEdit ? { opacity: 0.8 } : {},
-                        }}
-                        onClick={handleNameClick}
-                        onMouseEnter={handleMouseEnter}
-                        onMouseMove={handleMouseMove}
+                      <Tooltip
+                        title={canEdit ? "Haz clic para editar el nombre" : ""}
+                        arrow
                       >
-                        {name || "Nuevo Itinerario"}
-                      </Typography>
+                        <Typography
+                          variant="h4"
+                          component="h1"
+                          sx={{
+                            fontWeight: "bold",
+                            color: "white",
+                            cursor: canEdit ? "pointer" : "default",
+                            fontSize: "1.6rem",
+                            lineHeight: 1.2,
+                            textAlign: "center",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                            maxWidth: "100%",
+                            textShadow: "0 2px 8px rgba(0, 0, 0, 0.3)",
+                            transition: "all 0.3s ease",
+                            "&:hover": canEdit
+                              ? {
+                                  opacity: 0.9,
+                                  transform: "scale(1.02)",
+                                  textShadow: "0 4px 12px rgba(0, 0, 0, 0.4)",
+                                }
+                              : {},
+                          }}
+                          onClick={handleNameClick}
+                          onMouseEnter={handleMouseEnter}
+                          onMouseMove={handleMouseMove}
+                        >
+                          {name || "Nuevo Itinerario"}
+                        </Typography>
+                      </Tooltip>
                     )}
 
                     {canEdit && (
-                      <IconButton
-                        onClick={handleEditClick}
-                        size="small"
-                        sx={{
-                          width: 36,
-                          height: 36,
-                          color: isEditingName
-                            ? theme.palette.success.main
-                            : "white",
-                          background: "rgba(255,255,255,0.15)",
-                          backdropFilter: "blur(10px)",
-                          zIndex: 1103,
-                          "&:hover": {
-                            background: "rgba(255,255,255,0.25)",
-                            zIndex: 1104,
-                          },
-                        }}
-                        onMouseEnter={handleMouseEnter}
-                        onMouseMove={handleMouseMove}
+                      <Tooltip
+                        title={
+                          isEditingName ? "Guardar cambios" : "Editar nombre"
+                        }
+                        arrow
                       >
-                        {isEditingName ? (
-                          <Save size={16} />
-                        ) : (
-                          <Edit size={16} />
-                        )}
-                      </IconButton>
+                        <IconButton
+                          onClick={handleEditClick}
+                          size="small"
+                          sx={{
+                            width: 44,
+                            height: 44,
+                            color: isEditingName ? "#FFFFFF" : "white",
+                            background: isEditingName
+                              ? theme.palette.success.main
+                              : "rgba(255, 255, 255, 0.2)",
+                            backdropFilter: "blur(8px)",
+                            border: `2px solid ${
+                              isEditingName
+                                ? theme.palette.success.main
+                                : "rgba(255, 255, 255, 0.3)"
+                            }`,
+                            borderRadius: "50%",
+                            boxShadow: isEditingName
+                              ? `0 4px 20px ${theme.palette.success.main}40`
+                              : "0 4px 16px rgba(0, 0, 0, 0.2)",
+                            zIndex: 1103,
+                            transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                            "&:hover": {
+                              background: isEditingName
+                                ? theme.palette.success.dark
+                                : "rgba(255, 255, 255, 0.3)",
+                              transform: "scale(1.08)",
+                              boxShadow: isEditingName
+                                ? `0 6px 24px ${theme.palette.success.main}50`
+                                : "0 6px 20px rgba(0, 0, 0, 0.3)",
+                              zIndex: 1104,
+                            },
+                            "&:active": {
+                              transform: "scale(0.95)",
+                            },
+                          }}
+                          onMouseEnter={handleMouseEnter}
+                          onMouseMove={handleMouseMove}
+                        >
+                          {isEditingName ? (
+                            <Save size={20} />
+                          ) : (
+                            <Edit size={20} />
+                          )}
+                        </IconButton>
+                      </Tooltip>
                     )}
                   </Box>
 
-                  {/* Mobile: Badges */}
+                  {/* Mobile: Badges and Interactive Chips */}
                   <Box
                     sx={{
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      gap: 1,
+                      gap: 1.5,
                       flexWrap: "wrap",
+                      maxWidth: "100%",
+                      borderRadius: 16,
+                      backdropFilter: "blur(8px)",
+                      boxShadow: "0 4px 20px rgba(0, 0, 0, 0.1)",
                     }}
                     onMouseEnter={handleMouseEnter}
                     onMouseMove={handleMouseMove}
                   >
-                    <Chip
-                      icon={<CalendarDays size={14} />}
-                      label={`${travelDays} días`}
-                      size="small"
-                      sx={{
-                        backgroundColor: "rgba(255,255,255,0.2)",
-                        color: "white",
-                        fontSize: "0.75rem",
-                        height: 28,
-                        backdropFilter: "blur(10px)",
-                        "& .MuiChip-icon": {
+                    <Tooltip
+                      title={`Duración total del viaje: ${travelDays} día${travelDays !== 1 ? "s" : ""}`}
+                      arrow
+                    >
+                      <Chip
+                        icon={<CalendarDays size={16} />}
+                        label={`${travelDays} día${travelDays !== 1 ? "s" : ""}`}
+                        size="small"
+                        sx={{
+                          backgroundColor: "rgba(255, 255, 255, 0.25)",
                           color: "white",
-                          width: 14,
-                          height: 14,
-                        },
-                      }}
-                    />
-                    <Chip
-                      icon={<HandCoins size={14} />}
-                      label={`¥ ${totalBudget.toLocaleString()}`}
-                      size="small"
-                      sx={{
-                        backgroundColor: "rgba(255,255,255,0.2)",
-                        color: "white",
-                        fontSize: "0.75rem",
-                        height: 28,
-                        backdropFilter: "blur(10px)",
-                        "& .MuiChip-icon": {
+                          fontSize: "0.8rem",
+                          height: 32,
+                          backdropFilter: "blur(10px)",
+                          border: "1px solid rgba(255, 255, 255, 0.2)",
+                          fontWeight: 500,
+                          letterSpacing: "0.02em",
+                          transition: "all 0.2s ease",
+                          "&:hover": {
+                            backgroundColor: "rgba(255, 255, 255, 0.35)",
+                            transform: "scale(1.02)",
+                            boxShadow: "0 2px 8px rgba(0, 0, 0, 0.2)",
+                          },
+                          "& .MuiChip-icon": {
+                            color: "white",
+                            width: 16,
+                            height: 16,
+                          },
+                          "& .MuiChip-label": {
+                            paddingLeft: "8px",
+                            paddingRight: "12px",
+                          },
+                        }}
+                      />
+                    </Tooltip>
+
+                    <Tooltip
+                      title={`Presupuesto total estimado: ¥${totalBudget.toLocaleString()}`}
+                      arrow
+                    >
+                      <Chip
+                        icon={<HandCoins size={16} />}
+                        label={`¥${totalBudget.toLocaleString()}`}
+                        size="small"
+                        sx={{
+                          backgroundColor: "rgba(255, 255, 255, 0.25)",
                           color: "white",
-                          width: 14,
-                          height: 14,
-                        },
-                      }}
-                    />
-                    <Chip
-                      icon={
-                        isPrivate ? <Lock size={12} /> : <Globe size={12} />
-                      }
-                      label={isPrivate ? "Privado" : "Público"}
-                      size="small"
-                      sx={{
-                        backgroundColor: isPrivate
-                          ? "rgba(255, 152, 0, 0.8)"
-                          : "rgba(76, 175, 80, 0.8)",
-                        color: "white",
-                        fontSize: "0.75rem",
-                        height: 28,
-                        backdropFilter: "blur(10px)",
-                        "& .MuiChip-icon": {
+                          fontSize: "0.8rem",
+                          height: 32,
+                          backdropFilter: "blur(10px)",
+                          border: "1px solid rgba(255, 255, 255, 0.2)",
+                          fontWeight: 500,
+                          letterSpacing: "0.02em",
+                          transition: "all 0.2s ease",
+                          "&:hover": {
+                            backgroundColor: "rgba(255, 255, 255, 0.35)",
+                            transform: "scale(1.02)",
+                            boxShadow: "0 2px 8px rgba(0, 0, 0, 0.2)",
+                          },
+                          "& .MuiChip-icon": {
+                            color: "white",
+                            width: 16,
+                            height: 16,
+                          },
+                          "& .MuiChip-label": {
+                            paddingLeft: "8px",
+                            paddingRight: "12px",
+                          },
+                        }}
+                      />
+                    </Tooltip>
+
+                    <Tooltip
+                      title={`Modo de transporte: ${getCurrentTransportMode().label} (${getCurrentTransportMode().speed}). Haz clic para cambiar`}
+                      arrow
+                    >
+                      <Chip
+                        icon={getCurrentTransportMode().icon}
+                        label={getCurrentTransportMode().label}
+                        size="small"
+                        onClick={handleTransportMenuClick}
+                        sx={{
+                          backgroundColor:
+                            getCurrentTransportMode().color + "30",
                           color: "white",
-                          width: 12,
-                          height: 12,
-                        },
-                      }}
-                    />
+                          fontSize: "0.8rem",
+                          height: 32,
+                          backdropFilter: "blur(10px)",
+                          border: `1px solid ${getCurrentTransportMode().color}60`,
+                          cursor: "pointer",
+                          fontWeight: 500,
+                          letterSpacing: "0.02em",
+                          transition: "all 0.2s ease",
+                          "&:hover": {
+                            backgroundColor:
+                              getCurrentTransportMode().color + "50",
+                            transform: "scale(1.05)",
+                            boxShadow: `0 4px 12px ${getCurrentTransportMode().color}40`,
+                          },
+                          "&:active": { transform: "scale(0.98)" },
+                          "& .MuiChip-icon": {
+                            color: "white",
+                            width: 16,
+                            height: 16,
+                          },
+                          "& .MuiChip-label": {
+                            paddingLeft: "8px",
+                            paddingRight: "12px",
+                          },
+                        }}
+                      />
+                    </Tooltip>
+
+                    <Tooltip
+                      title={`Visibilidad: ${isPrivate ? "Solo tú y tus compañeros pueden ver este itinerario" : "Cualquiera puede ver este itinerario"}${canChangePrivacy ? ". Haz clic para cambiar" : ""}`}
+                      arrow
+                    >
+                      <Chip
+                        icon={
+                          isPrivate ? <Lock size={14} /> : <Globe size={14} />
+                        }
+                        label={isPrivate ? "Privado" : "Público"}
+                        size="small"
+                        onClick={
+                          canChangePrivacy ? handlePrivacyMenuClick : undefined
+                        }
+                        sx={{
+                          backgroundColor: isPrivate
+                            ? "rgba(255, 152, 0, 0.3)"
+                            : "rgba(76, 175, 80, 0.3)",
+                          color: "white",
+                          fontSize: "0.8rem",
+                          height: 32,
+                          backdropFilter: "blur(10px)",
+                          border: `1px solid ${isPrivate ? "rgba(255, 152, 0, 0.6)" : "rgba(76, 175, 80, 0.6)"}`,
+                          fontWeight: 500,
+                          letterSpacing: "0.02em",
+                          transition: "all 0.2s ease",
+                          cursor: canChangePrivacy ? "pointer" : "default",
+                          "&:hover": canChangePrivacy
+                            ? {
+                                backgroundColor: isPrivate
+                                  ? "rgba(255, 152, 0, 0.5)"
+                                  : "rgba(76, 175, 80, 0.5)",
+                                transform: "scale(1.02)",
+                                boxShadow: "0 2px 8px rgba(0, 0, 0, 0.2)",
+                              }
+                            : {},
+                          "& .MuiChip-icon": {
+                            color: "white",
+                            width: 14,
+                            height: 14,
+                          },
+                          "& .MuiChip-label": {
+                            paddingLeft: "8px",
+                            paddingRight: "12px",
+                          },
+                        }}
+                      />
+                    </Tooltip>
                   </Box>
                 </Box>
 
@@ -524,7 +836,7 @@ const ItineraryHeader = ({
                     currentUserId={currentUserId}
                   />
 
-                  <Tooltip title="Lista del viaje">
+                  <Tooltip title="Abrir lista de tareas del viaje" arrow>
                     <IconButton
                       onClick={onNotesClick}
                       size="small"
@@ -548,7 +860,7 @@ const ItineraryHeader = ({
                     </IconButton>
                   </Tooltip>
 
-                  <Tooltip title="Más opciones">
+                  <Tooltip title="Más opciones y configuración" arrow>
                     <IconButton
                       onClick={handleMenuClick}
                       size="small"
@@ -576,39 +888,58 @@ const ItineraryHeader = ({
               </Box>
             )}
 
-            {/* DESKTOP/TABLET LAYOUT */}
+            {/* 🔧 IMPROVED TABLET/DESKTOP LAYOUT */}
             {!isMobile && (
               <Box
                 sx={{
                   display: "flex",
                   alignItems: "center",
-                  gap: { sm: 2, md: 3 },
+                  gap: { sm: 1, md: 2, lg: 3 },
                   width: "100%",
-                  pl: { sm: 12, md: 14 },
+                  pl: { sm: 10, md: 12, lg: 14 },
+                  pr: { sm: 1, md: 2 },
                   zIndex: 1102,
                   position: "relative",
+                  // 🔧 FIXED: Better responsive behavior
+                  flexWrap: isTablet ? "wrap" : "nowrap",
+                  justifyContent: isTablet ? "center" : "flex-start",
                 }}
                 onMouseEnter={handleMouseEnter}
                 onMouseMove={handleMouseMove}
               >
-                {/* Title Section */}
+                {/* 🔧 IMPROVED: Title Section with better space management */}
                 <Box
                   sx={{
                     display: "flex",
                     alignItems: "center",
-                    gap: { sm: 2, md: 3 },
-                    flex: 1,
+                    gap: { sm: 1, md: 2 },
+                    flex: isTablet ? "1 1 100%" : "1 1 auto",
                     minWidth: 0,
+                    mb: isTablet ? 1 : 0,
+                    justifyContent: isTablet ? "center" : "flex-start",
                   }}
                 >
-                  {/* Title */}
+                  {/* Title Container */}
                   <Box
                     sx={{
                       display: "flex",
                       alignItems: "center",
                       gap: 1,
                       minWidth: 0,
+                      flex: 1,
+                      backgroundColor: isEditingName
+                        ? "#FFFFFF !important"
+                        : "transparent",
+                      padding: isEditingName ? "12px 16px" : "0",
+                      borderRadius: isEditingName ? 10 : 0,
+                      boxShadow: isEditingName
+                        ? "0 6px 24px rgba(0, 0, 0, 0.3)"
+                        : "none",
+                      transition: "all 0.3s ease",
+                      position: "relative",
+                      zIndex: isEditingName ? 1200 : "auto",
                     }}
+                    data-editing={isEditingName ? "true" : "false"}
                   >
                     {isEditingName && canEdit ? (
                       <TextField
@@ -621,174 +952,351 @@ const ItineraryHeader = ({
                         }}
                         autoFocus
                         variant="outlined"
-                        placeholder="Nombre del itinerario..."
+                        placeholder="Escribe el nombre de tu itinerario..."
                         size="small"
                         sx={{
-                          maxWidth: { sm: "280px", md: "350px" },
+                          flex: 1,
+                          maxWidth: { sm: "250px", md: "320px", lg: "400px" },
                           "& .MuiOutlinedInput-root": {
-                            backgroundColor: "rgba(255,255,255,0.95)",
-                            backdropFilter: "blur(20px)",
-                            borderRadius: 20,
-                            border: `2px solid rgba(255,255,255,0.3)`,
-                            fontSize: { sm: "1.125rem", md: "1.25rem" },
-                            fontWeight: 600,
-                            color: theme.palette.text.primary,
-                            boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
-                            "& fieldset": { border: "none" },
+                            backgroundColor: "#FFFFFF !important",
+                            backdropFilter: "none !important",
+                            borderRadius: 8,
+                            border: "2px solid #E0E0E0 !important",
+                            fontSize: { sm: "1rem", md: "1.1rem" },
+                            fontWeight: 400,
+                            color: "#000000 !important",
+                            boxShadow:
+                              "0 4px 20px rgba(0, 0, 0, 0.3) !important",
+                            transition: "all 0.2s ease",
+                            "& fieldset": { border: "none !important" },
                             "&:hover": {
-                              backgroundColor: "rgba(255,255,255,1)",
-                              border: `2px solid rgba(255,255,255,0.5)`,
+                              backgroundColor: "#FFFFFF !important",
+                              border: "2px solid #BDBDBD !important",
+                              boxShadow:
+                                "0 6px 24px rgba(0, 0, 0, 0.35) !important",
                             },
                             "&.Mui-focused": {
-                              backgroundColor: "rgba(255,255,255,1)",
-                              border: `2px solid ${theme.palette.primary.main}`,
+                              backgroundColor: "#FFFFFF !important",
+                              border: `2px solid ${theme.palette.primary.main} !important`,
+                              boxShadow: `0 0 0 3px ${theme.palette.primary.main}30 !important`,
                             },
                           },
                           "& .MuiOutlinedInput-input": {
-                            padding: "8px 12px",
+                            padding: { sm: "10px 14px", md: "12px 16px" },
+                            color: "#000000 !important",
+                            fontSize: { sm: "1rem", md: "1.1rem" },
+                            fontWeight: 400,
+                            lineHeight: 1.4,
                             "&::placeholder": {
-                              color: theme.palette.text.secondary,
-                              opacity: 0.7,
-                              fontStyle: "italic",
+                              color: "#666666 !important",
+                              opacity: "1 !important",
+                              fontStyle: "normal",
+                              fontWeight: 400,
+                            },
+                            "&::selection": {
+                              backgroundColor:
+                                theme.palette.primary.main + "40 !important",
+                              color: "#000000 !important",
                             },
                           },
+                          "& input": {
+                            color: "#000000 !important",
+                            WebkitTextFillColor: "#000000 !important",
+                            backgroundColor: "transparent !important",
+                          },
                         }}
+                        inputProps={{
+                          style: {
+                            color: "#000000 !important",
+                            backgroundColor: "#FFFFFF !important",
+                          },
+                        }}
+                        style={{ backgroundColor: "#FFFFFF !important" }}
                         onMouseEnter={handleMouseEnter}
                         onMouseMove={handleMouseMove}
                       />
                     ) : (
-                      <Typography
-                        variant="h3"
-                        component="h1"
-                        sx={{
-                          fontWeight: "bold",
-                          color: "white",
-                          cursor: canEdit ? "pointer" : "default",
-                          fontSize: { sm: "1.5rem", md: "2rem", lg: "2.25rem" },
-                          lineHeight: 1.2,
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                          minWidth: 0,
-                          "&:hover": canEdit ? { opacity: 0.8 } : {},
-                        }}
-                        onClick={handleNameClick}
-                        onMouseEnter={handleMouseEnter}
-                        onMouseMove={handleMouseMove}
+                      <Tooltip
+                        title={
+                          canEdit
+                            ? "Haz clic para editar el nombre del itinerario"
+                            : ""
+                        }
+                        arrow
                       >
-                        {name || "Nuevo Itinerario"}
-                      </Typography>
+                        <Typography
+                          variant="h3"
+                          component="h1"
+                          sx={{
+                            fontWeight: "bold",
+                            color: "#FFFFFF !important",
+                            cursor: canEdit ? "pointer" : "default",
+                            fontSize: {
+                              sm: "1.25rem",
+                              md: "1.5rem",
+                              lg: "1.75rem",
+                            },
+                            lineHeight: 1.2,
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                            minWidth: 0,
+                            flex: 1,
+                            textAlign: isTablet ? "center" : "left",
+                            textShadow:
+                              "0 2px 8px rgba(0, 0, 0, 0.5) !important",
+                            transition: "all 0.3s ease",
+                            "&:hover": canEdit
+                              ? {
+                                  opacity: 0.9,
+                                  transform: "scale(1.02)",
+                                  textShadow:
+                                    "0 4px 12px rgba(0, 0, 0, 0.6) !important",
+                                  color: "#FFFFFF !important",
+                                }
+                              : {},
+                          }}
+                          onClick={handleNameClick}
+                          onMouseEnter={handleMouseEnter}
+                          onMouseMove={handleMouseMove}
+                        >
+                          {name || "Nuevo Itinerario"}
+                        </Typography>
+                      </Tooltip>
                     )}
 
                     {canEdit && (
-                      <IconButton
-                        onClick={handleEditClick}
-                        size="small"
-                        sx={{
-                          width: 32,
-                          height: 32,
-                          color: isEditingName
-                            ? theme.palette.success.main
-                            : "white",
-                          background: "rgba(255,255,255,0.15)",
-                          backdropFilter: "blur(10px)",
-                          flexShrink: 0,
-                          zIndex: 1103,
-                          "&:hover": {
-                            background: "rgba(255,255,255,0.25)",
-                            zIndex: 1104,
-                          },
-                        }}
-                        onMouseEnter={handleMouseEnter}
-                        onMouseMove={handleMouseMove}
+                      <Tooltip
+                        title={
+                          isEditingName ? "Guardar cambios" : "Editar nombre"
+                        }
+                        arrow
                       >
-                        {isEditingName ? (
-                          <Save size={16} />
-                        ) : (
-                          <Edit size={16} />
-                        )}
-                      </IconButton>
+                        <IconButton
+                          onClick={handleEditClick}
+                          size="small"
+                          sx={{
+                            width: { sm: 36, md: 40 },
+                            height: { sm: 36, md: 40 },
+                            color: isEditingName ? "#FFFFFF" : "white",
+                            background: isEditingName
+                              ? theme.palette.success.main
+                              : "rgba(255, 255, 255, 0.2)",
+                            backdropFilter: "blur(8px)",
+                            border: `2px solid ${
+                              isEditingName
+                                ? theme.palette.success.main
+                                : "rgba(255, 255, 255, 0.3)"
+                            }`,
+                            borderRadius: "50%",
+                            boxShadow: isEditingName
+                              ? `0 4px 20px ${theme.palette.success.main}40`
+                              : "0 4px 16px rgba(0, 0, 0, 0.2)",
+                            zIndex: 1103,
+                            flexShrink: 0,
+                            transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                            "&:hover": {
+                              background: isEditingName
+                                ? theme.palette.success.dark
+                                : "rgba(255, 255, 255, 0.3)",
+                              transform: "scale(1.08)",
+                              boxShadow: isEditingName
+                                ? `0 6px 24px ${theme.palette.success.main}50`
+                                : "0 6px 20px rgba(0, 0, 0, 0.3)",
+                              zIndex: 1104,
+                            },
+                            "&:active": { transform: "scale(0.95)" },
+                          }}
+                          onMouseEnter={handleMouseEnter}
+                          onMouseMove={handleMouseMove}
+                        >
+                          {isEditingName ? (
+                            <Save size={isTablet ? 16 : 18} />
+                          ) : (
+                            <Edit size={isTablet ? 16 : 18} />
+                          )}
+                        </IconButton>
+                      </Tooltip>
                     )}
+
+                    {/* Force styles override */}
+                    <style jsx>{`
+                      [data-editing="true"] {
+                        background-color: #ffffff !important;
+                        background: #ffffff !important;
+                        backdrop-filter: none !important;
+                      }
+                      [data-editing="false"] h1,
+                      [data-editing="false"] .MuiTypography-root {
+                        color: #ffffff !important;
+                      }
+                      .MuiBox-root[data-editing="true"] {
+                        background-color: #ffffff !important;
+                        backdrop-filter: none !important;
+                      }
+                      [data-editing="true"] .MuiOutlinedInput-root {
+                        background-color: #ffffff !important;
+                        background: #ffffff !important;
+                      }
+                      [data-editing="true"] .MuiOutlinedInput-input {
+                        color: #000000 !important;
+                        -webkit-text-fill-color: #000000 !important;
+                      }
+                      [data-editing="true"] input {
+                        color: #000000 !important;
+                        -webkit-text-fill-color: #000000 !important;
+                        background-color: #ffffff !important;
+                      }
+                    `}</style>
                   </Box>
 
-                  {/* Desktop: Badges */}
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 1,
-                      flexShrink: 0,
-                    }}
-                    onMouseEnter={handleMouseEnter}
-                    onMouseMove={handleMouseMove}
-                  >
-                    <Chip
-                      icon={<CalendarDays size={14} />}
-                      label={`${travelDays} días`}
-                      size="small"
+                  {/* 🔧 IMPROVED: Chips Section with better spacing */}
+                  {!isTablet && (
+                    <Box
                       sx={{
-                        backgroundColor: "rgba(255,255,255,0.2)",
-                        color: "white",
-                        fontSize: "0.7rem",
-                        height: 24,
-                        backdropFilter: "blur(10px)",
-                        "& .MuiChip-icon": {
-                          color: "white",
-                          width: 14,
-                          height: 14,
-                        },
+                        display: "flex",
+                        alignItems: "center",
+                        gap: { md: 0.75, lg: 1 },
+                        flexShrink: 0,
+                        ml: 1,
                       }}
-                    />
-                    <Chip
-                      icon={<HandCoins size={14} />}
-                      label={`¥ ${totalBudget.toLocaleString()}`}
-                      size="small"
-                      sx={{
-                        backgroundColor: "rgba(255,255,255,0.2)",
-                        color: "white",
-                        fontSize: "0.7rem",
-                        height: 24,
-                        backdropFilter: "blur(10px)",
-                        "& .MuiChip-icon": {
-                          color: "white",
-                          width: 14,
-                          height: 14,
-                        },
-                      }}
-                    />
-                    <Chip
-                      icon={
-                        isPrivate ? <Lock size={12} /> : <Globe size={12} />
-                      }
-                      label={isPrivate ? "Privado" : "Público"}
-                      size="small"
-                      sx={{
-                        backgroundColor: isPrivate
-                          ? "rgba(255, 152, 0, 0.8)"
-                          : "rgba(76, 175, 80, 0.8)",
-                        color: "white",
-                        fontSize: "0.7rem",
-                        height: 24,
-                        backdropFilter: "blur(10px)",
-                        "& .MuiChip-icon": {
-                          color: "white",
-                          width: 12,
-                          height: 12,
-                        },
-                      }}
-                    />
-                  </Box>
+                      onMouseEnter={handleMouseEnter}
+                      onMouseMove={handleMouseMove}
+                    >
+                      <Tooltip
+                        title={`Duración: ${travelDays} día${travelDays !== 1 ? "s" : ""}`}
+                        arrow
+                      >
+                        <Chip
+                          icon={<CalendarDays size={12} />}
+                          label={`${travelDays} día${travelDays !== 1 ? "s" : ""}`}
+                          size="small"
+                          sx={{
+                            backgroundColor: "rgba(255,255,255,0.2)",
+                            color: "white",
+                            fontSize: "0.65rem",
+                            height: 22,
+                            backdropFilter: "blur(10px)",
+                            "& .MuiChip-icon": {
+                              color: "white",
+                              width: 12,
+                              height: 12,
+                            },
+                          }}
+                        />
+                      </Tooltip>
+
+                      <Tooltip
+                        title={`Presupuesto: ¥${totalBudget.toLocaleString()}`}
+                        arrow
+                      >
+                        <Chip
+                          icon={<HandCoins size={12} />}
+                          label={`¥${totalBudget.toLocaleString()}`}
+                          size="small"
+                          sx={{
+                            backgroundColor: "rgba(255,255,255,0.2)",
+                            color: "white",
+                            fontSize: "0.65rem",
+                            height: 22,
+                            backdropFilter: "blur(10px)",
+                            "& .MuiChip-icon": {
+                              color: "white",
+                              width: 12,
+                              height: 12,
+                            },
+                          }}
+                        />
+                      </Tooltip>
+
+                      <Tooltip
+                        title={`Transporte: ${getCurrentTransportMode().label}. Clic para cambiar`}
+                        arrow
+                      >
+                        <Chip
+                          icon={getCurrentTransportMode().icon}
+                          label={getCurrentTransportMode().label}
+                          size="small"
+                          onClick={handleTransportMenuClick}
+                          sx={{
+                            backgroundColor:
+                              getCurrentTransportMode().color + "40",
+                            color: "white",
+                            fontSize: "0.65rem",
+                            height: 22,
+                            backdropFilter: "blur(10px)",
+                            cursor: "pointer",
+                            transition: "all 0.2s ease",
+                            "&:hover": {
+                              backgroundColor:
+                                getCurrentTransportMode().color + "60",
+                              transform: "scale(1.05)",
+                            },
+                            "& .MuiChip-icon": {
+                              color: "white",
+                              width: 12,
+                              height: 12,
+                            },
+                          }}
+                        />
+                      </Tooltip>
+
+                      <Tooltip
+                        title={`${isPrivate ? "Privado" : "Público"}${canChangePrivacy ? ". Clic para cambiar" : ""}`}
+                        arrow
+                      >
+                        <Chip
+                          icon={
+                            isPrivate ? <Lock size={10} /> : <Globe size={10} />
+                          }
+                          label={isPrivate ? "Privado" : "Público"}
+                          size="small"
+                          onClick={
+                            canChangePrivacy
+                              ? handlePrivacyMenuClick
+                              : undefined
+                          }
+                          sx={{
+                            backgroundColor: isPrivate
+                              ? "rgba(255, 152, 0, 0.8)"
+                              : "rgba(76, 175, 80, 0.8)",
+                            color: "white",
+                            fontSize: "0.65rem",
+                            height: 22,
+                            backdropFilter: "blur(10px)",
+                            cursor: canChangePrivacy ? "pointer" : "default",
+                            transition: "all 0.2s ease",
+                            "&:hover": canChangePrivacy
+                              ? {
+                                  transform: "scale(1.05)",
+                                }
+                              : {},
+                            "& .MuiChip-icon": {
+                              color: "white",
+                              width: 10,
+                              height: 10,
+                            },
+                          }}
+                        />
+                      </Tooltip>
+                    </Box>
+                  )}
                 </Box>
 
-                {/* Desktop: Action Buttons */}
+                {/* 🔧 IMPROVED: Action Buttons with better spacing */}
                 <Box
                   sx={{
                     display: "flex",
                     alignItems: "center",
-                    gap: 1.5,
+                    gap: { sm: 1, md: 1.5 },
                     flexShrink: 0,
                     zIndex: 1102,
                     position: "relative",
+                    // 🔧 FIXED: Better positioning for tablet
+                    order: isTablet ? -1 : 0,
+                    width: isTablet ? "100%" : "auto",
+                    justifyContent: isTablet ? "center" : "flex-end",
+                    mb: isTablet ? 1 : 0,
                   }}
                   onMouseEnter={handleMouseEnter}
                   onMouseMove={handleMouseMove}
@@ -810,15 +1318,15 @@ const ItineraryHeader = ({
                     currentUserId={currentUserId}
                   />
 
-                  <Tooltip title="Lista del viaje">
+                  <Tooltip title="Lista de tareas del viaje" arrow>
                     <IconButton
                       onClick={onNotesClick}
                       size="small"
                       sx={{
                         backgroundColor: theme.palette.primary.main,
                         color: "white",
-                        width: 36,
-                        height: 36,
+                        width: { sm: 32, md: 36 },
+                        height: { sm: 32, md: 36 },
                         zIndex: 1103,
                         position: "relative",
                         pointerEvents: "auto",
@@ -830,19 +1338,19 @@ const ItineraryHeader = ({
                       onMouseEnter={handleMouseEnter}
                       onMouseMove={handleMouseMove}
                     >
-                      <ListCheck size={16} />
+                      <ListCheck size={isTablet ? 14 : 16} />
                     </IconButton>
                   </Tooltip>
 
-                  <Tooltip title="Más opciones">
+                  <Tooltip title="Más opciones" arrow>
                     <IconButton
                       onClick={handleMenuClick}
                       size="small"
                       sx={{
                         backgroundColor: "rgba(255,255,255,0.15)",
                         color: "white",
-                        width: 36,
-                        height: 36,
+                        width: { sm: 32, md: 36 },
+                        height: { sm: 32, md: 36 },
                         backdropFilter: "blur(10px)",
                         zIndex: 1103,
                         position: "relative",
@@ -855,17 +1363,149 @@ const ItineraryHeader = ({
                       onMouseEnter={handleMouseEnter}
                       onMouseMove={handleMouseMove}
                     >
-                      <MoreVertical size={16} />
+                      <MoreVertical size={isTablet ? 14 : 16} />
                     </IconButton>
                   </Tooltip>
                 </Box>
+
+                {/* 🔧 TABLET: Show chips in a separate row */}
+                {isTablet && (
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 1,
+                      flexWrap: "wrap",
+                      width: "100%",
+                      mt: 1,
+                    }}
+                    onMouseEnter={handleMouseEnter}
+                    onMouseMove={handleMouseMove}
+                  >
+                    <Tooltip
+                      title={`Duración: ${travelDays} día${travelDays !== 1 ? "s" : ""}`}
+                      arrow
+                    >
+                      <Chip
+                        icon={<CalendarDays size={14} />}
+                        label={`${travelDays} día${travelDays !== 1 ? "s" : ""}`}
+                        size="small"
+                        sx={{
+                          backgroundColor: "rgba(255,255,255,0.2)",
+                          color: "white",
+                          fontSize: "0.7rem",
+                          height: 26,
+                          backdropFilter: "blur(10px)",
+                          "& .MuiChip-icon": {
+                            color: "white",
+                            width: 14,
+                            height: 14,
+                          },
+                        }}
+                      />
+                    </Tooltip>
+
+                    <Tooltip
+                      title={`Presupuesto: ¥${totalBudget.toLocaleString()}`}
+                      arrow
+                    >
+                      <Chip
+                        icon={<HandCoins size={14} />}
+                        label={`¥${totalBudget.toLocaleString()}`}
+                        size="small"
+                        sx={{
+                          backgroundColor: "rgba(255,255,255,0.2)",
+                          color: "white",
+                          fontSize: "0.7rem",
+                          height: 26,
+                          backdropFilter: "blur(10px)",
+                          "& .MuiChip-icon": {
+                            color: "white",
+                            width: 14,
+                            height: 14,
+                          },
+                        }}
+                      />
+                    </Tooltip>
+
+                    <Tooltip
+                      title={`Transporte: ${getCurrentTransportMode().label} (${getCurrentTransportMode().speed}). Clic para cambiar`}
+                      arrow
+                    >
+                      <Chip
+                        icon={getCurrentTransportMode().icon}
+                        label={getCurrentTransportMode().label}
+                        size="small"
+                        onClick={handleTransportMenuClick}
+                        sx={{
+                          backgroundColor:
+                            getCurrentTransportMode().color + "40",
+                          color: "white",
+                          fontSize: "0.7rem",
+                          height: 26,
+                          backdropFilter: "blur(10px)",
+                          cursor: "pointer",
+                          transition: "all 0.2s ease",
+                          "&:hover": {
+                            backgroundColor:
+                              getCurrentTransportMode().color + "60",
+                            transform: "scale(1.05)",
+                          },
+                          "& .MuiChip-icon": {
+                            color: "white",
+                            width: 14,
+                            height: 14,
+                          },
+                        }}
+                      />
+                    </Tooltip>
+
+                    <Tooltip
+                      title={`Visibilidad: ${isPrivate ? "Solo tú y tus compañeros pueden ver este itinerario" : "Cualquiera puede ver este itinerario"}${canChangePrivacy ? ". Clic para cambiar" : ""}`}
+                      arrow
+                    >
+                      <Chip
+                        icon={
+                          isPrivate ? <Lock size={12} /> : <Globe size={12} />
+                        }
+                        label={isPrivate ? "Privado" : "Público"}
+                        size="small"
+                        onClick={
+                          canChangePrivacy ? handlePrivacyMenuClick : undefined
+                        }
+                        sx={{
+                          backgroundColor: isPrivate
+                            ? "rgba(255, 152, 0, 0.8)"
+                            : "rgba(76, 175, 80, 0.8)",
+                          color: "white",
+                          fontSize: "0.7rem",
+                          height: 26,
+                          backdropFilter: "blur(10px)",
+                          cursor: canChangePrivacy ? "pointer" : "default",
+                          transition: "all 0.2s ease",
+                          "&:hover": canChangePrivacy
+                            ? {
+                                transform: "scale(1.05)",
+                              }
+                            : {},
+                          "& .MuiChip-icon": {
+                            color: "white",
+                            width: 12,
+                            height: 12,
+                          },
+                        }}
+                      />
+                    </Tooltip>
+                  </Box>
+                )}
               </Box>
             )}
           </Box>
         </Container>
       </Box>
 
-      {/* 🆕 ENHANCED NAVIGATION MENU */}
+      {/* Navigation Menu */}
       <Popper
         open={navMenuOpen}
         anchorEl={navMenuAnchor}
@@ -902,7 +1542,6 @@ const ItineraryHeader = ({
                   id="navigation-menu"
                   sx={{ p: 1 }}
                 >
-                  {/* Header */}
                   <Box
                     sx={{
                       px: 2,
@@ -935,7 +1574,7 @@ const ItineraryHeader = ({
                     return (
                       <MenuItem
                         key={index}
-                        onClick={() => handleNavigate(item.path)}
+                        onClick={() => handleNavigate(item.path, item.action)}
                         sx={{
                           borderRadius: 2,
                           mx: 0.5,
@@ -1002,7 +1641,415 @@ const ItineraryHeader = ({
         )}
       </Popper>
 
-      {/* Original Dropdown Menu (More Options) */}
+      {/* Transport Mode Menu */}
+      <Popper
+        open={transportMenuOpen}
+        anchorEl={transportMenuAnchor}
+        role={undefined}
+        placement="bottom-start"
+        transition
+        disablePortal
+        sx={{ zIndex: 1105 }}
+      >
+        {({ TransitionProps, placement }) => (
+          <Grow
+            {...TransitionProps}
+            style={{
+              transformOrigin:
+                placement === "bottom-start" ? "left top" : "left bottom",
+            }}
+          >
+            <Paper
+              sx={{
+                backgroundColor: theme.palette.background.paper,
+                backdropFilter: "blur(20px)",
+                borderRadius: 3,
+                boxShadow: theme.shadows[12],
+                border: `1px solid ${theme.palette.divider}`,
+                minWidth: { xs: 280, sm: 300 },
+                maxWidth: "90vw",
+                mt: 1,
+                overflow: "hidden",
+              }}
+            >
+              <ClickAwayListener onClickAway={handleTransportMenuClose}>
+                <MenuList
+                  autoFocusItem={transportMenuOpen}
+                  id="transport-menu"
+                  sx={{ p: 1 }}
+                >
+                  <Box
+                    sx={{
+                      px: 2,
+                      py: 1.5,
+                      borderBottom: `1px solid ${theme.palette.divider}`,
+                      mb: 1,
+                    }}
+                  >
+                    <Typography
+                      variant="subtitle2"
+                      color="text.secondary"
+                      sx={{ fontSize: "0.75rem", fontWeight: 600 }}
+                    >
+                      MODO DE TRANSPORTE
+                    </Typography>
+                    <Typography
+                      variant="caption"
+                      color="text.disabled"
+                      sx={{ fontSize: "0.7rem" }}
+                    >
+                      Selecciona cómo calcular distancias y tiempos
+                    </Typography>
+                  </Box>
+
+                  {transportModes.map((mode) => (
+                    <MenuItem
+                      key={mode.value}
+                      onClick={() => handleTransportModeChange(mode.value)}
+                      selected={transportMode === mode.value}
+                      sx={{
+                        borderRadius: 2,
+                        mx: 0.5,
+                        mb: 0.5,
+                        py: 1.5,
+                        px: 2,
+                        transition: "all 0.2s ease",
+                        backgroundColor:
+                          transportMode === mode.value
+                            ? `${mode.color}20`
+                            : "transparent",
+                        "&:hover": {
+                          backgroundColor: `${mode.color}15`,
+                          "& .transport-icon": {
+                            color: mode.color,
+                            transform: "scale(1.1)",
+                          },
+                          "& .transport-label": {
+                            color: mode.color,
+                            fontWeight: 600,
+                          },
+                        },
+                      }}
+                    >
+                      <ListItemIcon
+                        className="transport-icon"
+                        sx={{
+                          minWidth: 36,
+                          color:
+                            transportMode === mode.value
+                              ? mode.color
+                              : theme.palette.text.secondary,
+                          transition: "all 0.2s ease",
+                        }}
+                      >
+                        {mode.icon}
+                      </ListItemIcon>
+                      <ListItemText>
+                        <Typography
+                          className="transport-label"
+                          variant="body2"
+                          sx={{
+                            fontWeight:
+                              transportMode === mode.value ? 600 : 500,
+                            fontSize: "0.875rem",
+                            lineHeight: 1.2,
+                            transition: "all 0.2s ease",
+                            color:
+                              transportMode === mode.value
+                                ? mode.color
+                                : "inherit",
+                          }}
+                        >
+                          {mode.label}
+                        </Typography>
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                          sx={{
+                            fontSize: "0.75rem",
+                            lineHeight: 1.1,
+                            mt: 0.25,
+                            display: "block",
+                          }}
+                        >
+                          Velocidad promedio: {mode.speed}
+                        </Typography>
+                      </ListItemText>
+                    </MenuItem>
+                  ))}
+
+                  <Divider sx={{ my: 1 }} />
+
+                  <Box sx={{ px: 2, py: 1 }}>
+                    <FormGroup>
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={showDistanceIndicators}
+                            onChange={handleToggleDistanceIndicators}
+                            size="small"
+                          />
+                        }
+                        label={
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 1,
+                            }}
+                          >
+                            <Navigation size={14} />
+                            <Typography
+                              variant="body2"
+                              sx={{ fontSize: "0.8rem" }}
+                            >
+                              Mostrar distancias
+                            </Typography>
+                          </Box>
+                        }
+                        sx={{ mb: 1 }}
+                      />
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={showRouteOptimizer}
+                            onChange={handleToggleRouteOptimizer}
+                            size="small"
+                          />
+                        }
+                        label={
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 1,
+                            }}
+                          >
+                            <Zap size={14} />
+                            <Typography
+                              variant="body2"
+                              sx={{ fontSize: "0.8rem" }}
+                            >
+                              Optimizador de rutas
+                            </Typography>
+                          </Box>
+                        }
+                      />
+                    </FormGroup>
+                  </Box>
+                </MenuList>
+              </ClickAwayListener>
+            </Paper>
+          </Grow>
+        )}
+      </Popper>
+
+      {/* 🆕 NEW: Privacy Menu */}
+      <Popper
+        open={privacyMenuOpen}
+        anchorEl={privacyMenuAnchor}
+        role={undefined}
+        placement="bottom-start"
+        transition
+        disablePortal
+        sx={{ zIndex: 1105 }}
+      >
+        {({ TransitionProps, placement }) => (
+          <Grow
+            {...TransitionProps}
+            style={{
+              transformOrigin:
+                placement === "bottom-start" ? "left top" : "left bottom",
+            }}
+          >
+            <Paper
+              sx={{
+                backgroundColor: theme.palette.background.paper,
+                backdropFilter: "blur(20px)",
+                borderRadius: 3,
+                boxShadow: theme.shadows[12],
+                border: `1px solid ${theme.palette.divider}`,
+                minWidth: { xs: 280, sm: 300 },
+                maxWidth: "90vw",
+                mt: 1,
+                overflow: "hidden",
+              }}
+            >
+              <ClickAwayListener onClickAway={handlePrivacyMenuClose}>
+                <MenuList
+                  autoFocusItem={privacyMenuOpen}
+                  id="privacy-menu"
+                  sx={{ p: 1 }}
+                >
+                  <Box
+                    sx={{
+                      px: 2,
+                      py: 1.5,
+                      borderBottom: `1px solid ${theme.palette.divider}`,
+                      mb: 1,
+                    }}
+                  >
+                    <Typography
+                      variant="subtitle2"
+                      color="text.secondary"
+                      sx={{ fontSize: "0.75rem", fontWeight: 600 }}
+                    >
+                      CONFIGURACIÓN DE PRIVACIDAD
+                    </Typography>
+                    <Typography
+                      variant="caption"
+                      color="text.disabled"
+                      sx={{ fontSize: "0.7rem" }}
+                    >
+                      Controla quién puede ver tu itinerario
+                    </Typography>
+                  </Box>
+
+                  <MenuItem
+                    onClick={() => handlePrivacyChange(false)}
+                    selected={!isPrivate}
+                    sx={{
+                      borderRadius: 2,
+                      mx: 0.5,
+                      mb: 0.5,
+                      py: 1.5,
+                      px: 2,
+                      transition: "all 0.2s ease",
+                      backgroundColor: !isPrivate
+                        ? `${theme.palette.success.main}20`
+                        : "transparent",
+                      "&:hover": {
+                        backgroundColor: `${theme.palette.success.main}15`,
+                        "& .privacy-icon": {
+                          color: theme.palette.success.main,
+                          transform: "scale(1.1)",
+                        },
+                        "& .privacy-label": {
+                          color: theme.palette.success.main,
+                          fontWeight: 600,
+                        },
+                      },
+                    }}
+                  >
+                    <ListItemIcon
+                      className="privacy-icon"
+                      sx={{
+                        minWidth: 36,
+                        color: !isPrivate
+                          ? theme.palette.success.main
+                          : theme.palette.text.secondary,
+                        transition: "all 0.2s ease",
+                      }}
+                    >
+                      <Globe size={18} />
+                    </ListItemIcon>
+                    <ListItemText>
+                      <Typography
+                        className="privacy-label"
+                        variant="body2"
+                        sx={{
+                          fontWeight: !isPrivate ? 600 : 500,
+                          fontSize: "0.875rem",
+                          lineHeight: 1.2,
+                          transition: "all 0.2s ease",
+                          color: !isPrivate
+                            ? theme.palette.success.main
+                            : "inherit",
+                        }}
+                      >
+                        Público
+                      </Typography>
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        sx={{
+                          fontSize: "0.75rem",
+                          lineHeight: 1.1,
+                          mt: 0.25,
+                          display: "block",
+                        }}
+                      >
+                        Cualquiera puede ver este itinerario
+                      </Typography>
+                    </ListItemText>
+                  </MenuItem>
+
+                  <MenuItem
+                    onClick={() => handlePrivacyChange(true)}
+                    selected={isPrivate}
+                    sx={{
+                      borderRadius: 2,
+                      mx: 0.5,
+                      mb: 0.5,
+                      py: 1.5,
+                      px: 2,
+                      transition: "all 0.2s ease",
+                      backgroundColor: isPrivate
+                        ? `${theme.palette.warning.main}20`
+                        : "transparent",
+                      "&:hover": {
+                        backgroundColor: `${theme.palette.warning.main}15`,
+                        "& .privacy-icon": {
+                          color: theme.palette.warning.main,
+                          transform: "scale(1.1)",
+                        },
+                        "& .privacy-label": {
+                          color: theme.palette.warning.main,
+                          fontWeight: 600,
+                        },
+                      },
+                    }}
+                  >
+                    <ListItemIcon
+                      className="privacy-icon"
+                      sx={{
+                        minWidth: 36,
+                        color: isPrivate
+                          ? theme.palette.warning.main
+                          : theme.palette.text.secondary,
+                        transition: "all 0.2s ease",
+                      }}
+                    >
+                      <Lock size={18} />
+                    </ListItemIcon>
+                    <ListItemText>
+                      <Typography
+                        className="privacy-label"
+                        variant="body2"
+                        sx={{
+                          fontWeight: isPrivate ? 600 : 500,
+                          fontSize: "0.875rem",
+                          lineHeight: 1.2,
+                          transition: "all 0.2s ease",
+                          color: isPrivate
+                            ? theme.palette.warning.main
+                            : "inherit",
+                        }}
+                      >
+                        Privado
+                      </Typography>
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        sx={{
+                          fontSize: "0.75rem",
+                          lineHeight: 1.1,
+                          mt: 0.25,
+                          display: "block",
+                        }}
+                      >
+                        Solo tú y tus compañeros pueden verlo
+                      </Typography>
+                    </ListItemText>
+                  </MenuItem>
+                </MenuList>
+              </ClickAwayListener>
+            </Paper>
+          </Grow>
+        )}
+      </Popper>
+
+      {/* Original More Options Menu */}
       <Menu
         anchorEl={anchorEl}
         open={open}
@@ -1062,32 +2109,6 @@ const ItineraryHeader = ({
         </MenuItem>
 
         <Divider />
-
-        {canChangePrivacy && (
-          <MenuItem>
-            <ListItemIcon>
-              {isPrivate ? <Lock size={18} /> : <Globe size={18} />}
-            </ListItemIcon>
-            <ListItemText>
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                }}
-              >
-                <Typography variant="body2">
-                  {isPrivate ? "Itinerario Privado" : "Itinerario Público"}
-                </Typography>
-                <Switch
-                  checked={isPrivate}
-                  onChange={handlePrivacyChange}
-                  size="small"
-                />
-              </Box>
-            </ListItemText>
-          </MenuItem>
-        )}
 
         {hasOfflinePermission && (
           <MenuItem onClick={handleOfflineClick}>

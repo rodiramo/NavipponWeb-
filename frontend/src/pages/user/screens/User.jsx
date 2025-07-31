@@ -1121,7 +1121,7 @@ const User = () => {
         mb={3}
         sx={{ color: "text.primary" }}
       >
-        Mis Conexiones
+        Mis conexiones
       </Typography>
 
       <FriendsWidget token={jwt} />

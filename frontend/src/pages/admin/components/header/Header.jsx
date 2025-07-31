@@ -198,8 +198,8 @@ const Header = ({ isMenuOpen, setIsMenuOpen }) => {
             flex: 1, // ✅ Take remaining space
             display: "flex",
             flexDirection: "column",
-            overflow: "hidden", // ✅ Hide overflow on container
-            minHeight: 0, // ✅ Allow flex item to shrink below content size
+            overflow: "hidden",
+            minHeight: 0,
           }}
         >
           <Box
@@ -208,6 +208,7 @@ const Header = ({ isMenuOpen, setIsMenuOpen }) => {
               overflowY: "auto", // ✅ Enable scrolling
               overflowX: "hidden",
               flex: 1,
+              pt: "1rem",
               paddingRight: "4px", // ✅ Space for scrollbar
               "&::-webkit-scrollbar": {
                 width: "4px",
@@ -224,13 +225,6 @@ const Header = ({ isMenuOpen, setIsMenuOpen }) => {
               },
             }}
           >
-            <Divider
-              sx={{
-                margin: { sm: "2rem", md: "4rem", lg: "1rem" },
-                width: "100%",
-              }}
-            />
-
             {/* Navigation Items */}
             <Box>
               <Tooltip title={!isMenuOpen ? "Dashboard" : ""} placement="right">
@@ -422,7 +416,7 @@ const Header = ({ isMenuOpen, setIsMenuOpen }) => {
             }}
           >
             <Tooltip
-              title={!isMenuOpen ? "Crear Experiencia" : ""}
+              title={!isMenuOpen ? "Subir experiencia" : ""}
               placement="right"
             >
               <span>

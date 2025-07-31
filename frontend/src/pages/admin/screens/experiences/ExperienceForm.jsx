@@ -119,7 +119,7 @@ const ExperienceForm = () => {
   // Multi-step form state
   const [activeStep, setActiveStep] = useState(0);
   const steps = [
-    "Detalles Básicos",
+    "Detalles",
     "Contenido",
     "Ubicación",
     "Categorías",
@@ -1605,14 +1605,14 @@ const ExperienceForm = () => {
       <Box
         sx={{
           background: theme.palette.secondary.light,
-          padding: isXS ? "16px 12px" : isMobile ? "20px 16px" : "40px 24px",
+          padding: isXS ? "50px 12px" : isMobile ? "20px 16px" : "40px 24px",
           width: "100%",
           borderRadius: isXS
             ? "0rem 0rem 1.5rem 1.5rem"
             : isMobile
               ? "0rem 0rem 2rem 2rem"
               : "0rem 0rem 5rem 5rem",
-          marginTop: "-25px",
+          mt: isXS ? "1px" : isMobile ? "-25px" : "1px",
         }}
       >
         <Typography

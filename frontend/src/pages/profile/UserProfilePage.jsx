@@ -258,8 +258,8 @@ const UserProfilePage = () => {
               post={{
                 ...post,
                 slug: post.slug || post._id,
-                photo: post.image,
-                caption: post.description,
+                photo: post.photo,
+                caption: post.caption,
                 user: {
                   _id: profile._id,
                   name: profile.name,
@@ -349,12 +349,12 @@ const UserProfilePage = () => {
                       ) : permissions.role === "viewer" ? (
                         <Eye
                           fontSize="small"
-                          color={theme.palette.primary.white}
+                          color={theme.palette.secondary.dark}
                         />
                       ) : (
                         <Eye
                           fontSize="small"
-                          color={theme.palette.primary.white}
+                          color={theme.palette.secondary.dark}
                         />
                       )
                     }
@@ -384,7 +384,7 @@ const UserProfilePage = () => {
                             ? "primary.dark"
                             : permissions.role === "viewer"
                               ? "primary.white"
-                              : theme.palette.secondary.light,
+                              : theme.palette.secondary.dark,
 
                       fontSize: { xs: "0.6rem", md: "0.7rem" },
                     }}
@@ -849,128 +849,6 @@ const UserProfilePage = () => {
             </Grid>
           </Box>
         </Card>
-
-        {/* Quick Action Cards - Hidden on Mobile */}
-        <Box sx={{ display: { xs: "none", md: "block" } }}>
-          <Grid container spacing={3} sx={{ mb: 4 }}>
-            <Grid item xs={12} md={4}>
-              <Card
-                sx={{
-                  p: 3,
-                  borderRadius: "16px",
-                  backgroundColor: theme.palette.background.blue,
-                  boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-                  cursor: "pointer",
-                  transition: "all 0.3s ease",
-                  "&:hover": {
-                    transform: "translateY(-2px)",
-                    boxShadow: "0 8px 30px rgba(0,0,0,0.12)",
-                  },
-                }}
-                onClick={() => setCurrentTab(0)}
-              >
-                <Box display="flex" alignItems="center" gap={2}>
-                  <Box
-                    sx={{
-                      width: 48,
-                      height: 48,
-                      borderRadius: "12px",
-                      backgroundColor: "primary.light",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    <ScrollText color={theme.palette.primary.main} />
-                  </Box>
-                  <Box>
-                    <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                      Ver Publicaciones
-                    </Typography>
-                  </Box>
-                </Box>
-              </Card>
-            </Grid>
-
-            <Grid item xs={12} md={4}>
-              <Card
-                sx={{
-                  p: 3,
-                  borderRadius: "16px",
-                  backgroundColor: theme.palette.background.blue,
-                  boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-                  cursor: "pointer",
-                  transition: "all 0.3s ease",
-                  "&:hover": {
-                    transform: "translateY(-2px)",
-                    boxShadow: "0 8px 30px rgba(0,0,0,0.12)",
-                  },
-                }}
-                onClick={() => setCurrentTab(1)}
-              >
-                <Box display="flex" alignItems="center" gap={2}>
-                  <Box
-                    sx={{
-                      width: 48,
-                      height: 48,
-                      borderRadius: "12px",
-                      backgroundColor: "secondary.light",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    <FmdGoodOutlined color="secondary" />
-                  </Box>
-                  <Box>
-                    <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                      Ver viajes
-                    </Typography>
-                  </Box>
-                </Box>
-              </Card>
-            </Grid>
-
-            <Grid item xs={12} md={4}>
-              <Card
-                sx={{
-                  p: 3,
-                  borderRadius: "16px",
-                  backgroundColor: theme.palette.background.blue,
-                  boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-                  cursor: "pointer",
-                  transition: "all 0.3s ease",
-                  "&:hover": {
-                    transform: "translateY(-2px)",
-                    boxShadow: "0 8px 30px rgba(0,0,0,0.12)",
-                  },
-                }}
-                onClick={() => setCurrentTab(2)}
-              >
-                <Box display="flex" alignItems="center" gap={2}>
-                  <Box
-                    sx={{
-                      width: 48,
-                      height: 48,
-                      borderRadius: "12px",
-                      backgroundColor: "primary.light",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    <Info color={theme.palette.primary.main} />
-                  </Box>
-                  <Box>
-                    <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                      Más información
-                    </Typography>
-                  </Box>
-                </Box>
-              </Card>
-            </Grid>
-          </Grid>
-        </Box>
 
         {/* Tabs Section */}
         <Box sx={{ mb: { xs: 2, md: 3 } }}>

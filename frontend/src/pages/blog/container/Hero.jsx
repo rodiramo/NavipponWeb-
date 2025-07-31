@@ -155,7 +155,7 @@ const Hero = ({ user, jwt, onOpenModal }) => {
                 transition: "all 0.3s ease-in-out",
               }}
             >
-              Subir una Publicación
+              Subir una publicación
             </Button>
           </Box>
         )}
@@ -227,7 +227,7 @@ const Hero = ({ user, jwt, onOpenModal }) => {
                 fontWeight: 600,
               }}
             >
-              Iniciar Sesión
+              Iniciar sesión
             </Button>
           </Box>
         )}

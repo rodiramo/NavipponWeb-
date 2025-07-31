@@ -4,7 +4,6 @@ import { toast } from "react-hot-toast";
 import { useNavigate, useParams } from "react-router-dom";
 import DateChangeDialog from "./components/DateChangeDialog";
 import OfflineManager from "./components/OfflineManager";
-import RouteSettings from "./components/RouteSettings"; // NEW: Import route settings
 
 // DnD Kit imports
 import {
@@ -101,10 +100,10 @@ const ItineraryDetailPage = () => {
   const [activeId, setActiveId] = useState(null);
   const [activeData, setActiveData] = useState(null);
 
-  // NEW: State for transport mode and route features
   const [transportMode, setTransportMode] = useState("walking");
   const [showDistanceIndicators, setShowDistanceIndicators] = useState(true);
   const [showRouteOptimizer, setShowRouteOptimizer] = useState(true);
+  const [boardTransportModes, setBoardTransportModes] = useState({});
 
   // Helper function to safely filter favorites
   const filterValidFavorites = (favoritesArray) => {
@@ -1033,6 +1032,31 @@ const ItineraryDetailPage = () => {
       console.error(error);
     }
   };
+  const handleTransportModeChange = useCallback(
+    (newMode, boardIndex = null) => {
+      if (boardIndex !== null) {
+        // Update specific board transport mode
+        setBoardTransportModes((prev) => ({
+          ...prev,
+          [boardIndex]: newMode,
+        }));
+      } else {
+        // Update global transport mode
+        setTransportMode(newMode);
+        // Optionally clear board-specific modes when global changes
+        setBoardTransportModes({});
+      }
+    },
+    []
+  );
+
+  // Helper function to get transport mode for a specific board
+  const getTransportModeForBoard = useCallback(
+    (boardIndex) => {
+      return boardTransportModes[boardIndex] || transportMode;
+    },
+    [boardTransportModes, transportMode]
+  );
 
   const handleToggleChecklistItem = async (itemId) => {
     if (!hasPermission("addNotes")) {
@@ -1458,6 +1482,12 @@ const ItineraryDetailPage = () => {
               currentUserId={user?._id}
               isPrivate={isPrivate}
               onPrivacyToggle={handlePrivacyToggle}
+              transportMode={transportMode}
+              onTransportModeChange={handleTransportModeChange}
+              showDistanceIndicators={showDistanceIndicators}
+              onToggleDistanceIndicators={setShowDistanceIndicators}
+              showRouteOptimizer={showRouteOptimizer}
+              onToggleRouteOptimizer={setShowRouteOptimizer}
             />
 
             <SortableContext
@@ -1588,10 +1618,7 @@ const ItineraryDetailPage = () => {
                 {hasPermission("edit") && (
                   <Box
                     sx={{
-                      minWidth: { xs: "200px", sm: "220px", md: "240px" }, // Smaller add board card
                       display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
                     }}
                   >
                     <AddBoardCard onAddBoard={handleAddBoard} />
@@ -1624,17 +1651,6 @@ const ItineraryDetailPage = () => {
             )}
           </Box>
         </Box>
-
-        {/* NEW: Route Settings Component */}
-        <RouteSettings
-          transportMode={transportMode}
-          onTransportModeChange={setTransportMode}
-          showDistanceIndicators={showDistanceIndicators}
-          onToggleDistanceIndicators={setShowDistanceIndicators}
-          showRouteOptimizer={showRouteOptimizer}
-          onToggleRouteOptimizer={setShowRouteOptimizer}
-          userRole={userRole}
-        />
 
         {userRole !== "viewer" && (
           <DragOverlay dropAnimation={null}>

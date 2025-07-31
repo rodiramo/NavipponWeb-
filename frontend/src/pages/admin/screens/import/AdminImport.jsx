@@ -246,7 +246,7 @@ const AdminImport = () => {
           color: theme.palette.primary.main,
         }}
       >
-        Importar Experiencias
+        Importar experiencias
       </Typography>
 
       {/* Stats Section */}
@@ -271,9 +271,7 @@ const AdminImport = () => {
                 >
                   {stats.total}
                 </Typography>
-                <Typography color="textSecondary">
-                  Total Experiencias
-                </Typography>
+                <Typography color="textSecondary">Experiencias</Typography>
               </CardContent>
             </Card>
           </Grid>
@@ -459,22 +457,6 @@ const AdminImport = () => {
               >
                 Buscar
               </Button>
-              <Button
-                variant="outlined"
-                onClick={handleQuickImport}
-                disabled={importing || !searchQuery}
-                startIcon={
-                  importing ? <CircularProgress size={20} /> : <CloudDownload />
-                }
-                fullWidth
-                sx={{
-                  textTransform: "none",
-                  borderRadius: 30,
-                  transition: "all 0.2s ease-in-out",
-                }}
-              >
-                Importar Rápido
-              </Button>
             </Box>
           </Grid>
         </Grid>
@@ -515,7 +497,7 @@ const AdminImport = () => {
                 fontWeight: "bold",
               }}
             >
-              📋 Resultados ({searchResults.length})
+              Resultados ({searchResults.length})
             </Typography>
             <Button
               variant="contained"
@@ -531,7 +513,7 @@ const AdminImport = () => {
                 transition: "all 0.2s ease-in-out",
               }}
             >
-              Importar Seleccionados ({selectedItems.length})
+              Importar seleccionados ({selectedItems.length})
             </Button>
           </Box>
 
@@ -570,15 +552,6 @@ const AdminImport = () => {
                         borderRadius: 1,
                       }}
                     />
-
-                    {experience.photo && (
-                      <CardMedia
-                        component="img"
-                        height="200"
-                        image={experience.photo}
-                        alt={experience.title}
-                      />
-                    )}
                   </Box>
 
                   <CardContent>
@@ -625,8 +598,7 @@ const AdminImport = () => {
 
                     {experience.ratings > 0 && (
                       <Typography variant="caption" color="text.secondary">
-                        ⭐ {experience.ratings} ({experience.numReviews}{" "}
-                        reseñas)
+                        {experience.ratings} ({experience.numReviews} reseñas)
                       </Typography>
                     )}
                   </CardContent>

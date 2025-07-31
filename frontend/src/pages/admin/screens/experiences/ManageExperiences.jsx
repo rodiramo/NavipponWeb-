@@ -957,10 +957,10 @@ const ManageExperiences = () => {
           }}
         >
           {isMobile
-            ? "Nueva"
+            ? "Subir experiencia"
             : isTablet
               ? "Nueva Experiencia"
-              : "Crear Nueva Experiencia"}
+              : "Subir nueva experiencia"}
         </Button>
       </Box>
       {/* Overview Statistics Section */}

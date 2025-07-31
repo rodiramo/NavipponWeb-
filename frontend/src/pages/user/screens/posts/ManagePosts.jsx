@@ -294,7 +294,7 @@ const ManagePosts = () => {
               textTransform: "none",
             }}
           >
-            Crear mi primera publicación
+            Subir publicación
           </Button>
         </Box>
       </Fade>
@@ -695,7 +695,7 @@ const ManagePosts = () => {
                   color="primary"
                   max={999}
                 >
-                  Mis Posts
+                  Mis publicaciones
                 </Badge>
               }
               iconPosition="start"
@@ -708,7 +708,7 @@ const ManagePosts = () => {
                   color="secondary"
                   max={999}
                 >
-                  Posts Guardados
+                  Publicaciones guardadas
                 </Badge>
               }
               iconPosition="start"
@@ -732,7 +732,7 @@ const ManagePosts = () => {
               fontWeight: "bold",
             }}
           >
-            Crear Nueva Publicación
+            Subir nueva publicación
           </Button>
         )}
       </Box>
@@ -1005,7 +1005,7 @@ const ManagePosts = () => {
                 <Box sx={{ textAlign: "center", py: 4 }}>
                   <CircularProgress />
                   <Typography sx={{ mt: 2 }}>
-                    Cargando posts guardados...
+                    Cargando publicaciones guardadas...
                   </Typography>
                 </Box>
               )}

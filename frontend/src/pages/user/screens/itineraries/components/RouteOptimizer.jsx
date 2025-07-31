@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {
   Route,
-  MapPin,
-  Clock,
   TrendingDown,
   CheckCircle,
   AlertTriangle,

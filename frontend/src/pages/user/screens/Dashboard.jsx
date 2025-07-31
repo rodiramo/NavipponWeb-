@@ -242,7 +242,7 @@ const TaskFormDialog = ({
   const [formData, setFormData] = useState({
     text: "",
     priority: "medium",
-    category: "otro",
+    category: "otros",
     dueDate: null,
   });
 
@@ -255,14 +255,14 @@ const TaskFormDialog = ({
         setFormData({
           text: editTask.text || "",
           priority: editTask.priority || "medium",
-          category: editTask.category || "otro",
+          category: editTask.category || "otros",
           dueDate: editTask.dueDate ? new Date(editTask.dueDate) : null,
         });
       } else {
         setFormData({
           text: "",
           priority: "medium",
-          category: "otro",
+          category: "otros",
           dueDate: null,
         });
       }
@@ -443,59 +443,6 @@ const TaskFormDialog = ({
               }}
             />
           </LocalizationProvider>
-
-          {/* Preview */}
-          {formData.text && (
-            <Card sx={{ borderRadius: 2 }}>
-              <CardContent sx={{ p: 2 }}>
-                <Typography
-                  variant="body2"
-                  color="text.secondary"
-                  sx={{ mb: 1 }}
-                >
-                  Vista previa:
-                </Typography>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <Checkbox size="small" disabled />
-                  <Typography variant="body2">{formData.text}</Typography>
-                  <Box
-                    sx={{
-                      width: 6,
-                      height: 6,
-                      borderRadius: "50%",
-                      backgroundColor: priorities.find(
-                        (p) => p.value === formData.priority
-                      )?.color,
-                      ml: "auto",
-                    }}
-                  />
-                </Box>
-                <Box sx={{ display: "flex", gap: 1, mt: 1 }}>
-                  <Chip
-                    size="small"
-                    label={
-                      categories.find((c) => c.value === formData.category)
-                        ?.label
-                    }
-                    icon={
-                      categories.find((c) => c.value === formData.category)
-                        ?.icon
-                    }
-                    variant="outlined"
-                  />
-                  {formData.dueDate && (
-                    <Chip
-                      size="small"
-                      label={formData.dueDate.toLocaleDateString("es-ES")}
-                      icon={<Calendar size={14} />}
-                      variant="outlined"
-                      color="primary"
-                    />
-                  )}
-                </Box>
-              </CardContent>
-            </Card>
-          )}
         </Stack>
       </DialogContent>
 
@@ -512,7 +459,7 @@ const TaskFormDialog = ({
           disabled={!formData.text.trim()}
           sx={{ borderRadius: "30px", minWidth: 120, textTransform: "none" }}
         >
-          {editTask ? "Actualizar" : "Crear Tarea"}
+          {editTask ? "Actualizar" : "Crear tarea"}
         </Button>
       </DialogActions>
     </Dialog>
@@ -960,7 +907,7 @@ const ChecklistWidget = ({ user, jwt, theme }) => {
               },
             }}
           >
-            Agregar Nueva Tarea
+            Agregar nueva tarea
           </Button>
         </CardContent>
       </Card>

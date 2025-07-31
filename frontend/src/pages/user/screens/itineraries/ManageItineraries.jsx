@@ -341,6 +341,7 @@ const ManageItineraries = () => {
                 label={isOwned ? "Creador" : "Invitado"}
                 size="small"
                 sx={{
+                  mr: 4,
                   backgroundColor: isOwned
                     ? `${theme.palette.primary.main}90`
                     : `${theme.palette.secondary.medium}`,
@@ -624,7 +625,7 @@ const ManageItineraries = () => {
                     },
                   }}
                 >
-                  Ver Detalles
+                  Ver detalles
                 </Button>
               </Box>
             ) : (
@@ -862,7 +863,7 @@ const ManageItineraries = () => {
               transition: "all 0.3s ease",
             }}
           >
-            Crear Itinerario
+            Crear itinerario
           </Button>
         )}
       </Paper>
@@ -913,7 +914,7 @@ const ManageItineraries = () => {
               },
             }}
           >
-            Mis Itinerarios
+            Mis itinerarios
           </Typography>
         </Box>
 
@@ -959,7 +960,7 @@ const ManageItineraries = () => {
                 color="text.secondary"
                 sx={{ fontSize: { xs: "0.75rem", md: "0.875rem" } }}
               >
-                Mis Viajes
+                viajes
               </Typography>
             </Paper>
           </Grid>
@@ -1228,7 +1229,7 @@ const ManageItineraries = () => {
                   fontSize: { xs: "1.5rem", sm: "1.75rem", md: "2rem" },
                 }}
               >
-                Mis Viajes
+                Mis viajes
               </Typography>
               <Typography
                 variant="body2"
@@ -1261,7 +1262,7 @@ const ManageItineraries = () => {
               transition: "all 0.2s ease",
             }}
           >
-            {isMobile ? "Nuevo Itinerario" : "Nuevo Itinerario"}
+            {isMobile ? "Nuevo itinerario" : "Nuevo itinerario"}
           </Button>
         </Box>
 
