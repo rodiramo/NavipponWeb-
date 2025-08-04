@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Routes, Route, useLocation } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import "leaflet/dist/leaflet.css";
 import { useSelector } from "react-redux";
@@ -76,17 +76,19 @@ import ChatWithBot from "./pages/user/screens/chat/ChatWithBot";
 
 // Not found
 import NotFound from "./pages/NotFound.jsx";
+console.log(
+  "🟡 App.js loading - window.location.pathname:",
+  window.location.pathname
+);
+console.log("🟡 App.js loading - window.location.href:", window.location.href);
 
 function App() {
-  const RouteDebugger = () => {
-    const location = useLocation();
-    console.log("🔍 Current route:", location.pathname);
-    console.log("🔍 Current search:", location.search);
-    console.log("🔍 Current hash:", location.hash);
-    return null;
-  };
   const mode = useSelector((state) => state.theme.mode);
   const theme = useMemo(() => createTheme(themeSettings(mode)), [mode]);
+  console.log(
+    "🟢 App component rendering - window.location.pathname:",
+    window.location.pathname
+  );
 
   useEffect(() => {
     document.body.style.setProperty(
@@ -100,7 +102,6 @@ function App() {
     <ThemeProvider theme={theme}>
       <div className="App font-opensans">
         <ScrollToTop />
-        <RouteDebugger />
         <Routes>
           {/* Public Routes */}
           <Route index path="/" element={<HomePage />} />

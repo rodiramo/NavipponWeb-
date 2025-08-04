@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { toast } from "react-hot-toast";
 import useUser from "../../../../hooks/useUser";
-import { Search, Download, CloudDownload } from "lucide-react";
+import { Search, Download } from "lucide-react";
 import {
   useTheme,
   Box,
@@ -11,7 +11,6 @@ import {
   MenuItem,
   Grid,
   Card,
-  CardMedia,
   CardContent,
   Chip,
   CircularProgress,
@@ -117,50 +116,6 @@ const AdminImport = () => {
       console.error(error);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleQuickImport = async () => {
-    if (!searchQuery) {
-      toast.error("Por favor ingresa una consulta de búsqueda");
-      return;
-    }
-
-    setImporting(true);
-    try {
-      const response = await fetch(
-        `${process.env.REACT_APP_API_URL || "http://localhost:5001"}/api/import/quick-import`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${jwt}`,
-          },
-          body: JSON.stringify({
-            query: searchQuery,
-            category:
-              selectedCategory === "all"
-                ? "Atractivos"
-                : mapCategoryName(selectedCategory),
-            prefecture: selectedPrefecture,
-            limit: 10,
-          }),
-        }
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        toast.success(
-          `¡Se importaron ${data.imported} experiencias exitosamente!`
-        );
-        loadStats();
-      } else {
-        toast.error("Error en la importación");
-      }
-    } catch (error) {
-      toast.error("Error en la importación: " + error.message);
-    } finally {
-      setImporting(false);
     }
   };
 

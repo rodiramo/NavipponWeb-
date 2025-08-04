@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import {
   Box,
   useTheme,
@@ -20,8 +20,8 @@ import HomeButton from "../../components/HomeButton";
 const LoginPage = () => {
   const theme = useTheme();
   const isNonMobileScreens = useMediaQuery("(min-width:1000px)");
-  const navigate = useNavigate();
-  const { login, isLoginLoading, hasLoginError, isLogged, user } = useUser();
+
+  const { login, isLoginLoading, hasLoginError } = useUser();
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
 
@@ -39,20 +39,6 @@ const LoginPage = () => {
         : "/assets/navippon-logo-white.png";
     }
   };
-
-  useEffect(() => {
-    if (isLogged) {
-      console.log("🔵 Login successful, user is logged in");
-      console.log("🔵 Current location:", window.location.pathname);
-      console.log("🔵 User data:", user);
-
-      sessionStorage.setItem("cameFromLogin", "true");
-      sessionStorage.removeItem("lastUserPage");
-
-      console.log("🔵 About to navigate to /about (TEMPORARY TEST)");
-      navigate("/", { replace: true });
-    }
-  }, [navigate, isLogged, user]);
 
   const {
     register,
