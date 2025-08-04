@@ -1,14 +1,9 @@
 [build]
   publish = "build"
   command = "npm run build"
- 
+
 [build.environment]
   NODE_VERSION = "18"
   NODE_OPTIONS = "--max-old-space-size=3072"
   CI = "false"
   GENERATE_SOURCEMAP = "false"
-
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
