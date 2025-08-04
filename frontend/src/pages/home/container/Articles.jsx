@@ -14,29 +14,7 @@ const Articles = () => {
   const theme = useTheme();
   const { user, jwt } = useUser();
   const [isLoaded, setIsLoaded] = useState(false);
-useEffect(() => {
-  console.log("=== DEBUGGING ENVIRONMENT ===");
-  console.log("REACT_APP_API_URL:", process.env.REACT_APP_API_URL);
-  console.log("NODE_ENV:", process.env.NODE_ENV);
-  console.log("Window location:", window.location.href);
-  
-  const testAPI = async () => {
-    const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-    console.log("Attempting to call:", `${apiUrl}/api/posts`);
-    
-    try {
-      const response = await fetch(`${apiUrl}/api/posts`);
-      console.log("Response status:", response.status);
-      console.log("Response headers:", response.headers);
-      const data = await response.json();
-      console.log("Response data:", data);
-    } catch (error) {
-      console.error("API call failed:", error);
-    }
-  };
-  
-  testAPI();
-}, []);
+
   // Loading animation
   useEffect(() => {
     const timer = setTimeout(() => setIsLoaded(true), 300);
