@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import BgShape from "../../components/Shapes/BgShape.jsx";
 import MainLayout from "../../components/MainLayout";
 import Articles from "./container/Articles";
@@ -10,23 +10,15 @@ import CategoryCard from "./container/CategoryCard";
 import RegionCarousel from "./container/RegionCarousel";
 import Experiences from "./container/Experiences";
 import useUser from "../../hooks/useUser";
-import {
-  OnboardingGuide,
-  QuickStartCard,
-} from "../../components/OnboardingGuide.jsx";
+import { OnboardingGuide } from "../../components/OnboardingGuide.jsx";
 
 const HomePage = () => {
-  const { user, jwt: token } = useUser();
-  const navigate = useNavigate();
+  const { user } = useUser();
+
   const location = useLocation();
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
 
-  console.log("HomePage - user:", user);
-  console.log("HomePage - token:", token);
-  console.log("HomePage - location state:", location.state);
-
-  // Check for first-time login guide from navigation state
   useEffect(() => {
     if (location.state?.showGuide) {
       console.log("🟢 First-time login detected, showing guide");
@@ -48,15 +40,6 @@ const HomePage = () => {
       return () => clearTimeout(timer);
     }
   }, [user]);
-
-  const handleStartItinerary = () => {
-    if (user) {
-      navigate("/user/itineraries/manage/create");
-    } else {
-      // Show login modal or redirect to login
-      navigate("/login?redirect=/user/itineraries/manage/create");
-    }
-  };
 
   const handleOnboardingClose = () => {
     setShowOnboarding(false);
@@ -84,7 +67,6 @@ const HomePage = () => {
         user={user}
       />
 
-      {/* Help Modal (reuse OnboardingGuide or create separate help modal) */}
       <OnboardingGuide
         open={showHelp}
         onClose={() => setShowHelp(false)}
