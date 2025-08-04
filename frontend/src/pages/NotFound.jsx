@@ -1,11 +1,17 @@
 import { Box, Typography, Button, Container, useTheme } from "@mui/material";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Home, ArrowLeft, MapPin, Compass } from "lucide-react";
-
+import { useEffect } from "react";
 const NotFound = () => {
   const navigate = useNavigate();
   const theme = useTheme();
-
+  const location = useLocation();
+  useEffect(() => {
+    console.log("🔍 NotFound component mounted");
+    console.log("📍 Current pathname:", location.pathname);
+    console.log("📍 Current search:", location.search);
+    console.log("📍 Current hash:", location.hash);
+  }, [location]);
   return (
     <Box
       sx={{
