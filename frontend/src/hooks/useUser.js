@@ -41,6 +41,8 @@ export default function useUser() {
         const userProfile = await getUserProfile({ token });
         setUser(userProfile);
         setState({ loading: false, error: false });
+
+        navigate("/");
       } catch (error) {
         window.sessionStorage.removeItem("jwt");
         window.localStorage.removeItem("jwt");
@@ -48,7 +50,7 @@ export default function useUser() {
         console.error(error);
       }
     },
-    [setJWT, setUser] // Remove 'navigate' from dependencies
+    [setJWT, setUser, navigate] // 🆕 Added navigate to dependencies
   );
 
   const signup = useCallback(
@@ -77,7 +79,7 @@ export default function useUser() {
     window.localStorage.removeItem("jwt");
     setJWT(null);
     setUser(null);
-    navigate("/"); // Redirect to home immediately
+    navigate("/");
   }, [setJWT, setUser, navigate]);
 
   return {

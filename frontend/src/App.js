@@ -1,5 +1,5 @@
 import { useMemo, useEffect } from "react";
-import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import "leaflet/dist/leaflet.css";
 import { useSelector } from "react-redux";
@@ -75,79 +75,10 @@ import ChatWithBot from "./pages/user/screens/chat/ChatWithBot";
 
 // Not found
 import NotFound from "./pages/NotFound.jsx";
-console.log(
-  "🟡 App.js loading - window.location.pathname:",
-  window.location.pathname
-);
-console.log("🟡 App.js loading - window.location.href:", window.location.href);
-// Add this debug component
-const HistoryDebugger = () => {
-  const location = useLocation();
-  const navigate = useNavigate();
 
-  useEffect(() => {
-    console.log("🔍 HISTORY DEBUG - Location changed:");
-    console.log("🔍 pathname:", location.pathname);
-    console.log("🔍 search:", location.search);
-    console.log("🔍 state:", location.state);
-    console.log("🔍 window.location.href:", window.location.href);
-    console.log("🔍 Stack trace:");
-    console.trace();
-    console.log("---");
-  }, [location]);
-
-  // Track when component mounts (page load)
-  useEffect(() => {
-    console.log("🟡 INITIAL PAGE LOAD:");
-    console.log("🟡 Initial pathname:", location.pathname);
-    console.log("🟡 Initial href:", window.location.href);
-    console.log("---");
-
-    // Override navigate function to track programmatic navigation
-    const originalNavigate = navigate;
-    window.debugNavigate = (to, options) => {
-      console.log("🔴 NAVIGATE CALLED:");
-      console.log("🔴 to:", to);
-      console.log("🔴 options:", options);
-      console.log("🔴 Stack trace:");
-      console.trace();
-      return originalNavigate(to, options);
-    };
-  }, []);
-
-  return null;
-};
-// Add this after imports but before the App function
-if (typeof window !== "undefined") {
-  // Track browser back/forward buttons
-  window.addEventListener("popstate", (event) => {
-    console.log("🔵 POPSTATE EVENT (browser back/forward):");
-    console.log("🔵 event:", event);
-    console.log("🔵 current URL:", window.location.href);
-    console.trace();
-  });
-
-  // Track any direct URL changes
-  let lastUrl = window.location.href;
-  const observer = new MutationObserver(() => {
-    if (lastUrl !== window.location.href) {
-      console.log("🟠 URL CHANGED:");
-      console.log("🟠 from:", lastUrl);
-      console.log("🟠 to:", window.location.href);
-      console.trace();
-      lastUrl = window.location.href;
-    }
-  });
-
-  observer.observe(document, { subtree: true, childList: true });
-}
 function App() {
   const mode = useSelector((state) => state.theme.mode);
   const theme = useMemo(() => createTheme(themeSettings(mode)), [mode]);
-  console.log(
-    "🟢 App component rendering - window.location.pathname:",
-    window.location.pathname
-  );
 
   useEffect(() => {
     document.body.style.setProperty(
@@ -160,7 +91,7 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <div className="App font-opensans">
-        <HistoryDebugger /> <ScrollToTop />
+        <ScrollToTop />
         <Routes>
           {/* Public Routes */}
           <Route index path="/" element={<HomePage />} />
