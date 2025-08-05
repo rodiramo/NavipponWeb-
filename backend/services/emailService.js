@@ -1,5 +1,3 @@
-// Copy this EXACT content and replace your entire services/emailService.js file
-
 import nodemailer from "nodemailer";
 
 console.log("Loading email service...");

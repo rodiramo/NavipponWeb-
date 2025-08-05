@@ -1,8 +1,23 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Send, X, User, Sparkles, RotateCcw } from "lucide-react";
+import {
+  Send,
+  X,
+  User,
+  Sparkles,
+  RotateCcw,
+  ExternalLink,
+  MapPin,
+  Calendar,
+  Utensils,
+  Train,
+  CloudSun,
+} from "lucide-react";
 import { useTheme } from "@mui/material";
-const ModernChatBot = ({ onClose, user }) => {
+import { useNavigate } from "react-router-dom";
+
+const ChatWithBot = ({ onClose, user }) => {
   const theme = useTheme();
+  const navigate = useNavigate();
   const [messages, setMessages] = useState([
     {
       id: 1,
@@ -26,6 +41,20 @@ const ModernChatBot = ({ onClose, user }) => {
     scrollToBottom();
   }, [messages]);
 
+  // Navigation helper function
+  const createNavigationButton = (text, path, icon) => {
+    return {
+      text,
+      path,
+      icon,
+      action: () => {
+        navigate(path);
+        onClose(); // Close chatbot after navigation
+      },
+    };
+  };
+
+  // Enhanced bot response with navigation links
   const getBotResponse = (userMessage) => {
     const message = userMessage.toLowerCase();
 
@@ -35,9 +64,10 @@ const ModernChatBot = ({ onClose, user }) => {
         message.includes(word)
       )
     ) {
-      return `¡Konnichiwa! 🌸 ${
-        user?.name ? user.name + "-san," : ""
-      } Soy tu asistente especializado en viajes a Japón. Puedo ayudarte con:
+      return {
+        content: `¡Konnichiwa! 🌸 ${
+          user?.name ? user.name + "-san," : ""
+        } Soy tu asistente especializado en viajes a Japón. Puedo ayudarte con:
 
 🗓️ Planificación de viaje
 🌤️ Clima y mejores épocas  
@@ -49,7 +79,17 @@ const ModernChatBot = ({ onClose, user }) => {
 💰 Presupuesto y dinero
 🛡️ Seguridad y emergencias
 
-¿Qué te gustaría saber?`;
+¿Qué te gustaría saber?`,
+        buttons: [
+          createNavigationButton(
+            "🗓️ Crear Itinerario",
+            "/user/itineraries/manage/create",
+            Calendar
+          ),
+          createNavigationButton("🗼 Ver Experiencias", "/experience", MapPin),
+          createNavigationButton("📖 Leer Artículos", "/blog", ExternalLink),
+        ],
+      };
     }
 
     // Clima y estaciones
@@ -65,7 +105,8 @@ const ModernChatBot = ({ onClose, user }) => {
         "invierno",
       ].some((word) => message.includes(word))
     ) {
-      return `🌤️ **CLIMA EN JAPÓN:**
+      return {
+        content: `🌤️ **CLIMA EN JAPÓN:**
 
 🌸 **Primavera (Mar-May):** 10-20°C, sakura, muy popular
 ☀️ **Verano (Jun-Aug):** 25-35°C, húmedo, festivales matsuri  
@@ -77,15 +118,35 @@ const ModernChatBot = ({ onClose, user }) => {
 • Kyoto: 25 marzo - 15 abril
 • Osaka: 22 marzo - 12 abril
 
-¿Te interesa alguna estación en particular?`;
+¿Te interesa alguna estación en particular?`,
+        buttons: [
+          createNavigationButton(
+            "🌤️ Ver Clima Japón",
+            "https://weather.com/weather/tenday/l/Tokyo+Japan",
+            CloudSun
+          ),
+          createNavigationButton(
+            "🌸 Experiencias Primavera",
+            "/experience?season=spring",
+            MapPin
+          ),
+          createNavigationButton(
+            "📅 Planificar por Clima",
+            "/user/itineraries/manage/create",
+            Calendar
+          ),
+        ],
+      };
     }
 
+    // Comida
     if (
       ["comida", "gastronomía", "comer", "platos", "sushi", "ramen"].some(
         (word) => message.includes(word)
       )
     ) {
-      return `🍜 **GASTRONOMÍA JAPONESA:**
+      return {
+        content: `🍜 **GASTRONOMÍA JAPONESA:**
 
 🥢 **Platos imprescindibles:**
 • Sushi & Sashimi 🍣
@@ -106,7 +167,25 @@ const ModernChatBot = ({ onClose, user }) => {
 • Restaurante casual: $8-15
 • Restaurante medio: $20-40
 
-¿Quieres saber sobre algún plato específico?`;
+¿Quieres saber sobre algún plato específico?`,
+        buttons: [
+          createNavigationButton(
+            "🍜 Experiencias Gastronómicas",
+            "/experience?category=food",
+            Utensils
+          ),
+          createNavigationButton(
+            "📖 Guías de Comida",
+            "/blog?category=gastronomia",
+            ExternalLink
+          ),
+          createNavigationButton(
+            "📍 Restaurantes por Región",
+            "/experience?type=restaurant",
+            MapPin
+          ),
+        ],
+      };
     }
 
     // Transporte
@@ -115,7 +194,8 @@ const ModernChatBot = ({ onClose, user }) => {
         message.includes(word)
       )
     ) {
-      return `🚆 **TRANSPORTE EN JAPÓN:**
+      return {
+        content: `🚆 **TRANSPORTE EN JAPÓN:**
 
 🎫 **JR PASS:**
 • 7 días: $280 USD
@@ -134,7 +214,25 @@ const ModernChatBot = ({ onClose, user }) => {
 • Icoca (Osaka/Kyoto)
 • Funciona en todo Japón
 
-¿Necesitas ayuda planificando rutas específicas?`;
+¿Necesitas ayuda planificando rutas específicas?`,
+        buttons: [
+          createNavigationButton(
+            "🎫 Reservar JR Pass",
+            "https://www.jrpass.com/",
+            Train
+          ),
+          createNavigationButton(
+            "🗺️ Planificar Rutas",
+            "https://www.hyperdia.com/en/",
+            MapPin
+          ),
+          createNavigationButton(
+            "📅 Añadir a Itinerario",
+            "/user/itineraries/manage/create",
+            Calendar
+          ),
+        ],
+      };
     }
 
     // Dinero
@@ -143,7 +241,8 @@ const ModernChatBot = ({ onClose, user }) => {
         message.includes(word)
       )
     ) {
-      return `💰 **DINERO EN JAPÓN:**
+      return {
+        content: `💰 **DINERO EN JAPÓN:**
 
 💴 **Efectivo es rey:**
 • 80% de lugares solo aceptan efectivo
@@ -162,7 +261,25 @@ const ModernChatBot = ({ onClose, user }) => {
 
 💡 **Recomendación:** Lleva $200-300 en efectivo por semana
 
-¿Necesitas consejos sobre presupuesto diario?`;
+¿Necesitas consejos sobre presupuesto diario?`,
+        buttons: [
+          createNavigationButton(
+            "💱 Convertidor de Moneda",
+            "https://xe.com/currencyconverter/convert/?Amount=1&From=USD&To=JPY",
+            ExternalLink
+          ),
+          createNavigationButton(
+            "📊 Calculadora de Presupuesto",
+            "/blog?category=presupuesto",
+            ExternalLink
+          ),
+          createNavigationButton(
+            "🏦 Localizador de ATMs",
+            "https://www.seven-eleven.co.jp/english/",
+            MapPin
+          ),
+        ],
+      };
     }
 
     // Ciudades - Tokyo
@@ -171,7 +288,8 @@ const ModernChatBot = ({ onClose, user }) => {
         message.includes(word)
       )
     ) {
-      return `🏙️ **TOKYO - LA METRÓPOLIS:**
+      return {
+        content: `🏙️ **TOKYO - LA METRÓPOLIS:**
 
 🎯 **Barrios principales:**
 • Shibuya: Cruce famoso, vida nocturna
@@ -191,7 +309,25 @@ const ModernChatBot = ({ onClose, user }) => {
 **1-2 días:** Shibuya → Harajuku → Asakusa
 **3+ días:** + Akihabara → Ginza → Ueno
 
-¿Te interesa algún barrio específico?`;
+¿Te interesa algún barrio específico?`,
+        buttons: [
+          createNavigationButton(
+            "🏙️ Experiencias en Tokyo",
+            "/region/tokyo",
+            MapPin
+          ),
+          createNavigationButton(
+            "📖 Guía de Tokyo",
+            "/blog?tag=tokyo",
+            ExternalLink
+          ),
+          createNavigationButton(
+            "📅 Itinerario Tokyo",
+            "/user/itineraries/manage/create?city=tokyo",
+            Calendar
+          ),
+        ],
+      };
     }
 
     // Ciudades - Kyoto
@@ -200,7 +336,8 @@ const ModernChatBot = ({ onClose, user }) => {
         message.includes(word)
       )
     ) {
-      return `🏯 **KYOTO - CAPITAL CULTURAL:**
+      return {
+        content: `🏯 **KYOTO - CAPITAL CULTURAL:**
 
 ⛩️ **Templos imprescindibles:**
 • Fushimi Inari: 10,000 torii gates
@@ -222,7 +359,25 @@ const ModernChatBot = ({ onClose, user }) => {
 **Día 1:** Fushimi Inari → Gion
 **Día 2:** Arashiyama → Kinkaku-ji
 
-¿Quieres detalles sobre algún templo?`;
+¿Quieres detalles sobre algún templo?`,
+        buttons: [
+          createNavigationButton(
+            "🏯 Experiencias en Kyoto",
+            "/region/kyoto",
+            MapPin
+          ),
+          createNavigationButton(
+            "👘 Experiencias Culturales",
+            "/experience?category=culture",
+            ExternalLink
+          ),
+          createNavigationButton(
+            "📅 Itinerario Kyoto",
+            "/user/itineraries/manage/create?city=kyoto",
+            Calendar
+          ),
+        ],
+      };
     }
 
     // Presupuesto
@@ -231,7 +386,8 @@ const ModernChatBot = ({ onClose, user }) => {
         message.includes(word)
       )
     ) {
-      return `💰 **PRESUPUESTO JAPÓN (por día/persona):**
+      return {
+        content: `💰 **PRESUPUESTO JAPÓN (por día/persona):**
 
 🏕️ **Mochilero:** $40-60 USD
 • Hostel: $20-30
@@ -253,79 +409,30 @@ const ModernChatBot = ({ onClose, user }) => {
 • Camina (muy seguro)
 • Day passes de transporte
 
-¿Cuál es tu presupuesto aproximado?`;
-    }
-
-    // Cultura
-    if (
-      ["cultura", "costumbres", "tradiciones", "respeto", "etiqueta"].some(
-        (word) => message.includes(word)
-      )
-    ) {
-      return `🏯 **CULTURA JAPONESA:**
-
-🙇‍♂️ **Etiqueta básica:**
-• Inclínate al saludar
-• Quítate zapatos en casas/templos
-• No hables alto en transporte público
-• No dejes propina (es ofensivo)
-
-🥢 **En restaurantes:**
-• Di "Itadakimasu" antes de comer
-• Di "Gochisousama" después
-• No claves palillos en arroz
-• Está bien sorber fideos
-
-⛩️ **En templos:**
-• Inclínate en la entrada
-• Lávate manos y boca
-• Habla en voz baja
-• Pregunta antes de fotografiar
-
-🎌 **Valores importantes:**
-• Respeto por otros
-• Puntualidad
-• Limpieza
-• Trabajo en equipo
-
-¿Hay alguna situación específica sobre la que tengas dudas?`;
-    }
-
-    // Emergencias
-    if (
-      ["emergencia", "ayuda", "hospital", "policía", "seguridad"].some((word) =>
-        message.includes(word)
-      )
-    ) {
-      return `🚨 **INFORMACIÓN DE EMERGENCIA:**
-
-📞 **Números críticos:**
-• 🚔 Policía: **110**
-• 🚑 Ambulancia: **119**  
-• 🔥 Bomberos: **119**
-
-🌐 **Líneas en inglés:**
-• Japan Hotline: **050-5814-7230**
-• Tourist Hotline: **050-3816-2787**
-
-🛡️ **Seguridad:**
-• Japón es extremadamente seguro
-• Baja criminalidad
-• Caminar solo de noche es normal
-
-🏥 **Hospitales internacionales:**
-• Tokyo: St. Luke's International
-• Osaka: Osaka University Hospital
-
-📱 **Apps útiles:**
-• Safety Tips (terremotos)
-• Google Translate
-
-¿Necesitas información sobre algún tema específico de seguridad?`;
+¿Cuál es tu presupuesto aproximado?`,
+        buttons: [
+          createNavigationButton(
+            "📊 Calculadora de Presupuesto",
+            "/blog?category=presupuesto",
+            ExternalLink
+          ),
+          createNavigationButton(
+            "🏨 Experiencias Económicas",
+            "/experience?budget=low",
+            MapPin
+          ),
+          createNavigationButton(
+            "📝 Planificar Presupuesto",
+            "/user/itineraries/manage/create",
+            Calendar
+          ),
+        ],
+      };
     }
 
     // Respuesta por defecto
-    return `🤔 Entiendo que preguntas sobre "${userMessage}". 
+    return {
+      content: `🤔 Entiendo que preguntas sobre "${userMessage}". 
 
 Puedo ayudarte con información detallada sobre:
 
@@ -338,10 +445,21 @@ Puedo ayudarte con información detallada sobre:
 🌸 **Estaciones:** Mejor época para viajar, clima
 🛡️ **Seguridad:** Emergencias, hospitales, seguros
 
-¿Podrías ser más específico sobre qué aspecto de Japón te interesa? Por ejemplo:
-• "¿Cuánto cuesta un viaje de 10 días?"
-• "¿Qué ver en Tokyo en 3 días?"
-• "¿Cuál es la mejor época para ver sakura?"`;
+¿Podrías ser más específico sobre qué aspecto de Japón te interesa?`,
+      buttons: [
+        createNavigationButton(
+          "🗼 Explorar Experiencias",
+          "/experience",
+          MapPin
+        ),
+        createNavigationButton("📖 Leer Guías", "/blog", ExternalLink),
+        createNavigationButton(
+          "📅 Crear Itinerario",
+          "/user/itineraries/manage/create",
+          Calendar
+        ),
+      ],
+    };
   };
 
   const handleSendMessage = async () => {
@@ -361,13 +479,15 @@ Puedo ayudarte con información detallada sobre:
     // Simulate typing delay
     setTimeout(
       () => {
-        const botResponse = {
+        const botResponse = getBotResponse(inputValue);
+        const responseMessage = {
           id: Date.now() + 1,
           type: "bot",
-          content: getBotResponse(inputValue),
+          content: botResponse.content,
+          buttons: botResponse.buttons || [],
           timestamp: new Date(),
         };
-        setMessages((prev) => [...prev, botResponse]);
+        setMessages((prev) => [...prev, responseMessage]);
         setIsTyping(false);
       },
       1000 + Math.random() * 1000
@@ -414,10 +534,22 @@ Puedo ayudarte con información detallada sobre:
     inputRef.current?.focus();
   };
 
+  // Handle external links
+  const handleButtonClick = (button) => {
+    if (button.path.startsWith("http")) {
+      // External link
+      window.open(button.path, "_blank", "noopener,noreferrer");
+    } else {
+      // Internal navigation
+      button.action();
+    }
+  };
+
   return (
     <div
       className="fixed right-1 bottom-20 sm:left-auto w-96 max-w-[calc(100vw-1rem)] h-[600px] max-h-[calc(100vh-5rem)] rounded-2xl shadow-2xl border flex flex-col overflow-hidden z-50"
       style={{
+        zIndex: 999999,
         backgroundColor: theme.palette.background.default,
         borderColor: theme.palette.grey[300],
       }}
@@ -505,40 +637,77 @@ Puedo ayudarte con información detallada sobre:
                   />
                 )}
               </div>
-              <div
-                className={`p-3 rounded-2xl shadow-sm ${
-                  message.type === "user"
-                    ? "rounded-br-md"
-                    : "rounded-bl-md border"
-                }`}
-                style={{
-                  backgroundColor:
-                    message.type === "user"
-                      ? theme.palette.secondary.main
-                      : theme.palette.background.paper,
-                  color:
-                    message.type === "user"
-                      ? theme.palette.secondary.contrastText
-                      : theme.palette.text.primary,
-                }}
-              >
-                <div className="whitespace-pre-wrap text-sm leading-relaxed">
-                  {message.content}
-                </div>
+              <div className="flex flex-col space-y-2">
                 <div
-                  className={`text-xs mt-1 opacity-70`}
+                  className={`p-3 rounded-2xl shadow-sm ${
+                    message.type === "user"
+                      ? "rounded-br-md"
+                      : "rounded-bl-md border"
+                  }`}
                   style={{
+                    backgroundColor:
+                      message.type === "user"
+                        ? theme.palette.secondary.main
+                        : theme.palette.background.paper,
                     color:
                       message.type === "user"
                         ? theme.palette.secondary.contrastText
-                        : theme.palette.text.secondary,
+                        : theme.palette.text.primary,
                   }}
                 >
-                  {message.timestamp.toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
+                  <div className="whitespace-pre-wrap text-sm leading-relaxed">
+                    {message.content}
+                  </div>
+                  <div
+                    className={`text-xs mt-1 opacity-70`}
+                    style={{
+                      color:
+                        message.type === "user"
+                          ? theme.palette.secondary.contrastText
+                          : theme.palette.text.secondary,
+                    }}
+                  >
+                    {message.timestamp.toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </div>
                 </div>
+
+                {/* Action Buttons */}
+                {message.buttons && message.buttons.length > 0 && (
+                  <div className="flex flex-col space-y-2">
+                    {message.buttons.map((button, index) => {
+                      const IconComponent = button.icon;
+                      return (
+                        <button
+                          key={index}
+                          onClick={() => handleButtonClick(button)}
+                          className="flex items-center space-x-2 px-3 py-2 rounded-lg text-sm transition-all hover:scale-105 hover:shadow-md"
+                          style={{
+                            backgroundColor: theme.palette.primary.light,
+                            color: theme.palette.primary.contrastText,
+                            border: `1px solid ${theme.palette.primary.main}`,
+                          }}
+                          onMouseEnter={(e) => {
+                            e.target.style.backgroundColor =
+                              theme.palette.primary.main;
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.backgroundColor =
+                              theme.palette.primary.light;
+                          }}
+                        >
+                          <IconComponent className="w-4 h-4" />
+                          <span>{button.text}</span>
+                          {button.path.startsWith("http") && (
+                            <ExternalLink className="w-3 h-3 opacity-70" />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -624,7 +793,8 @@ Puedo ayudarte con información detallada sobre:
                   e.target.style.backgroundColor = theme.palette.secondary.main;
                 }}
                 onMouseLeave={(e) => {
-                  e.target.style.backgroundColor = theme.palette.secondary.main;
+                  e.target.style.backgroundColor =
+                    theme.palette.secondary.light;
                 }}
               >
                 {action.label}
@@ -699,4 +869,4 @@ Puedo ayudarte con información detallada sobre:
   );
 };
 
-export default ModernChatBot;
+export default ChatWithBot;
