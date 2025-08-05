@@ -27,30 +27,50 @@ export default function useUser() {
 
   const login = useCallback(
     async ({ email, password, rememberMe }) => {
+      console.log("🔵 Login process started");
       setState({ loading: true, error: false });
       try {
+        console.log("🔵 Calling login service...");
         const { token } = await loginService({ email, password });
+        console.log("🔵 Login service successful, got token:", !!token);
 
         if (rememberMe) {
           window.localStorage.setItem("jwt", token);
+          console.log("🔵 Token saved to localStorage");
         } else {
           window.sessionStorage.setItem("jwt", token);
+          console.log("🔵 Token saved to sessionStorage");
         }
 
         setJWT(token);
+        console.log("🔵 JWT set in context");
+
         const userProfile = await getUserProfile({ token });
+        console.log("🔵 User profile retrieved:", !!userProfile);
+
         setUser(userProfile);
         setState({ loading: false, error: false });
 
+        console.log("🔵 About to navigate to home page");
+        console.log(
+          "🔵 Current location before navigate:",
+          window.location.href
+        );
+
         navigate("/");
+
+        console.log("🔵 Navigate called");
+        setTimeout(() => {
+          console.log("🔵 Location after navigate:", window.location.href);
+        }, 100);
       } catch (error) {
+        console.error("🔴 Login error:", error);
         window.sessionStorage.removeItem("jwt");
         window.localStorage.removeItem("jwt");
         setState({ loading: false, error: true });
-        console.error(error);
       }
     },
-    [setJWT, setUser, navigate] // 🆕 Added navigate to dependencies
+    [setJWT, setUser, navigate]
   );
 
   const signup = useCallback(

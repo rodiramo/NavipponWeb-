@@ -35,6 +35,12 @@ const corsOptions = {
       "http://localhost:3001",
       "http://localhost:5001",
       "http://localhost:3000",
+      "https://navippon.com",
+      "https://www.navippon.com",
+      "navippon.com",
+      "www.navippon.com",
+      "https://navippon.com/",
+      "https://www.navippon.com/",
       "https://navippon.netlify.app/",
       "https://navippon.netlify.app",
     ];
