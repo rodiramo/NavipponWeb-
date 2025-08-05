@@ -458,13 +458,6 @@ const RouteOptimizerPanel = ({
             Optimización
           </Typography>
         </Box>
-        <IconButton
-          size="small"
-          onClick={() => setShowDetails(!showDetails)}
-          sx={{ p: 0.25 }}
-        >
-          <Settings size={10} />
-        </IconButton>
       </Box>
 
       <Box
@@ -552,7 +545,7 @@ const RouteOptimizerPanel = ({
           borderRadius: 1,
         }}
       >
-        Aplicar Optimizada
+        Aplicar optimizada
       </Button>
     </Box>
   );
@@ -943,7 +936,7 @@ const BoardCard = ({
                   },
                 }}
               >
-                {isMobile ? "Añadir" : " Añadir Experiencia"}
+                {isMobile ? "Añadir" : " Añadir experiencia"}
               </Button>
             )}
 
