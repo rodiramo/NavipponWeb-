@@ -128,7 +128,7 @@ const ItineraryHeader = ({
   const navigationItems = [
     {
       icon: <ArrowLeft size={18} />,
-      label: "Volver Atrás",
+      label: "Volver atrás",
       description: "Regresar a la página anterior",
       action: "back",
       color: theme.palette.warning.main,
@@ -143,7 +143,7 @@ const ItineraryHeader = ({
     },
     {
       icon: <BookOpen size={18} />,
-      label: "Mis Itinerarios",
+      label: "Mis itinerarios",
       description: "Ver todos mis itinerarios",
       path: "/user/itineraries/manage",
       color: theme.palette.secondary.medium,
@@ -157,7 +157,7 @@ const ItineraryHeader = ({
     },
     {
       icon: <Plus size={18} />,
-      label: "Crear Itinerario",
+      label: "Crear itinerario",
       description: "Nuevo viaje",
       path: "/user/itineraries/manage/create",
       color: theme.palette.primary.dark,
@@ -233,7 +233,7 @@ const ItineraryHeader = ({
     setTransportMenuAnchor(null);
   };
 
-  // 🆕 NEW: Privacy menu handlers
+  // Privacy menu handlers
   const handlePrivacyMenuClick = (event) => {
     if (canChangePrivacy) {
       setPrivacyMenuAnchor(event.currentTarget);
@@ -285,6 +285,13 @@ const ItineraryHeader = ({
   const handleOfflineClick = () => {
     onOfflineClick();
     handleMenuClose();
+  };
+
+  // 🆕 NEW: Handle date editing from chip click
+  const handleDateChipClick = () => {
+    if (canEditDates && onEditDates) {
+      onEditDates();
+    }
   };
 
   // Transport mode handlers
@@ -435,15 +442,16 @@ const ItineraryHeader = ({
                       gap: 1.5,
                       justifyContent: "center",
                       width: "100%",
+                      // 🔧 IMPROVED: Modern, clean editing style
                       backgroundColor: isEditingName
-                        ? "#FFFFFF"
+                        ? "rgba(255, 255, 255, 0.95)"
                         : "transparent",
-                      padding: isEditingName ? "16px 20px" : "0",
-                      borderRadius: isEditingName ? 12 : 0,
-                      boxShadow: isEditingName
-                        ? "0 8px 32px rgba(0, 0, 0, 0.2)"
+                      padding: isEditingName ? "12px 16px" : "0",
+                      borderRadius: isEditingName ? "12px" : 0,
+                      backdropFilter: isEditingName ? "blur(10px)" : "none",
+                      border: isEditingName
+                        ? `1px solid ${theme.palette.primary.main}`
                         : "none",
-                      transition: "all 0.3s ease",
                       position: "relative",
                       zIndex: isEditingName ? 1200 : "auto",
                     }}
@@ -459,76 +467,38 @@ const ItineraryHeader = ({
                         }}
                         autoFocus
                         variant="outlined"
-                        placeholder="Escribe el nombre de tu itinerario..."
+                        placeholder="Nombre del itinerario..."
                         size="small"
                         sx={{
                           flex: 1,
                           maxWidth: "300px",
                           "& .MuiOutlinedInput-root": {
-                            backgroundColor: "#FFFFFF",
-                            backdropFilter: "none",
-                            borderRadius: 8,
-                            border: "3px solid #E0E0E0",
+                            backgroundColor: "transparent",
+                            borderRadius: "8px",
+                            border: "2px solid transparent",
                             fontSize: "1.2rem",
-                            fontWeight: 400,
-                            color: "#000000",
-                            boxShadow: "0 4px 20px rgba(0, 0, 0, 0.3)",
-                            transition: "all 0.2s ease",
+                            fontWeight: 600,
+                            color: theme.palette.text.primary,
                             "& fieldset": {
                               border: "none",
                             },
-                            "&:hover": {
-                              backgroundColor: "#FFFFFF",
-                              border: "3px solid #BDBDBD",
-                              boxShadow: "0 6px 24px rgba(0, 0, 0, 0.35)",
+                            "&:hover fieldset": {
+                              border: "none",
                             },
-                            "&.Mui-focused": {
-                              backgroundColor: "#FFFFFF",
-                              border: `3px solid ${theme.palette.primary.main}`,
-                              boxShadow: `0 0 0 3px ${theme.palette.primary.main}30`,
+                            "&.Mui-focused fieldset": {
+                              border: "none",
                             },
                           },
                           "& .MuiOutlinedInput-input": {
-                            padding: "16px 20px",
-                            color: "#000000",
+                            padding: "8px 0",
+                            color: theme.palette.text.primary,
                             fontSize: "1.2rem",
-                            fontWeight: 400,
-                            lineHeight: 1.4,
+                            fontWeight: 600,
+                            textAlign: "center",
                             "&::placeholder": {
-                              color: "#666666",
-                              opacity: 1,
-                              fontStyle: "normal",
-                              fontWeight: 400,
+                              color: theme.palette.text.secondary,
+                              opacity: 0.7,
                             },
-                            "&::selection": {
-                              backgroundColor:
-                                theme.palette.primary.main + "40",
-                              color: "#000000",
-                            },
-                            "&:focus": {
-                              color: "#000000",
-                            },
-                            "&:active": {
-                              color: "#000000",
-                            },
-                          },
-                          "& input": {
-                            color: "#000000 !important",
-                            WebkitTextFillColor: "#000000 !important",
-                          },
-                          "& input:focus": {
-                            color: "#000000 !important",
-                            WebkitTextFillColor: "#000000 !important",
-                          },
-                          "& input:active": {
-                            color: "#000000 !important",
-                            WebkitTextFillColor: "#000000 !important",
-                          },
-                        }}
-                        inputProps={{
-                          style: {
-                            color: "#000000",
-                            backgroundColor: "transparent",
                           },
                         }}
                         onMouseEnter={handleMouseEnter}
@@ -554,12 +524,9 @@ const ItineraryHeader = ({
                             whiteSpace: "nowrap",
                             maxWidth: "100%",
                             textShadow: "0 2px 8px rgba(0, 0, 0, 0.3)",
-                            transition: "all 0.3s ease",
                             "&:hover": canEdit
                               ? {
                                   opacity: 0.9,
-                                  transform: "scale(1.02)",
-                                  textShadow: "0 4px 12px rgba(0, 0, 0, 0.4)",
                                 }
                               : {},
                           }}
@@ -567,7 +534,7 @@ const ItineraryHeader = ({
                           onMouseEnter={handleMouseEnter}
                           onMouseMove={handleMouseMove}
                         >
-                          {name || "Nuevo Itinerario"}
+                          {name || "Nuevo itinerario"}
                         </Typography>
                       </Tooltip>
                     )}
@@ -583,45 +550,28 @@ const ItineraryHeader = ({
                           onClick={handleEditClick}
                           size="small"
                           sx={{
-                            width: 44,
-                            height: 44,
-                            color: isEditingName ? "#FFFFFF" : "white",
+                            width: 40,
+                            height: 40,
+                            color: isEditingName ? "white" : "white",
                             background: isEditingName
                               ? theme.palette.success.main
                               : "rgba(255, 255, 255, 0.2)",
                             backdropFilter: "blur(8px)",
-                            border: `2px solid ${
-                              isEditingName
-                                ? theme.palette.success.main
-                                : "rgba(255, 255, 255, 0.3)"
-                            }`,
                             borderRadius: "50%",
-                            boxShadow: isEditingName
-                              ? `0 4px 20px ${theme.palette.success.main}40`
-                              : "0 4px 16px rgba(0, 0, 0, 0.2)",
                             zIndex: 1103,
-                            transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
                             "&:hover": {
                               background: isEditingName
                                 ? theme.palette.success.dark
                                 : "rgba(255, 255, 255, 0.3)",
-                              transform: "scale(1.08)",
-                              boxShadow: isEditingName
-                                ? `0 6px 24px ${theme.palette.success.main}50`
-                                : "0 6px 20px rgba(0, 0, 0, 0.3)",
-                              zIndex: 1104,
-                            },
-                            "&:active": {
-                              transform: "scale(0.95)",
                             },
                           }}
                           onMouseEnter={handleMouseEnter}
                           onMouseMove={handleMouseMove}
                         >
                           {isEditingName ? (
-                            <Save size={20} />
+                            <Save size={18} />
                           ) : (
-                            <Edit size={20} />
+                            <Edit size={18} />
                           )}
                         </IconButton>
                       </Tooltip>
@@ -645,13 +595,14 @@ const ItineraryHeader = ({
                     onMouseMove={handleMouseMove}
                   >
                     <Tooltip
-                      title={`Duración total del viaje: ${travelDays} día${travelDays !== 1 ? "s" : ""}`}
+                      title={`Duración total del viaje: ${travelDays} día${travelDays !== 1 ? "s" : ""}${canEditDates ? ". Haz clic para cambiar fechas" : ""}`}
                       arrow
                     >
                       <Chip
                         icon={<CalendarDays size={16} />}
                         label={`${travelDays} día${travelDays !== 1 ? "s" : ""}`}
                         size="small"
+                        onClick={canEditDates ? handleDateChipClick : undefined}
                         sx={{
                           backgroundColor: "rgba(255, 255, 255, 0.25)",
                           color: "white",
@@ -661,12 +612,15 @@ const ItineraryHeader = ({
                           border: "1px solid rgba(255, 255, 255, 0.2)",
                           fontWeight: 500,
                           letterSpacing: "0.02em",
+                          cursor: canEditDates ? "pointer" : "default",
                           transition: "all 0.2s ease",
-                          "&:hover": {
-                            backgroundColor: "rgba(255, 255, 255, 0.35)",
-                            transform: "scale(1.02)",
-                            boxShadow: "0 2px 8px rgba(0, 0, 0, 0.2)",
-                          },
+                          "&:hover": canEditDates
+                            ? {
+                                backgroundColor: "rgba(255, 255, 255, 0.35)",
+                                transform: "scale(1.02)",
+                                boxShadow: "0 2px 8px rgba(0, 0, 0, 0.2)",
+                              }
+                            : {},
                           "& .MuiChip-icon": {
                             color: "white",
                             width: 16,
@@ -888,7 +842,7 @@ const ItineraryHeader = ({
               </Box>
             )}
 
-            {/* 🔧 IMPROVED TABLET/DESKTOP LAYOUT */}
+            {/* IMPROVED TABLET/DESKTOP LAYOUT */}
             {!isMobile && (
               <Box
                 sx={{
@@ -900,14 +854,13 @@ const ItineraryHeader = ({
                   pr: { sm: 1, md: 2 },
                   zIndex: 1102,
                   position: "relative",
-                  // 🔧 FIXED: Better responsive behavior
                   flexWrap: isTablet ? "wrap" : "nowrap",
                   justifyContent: isTablet ? "center" : "flex-start",
                 }}
                 onMouseEnter={handleMouseEnter}
                 onMouseMove={handleMouseMove}
               >
-                {/* 🔧 IMPROVED: Title Section with better space management */}
+                {/* Title Section with better space management */}
                 <Box
                   sx={{
                     display: "flex",
@@ -927,19 +880,19 @@ const ItineraryHeader = ({
                       gap: 1,
                       minWidth: 0,
                       flex: 1,
+                      // 🔧 IMPROVED: Modern, clean editing style
                       backgroundColor: isEditingName
-                        ? "#FFFFFF !important"
+                        ? "rgba(255, 255, 255, 0.95)"
                         : "transparent",
-                      padding: isEditingName ? "12px 16px" : "0",
-                      borderRadius: isEditingName ? 10 : 0,
-                      boxShadow: isEditingName
-                        ? "0 6px 24px rgba(0, 0, 0, 0.3)"
+                      padding: isEditingName ? "8px 12px" : "0",
+                      borderRadius: isEditingName ? "10px" : 0,
+                      backdropFilter: isEditingName ? "blur(10px)" : "none",
+                      border: isEditingName
+                        ? `1px solid ${theme.palette.primary.main}`
                         : "none",
-                      transition: "all 0.3s ease",
                       position: "relative",
                       zIndex: isEditingName ? 1200 : "auto",
                     }}
-                    data-editing={isEditingName ? "true" : "false"}
                   >
                     {isEditingName && canEdit ? (
                       <TextField
@@ -952,66 +905,33 @@ const ItineraryHeader = ({
                         }}
                         autoFocus
                         variant="outlined"
-                        placeholder="Escribe el nombre de tu itinerario..."
+                        placeholder="Nombre del itinerario..."
                         size="small"
                         sx={{
                           flex: 1,
                           maxWidth: { sm: "250px", md: "320px", lg: "400px" },
                           "& .MuiOutlinedInput-root": {
-                            backgroundColor: "#FFFFFF !important",
-                            backdropFilter: "none !important",
-                            borderRadius: 8,
-                            border: "2px solid #E0E0E0 !important",
+                            backgroundColor: "transparent",
+                            borderRadius: "6px",
+                            border: "2px solid transparent",
                             fontSize: { sm: "1rem", md: "1.1rem" },
-                            fontWeight: 400,
-                            color: "#000000 !important",
-                            boxShadow:
-                              "0 4px 20px rgba(0, 0, 0, 0.3) !important",
-                            transition: "all 0.2s ease",
-                            "& fieldset": { border: "none !important" },
-                            "&:hover": {
-                              backgroundColor: "#FFFFFF !important",
-                              border: "2px solid #BDBDBD !important",
-                              boxShadow:
-                                "0 6px 24px rgba(0, 0, 0, 0.35) !important",
-                            },
-                            "&.Mui-focused": {
-                              backgroundColor: "#FFFFFF !important",
-                              border: `2px solid ${theme.palette.primary.main} !important`,
-                              boxShadow: `0 0 0 3px ${theme.palette.primary.main}30 !important`,
-                            },
+                            fontWeight: 600,
+                            color: theme.palette.text.primary,
+                            "& fieldset": { border: "none" },
+                            "&:hover fieldset": { border: "none" },
+                            "&.Mui-focused fieldset": { border: "none" },
                           },
                           "& .MuiOutlinedInput-input": {
-                            padding: { sm: "10px 14px", md: "12px 16px" },
-                            color: "#000000 !important",
+                            padding: { sm: "6px 0", md: "8px 0" },
+                            color: theme.palette.text.primary,
                             fontSize: { sm: "1rem", md: "1.1rem" },
-                            fontWeight: 400,
-                            lineHeight: 1.4,
+                            fontWeight: 600,
+                            textAlign: isTablet ? "center" : "left",
                             "&::placeholder": {
-                              color: "#666666 !important",
-                              opacity: "1 !important",
-                              fontStyle: "normal",
-                              fontWeight: 400,
-                            },
-                            "&::selection": {
-                              backgroundColor:
-                                theme.palette.primary.main + "40 !important",
-                              color: "#000000 !important",
+                              color: theme.palette.text.secondary,
                             },
                           },
-                          "& input": {
-                            color: "#000000 !important",
-                            WebkitTextFillColor: "#000000 !important",
-                            backgroundColor: "transparent !important",
-                          },
                         }}
-                        inputProps={{
-                          style: {
-                            color: "#000000 !important",
-                            backgroundColor: "#FFFFFF !important",
-                          },
-                        }}
-                        style={{ backgroundColor: "#FFFFFF !important" }}
                         onMouseEnter={handleMouseEnter}
                         onMouseMove={handleMouseMove}
                       />
@@ -1029,7 +949,7 @@ const ItineraryHeader = ({
                           component="h1"
                           sx={{
                             fontWeight: "bold",
-                            color: "#FFFFFF !important",
+                            color: "white",
                             cursor: canEdit ? "pointer" : "default",
                             fontSize: {
                               sm: "1.25rem",
@@ -1043,16 +963,10 @@ const ItineraryHeader = ({
                             minWidth: 0,
                             flex: 1,
                             textAlign: isTablet ? "center" : "left",
-                            textShadow:
-                              "0 2px 8px rgba(0, 0, 0, 0.5) !important",
-                            transition: "all 0.3s ease",
+                            textShadow: "0 2px 8px rgba(0, 0, 0, 0.5)",
                             "&:hover": canEdit
                               ? {
                                   opacity: 0.9,
-                                  transform: "scale(1.02)",
-                                  textShadow:
-                                    "0 4px 12px rgba(0, 0, 0, 0.6) !important",
-                                  color: "#FFFFFF !important",
                                 }
                               : {},
                           }}
@@ -1060,7 +974,7 @@ const ItineraryHeader = ({
                           onMouseEnter={handleMouseEnter}
                           onMouseMove={handleMouseMove}
                         >
-                          {name || "Nuevo Itinerario"}
+                          {name || "Nuevo itinerario"}
                         </Typography>
                       </Tooltip>
                     )}
@@ -1076,81 +990,36 @@ const ItineraryHeader = ({
                           onClick={handleEditClick}
                           size="small"
                           sx={{
-                            width: { sm: 36, md: 40 },
-                            height: { sm: 36, md: 40 },
-                            color: isEditingName ? "#FFFFFF" : "white",
+                            width: { sm: 32, md: 36 },
+                            height: { sm: 32, md: 36 },
+                            color: isEditingName ? "white" : "white",
                             background: isEditingName
                               ? theme.palette.success.main
                               : "rgba(255, 255, 255, 0.2)",
                             backdropFilter: "blur(8px)",
-                            border: `2px solid ${
-                              isEditingName
-                                ? theme.palette.success.main
-                                : "rgba(255, 255, 255, 0.3)"
-                            }`,
                             borderRadius: "50%",
-                            boxShadow: isEditingName
-                              ? `0 4px 20px ${theme.palette.success.main}40`
-                              : "0 4px 16px rgba(0, 0, 0, 0.2)",
                             zIndex: 1103,
                             flexShrink: 0,
-                            transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
                             "&:hover": {
                               background: isEditingName
                                 ? theme.palette.success.dark
                                 : "rgba(255, 255, 255, 0.3)",
-                              transform: "scale(1.08)",
-                              boxShadow: isEditingName
-                                ? `0 6px 24px ${theme.palette.success.main}50`
-                                : "0 6px 20px rgba(0, 0, 0, 0.3)",
-                              zIndex: 1104,
                             },
-                            "&:active": { transform: "scale(0.95)" },
                           }}
                           onMouseEnter={handleMouseEnter}
                           onMouseMove={handleMouseMove}
                         >
                           {isEditingName ? (
-                            <Save size={isTablet ? 16 : 18} />
+                            <Save size={isTablet ? 14 : 16} />
                           ) : (
-                            <Edit size={isTablet ? 16 : 18} />
+                            <Edit size={isTablet ? 14 : 16} />
                           )}
                         </IconButton>
                       </Tooltip>
                     )}
-
-                    {/* Force styles override */}
-                    <style jsx>{`
-                      [data-editing="true"] {
-                        background-color: #ffffff !important;
-                        background: #ffffff !important;
-                        backdrop-filter: none !important;
-                      }
-                      [data-editing="false"] h1,
-                      [data-editing="false"] .MuiTypography-root {
-                        color: #ffffff !important;
-                      }
-                      .MuiBox-root[data-editing="true"] {
-                        background-color: #ffffff !important;
-                        backdrop-filter: none !important;
-                      }
-                      [data-editing="true"] .MuiOutlinedInput-root {
-                        background-color: #ffffff !important;
-                        background: #ffffff !important;
-                      }
-                      [data-editing="true"] .MuiOutlinedInput-input {
-                        color: #000000 !important;
-                        -webkit-text-fill-color: #000000 !important;
-                      }
-                      [data-editing="true"] input {
-                        color: #000000 !important;
-                        -webkit-text-fill-color: #000000 !important;
-                        background-color: #ffffff !important;
-                      }
-                    `}</style>
                   </Box>
 
-                  {/* 🔧 IMPROVED: Chips Section with better spacing */}
+                  {/* Chips Section with better spacing */}
                   {!isTablet && (
                     <Box
                       sx={{
@@ -1164,19 +1033,28 @@ const ItineraryHeader = ({
                       onMouseMove={handleMouseMove}
                     >
                       <Tooltip
-                        title={`Duración: ${travelDays} día${travelDays !== 1 ? "s" : ""}`}
+                        title={`Duración: ${travelDays} día${travelDays !== 1 ? "s" : ""}${canEditDates ? ". Clic para cambiar fechas" : ""}`}
                         arrow
                       >
                         <Chip
                           icon={<CalendarDays size={12} />}
                           label={`${travelDays} día${travelDays !== 1 ? "s" : ""}`}
                           size="small"
+                          onClick={
+                            canEditDates ? handleDateChipClick : undefined
+                          }
                           sx={{
                             backgroundColor: "rgba(255,255,255,0.2)",
                             color: "white",
                             fontSize: "0.65rem",
                             height: 22,
                             backdropFilter: "blur(10px)",
+                            cursor: canEditDates ? "pointer" : "default",
+                            "&:hover": canEditDates
+                              ? {
+                                  backgroundColor: "rgba(255,255,255,0.3)",
+                                }
+                              : {},
                             "& .MuiChip-icon": {
                               color: "white",
                               width: 12,
@@ -1283,7 +1161,7 @@ const ItineraryHeader = ({
                   )}
                 </Box>
 
-                {/* 🔧 IMPROVED: Action Buttons with better spacing */}
+                {/* Action Buttons with better spacing */}
                 <Box
                   sx={{
                     display: "flex",
@@ -1292,7 +1170,6 @@ const ItineraryHeader = ({
                     flexShrink: 0,
                     zIndex: 1102,
                     position: "relative",
-                    // 🔧 FIXED: Better positioning for tablet
                     order: isTablet ? -1 : 0,
                     width: isTablet ? "100%" : "auto",
                     justifyContent: isTablet ? "center" : "flex-end",
@@ -1368,7 +1245,7 @@ const ItineraryHeader = ({
                   </Tooltip>
                 </Box>
 
-                {/* 🔧 TABLET: Show chips in a separate row */}
+                {/* TABLET: Show chips in a separate row */}
                 {isTablet && (
                   <Box
                     sx={{
@@ -1384,19 +1261,26 @@ const ItineraryHeader = ({
                     onMouseMove={handleMouseMove}
                   >
                     <Tooltip
-                      title={`Duración: ${travelDays} día${travelDays !== 1 ? "s" : ""}`}
+                      title={`Duración: ${travelDays} día${travelDays !== 1 ? "s" : ""}${canEditDates ? ". Clic para cambiar fechas" : ""}`}
                       arrow
                     >
                       <Chip
                         icon={<CalendarDays size={14} />}
                         label={`${travelDays} día${travelDays !== 1 ? "s" : ""}`}
                         size="small"
+                        onClick={canEditDates ? handleDateChipClick : undefined}
                         sx={{
                           backgroundColor: "rgba(255,255,255,0.2)",
                           color: "white",
                           fontSize: "0.7rem",
                           height: 26,
                           backdropFilter: "blur(10px)",
+                          cursor: canEditDates ? "pointer" : "default",
+                          "&:hover": canEditDates
+                            ? {
+                                backgroundColor: "rgba(255,255,255,0.3)",
+                              }
+                            : {},
                           "& .MuiChip-icon": {
                             color: "white",
                             width: 14,
@@ -1844,7 +1728,7 @@ const ItineraryHeader = ({
         )}
       </Popper>
 
-      {/* 🆕 NEW: Privacy Menu */}
+      {/* Privacy Menu */}
       <Popper
         open={privacyMenuOpen}
         anchorEl={privacyMenuAnchor}
@@ -2077,7 +1961,7 @@ const ItineraryHeader = ({
           }}
         >
           <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-            Información del Viaje
+            Información del viaje
           </Typography>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
             <Crown size={16} color="gold" />
