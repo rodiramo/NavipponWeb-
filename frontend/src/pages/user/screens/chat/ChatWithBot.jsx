@@ -7,7 +7,6 @@ import {
   RotateCcw,
   ExternalLink,
   MapPin,
-  Calendar,
   Utensils,
   Train,
   CloudSun,
@@ -49,7 +48,7 @@ const ChatWithBot = ({ onClose, user }) => {
       icon,
       action: () => {
         navigate(path);
-        onClose(); // Close chatbot after navigation
+        onClose();
       },
     };
   };
@@ -81,18 +80,12 @@ const ChatWithBot = ({ onClose, user }) => {
 
 ¿Qué te gustaría saber?`,
         buttons: [
-          createNavigationButton(
-            "🗓️ Crear Itinerario",
-            "/user/itineraries/manage/create",
-            Calendar
-          ),
           createNavigationButton("🗼 Ver Experiencias", "/experience", MapPin),
           createNavigationButton("📖 Leer Artículos", "/blog", ExternalLink),
         ],
       };
     }
 
-    // Clima y estaciones
     if (
       [
         "clima",
@@ -129,11 +122,6 @@ const ChatWithBot = ({ onClose, user }) => {
             "🌸 Experiencias Primavera",
             "/experience?season=spring",
             MapPin
-          ),
-          createNavigationButton(
-            "📅 Planificar por Clima",
-            "/user/itineraries/manage/create",
-            Calendar
           ),
         ],
       };
@@ -226,11 +214,6 @@ const ChatWithBot = ({ onClose, user }) => {
             "https://www.hyperdia.com/en/",
             MapPin
           ),
-          createNavigationButton(
-            "📅 Añadir a Itinerario",
-            "/user/itineraries/manage/create",
-            Calendar
-          ),
         ],
       };
     }
@@ -321,11 +304,6 @@ const ChatWithBot = ({ onClose, user }) => {
             "/blog?tag=tokyo",
             ExternalLink
           ),
-          createNavigationButton(
-            "📅 Itinerario Tokyo",
-            "/user/itineraries/manage/create?city=tokyo",
-            Calendar
-          ),
         ],
       };
     }
@@ -370,11 +348,6 @@ const ChatWithBot = ({ onClose, user }) => {
             "👘 Experiencias Culturales",
             "/experience?category=culture",
             ExternalLink
-          ),
-          createNavigationButton(
-            "📅 Itinerario Kyoto",
-            "/user/itineraries/manage/create?city=kyoto",
-            Calendar
           ),
         ],
       };
@@ -421,11 +394,6 @@ const ChatWithBot = ({ onClose, user }) => {
             "/experience?budget=low",
             MapPin
           ),
-          createNavigationButton(
-            "📝 Planificar Presupuesto",
-            "/user/itineraries/manage/create",
-            Calendar
-          ),
         ],
       };
     }
@@ -453,11 +421,6 @@ Puedo ayudarte con información detallada sobre:
           MapPin
         ),
         createNavigationButton("📖 Leer Guías", "/blog", ExternalLink),
-        createNavigationButton(
-          "📅 Crear Itinerario",
-          "/user/itineraries/manage/create",
-          Calendar
-        ),
       ],
     };
   };
@@ -685,17 +648,17 @@ Puedo ayudarte con información detallada sobre:
                           onClick={() => handleButtonClick(button)}
                           className="flex items-center space-x-2 px-3 py-2 rounded-lg text-sm transition-all hover:scale-105 hover:shadow-md"
                           style={{
-                            backgroundColor: theme.palette.primary.light,
+                            backgroundColor: theme.palette.primary.main,
                             color: theme.palette.primary.contrastText,
                             border: `1px solid ${theme.palette.primary.main}`,
                           }}
                           onMouseEnter={(e) => {
                             e.target.style.backgroundColor =
-                              theme.palette.primary.main;
+                              theme.palette.primary.dark;
                           }}
                           onMouseLeave={(e) => {
                             e.target.style.backgroundColor =
-                              theme.palette.primary.light;
+                              theme.palette.primary.main;
                           }}
                         >
                           <IconComponent className="w-4 h-4" />

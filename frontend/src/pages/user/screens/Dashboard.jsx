@@ -1,4 +1,4 @@
-// Updated Dashboard component with enhanced checklist form
+// Updated Dashboard component with mobile-optimized stats widgets
 import React, { useState } from "react";
 import {
   Box,
@@ -27,6 +27,7 @@ import {
   Chip,
   Tooltip,
   Collapse,
+  useMediaQuery,
 } from "@mui/material";
 import { MdOutlineWavingHand } from "react-icons/md";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
@@ -74,7 +75,8 @@ import {
 } from "../../../services/index/checklist";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
-const WelcomeWidget = ({ user, theme }) => (
+
+const WelcomeWidget = ({ user, theme, isMobile }) => (
   <Card
     sx={{
       borderRadius: "20px",
@@ -84,18 +86,25 @@ const WelcomeWidget = ({ user, theme }) => (
       boxShadow: "none",
     }}
   >
-    <CardContent sx={{ p: 3 }}>
+    <CardContent sx={{ p: isMobile ? 2 : 3 }}>
       <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
         <Box>
           <Typography
-            variant="h2"
+            variant={isMobile ? "h4" : "h2"}
             fontWeight="bold"
             sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}
           >
             ¡Hola, {user?.name}!
-            <MdOutlineWavingHand color={theme.palette.primary.main} size={24} />
+            <MdOutlineWavingHand
+              color={theme.palette.primary.main}
+              size={isMobile ? 20 : 24}
+            />
           </Typography>
-          <Typography variant="body2" color="text.secondary">
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{ fontSize: isMobile ? "0.875rem" : "1rem" }}
+          >
             Listo para tu próxima aventura en Japón
           </Typography>
         </Box>
@@ -104,48 +113,76 @@ const WelcomeWidget = ({ user, theme }) => (
   </Card>
 );
 
-const StatsWidget = ({ title, value, subtitle, icon, color, trend, theme }) => (
+const StatsWidget = ({
+  title,
+  value,
+  subtitle,
+  icon,
+  color,
+  trend,
+  theme,
+  isMobile,
+}) => (
   <Card
     sx={{
-      borderRadius: "16px",
+      borderRadius: isMobile ? "12px" : "16px",
       height: "100%",
       position: "relative",
       background: theme.palette.background.blue,
       overflow: "hidden",
     }}
   >
-    <CardContent sx={{ p: 3 }}>
+    <CardContent sx={{ p: isMobile ? 1.5 : 3 }}>
       <Box
         sx={{
           display: "flex",
           justifyContent: "space-between",
           alignItems: "flex-start",
-          mb: 2,
+          mb: isMobile ? 1 : 2,
         }}
       >
         <Box>
-          <Typography variant="h3" fontWeight="bold" color={color}>
+          <Typography
+            variant={isMobile ? "h5" : "h3"}
+            fontWeight="bold"
+            color={color}
+            sx={{ fontSize: isMobile ? "1.25rem" : "2rem" }}
+          >
             {value}
           </Typography>
-          <Typography variant="body2" color="text.secondary">
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{
+              fontSize: isMobile ? "0.75rem" : "0.875rem",
+              lineHeight: 1.2,
+            }}
+          >
             {title}
           </Typography>
         </Box>
         <Box
           sx={{
-            p: 1.5,
-            borderRadius: "12px",
+            p: isMobile ? 0.75 : 1.5,
+            borderRadius: isMobile ? "8px" : "12px",
             backgroundColor: `${color}15`,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
           }}
         >
-          {React.cloneElement(icon, { size: 24, color })}
+          {React.cloneElement(icon, {
+            size: isMobile ? 16 : 24,
+            color,
+          })}
         </Box>
       </Box>
       {subtitle && (
-        <Typography variant="caption" color="text.secondary">
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          sx={{ fontSize: isMobile ? "0.65rem" : "0.75rem" }}
+        >
           {subtitle}
         </Typography>
       )}
@@ -153,7 +190,7 @@ const StatsWidget = ({ title, value, subtitle, icon, color, trend, theme }) => (
   </Card>
 );
 
-const CurrentTripWidget = ({ trip, theme, navigate }) => {
+const CurrentTripWidget = ({ trip, theme, navigate, isMobile }) => {
   if (!trip) return null;
 
   const daysLeft = Math.ceil(
@@ -166,7 +203,7 @@ const CurrentTripWidget = ({ trip, theme, navigate }) => {
 
   return (
     <Card sx={{ borderRadius: "20px" }}>
-      <CardContent sx={{ p: 3 }}>
+      <CardContent sx={{ p: isMobile ? 2 : 3 }}>
         <Box
           sx={{
             display: "flex",
@@ -175,7 +212,12 @@ const CurrentTripWidget = ({ trip, theme, navigate }) => {
             mb: 2,
           }}
         >
-          <Typography variant="h6" fontWeight="bold" color="success.main">
+          <Typography
+            variant="h6"
+            fontWeight="bold"
+            color="success.main"
+            sx={{ fontSize: isMobile ? "1rem" : "1.25rem" }}
+          >
             🎯 Viaje Actual
           </Typography>
           <IconButton size="small">
@@ -183,13 +225,24 @@ const CurrentTripWidget = ({ trip, theme, navigate }) => {
           </IconButton>
         </Box>
 
-        <Typography variant="h5" fontWeight="bold" sx={{ mb: 1 }}>
+        <Typography
+          variant="h5"
+          fontWeight="bold"
+          sx={{
+            mb: 1,
+            fontSize: isMobile ? "1.25rem" : "1.5rem",
+          }}
+        >
           {trip.name}
         </Typography>
 
         <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
           <Calendar size={16} color={theme.palette.text.secondary} />
-          <Typography variant="body2" color="text.secondary">
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{ fontSize: isMobile ? "0.75rem" : "0.875rem" }}
+          >
             {daysLeft} días restantes
           </Typography>
         </Box>
@@ -211,7 +264,11 @@ const CurrentTripWidget = ({ trip, theme, navigate }) => {
           <Typography
             variant="caption"
             color="text.secondary"
-            sx={{ mt: 0.5, display: "block" }}
+            sx={{
+              mt: 0.5,
+              display: "block",
+              fontSize: isMobile ? "0.65rem" : "0.75rem",
+            }}
           >
             {Math.round(progress)}% completado
           </Typography>
@@ -222,7 +279,11 @@ const CurrentTripWidget = ({ trip, theme, navigate }) => {
           variant="contained"
           size="small"
           onClick={() => navigate(`/itinerary/${trip._id}`)}
-          sx={{ borderRadius: "12px", textTransform: "none" }}
+          sx={{
+            borderRadius: "12px",
+            textTransform: "none",
+            fontSize: isMobile ? "0.875rem" : "1rem",
+          }}
         >
           Ver detalles
         </Button>
@@ -231,7 +292,7 @@ const CurrentTripWidget = ({ trip, theme, navigate }) => {
   );
 };
 
-// Enhanced Task Form Component
+// Enhanced Task Form Component (unchanged for brevity)
 const TaskFormDialog = ({
   open,
   onClose,
@@ -248,7 +309,6 @@ const TaskFormDialog = ({
 
   const [errors, setErrors] = useState({});
 
-  // Update form data when editTask changes or dialog opens
   React.useEffect(() => {
     if (open) {
       if (editTask) {
@@ -342,7 +402,6 @@ const TaskFormDialog = ({
 
       <DialogContent>
         <Stack spacing={3} pt={3}>
-          {/* Task Text */}
           <TextField
             label="Descripción de la tarea"
             value={formData.text}
@@ -360,7 +419,6 @@ const TaskFormDialog = ({
             }}
           />
 
-          {/* Priority and Category Row */}
           <Box sx={{ display: "flex", gap: 2 }}>
             <FormControl fullWidth>
               <InputLabel
@@ -423,7 +481,6 @@ const TaskFormDialog = ({
             </FormControl>
           </Box>
 
-          {/* Due Date */}
           <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={es}>
             <DatePicker
               label="Fecha límite (opcional)"
@@ -466,21 +523,19 @@ const TaskFormDialog = ({
   );
 };
 
-// Enhanced ChecklistWidget with complete form
-const ChecklistWidget = ({ user, jwt, theme }) => {
+// Enhanced ChecklistWidget with mobile optimizations
+const ChecklistWidget = ({ user, jwt, theme, isMobile }) => {
   const [formDialogOpen, setFormDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
   const [showCompleted, setShowCompleted] = useState(false);
   const queryClient = useQueryClient();
 
-  // Fetch checklist from backend
   const { data: checklist = [], isLoading } = useQuery({
     queryKey: ["userChecklist", user?._id],
     queryFn: () => getUserChecklist(user._id, jwt),
     enabled: !!user && !!jwt,
   });
 
-  // Mutations for CRUD operations
   const createMutation = useMutation({
     mutationFn: (itemData) =>
       createChecklistItem({ ...itemData, userId: user._id }, jwt),
@@ -581,7 +636,7 @@ const ChecklistWidget = ({ user, jwt, theme }) => {
   if (isLoading) {
     return (
       <Card sx={{ borderRadius: "20px", height: "fit-content" }}>
-        <CardContent sx={{ p: 3 }}>
+        <CardContent sx={{ p: isMobile ? 2 : 3 }}>
           <Typography>Cargando lista de tareas...</Typography>
         </CardContent>
       </Card>
@@ -597,7 +652,7 @@ const ChecklistWidget = ({ user, jwt, theme }) => {
           background: theme.palette.background.blue,
         }}
       >
-        <CardContent sx={{ p: 3 }}>
+        <CardContent sx={{ p: isMobile ? 2 : 3 }}>
           <Box
             sx={{
               display: "flex",
@@ -607,8 +662,15 @@ const ChecklistWidget = ({ user, jwt, theme }) => {
             }}
           >
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <CheckSquare size={24} color={theme.palette.primary.main} />
-              <Typography variant="h6" fontWeight="bold">
+              <CheckSquare
+                size={isMobile ? 20 : 24}
+                color={theme.palette.primary.main}
+              />
+              <Typography
+                variant="h6"
+                fontWeight="bold"
+                sx={{ fontSize: isMobile ? "1rem" : "1.25rem" }}
+              >
                 Lista de viaje
               </Typography>
             </Box>
@@ -626,13 +688,18 @@ const ChecklistWidget = ({ user, jwt, theme }) => {
                 mb: 1,
               }}
             >
-              <Typography variant="body2" color="text.secondary">
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ fontSize: isMobile ? "0.75rem" : "0.875rem" }}
+              >
                 Progreso
               </Typography>
               <Typography
                 variant="body2"
                 fontWeight="bold"
                 color="primary.main"
+                sx={{ fontSize: isMobile ? "0.75rem" : "0.875rem" }}
               >
                 {Math.round(completionPercentage)}% ({completedTasks}/
                 {checklist.length})
@@ -653,14 +720,13 @@ const ChecklistWidget = ({ user, jwt, theme }) => {
             />
           </Box>
 
-          {/* Pending Tasks */}
           <List sx={{ maxHeight: 240, overflow: "auto", mb: 2 }}>
             {pendingTasks.slice(0, 5).map((item) => (
               <ListItem
                 key={item._id}
                 sx={{
                   px: 0,
-                  py: 1,
+                  py: isMobile ? 0.5 : 1,
                   borderRadius: "8px",
                   border: isOverdue(item.dueDate)
                     ? `1px solid ${theme.palette.error.light}`
@@ -689,7 +755,13 @@ const ChecklistWidget = ({ user, jwt, theme }) => {
                         mb: 0.5,
                       }}
                     >
-                      <Typography variant="body2" sx={{ flex: 1 }}>
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          flex: 1,
+                          fontSize: isMobile ? "0.75rem" : "0.875rem",
+                        }}
+                      >
                         {item.text}
                       </Typography>
                       {isOverdue(item.dueDate) && (
@@ -716,7 +788,10 @@ const ChecklistWidget = ({ user, jwt, theme }) => {
                         label={item.category}
                         icon={getCategoryIcon(item.category)}
                         variant="outlined"
-                        sx={{ fontSize: "0.7rem", height: 20 }}
+                        sx={{
+                          fontSize: isMobile ? "0.6rem" : "0.7rem",
+                          height: isMobile ? 18 : 20,
+                        }}
                       />
                       {item.dueDate && (
                         <Chip
@@ -727,7 +802,10 @@ const ChecklistWidget = ({ user, jwt, theme }) => {
                           icon={<Clock size={12} />}
                           variant="outlined"
                           color={isOverdue(item.dueDate) ? "error" : "default"}
-                          sx={{ fontSize: "0.7rem", height: 20 }}
+                          sx={{
+                            fontSize: isMobile ? "0.6rem" : "0.7rem",
+                            height: isMobile ? 18 : 20,
+                          }}
                         />
                       )}
                     </Box>
@@ -749,7 +827,7 @@ const ChecklistWidget = ({ user, jwt, theme }) => {
                       onClick={() => openEditDialog(item)}
                       sx={{ opacity: 0.7, "&:hover": { opacity: 1 } }}
                     >
-                      <Edit size={14} />
+                      <Edit size={isMobile ? 12 : 14} />
                     </IconButton>
                   </Tooltip>
                   <Tooltip title="Eliminar">
@@ -765,7 +843,7 @@ const ChecklistWidget = ({ user, jwt, theme }) => {
                         },
                       }}
                     >
-                      <Trash2 size={14} />
+                      <Trash2 size={isMobile ? 12 : 14} />
                     </IconButton>
                   </Tooltip>
                 </Box>
@@ -773,7 +851,6 @@ const ChecklistWidget = ({ user, jwt, theme }) => {
             ))}
           </List>
 
-          {/* Show completed tasks toggle */}
           {completedTasksList.length > 0 && (
             <Button
               size="small"
@@ -785,14 +862,17 @@ const ChecklistWidget = ({ user, jwt, theme }) => {
                   <ChevronDown size={16} />
                 )
               }
-              sx={{ mb: 2, textTransform: "none" }}
+              sx={{
+                mb: 2,
+                textTransform: "none",
+                fontSize: isMobile ? "0.75rem" : "0.875rem",
+              }}
             >
               {showCompleted ? "Ocultar" : "Mostrar"} completadas (
               {completedTasksList.length})
             </Button>
           )}
 
-          {/* Completed Tasks */}
           <Collapse in={showCompleted}>
             <List sx={{ maxHeight: 150, overflow: "auto", mb: 2 }}>
               {completedTasksList.map((item) => (
@@ -819,7 +899,7 @@ const ChecklistWidget = ({ user, jwt, theme }) => {
                     sx={{
                       textDecoration: "line-through",
                       "& .MuiListItemText-primary": {
-                        fontSize: "0.875rem",
+                        fontSize: isMobile ? "0.75rem" : "0.875rem",
                       },
                     }}
                   />
@@ -842,7 +922,6 @@ const ChecklistWidget = ({ user, jwt, theme }) => {
             </List>
           </Collapse>
 
-          {/* Add New Task Button */}
           <Button
             variant="contained"
             startIcon={
@@ -858,7 +937,7 @@ const ChecklistWidget = ({ user, jwt, theme }) => {
                   },
                 }}
               >
-                <Plus size={18} />
+                <Plus size={isMobile ? 16 : 18} />
               </Box>
             }
             onClick={() => setFormDialogOpen(true)}
@@ -867,9 +946,9 @@ const ChecklistWidget = ({ user, jwt, theme }) => {
             sx={{
               borderRadius: "30px",
               textTransform: "none",
-              py: 2,
+              py: isMobile ? 1.5 : 2,
               px: 3,
-              fontSize: "1rem",
+              fontSize: isMobile ? "0.875rem" : "1rem",
               background: `linear-gradient(135deg, ${theme.palette.primary.main})`,
               color: "white",
               boxShadow: `0 4px 20px ${theme.palette.primary.main}25`,
@@ -889,16 +968,13 @@ const ChecklistWidget = ({ user, jwt, theme }) => {
               "&:hover": {
                 transform: "translateY(-2px) scale(1.02)",
                 boxShadow: `0 8px 30px ${theme.palette.primary.main}35`,
-
                 "&::before": {
                   left: "100%",
                 },
               },
-
               "&:active": {
                 transform: "translateY(0px) scale(0.98)",
               },
-
               "&:disabled": {
                 background: theme.palette.grey[300],
                 color: theme.palette.grey[500],
@@ -912,7 +988,6 @@ const ChecklistWidget = ({ user, jwt, theme }) => {
         </CardContent>
       </Card>
 
-      {/* Task Form Dialog */}
       <TaskFormDialog
         open={formDialogOpen}
         onClose={() => {
@@ -932,6 +1007,7 @@ const ActivityWidget = ({
   completedTasks,
   upcomingTrip,
   theme,
+  isMobile,
 }) => {
   const activities = [
     {
@@ -948,12 +1024,19 @@ const ActivityWidget = ({
 
   return (
     <Card
-      sx={{ borderRadius: "20px", background: theme.palette.background.blue }}
+      sx={{
+        borderRadius: "20px",
+        background: theme.palette.background.blue,
+      }}
     >
-      <CardContent sx={{ p: 3 }}>
+      <CardContent sx={{ p: isMobile ? 2 : 3 }}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 3 }}>
-          <Bell size={20} color={theme.palette.primary.main} />
-          <Typography variant="h6" fontWeight="bold">
+          <Bell size={isMobile ? 16 : 20} color={theme.palette.primary.main} />
+          <Typography
+            variant="h6"
+            fontWeight="bold"
+            sx={{ fontSize: isMobile ? "1rem" : "1.25rem" }}
+          >
             Actividad reciente
           </Typography>
         </Box>
@@ -966,15 +1049,24 @@ const ActivityWidget = ({
                 display: "flex",
                 alignItems: "center",
                 gap: 2,
-                p: 2,
+                p: isMobile ? 1.5 : 2,
                 borderRadius: "12px",
               }}
             >
               {activity.icon}
               <Box sx={{ flex: 1 }}>
-                <Typography variant="body2">{activity.text}</Typography>
+                <Typography
+                  variant="body2"
+                  sx={{ fontSize: isMobile ? "0.75rem" : "0.875rem" }}
+                >
+                  {activity.text}
+                </Typography>
                 {activity.time && (
-                  <Typography variant="caption" color="text.secondary">
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{ fontSize: isMobile ? "0.65rem" : "0.75rem" }}
+                  >
                     {activity.time}
                   </Typography>
                 )}
@@ -991,15 +1083,14 @@ const Dashboard = () => {
   const theme = useTheme();
   const { user, jwt } = useUser();
   const navigate = useNavigate();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
-  // Fetch user's itineraries
   const { data: itineraries = [] } = useQuery({
     queryKey: ["userItineraries", user?._id],
     queryFn: () => getUserItineraries(user._id, jwt),
     enabled: !!user && !!jwt,
   });
 
-  // Fetch checklist to get completed tasks count
   const { data: checklist = [] } = useQuery({
     queryKey: ["userChecklist", user?._id],
     queryFn: () => getUserChecklist(user._id, jwt),
@@ -1028,15 +1119,15 @@ const Dashboard = () => {
   const upcomingTrip = getUpcomingTrip();
 
   return (
-    <Box sx={{ p: { xs: 2, md: 3 }, minHeight: "100vh" }}>
-      <Grid container spacing={3}>
+    <Box sx={{ p: { xs: 1.5, md: 3 }, minHeight: "100vh" }}>
+      <Grid container spacing={{ xs: 2, md: 3 }}>
         {/* Welcome Widget - Full Width */}
         <Grid item xs={12}>
-          <WelcomeWidget user={user} theme={theme} />
+          <WelcomeWidget user={user} theme={theme} isMobile={isMobile} />
         </Grid>
 
-        {/* Stats Widgets */}
-        <Grid item xs={12} sm={6} md={3}>
+        {/* Stats Widgets - 2 per row on mobile, 4 per row on desktop */}
+        <Grid item xs={6} sm={6} md={3}>
           <StatsWidget
             theme={theme}
             title="Viajes creados"
@@ -1045,10 +1136,11 @@ const Dashboard = () => {
             icon={<Award />}
             color={theme.palette.primary.black}
             trend={12}
+            isMobile={isMobile}
           />
         </Grid>
 
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={6} sm={6} md={3}>
           <StatsWidget
             theme={theme}
             title="Días de viaje"
@@ -1060,10 +1152,11 @@ const Dashboard = () => {
             icon={<MapPin />}
             color={theme.palette.primary.black}
             trend={8}
+            isMobile={isMobile}
           />
         </Grid>
 
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={6} sm={6} md={3}>
           <StatsWidget
             title="Amigos viajeros"
             theme={theme}
@@ -1071,10 +1164,11 @@ const Dashboard = () => {
             subtitle="Conexiones"
             icon={<Users />}
             color={theme.palette.primary.black}
+            isMobile={isMobile}
           />
         </Grid>
 
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={6} sm={6} md={3}>
           <StatsWidget
             theme={theme}
             title="Tareas completadas"
@@ -1082,6 +1176,7 @@ const Dashboard = () => {
             subtitle="Progreso general"
             icon={<CheckCircle2 />}
             color={theme.palette.primary.black}
+            isMobile={isMobile}
           />
         </Grid>
 
@@ -1092,13 +1187,19 @@ const Dashboard = () => {
               trip={currentTrip}
               theme={theme}
               navigate={navigate}
+              isMobile={isMobile}
             />
           </Grid>
         )}
 
         {/* Enhanced Checklist Widget */}
         <Grid item xs={12} md={6}>
-          <ChecklistWidget user={user} jwt={jwt} theme={theme} />
+          <ChecklistWidget
+            user={user}
+            jwt={jwt}
+            theme={theme}
+            isMobile={isMobile}
+          />
         </Grid>
 
         {/* Activity Widget */}
@@ -1108,6 +1209,7 @@ const Dashboard = () => {
             completedTasks={completedTasks}
             upcomingTrip={upcomingTrip}
             theme={theme}
+            isMobile={isMobile}
           />
         </Grid>
 

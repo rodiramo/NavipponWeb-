@@ -11,6 +11,7 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import DataTable from "../../components/DataTable";
 import { useDataTable } from "../../../../hooks/useDataTable";
+import ArticleCard from "../../../../components/ArticleCard"; // Import ArticleCard
 
 import useUser from "../../../../hooks/useUser";
 import {
@@ -22,7 +23,6 @@ import {
   Eye,
   Search,
   Bookmark,
-  BookmarkX,
   FileEdit,
   Heart,
 } from "lucide-react";
@@ -48,6 +48,7 @@ import {
   Tabs,
   Tab,
   Badge,
+  IconButton,
 } from "@mui/material";
 
 const ManagePosts = () => {
@@ -129,7 +130,7 @@ const ManagePosts = () => {
       const response = await getSavedPosts({
         token: jwt,
         page: savedPostsPage,
-        limit: 10,
+        limit: 12, // Increased for better grid layout
       });
       setSavedPosts(response.posts || []);
       setSavedPostsTotal(response.total || 0);
@@ -141,7 +142,7 @@ const ManagePosts = () => {
     }
   };
 
-  // Handle unsaving a post
+  // Handle unsaving a post (now handled by ArticleCard internally)
   const handleUnsavePost = async (postId) => {
     try {
       await toggleSavePost({ postId, token: jwt });
@@ -231,15 +232,15 @@ const ManagePosts = () => {
             flexDirection: "column",
             alignItems: "center",
             textAlign: "center",
-            py: 8,
-            px: 4,
+            py: { xs: 4, md: 8 },
+            px: { xs: 2, md: 4 },
           }}
         >
           <Box
             sx={{
-              width: { xs: 200, sm: 250 },
-              height: { xs: 200, sm: 250 },
-              mb: 4,
+              width: { xs: 150, sm: 200, md: 250 },
+              height: { xs: 150, sm: 200, md: 250 },
+              mb: { xs: 2, md: 4 },
             }}
           >
             <Box
@@ -256,7 +257,7 @@ const ManagePosts = () => {
               color: theme.palette.primary.main,
               fontWeight: "bold",
               mb: 2,
-              fontSize: { xs: "1.75rem", sm: "2.125rem" },
+              fontSize: { xs: "1.5rem", sm: "1.75rem", md: "2.125rem" },
             }}
           >
             ¡Comienza tu aventura!
@@ -268,34 +269,23 @@ const ManagePosts = () => {
               color: theme.palette.text.secondary,
               fontWeight: "medium",
               mb: 1,
-              fontSize: { xs: "1.1rem", sm: "1.25rem" },
+              fontSize: { xs: "1rem", sm: "1.1rem", md: "1.25rem" },
             }}
           >
             Aún no has subido ninguna publicación
           </Typography>
 
-          <Typography sx={{ color: theme.palette.text.secondary, mb: 4 }}>
+          <Typography
+            sx={{
+              color: theme.palette.text.secondary,
+              mb: { xs: 3, md: 4 },
+              fontSize: { xs: "0.875rem", md: "1rem" },
+              maxWidth: { xs: "90%", md: "100%" },
+            }}
+          >
             ¡Comparte tus experiencias, aventuras y conocimientos con otros
             usuarios de la comunidad!
           </Typography>
-
-          <Button
-            variant="contained"
-            startIcon={<Plus size={20} />}
-            onClick={() => navigate("/user/posts/manage/create")}
-            sx={{
-              backgroundColor: theme.palette.primary.main,
-              color: "white",
-              borderRadius: "30rem",
-              px: 4,
-              py: 2,
-              fontSize: "1.1rem",
-              fontWeight: "bold",
-              textTransform: "none",
-            }}
-          >
-            Subir publicación
-          </Button>
         </Box>
       </Fade>
     </Container>
@@ -317,11 +307,14 @@ const ManagePosts = () => {
             flexDirection: "column",
             alignItems: "center",
             textAlign: "center",
-            py: 8,
-            px: 4,
+            py: { xs: 4, md: 8 },
+            px: { xs: 2, md: 4 },
           }}
         >
-          <Heart size={80} color={theme.palette.secondary.main} />
+          <Heart
+            size={isMobile ? 60 : 80}
+            color={theme.palette.secondary.main}
+          />
 
           <Typography
             variant="h4"
@@ -329,7 +322,7 @@ const ManagePosts = () => {
               color: theme.palette.primary.main,
               fontWeight: "bold",
               mb: 2,
-              fontSize: { xs: "1.75rem", sm: "2.125rem" },
+              fontSize: { xs: "1.5rem", sm: "1.75rem", md: "2.125rem" },
             }}
           >
             No tienes posts guardados
@@ -341,13 +334,20 @@ const ManagePosts = () => {
               color: theme.palette.text.secondary,
               fontWeight: "medium",
               mb: 1,
-              fontSize: { xs: "1.1rem", sm: "1.25rem" },
+              fontSize: { xs: "1rem", sm: "1.1rem", md: "1.25rem" },
             }}
           >
             Guarda posts que te interesen
           </Typography>
 
-          <Typography sx={{ color: theme.palette.text.secondary, mb: 4 }}>
+          <Typography
+            sx={{
+              color: theme.palette.text.secondary,
+              mb: { xs: 3, md: 4 },
+              fontSize: { xs: "0.875rem", md: "1rem" },
+              maxWidth: { xs: "90%", md: "100%" },
+            }}
+          >
             Explora la comunidad y guarda los posts que más te gusten para
             leerlos más tarde.
           </Typography>
@@ -360,9 +360,9 @@ const ManagePosts = () => {
               backgroundColor: theme.palette.secondary.main,
               color: "white",
               borderRadius: "30rem",
-              px: 4,
-              py: 2,
-              fontSize: "1.1rem",
+              px: { xs: 3, md: 4 },
+              py: { xs: 1.5, md: 2 },
+              fontSize: { xs: "1rem", md: "1.1rem" },
               fontWeight: "bold",
               textTransform: "none",
             }}
@@ -374,24 +374,25 @@ const ManagePosts = () => {
     </Container>
   );
 
-  // My Post Card Component
+  // Enhanced My Post Card Component for Mobile
   const MyPostCard = ({ post }) => (
     <Card
       sx={{
         mb: 2,
         backgroundColor: theme.palette.background.default,
-        borderRadius: 2,
-        transition: "all 0.2s ease-in-out",
+        borderRadius: 3,
+        overflow: "hidden",
+        transition: "all 0.3s ease-in-out",
         "&:hover": {
-          boxShadow: theme.shadows[4],
-          transform: "translateY(-2px)",
+          boxShadow: theme.shadows[8],
+          transform: "translateY(-4px)",
         },
       }}
     >
       <CardMedia
         component="div"
         sx={{
-          height: 180,
+          height: { xs: 160, sm: 180 },
           position: "relative",
           backgroundImage: `url(${post?.photo ? stables.UPLOAD_FOLDER_BASE_URL + post?.photo : images.samplePostImage})`,
           backgroundSize: "cover",
@@ -416,12 +417,13 @@ const ManagePosts = () => {
                 : theme.palette.warning.main,
               color: "white",
               fontWeight: "bold",
+              fontSize: "0.75rem",
             }}
           />
         </Box>
       </CardMedia>
 
-      <CardContent sx={{ p: 3 }}>
+      <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
         <Typography
           variant="h6"
           sx={{
@@ -432,13 +434,14 @@ const ManagePosts = () => {
             WebkitLineClamp: 2,
             WebkitBoxOrient: "vertical",
             overflow: "hidden",
+            fontSize: { xs: "1.1rem", sm: "1.25rem" },
           }}
         >
           {post.title}
         </Typography>
 
         <Grid container spacing={2} sx={{ mb: 2 }}>
-          <Grid item xs={6}>
+          <Grid item xs={12} sm={6}>
             <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
               <Calendar size={16} style={{ marginRight: 8 }} />
               <Typography variant="body2" color="textSecondary">
@@ -454,7 +457,7 @@ const ManagePosts = () => {
             </Typography>
           </Grid>
 
-          <Grid item xs={6}>
+          <Grid item xs={12} sm={6}>
             <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
               <FolderOpen size={16} style={{ marginRight: 8 }} />
               <Typography variant="body2" color="textSecondary">
@@ -486,168 +489,37 @@ const ManagePosts = () => {
             startIcon={<Eye size={16} />}
             variant="outlined"
             size="small"
-            sx={{ borderRadius: "30rem", textTransform: "none" }}
+            sx={{
+              borderRadius: "30rem",
+              textTransform: "none",
+              minWidth: { xs: "auto", sm: "80px" },
+            }}
           >
-            Ver
+            {isMobile ? "" : "Ver"}
           </Button>
-          <Button
+          <IconButton
             component={Link}
             to={`/user/posts/manage/edit/${post?.slug}`}
-            variant="outlined"
             size="small"
-            sx={{ borderRadius: "30rem", textTransform: "none" }}
+            sx={{
+              border: `1px solid ${theme.palette.divider}`,
+              borderRadius: "50%",
+            }}
           >
             <Edit size={16} />
-          </Button>
-          <Button
+          </IconButton>
+          <IconButton
             disabled={isLoadingDeleteData}
             onClick={() => handleDelete(post?.slug)}
-            variant="outlined"
             size="small"
             color="error"
-            sx={{ borderRadius: "30rem", textTransform: "none" }}
+            sx={{
+              border: `1px solid ${theme.palette.error.main}`,
+              borderRadius: "50%",
+            }}
           >
             <Trash2 size={16} />
-          </Button>
-        </Box>
-      </CardContent>
-    </Card>
-  );
-
-  // Saved Post Card Component
-  const SavedPostCard = ({ post }) => (
-    <Card
-      sx={{
-        mb: 2,
-        backgroundColor: theme.palette.background.default,
-        borderRadius: 2,
-        transition: "all 0.2s ease-in-out",
-        "&:hover": {
-          boxShadow: theme.shadows[4],
-          transform: "translateY(-2px)",
-        },
-      }}
-    >
-      <CardMedia
-        component="div"
-        sx={{
-          height: 180,
-          position: "relative",
-          backgroundImage: `url(${post?.photo ? stables.UPLOAD_FOLDER_BASE_URL + post?.photo : images.samplePostImage})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
-      >
-        <Box sx={{ position: "absolute", top: 16, left: 16 }}>
-          <Chip
-            size="small"
-            icon={<Bookmark size={14} />}
-            label="Guardado"
-            sx={{
-              backgroundColor: theme.palette.info.main,
-              color: "white",
-              fontWeight: "bold",
-            }}
-          />
-        </Box>
-      </CardMedia>
-
-      <CardContent sx={{ p: 3 }}>
-        <Typography
-          variant="h6"
-          sx={{
-            color: theme.palette.primary.main,
-            fontWeight: "bold",
-            mb: 2,
-            display: "-webkit-box",
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: "vertical",
-            overflow: "hidden",
-          }}
-        >
-          {post.title}
-        </Typography>
-
-        <Grid container spacing={2} sx={{ mb: 2 }}>
-          <Grid item xs={6}>
-            <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-              <Calendar size={16} style={{ marginRight: 8 }} />
-              <Typography variant="body2" color="textSecondary">
-                Publicado:
-              </Typography>
-            </Box>
-            <Typography variant="body2" sx={{ fontWeight: "medium" }}>
-              {new Date(post.createdAt).toLocaleDateString("es-ES", {
-                day: "numeric",
-                month: "short",
-                year: "numeric",
-              })}
-            </Typography>
-          </Grid>
-
-          <Grid item xs={6}>
-            <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-              <Typography variant="body2" color="textSecondary">
-                Autor:
-              </Typography>
-            </Box>
-            <Typography variant="body2" sx={{ fontWeight: "medium" }}>
-              {post.user?.name || "Usuario"}
-            </Typography>
-          </Grid>
-        </Grid>
-
-        {post.tags && post.tags.length > 0 && (
-          <Box sx={{ mb: 2 }}>
-            <Stack
-              direction="row"
-              spacing={0.5}
-              sx={{ flexWrap: "wrap", gap: 0.5 }}
-            >
-              {post.tags.slice(0, 3).map((tag, index) => (
-                <Chip
-                  key={index}
-                  size="small"
-                  label={tag}
-                  sx={{
-                    backgroundColor: theme.palette.secondary.main,
-                    color: "white",
-                    fontSize: "0.75rem",
-                  }}
-                />
-              ))}
-            </Stack>
-          </Box>
-        )}
-
-        <Box
-          sx={{
-            display: "flex",
-            gap: 1,
-            justifyContent: "flex-end",
-            flexWrap: "wrap",
-          }}
-        >
-          <Button
-            component={Link}
-            to={`/blog/${post?.slug}`}
-            startIcon={<Eye size={16} />}
-            variant="outlined"
-            size="small"
-            sx={{ borderRadius: "30rem", textTransform: "none" }}
-          >
-            Leer post
-          </Button>
-          <Button
-            onClick={() => handleUnsavePost(post._id)}
-            startIcon={<BookmarkX size={16} />}
-            variant="outlined"
-            size="small"
-            color="warning"
-            sx={{ borderRadius: "30rem", textTransform: "none" }}
-          >
-            Quitar
-          </Button>
+          </IconButton>
         </Box>
       </CardContent>
     </Card>
@@ -658,66 +530,34 @@ const ManagePosts = () => {
       sx={{
         backgroundColor: theme.palette.background.default,
         minHeight: "100vh",
+        pb: { xs: 2, md: 4 },
       }}
     >
       <ErrorSnackbar />
       <SuccessSnackbar />
 
       {/* Header */}
-      <Box sx={{ mb: 4, textAlign: "center" }}>
-        <Typography
-          variant="h4"
-          sx={{ color: theme.palette.primary.main, fontWeight: "bold", mb: 3 }}
+      <Box sx={{ mb: { xs: 3, md: 4 }, px: { xs: 2, md: 0 } }}>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            alignContent: "center",
+            mb: 3,
+            justifyContent: "space-between",
+          }}
         >
-          Gestión de Posts
-        </Typography>
-
-        {/* Tabs */}
-        <Box sx={{ mb: 3, display: "flex", justifyContent: "center" }}>
-          <Tabs
-            value={currentTab}
-            onChange={handleTabChange}
-            variant={isMobile ? "fullWidth" : "standard"}
+          <Typography
+            variant="h4"
             sx={{
-              "& .MuiTab-root": {
-                textTransform: "none",
-                fontWeight: "bold",
-                fontSize: "1rem",
-                minWidth: isMobile ? "auto" : 200,
-              },
+              color: theme.palette.primary.main,
+              fontWeight: "bold",
+
+              fontSize: { xs: "1.75rem", md: "2.125rem" },
             }}
           >
-            <Tab
-              icon={<FileEdit size={20} />}
-              label={
-                <Badge
-                  badgeContent={postsData?.headers?.["x-totalcount"] || 0}
-                  color="primary"
-                  max={999}
-                >
-                  Mis publicaciones
-                </Badge>
-              }
-              iconPosition="start"
-            />
-            <Tab
-              icon={<Bookmark size={20} />}
-              label={
-                <Badge
-                  badgeContent={savedPostsTotal}
-                  color="secondary"
-                  max={999}
-                >
-                  Publicaciones guardadas
-                </Badge>
-              }
-              iconPosition="start"
-            />
-          </Tabs>
-        </Box>
-
-        {/* Create New Post Button - Only show on "My Posts" tab */}
-        {currentTab === 0 && (
+            Administrar publicaciones
+          </Typography>
           <Button
             variant="contained"
             startIcon={<Plus size={20} />}
@@ -726,15 +566,62 @@ const ManagePosts = () => {
               backgroundColor: theme.palette.primary.main,
               color: "white",
               borderRadius: "30rem",
-              px: 3,
-              py: 1.5,
+              px: { xs: 2.5, md: 3 },
+              py: { xs: 1, md: 1.5 },
               textTransform: "none",
               fontWeight: "bold",
+              fontSize: { xs: "0.875rem", md: "1rem" },
             }}
           >
-            Subir nueva publicación
+            {isMobile ? "Nueva publicación" : "Subir nueva publicación"}
           </Button>
-        )}
+        </Box>
+        {/* Tabs */}
+        <Box sx={{ mb: 3, display: "flex", justifyContent: "flex-start" }}>
+          <Tabs
+            value={currentTab}
+            onChange={handleTabChange}
+            variant={isMobile ? "fullWidth" : "standard"}
+            sx={{
+              "& .MuiTab-root": {
+                textTransform: "none",
+                fontWeight: "bold",
+                display: "flex",
+                justifyContent: "flex-start",
+                fontSize: { xs: "0.875rem", md: "1rem" },
+                minWidth: isMobile ? 200 : 400,
+                px: { xs: 1, md: 2 },
+              },
+            }}
+          >
+            <Tab
+              icon={<FileEdit size={isMobile ? 18 : 20} />}
+              label={
+                <Badge
+                  badgeContent={postsData?.headers?.["x-totalcount"] || 0}
+                  color="primary"
+                  max={999}
+                >
+                  {isMobile ? "Mis publicaciones" : "Mis publicaciones"}
+                </Badge>
+              }
+              iconPosition="start"
+            />
+            <Tab
+              icon={<Bookmark size={isMobile ? 18 : 20} />}
+              label={
+                <Badge
+                  badgeContent={savedPostsTotal}
+                  color="secondary"
+                  max={999}
+                >
+                  {isMobile ? "Guardados" : "Posts guardados"}
+                </Badge>
+              }
+              iconPosition="start"
+            />
+          </Tabs>
+        </Box>
       </Box>
 
       {/* Tab Content */}
@@ -916,15 +803,17 @@ const ManagePosts = () => {
                         "& .MuiOutlinedInput-root": { borderRadius: "30px" },
                       }}
                     />
-                    <Button
+                    <IconButton
                       type="submit"
-                      variant="contained"
-                      startIcon={<Search size={16} />}
-                      size="small"
-                      sx={{ borderRadius: "30px", px: 3 }}
+                      color="primary"
+                      sx={{
+                        bgcolor: theme.palette.primary.main,
+                        color: "white",
+                        "&:hover": { bgcolor: theme.palette.primary.dark },
+                      }}
                     >
-                      Buscar
-                    </Button>
+                      <Search size={20} />
+                    </IconButton>
                   </Box>
 
                   {/* Loading State */}
@@ -964,8 +853,11 @@ const ManagePosts = () => {
                         >
                           Anterior
                         </Button>
-                        <Typography variant="body2" sx={{ mx: 2 }}>
-                          Página {currentPage} de{" "}
+                        <Typography
+                          variant="body2"
+                          sx={{ mx: 2, fontSize: "0.875rem" }}
+                        >
+                          {currentPage} de{" "}
                           {postsData?.headers?.["x-totalpagecount"] || 1}
                         </Typography>
                         <Button
@@ -991,7 +883,6 @@ const ManagePosts = () => {
           )}
         </>
       ) : (
-        // SAVED POSTS TAB
         <>
           {/* Show empty state when no saved posts exist */}
           {savedPosts.length === 0 && !savedPostsLoading ? (
@@ -1010,13 +901,18 @@ const ManagePosts = () => {
                 </Box>
               )}
 
-              {/* Saved Posts Cards */}
-              {!savedPostsLoading && (
-                <Box sx={{ px: isMobile ? 2 : 4 }}>
-                  <Grid container spacing={isMobile ? 2 : 3}>
+              {/* Saved Posts using ArticleCard */}
+              {!savedPostsLoading && savedPosts.length > 0 && (
+                <Box sx={{ px: { xs: 1, sm: 2, md: 4 } }}>
+                  <Grid container spacing={{ xs: 2, md: 3 }}>
                     {savedPosts.map((post) => (
-                      <Grid item xs={12} sm={6} md={4} key={post._id}>
-                        <SavedPostCard post={post} />
+                      <Grid item xs={12} sm={6} md={4} lg={4} key={post._id}>
+                        <ArticleCard
+                          post={post}
+                          currentUser={user}
+                          token={jwt}
+                          className="h-full" // Ensure consistent height
+                        />
                       </Grid>
                     ))}
                   </Grid>
@@ -1027,7 +923,7 @@ const ManagePosts = () => {
               {!savedPostsLoading && savedPosts.length > 0 && (
                 <Box
                   sx={{
-                    mt: 3,
+                    mt: 4,
                     display: "flex",
                     justifyContent: "center",
                     px: 2,
@@ -1039,22 +935,36 @@ const ManagePosts = () => {
                       size="small"
                       disabled={savedPostsPage <= 1}
                       onClick={() => setSavedPostsPage(savedPostsPage - 1)}
-                      sx={{ minWidth: "auto", px: 2, borderRadius: 30 }}
+                      sx={{
+                        minWidth: "auto",
+                        px: { xs: 1.5, md: 2 },
+                        borderRadius: 30,
+                      }}
                     >
                       Anterior
                     </Button>
-                    <Typography variant="body2" sx={{ mx: 2 }}>
-                      Página {savedPostsPage} de{" "}
-                      {Math.ceil(savedPostsTotal / 10)}
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        mx: 2,
+                        fontSize: { xs: "0.875rem", md: "1rem" },
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {savedPostsPage} de {Math.ceil(savedPostsTotal / 12)}
                     </Typography>
                     <Button
                       variant="outlined"
                       size="small"
                       disabled={
-                        savedPostsPage >= Math.ceil(savedPostsTotal / 10)
+                        savedPostsPage >= Math.ceil(savedPostsTotal / 12)
                       }
                       onClick={() => setSavedPostsPage(savedPostsPage + 1)}
-                      sx={{ minWidth: "auto", px: 2, borderRadius: 30 }}
+                      sx={{
+                        minWidth: "auto",
+                        px: { xs: 1.5, md: 2 },
+                        borderRadius: 30,
+                      }}
                     >
                       Siguiente
                     </Button>

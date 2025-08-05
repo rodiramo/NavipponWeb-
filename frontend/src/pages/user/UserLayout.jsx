@@ -2,8 +2,9 @@ import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import SideNav from "./components/header/SideNav";
 import MobileNav from "./components/header/MobileNav";
 import { useQuery } from "@tanstack/react-query";
-import { Box, Typography, useTheme, CircularProgress } from "@mui/material";
+import Header from "../../components/Header.jsx";
 import MainLayout from "../../components/MainLayout.jsx";
+import { Box, Typography, useTheme, CircularProgress } from "@mui/material";
 import { getUserProfile } from "../../services/index/users";
 import useUser from "../../hooks/useUser";
 import { toast } from "react-hot-toast";
@@ -439,7 +440,8 @@ const UserLayout = () => {
 
   // 🔧 STANDARD: Regular layout with MainLayout for non-itinerary pages
   return (
-    <MainLayout>
+    <Box>
+      <Header />
       <Box
         sx={{
           display: "flex",
@@ -512,7 +514,7 @@ const UserLayout = () => {
           <MobileNav />
         </Box>
       </Box>
-    </MainLayout>
+    </Box>
   );
 };
 
