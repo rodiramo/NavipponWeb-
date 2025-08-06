@@ -6,6 +6,7 @@ import HorizontalExperienceCardSkeleton from "./container/HorizontalExperienceCa
 import ErrorMessage from "../../components/ErrorMessage";
 import HorizontalExperienceCard from "./container/HorizontalExperienceCard";
 import ExperienceCard from "../../components/ExperienceCard";
+import ModalMap from "./container/ModalMap";
 import MainLayout from "../../components/MainLayout";
 import Header from "./container/Hero";
 import Pagination from "../../components/Pagination";
@@ -27,6 +28,7 @@ import {
   Grid3X3,
   List,
   Filter,
+  MapPin,
   Map,
   X,
 } from "lucide-react";
@@ -40,8 +42,10 @@ const ExperiencePage = ({ filters: initialFilters }) => {
   const { user, jwt } = useUser();
   const [sortBy, setSortBy] = useState("");
   const [viewMode, setViewMode] = useState("list");
+  const [experiences, setExperiences] = useState([]);
 
   // Modal states
+  const [mapModalOpen, setMapModalOpen] = useState(false);
   const [isFiltersModalOpen, setIsFiltersModalOpen] = useState(false);
   const [isMapModalOpen, setIsMapModalOpen] = useState(false);
 
@@ -482,11 +486,12 @@ const ExperiencePage = ({ filters: initialFilters }) => {
           </Button>
           <Button
             variant="contained"
-            onClick={() => setIsMapModalOpen(true)}
+            onClick={() => setMapModalOpen(true)}
             startIcon={<Map size={20} />}
             sx={{
-              backgroundColor: theme.palette.secondary.main,
-              color: theme.palette.secondary.contrastText,
+              backgroundColor: theme.palette.secondary.medium,
+              display: { xs: "flex", md: "none" },
+              color: theme.palette.primary.contrastText,
               borderRadius: "50px",
               padding: "10px 20px", // Slightly reduced padding
               fontSize: "0.75rem", // Reduced from 0.875rem
@@ -496,16 +501,15 @@ const ExperiencePage = ({ filters: initialFilters }) => {
               minWidth: "auto",
               whiteSpace: "nowrap",
               "&:hover": {
-                backgroundColor: theme.palette.secondary.dark,
+                backgroundColor: theme.palette.primary.dark,
                 boxShadow: "0 6px 16px rgba(0, 0, 0, 0.2)",
                 transform: "translateY(-1px)",
               },
               transition: "all 0.2s ease-in-out",
               // Hide on medium screens and up
-              display: { xs: "flex", md: "none" },
             }}
           >
-            Mapa
+            Ver en mapa
           </Button>
         </div>
         {/* Filters Modal */}
@@ -578,7 +582,6 @@ const ExperiencePage = ({ filters: initialFilters }) => {
               />
             </div>
           </aside>
-
           {/* Main Content */}
           <main className="xl:col-span-3 order-1 xl:order-2">
             <div className="mb-8">
@@ -772,6 +775,7 @@ const ExperiencePage = ({ filters: initialFilters }) => {
                       onClick={() => setViewMode("grid")}
                       size="small"
                       sx={{
+                        display: { xs: "none", md: "flex" },
                         minWidth: { xs: "32px", sm: "36px" },
                         width: { xs: "32px", sm: "36px" },
                         height: { xs: "32px", sm: "36px" },
@@ -804,6 +808,7 @@ const ExperiencePage = ({ filters: initialFilters }) => {
                       onClick={() => setViewMode("list")}
                       size="small"
                       sx={{
+                        display: { xs: "none", md: "flex" },
                         minWidth: { xs: "32px", sm: "36px" },
                         width: { xs: "32px", sm: "36px" },
                         height: { xs: "32px", sm: "36px" },
@@ -956,7 +961,6 @@ const ExperiencePage = ({ filters: initialFilters }) => {
               </div>
             )}
           </main>
-
           {/* Map Sidebar - Desktop Only */}
           <aside className="xl:col-span-1 order-3 hidden xl:block">
             <div className="sticky top-20">
@@ -964,7 +968,13 @@ const ExperiencePage = ({ filters: initialFilters }) => {
                 <MapAside experiences={mapData?.data || []} />
               </div>
             </div>
-          </aside>
+          </aside>{" "}
+          <ModalMap
+            open={mapModalOpen}
+            onClose={() => setMapModalOpen(false)}
+            experiences={mapData?.data || []}
+            title="Experiencias en Japón"
+          />
         </div>
       </section>
     </MainLayout>

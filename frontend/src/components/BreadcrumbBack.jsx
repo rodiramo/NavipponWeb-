@@ -17,7 +17,7 @@ const BreadcrumbBack = ({ color }) => {
         bottom: { xs: "2rem", md: "auto" }, // Bottom positioning on mobile
         left: { xs: 16, md: 16 },
         opacity: "0.95",
-        zIndex: 10,
+        zIndex: 99999,
         backgroundColor: {
           xs: "rgba(255, 255, 255, 0.15)", // More transparent on mobile
           sm: "rgba(255, 255, 255, 0.2)",

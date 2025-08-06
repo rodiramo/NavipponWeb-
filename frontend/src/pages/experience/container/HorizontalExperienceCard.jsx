@@ -604,7 +604,7 @@ const HorizontalExperienceCard = ({
                   transition: "all 0.3s ease",
                 }}
               >
-                Ver Detalles
+                Ver detalles
               </Button>
 
               {/* Add to Itinerary Button */}

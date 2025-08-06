@@ -1489,7 +1489,7 @@ const Aside = ({
             transition: "all 0.2s ease-in-out",
           }}
         >
-          Aplicar Filtros
+          Aplicar filtros
         </Button>
         <Button
           variant="outlined"
@@ -1511,7 +1511,7 @@ const Aside = ({
             transition: "all 0.2s ease-in-out",
           }}
         >
-          Borrar Filtros
+          Borrar filtros
         </Button>
       </Box>
     </Box>

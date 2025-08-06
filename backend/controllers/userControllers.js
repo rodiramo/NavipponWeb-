@@ -25,15 +25,6 @@ import crypto from "crypto";
 import { sendPasswordResetEmail } from "../services/emailService.js";
 import { fileRemover } from "../utils/fileRemover.js";
 
-console.log("=== EMAIL CONFIGURATION DEBUG ===");
-console.log("EMAIL_USER:", process.env.EMAIL_USER);
-console.log(
-  "EMAIL_APP_PASSWORD:",
-  process.env.EMAIL_APP_PASSWORD ? "***PRESENT***" : "***MISSING***"
-);
-console.log("FRONTEND_URL:", process.env.FRONTEND_URL);
-console.log("=====================================");
-
 const registerUser = async (req, res, next) => {
   try {
     const { name, email, password } = req.body;

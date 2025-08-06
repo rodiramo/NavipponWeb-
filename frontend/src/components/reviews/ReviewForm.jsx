@@ -78,153 +78,142 @@ const ReviewForm = ({
   };
 
   return (
-    <form onSubmit={submitHandler}>
-      <div className="flex flex-col items-end border border-primary rounded-lg p-4 mt-10">
-        {/* Rating Component */}
-        <Box
-          sx={{
-            width: "100%",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "start",
-            marginBottom: "15px",
-          }}
-        >
-          {" "}
-          <Typography
-            variant="h6"
-            textAlign="center"
-            color={theme.palette.secondary.medium}
-          >
-            Escribe tu Reseña{" "}
-          </Typography>{" "}
-        </Box>
-        <Box
-          sx={{
-            width: "100%",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "start",
-            justifyContent: "start",
-            marginBottom: "15px",
-          }}
-        >
-          {" "}
-          <p style={{ marginBottom: "15px" }}>Agrega una valuación: </p>
-          <Box>
-            {" "}
-            <Rating
-              name="hover-feedback"
-              value={rating}
-              precision={0.5} // Allows half-star rating
-              getLabelText={getLabelText}
-              onChange={(event, newValue) => {
-                setRating(newValue); // Set rating on change
-              }}
-              onChangeActive={(event, newHover) => {
-                setHover(newHover); // Set hover value for label display
-              }}
-              icon={<StarIcon sx={{ color: theme.palette.secondary.main }} />} // Filled star color
-              emptyIcon={<StarIcon sx={{ color: "gray" }} />}
-            />
-            {rating !== null && (
-              <Box sx={{ color: theme.palette.primary.main }}>
-                {labels[hover !== -1 ? hover : rating]}
-              </Box>
-            )}
+    <div className="w-full max-w-4xl mx-auto mt-8">
+      <div className=" rounded-2xl p-6 sm:p-8 shadow-sm border border-gray-200">
+        <form onSubmit={submitHandler} className="space-y-6">
+          {/* Header */}
+          <div className="text-center pb-2">
+            <Typography variant="h5" className="font-semibold mb-2">
+              Escribe tu reseña
+            </Typography>
+            <Typography variant="body2">
+              Comparte tu experiencia con otros usuarios
+            </Typography>
+          </div>
+
+          {/* Rating Component */}
+          <div className="flex flex-col items-center space-y-4 p-6  rounded-xl">
+            <Typography variant="body1" className="font-medium ">
+              Agrega una valoración:
+            </Typography>
+
+            <div className="flex flex-col items-center space-y-3">
+              <Rating
+                name="hover-feedback"
+                value={rating}
+                precision={0.5}
+                getLabelText={getLabelText}
+                onChange={(event, newValue) => {
+                  setRating(newValue);
+                  setErrors({ ...errors, rating: "" }); // Clear rating error
+                }}
+                onChangeActive={(event, newHover) => {
+                  setHover(newHover);
+                }}
+                icon={
+                  <StarIcon
+                    sx={{ color: theme.palette.primary.main, fontSize: "2rem" }}
+                  />
+                }
+                emptyIcon={
+                  <StarIcon sx={{ color: "#e5e7eb", fontSize: "2rem" }} />
+                }
+                sx={{
+                  "& .MuiRating-iconFilled": {
+                    color: theme.palette.primary.main,
+                  },
+                  "& .MuiRating-iconHover": {
+                    color: theme.palette.primary.light,
+                  },
+                }}
+              />
+
+              {rating !== null && (
+                <Box
+                  sx={{
+                    color: theme.palette.primary.main,
+                    fontWeight: "medium",
+                    fontSize: "0.9rem",
+                  }}
+                >
+                  {labels[hover !== -1 ? hover : rating]}
+                </Box>
+              )}
+            </div>
+
             {errors.rating && (
-              <p style={{ color: "red", marginTop: "5px" }}>{errors.rating}</p>
+              <p className="text-red-500 text-sm mt-2">{errors.rating}</p>
             )}
-          </Box>{" "}
-        </Box>
-        {/* Title Input */}
-        <div
-          style={{
-            width: "100%",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "start",
-            justifyContent: "flex-start",
-            marginBottom: "15px",
-          }}
-        >
-          <p>Título: </p>
-          <input
-            type="text"
-            style={{
-              backgroundColor: theme.palette.primary.white,
-              border: `1.5px solid ${theme.palette.secondary.lightBlue}`,
-              padding: "1rem",
-              borderRadius: "16px",
-            }}
-            className="w-full focus:outline-none bg-transparent mb-2"
-            placeholder="Escribe un título para tu reseña..."
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
-          {errors.title && (
-            <p style={{ color: "red", marginTop: "5px" }}>{errors.title}</p>
-          )}
-        </div>
-        {/* Description Textarea */}
-        <div
-          style={{
-            width: "100%",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "start",
-            justifyContent: "flex-start",
-            marginBottom: "15px",
-          }}
-        >
-          <p>Reseña: </p>
-          <textarea
-            type="text"
-            style={{
-              backgroundColor: theme.palette.primary.white,
-              border: `1.5px solid ${theme.palette.secondary.lightBlue}`,
-              padding: "1rem",
-              borderRadius: "16px",
-            }}
-            className="w-full focus:outline-none bg-transparent mb-2"
-            placeholder="Describe tu opinión..."
-            value={desc}
-            onChange={(e) => setDesc(e.target.value)}
-          ></textarea>
-          {errors.desc && (
-            <p style={{ color: "red", marginTop: "5px" }}>{errors.desc}</p>
-          )}
-        </div>
-        {/* Form Buttons */}
-        <div className="flex flex-col-reverse gap-y-2 items-center gap-x-2 pt-2 min-[420px]:flex-row">
-          {formCancelHandler && (
-            <button
-              style={{
-                backgroundColor: theme.palette.secondary.light,
-                color: theme.palette.primary.black,
-                padding: "0.5rem 1rem",
-                borderRadius: "30rem",
+          </div>
+
+          {/* Title Input */}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium ">
+              Título <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              style={{ backgroundColor: theme.palette.background.default }}
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 "
+              placeholder="Escribe un título para tu reseña..."
+              value={title}
+              onChange={(e) => {
+                setTitle(e.target.value);
+                setErrors({ ...errors, title: "" }); // Clear title error
               }}
-              onClick={() => formCancelHandler()} // Close form when clicked
+            />
+            {errors.title && (
+              <p className="text-red-500 text-sm mt-1">{errors.title}</p>
+            )}
+          </div>
+
+          {/* Description Textarea */}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium ">
+              Reseña <span className="text-red-500">*</span>
+            </label>
+            <textarea
+              rows={4}
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200  resize-none"
+              style={{ backgroundColor: theme.palette.background.default }}
+              placeholder="Describe tu opinión..."
+              value={desc}
+              onChange={(e) => {
+                setDesc(e.target.value);
+                setErrors({ ...errors, desc: "" }); // Clear desc error
+              }}
+            />
+            {errors.desc && (
+              <p className="text-red-500 text-sm mt-1">{errors.desc}</p>
+            )}
+          </div>
+
+          {/* Form Buttons */}
+          <div className="flex flex-col-reverse sm:flex-row gap-3 pt-4">
+            {formCancelHandler && (
+              <button
+                type="button"
+                className="flex-1 sm:flex-none px-6 py-3 text-sm font-medium  "
+                onClick={() => formCancelHandler()}
+              >
+                Cancelar
+              </button>
+            )}
+            <button
+              type="submit"
+              disabled={loading}
+              className="flex-1 sm:flex-none px-6 py-3 text-sm font-medium rounded-full transition-all duration-200 hover:shadow-md active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{
+                color: theme.palette.primary.white,
+                backgroundColor: theme.palette.primary.main,
+              }}
             >
-              Cancelar
+              {loading ? "Enviando..." : btnLabel}
             </button>
-          )}
-          <button
-            type="submit"
-            style={{
-              backgroundColor: theme.palette.primary.main,
-              color: theme.palette.primary.white,
-              padding: "0.5rem 1rem",
-              borderRadius: "30rem",
-            }}
-          >
-            {btnLabel}
-          </button>
-        </div>
+          </div>
+        </form>
       </div>
-    </form>
+    </div>
   );
 };
 

@@ -5,7 +5,7 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import { useTheme } from "@mui/material";
 import "../../../css/Regions.css";
-import { CircleArrowLeft, CircleArrowRight } from "lucide-react";
+import { CircleArrowLeft, CircleArrowRight, MapPin } from "lucide-react";
 
 const regions = [
   {
@@ -13,12 +13,14 @@ const regions = [
     image: "/assets/Hokkaido.jpg",
     description: "Conocido por sus paisajes nevados y festivales de invierno.",
     highlights: ["Sapporo", "Hakodate", "Niseko"],
+    experienceCount: 24,
   },
   {
     name: "Tohoku",
     image: "/assets/Tohoku.jpg",
     description: "Famoso por sus montañas, onsens y cultura samurái.",
     highlights: ["Sendai", "Aomori", "Yamagata"],
+    experienceCount: 18,
   },
   {
     name: "Kanto",
@@ -26,6 +28,7 @@ const regions = [
     description:
       "Hogar de Tokio, una metrópolis llena de tecnología y cultura.",
     highlights: ["Tokyo", "Yokohama", "Kamakura"],
+    experienceCount: 45,
   },
   {
     name: "Chubu",
@@ -33,6 +36,7 @@ const regions = [
     description:
       "Con el majestuoso Monte Fuji y encantadoras ciudades históricas.",
     highlights: ["Monte Fuji", "Nagoya", "Takayama"],
+    experienceCount: 32,
   },
   {
     name: "Kansai",
@@ -40,12 +44,14 @@ const regions = [
     description:
       "Conocido por Kioto, Osaka y Nara, ricas en historia y gastronomía.",
     highlights: ["Kyoto", "Osaka", "Nara"],
+    experienceCount: 38,
   },
   {
     name: "Chugoku",
     image: "/assets/Chugoku.jpg",
     description: "Famoso por el Santuario de Itsukushima y Hiroshima.",
     highlights: ["Hiroshima", "Miyajima", "Okayama"],
+    experienceCount: 15,
   },
   {
     name: "Shikoku",
@@ -53,12 +59,14 @@ const regions = [
     description:
       "Un destino espiritual con la famosa peregrinación de 88 templos.",
     highlights: ["Matsuyama", "Tokushima", "Kochi"],
+    experienceCount: 12,
   },
   {
     name: "Kyushu",
     image: "/assets/Kyushu.jpg",
     description: "Con volcanes activos, aguas termales y una cultura vibrante.",
     highlights: ["Fukuoka", "Kagoshima", "Beppu"],
+    experienceCount: 21,
   },
 ];
 
@@ -77,7 +85,7 @@ const CustomPrevArrow = (props) => {
         transform: "translateY(-50%)",
       }}
     >
-      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center hover:bg-white/30 transition-all duration-300">
+      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/90 backdrop-blur-md border border-white/30 flex items-center justify-center hover:bg-white shadow-lg transition-all duration-300">
         <CircleArrowLeft
           size={window.innerWidth < 640 ? 20 : 24}
           style={{ color: theme.palette.primary.main }}
@@ -103,7 +111,7 @@ const CustomNextArrow = (props) => {
         transform: "translateY(-50%)",
       }}
     >
-      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center  hover:bg-white/30 transition-all duration-300">
+      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/90 backdrop-blur-md border border-white/30 flex items-center justify-center hover:bg-white shadow-lg transition-all duration-300">
         <CircleArrowRight
           size={window.innerWidth < 640 ? 20 : 24}
           style={{ color: theme.palette.primary.main }}
@@ -114,13 +122,19 @@ const CustomNextArrow = (props) => {
   );
 };
 
-const RegionCarousel = () => {
+const RegionCarousel = ({ experienceCounts = {} }) => {
   const navigate = useNavigate();
   const theme = useTheme();
 
   const handleRegionClick = (region) => {
     navigate(`/region/${region}`);
   };
+
+  // Merge experience counts from props with default data
+  const regionsWithCounts = regions.map((region) => ({
+    ...region,
+    experienceCount: experienceCounts[region.name] || region.experienceCount,
+  }));
 
   const settings = {
     dots: true,
@@ -129,7 +143,7 @@ const RegionCarousel = () => {
     slidesToShow: 4,
     slidesToScroll: 2,
     autoplay: true,
-    autoplaySpeed: 4000,
+    autoplaySpeed: 5000,
     arrows: true,
     swipeToSlide: true,
     touchMove: true,
@@ -143,17 +157,27 @@ const RegionCarousel = () => {
       },
       {
         breakpoint: 768,
-        settings: { slidesToShow: 2, slidesToScroll: 1, dots: true },
+        settings: {
+          slidesToShow: 2,
+          slidesToScroll: 1,
+          dots: true,
+          arrows: false, // Hide arrows on tablet for better touch experience
+        },
       },
       {
         breakpoint: 480,
-        settings: { slidesToShow: 1, slidesToScroll: 1, dots: true },
+        settings: {
+          slidesToShow: 1,
+          slidesToScroll: 1,
+          dots: true,
+          arrows: false, // Hide arrows on mobile for better touch experience
+        },
       },
     ],
   };
 
   return (
-    <section className="relative overflow-hidden py-16 sm:py-20 lg:py-24 bg-gradient-to-br ">
+    <section className="relative overflow-hidden py-16 sm:py-20 lg:py-24 bg-gradient-to-br">
       {/* Background Pattern */}
       <div
         className="absolute inset-0 opacity-20"
@@ -167,18 +191,18 @@ const RegionCarousel = () => {
         {/* Header */}
         <div className="text-center mb-12 sm:mb-16">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full backdrop-blur-sm border border-white/20 mb-6">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full backdrop-blur-sm border border-white/20 mb-6 bg-white/10">
             <span className="w-2 h-2 bg-gradient-to-r from-pink-500 to-blue-500 rounded-full animate-pulse"></span>
-            <span className="text-sm font-medium ">8 Regiones únicas</span>
+            <span className="text-sm font-medium">8 Regiones únicas</span>
           </div>
 
           {/* Title */}
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">
-            <span className="bg-gradient-to-r  bg-clip-text">
+            <span className="bg-gradient-to-r bg-clip-text">
               Explora Japón por{" "}
             </span>
             <span
-              className="bg-clip-text "
+              className="bg-clip-text"
               style={{
                 color: theme.palette.primary.main,
               }}
@@ -188,7 +212,7 @@ const RegionCarousel = () => {
           </h2>
 
           {/* Subtitle */}
-          <p className="text-lg sm:text-xl max-w-2xl mx-auto leading-relaxed">
+          <p className="text-lg sm:text-xl max-w-2xl mx-auto leading-relaxed text-gray-600">
             Cada región de Japón tiene su propio encanto y tradiciones únicas
             esperándote
           </p>
@@ -239,76 +263,70 @@ const RegionCarousel = () => {
               display: flex;
               align-items: center;
             }
-            /* Hide default slick dots styling */
-            .region-carousel-container .slick-dots li button:before {
-              display: none !important;
-            }
           `}</style>
 
           <Slider {...settings}>
-            {regions.map((region, index) => (
-              <div key={index} className="px-3">
+            {regionsWithCounts.map((region, index) => (
+              <div key={index} className="px-2 sm:px-3">
                 <div
-                  className="group relative overflow-hidden cursor-pointer transition-all  bg-white/10 backdrop-blur-xl border border-white/20"
+                  className="group relative overflow-hidden cursor-pointer transition-all duration-500 bg-white  "
                   onClick={() => handleRegionClick(region.name)}
                   style={{
-                    height: "400px",
-                    borderRadius: "30rem 30rem 2rem 2rem",
+                    height: "450px",
+                    borderRadius: "24px",
                   }}
                 >
+                  {/* Experience Count Badge */}
+                  <div className="absolute top-4 right-4 z-20 bg-white/95 backdrop-blur-sm px-3 py-2 rounded-full shadow-lg">
+                    <div className="flex items-center gap-2">
+                      <MapPin size={14} color={theme.palette.primary.main} />
+                      <span className="text-sm font-semibold text-gray-700">
+                        {region.experienceCount} experiencias
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Background Image */}
                   <div
-                    className="absolute inset-0 bg-cover bg-center transition-all group-hover:blur-sm"
+                    className="absolute inset-0 bg-cover bg-center transition-all duration-500 lg:group-hover:scale-110"
                     style={{
                       backgroundImage: `url(${region.image})`,
-                      borderRadius: "30rem 30rem 2rem 2rem",
+                      borderRadius: "24px",
                     }}
                   >
+                    {/* Gradient Overlay - Always visible on mobile, hover on desktop */}
                     <div
-                      className="absolute inset-0 transition-all "
+                      className="absolute inset-0 transition-all duration-500 lg:opacity-60 lg:group-hover:opacity-80"
                       style={{
-                        borderRadius: "30rem 30rem 2rem 2rem",
+                        borderRadius: "24px",
                         background:
-                          "linear-gradient(to top, rgba(15, 23, 42, 0.9) 0%, rgba(30, 58, 138, 0.7) 50%, transparent 100%)",
+                          "linear-gradient(to top, rgba(14, 4, 32, 0.88) 100%, rgba(6, 4, 26, 0.57) 100%, rgba(7, 3, 24, 0.55) 100%)",
                       }}
-                    ></div>
-                    <div
-                      style={{
-                        borderRadius: "30rem 30rem 2rem 2rem",
-                      }}
-                      className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all "
                     ></div>
                   </div>
 
-                  <div className="relative h-full p-6 text-white flex flex-col">
-                    <div
-                      className="h-10 flex items-end"
-                      style={{
-                        marginTop: "125px",
-                        "@media (min-width: 640px)": {
-                          marginTop: "1000px",
-                        },
-                        "@media (min-width: 1024px)": {
-                          marginTop: "5px",
-                        },
-                      }}
-                    >
-                      <h3 className="text-2xl sm:text-3xl font-bold leading-tight">
+                  {/* Content Container */}
+                  <div className="relative h-full p-6 text-white flex flex-col justify-end">
+                    {/* Region Name - Always visible */}
+                    <div className="mb-4">
+                      <h3 className="text-2xl sm:text-3xl font-bold leading-tight mb-2">
                         {region.name}
                       </h3>
                     </div>
 
-                    {/* Content area with fixed height */}
-                    <div className="h-32 flex flex-col justify-start">
-                      <p className="text-white/90 text-sm sm:text-base leading-relaxed mb-4 sm:opacity-0 sm:group-hover:opacity-100 sm:transform sm:translate-y-2 sm:group-hover:translate-y-0 transition-all duration-300">
+                    {/* Content - Visible on mobile, hover on desktop */}
+                    <div className="space-y-4 opacity-100 transform translate-y-0 lg:opacity-0 lg:transform lg:translate-y-4 lg:group-hover:opacity-100 lg:group-hover:translate-y-0 transition-all duration-500">
+                      {/* Description */}
+                      <p className="text-white/95 text-sm sm:text-base leading-relaxed">
                         {region.description}
                       </p>
 
                       {/* Highlights */}
-                      <div className="flex flex-wrap gap-2 mb-4 opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300 delay-100">
+                      <div className="flex flex-wrap gap-2 mb-4">
                         {region.highlights.map((highlight, idx) => (
                           <span
                             key={idx}
-                            className="px-2 py-1 text-xs bg-white/20 backdrop-blur-sm rounded-full border border-white/30"
+                            className="px-3 py-1 text-xs font-medium bg-white/20 backdrop-blur-sm rounded-full border border-white/30"
                           >
                             {highlight}
                           </span>
@@ -316,13 +334,18 @@ const RegionCarousel = () => {
                       </div>
 
                       {/* Explore Button */}
-                      <div className="flex items-center gap-2 text-white font-semibold transition-all duration-300 group-hover:gap-4 opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 delay-150">
+                      <div className="flex items-center gap-3 text-white font-semibold transition-all duration-300 lg:group-hover:gap-4">
                         <span className="text-sm sm:text-base">
                           Explorar región
                         </span>
-                        <div className="w-6 h-6 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center transition-all duration-300 group-hover:bg-white/30 group-hover:rotate-12">
+                        <div
+                          className="w-8 h-8 rounded-full backdrop-blur-sm flex items-center justify-center transition-all duration-300 lg:group-hover:rotate-12"
+                          style={{
+                            backgroundColor: `${theme.palette.primary.main}80`,
+                          }}
+                        >
                           <svg
-                            className="w-3 h-3"
+                            className="w-4 h-4"
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -342,6 +365,13 @@ const RegionCarousel = () => {
               </div>
             ))}
           </Slider>
+        </div>
+
+        {/* Mobile-friendly instruction */}
+        <div className="text-center mt-12 lg:hidden">
+          <p className="text-sm text-gray-500">
+            Desliza para ver más regiones • Toca para explorar
+          </p>
         </div>
       </div>
     </section>
