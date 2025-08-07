@@ -21,7 +21,6 @@ import {
   Shield,
   ShieldCheck,
   User,
-  Bug,
 } from "lucide-react";
 import {
   useTheme,
@@ -40,10 +39,9 @@ import {
   useMediaQuery,
   Tooltip,
 } from "@mui/material";
-import axios from "axios";
 
 const Users = () => {
-  const { jwt, isAdmin, getTokenInfo, tokenInfo, logout } = useUser();
+  const { jwt, isAdmin, tokenInfo } = useUser();
   const queryClient = useQueryClient();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
@@ -51,114 +49,6 @@ const Users = () => {
   console.log("JWT Token:", jwt ? "Present" : "Missing");
   console.log("Is Admin:", isAdmin);
   console.log("Token Info:", tokenInfo);
-
-  // 🔧 PRODUCTION DIAGNOSTIC FUNCTION
-  const runProductionDiagnostic = async () => {
-    console.log("🔧 PRODUCTION DIAGNOSTIC STARTING...");
-    console.log("================================================");
-
-    // 1. Environment Check
-    console.log("1️⃣ ENVIRONMENT CHECK:");
-    console.log("- NODE_ENV:", process.env.NODE_ENV);
-    console.log("- REACT_APP_API_URL:", process.env.REACT_APP_API_URL);
-    console.log("- Window hostname:", window.location.hostname);
-    console.log("- Window origin:", window.location.origin);
-    console.log("- Current URL:", window.location.href);
-
-    let API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
-    console.log("- Raw API_URL:", API_URL);
-
-    console.log("- Final API_URL being used:", API_URL);
-
-    // 2. JWT Check
-    console.log("\n2️⃣ JWT TOKEN CHECK:");
-    if (!jwt) {
-      console.error("❌ No JWT token found");
-      return;
-    }
-
-    if (tokenInfo) {
-      console.log("- Token valid:", !tokenInfo.isExpired);
-      console.log("- User ID:", tokenInfo.userId);
-      console.log("- Is Admin:", tokenInfo.isAdmin);
-      console.log("- Expires:", tokenInfo.expiresAt.toLocaleString());
-      console.log("- Is Expired:", tokenInfo.isExpired);
-      console.log("- Full payload:", tokenInfo.payload);
-    } else {
-      console.error("❌ Could not parse JWT token");
-      return;
-    }
-
-    // 3. API Connectivity Test
-    console.log("\n3️⃣ API CONNECTIVITY TEST:");
-    const testEndpoints = [
-      {
-        name: "Railway API",
-        url: `https://navippon.up.railway.app/api/users/count`,
-      },
-      { name: "User Count", url: `${API_URL}/api/users/count` },
-      { name: "Get Users", url: `${API_URL}/api/users?page=1&limit=1` },
-    ];
-
-    for (const endpoint of testEndpoints) {
-      try {
-        console.log(`Testing ${endpoint.name}: ${endpoint.url}`);
-        const response = await fetch(endpoint.url, {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${jwt}`,
-            "Content-Type": "application/json",
-          },
-        });
-
-        console.log(`- Status: ${response.status}`);
-        console.log(`- OK: ${response.ok}`);
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.log(`- Error response: ${errorText}`);
-        }
-      } catch (error) {
-        console.error(`❌ ${endpoint.name} failed:`, error.message);
-      }
-    }
-
-    // 4. Delete Endpoint Test
-    console.log("\n4️⃣ DELETE ENDPOINT TEST:");
-    const deleteUrl = `https://navippon.up.railway.app/api/users/test-user-id`;
-    console.log("- Delete URL would be:", deleteUrl);
-
-    try {
-      // Don't actually delete, just test if endpoint exists
-      const response = await fetch(deleteUrl, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${jwt}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      console.log("- Delete endpoint status:", response.status);
-      if (response.status === 404) {
-        console.log("✅ Endpoint exists but user not found (expected)");
-      } else if (response.status === 403) {
-        console.log("❌ Forbidden - user lacks admin privileges");
-      } else if (response.status === 401) {
-        console.log("❌ Unauthorized - JWT issue");
-      } else if (response.status === 500) {
-        console.log("⚠️ Server error - backend issue");
-        const errorText = await response.text();
-        console.log("- Server error details:", errorText);
-      } else {
-        console.log("- Response:", await response.text());
-      }
-    } catch (error) {
-      console.error("❌ Delete endpoint test failed:", error.message);
-    }
-
-    console.log("\n================================================");
-    console.log("🔧 DIAGNOSTIC COMPLETE");
-  };
 
   // 🔍 CHECK API URL AND CONNECTIVITY
   useEffect(() => {
