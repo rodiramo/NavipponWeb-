@@ -189,63 +189,91 @@ router.post("/verify-code", async (req, res) => {
 });
 
 // 3. Reset password with verified code
+// Replace your reset-password-with-code endpoint with this debug version:
 router.post("/reset-password-with-code", async (req, res) => {
   try {
+    console.log("🔵 === PASSWORD RESET START ===");
+
     const { email, code, password } = req.body;
 
+    // Step 0: Basic validation
     if (!email || !code || !password) {
+      console.log("❌ Missing fields");
       return res
         .status(400)
         .json({ message: "Todos los campos son requeridos" });
     }
 
     if (password.length < 6) {
-      return res
-        .status(400)
-        .json({ message: "La contraseña debe tener al menos 6 caracteres" });
+      console.log("❌ Password too short");
+      return res.status(400).json({
+        message: "La contraseña debe tener al menos 6 caracteres",
+      });
     }
 
-    // Find verified code
+    const lowerEmail = email.toLowerCase();
+    const trimmedCode = code.trim();
+
+    // Step 1: Verify code
+    console.log("🔵 Step 1: Looking for verified code...");
     const verificationRecord = await VerificationCode.findOne({
-      email: email.toLowerCase(),
-      code: code.trim(),
+      email: lowerEmail,
+      code: trimmedCode,
       used: false,
       verified: true,
       expiresAt: { $gt: new Date() },
     });
 
     if (!verificationRecord) {
+      console.log("❌ No valid verification record found");
       return res
         .status(400)
         .json({ message: "Código inválido, expirado o no verificado" });
     }
 
-    // Find user
-    const user = await User.findOne({ email: email.toLowerCase() });
+    // Step 2: Find user
+    console.log("🔵 Step 2: Looking for user...");
+    const user = await User.findOne({ email: lowerEmail });
     if (!user) {
+      console.log("❌ User not found");
       return res.status(404).json({ message: "Usuario no encontrado" });
     }
 
-    // Hash new password
-    const saltRounds = 12;
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
+    // Step 3: Assign plain password (pre-save hook will hash)
+    console.log("🔵 Step 3: Assigning new password...");
+    user.password = password;
 
-    // Update user password
-    user.password = hashedPassword;
+    // Step 4: Save user
+    console.log("🔵 Step 4: Saving user...");
     await user.save();
+    console.log("✅ User password updated");
 
-    // Mark code as used and clean up all codes for this email
-    await VerificationCode.updateMany(
-      { email: email.toLowerCase() },
-      { used: true }
+    // Step 5: Mark verification code as used
+    verificationRecord.used = true;
+    await verificationRecord.save();
+    console.log("✅ Verification code marked as used");
+
+    // Step 6: Verify the password works
+    const updatedUser = await User.findOne({ email: lowerEmail });
+    const passwordTest = await bcrypt.compare(password, updatedUser.password);
+
+    console.log(
+      "🔵 Password verification test:",
+      passwordTest ? "PASS ✅" : "FAIL ❌"
     );
 
-    // Clean up old codes
-    setTimeout(() => cleanupOldCodes(email), 1000);
+    if (!passwordTest) {
+      return res.status(500).json({
+        message:
+          "Hubo un problema guardando la nueva contraseña. Intenta otra vez.",
+      });
+    }
 
+    console.log("✅ === PASSWORD RESET COMPLETED SUCCESSFULLY ===");
     res.json({ message: "Contraseña actualizada exitosamente" });
   } catch (error) {
-    console.error("Error resetting password:", error);
+    console.error("❌ === PASSWORD RESET ERROR ===");
+    console.error(error);
     res.status(500).json({ message: "Error interno del servidor" });
   }
 });
