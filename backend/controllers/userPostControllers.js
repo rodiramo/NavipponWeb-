@@ -6,6 +6,11 @@ import User from "../models/User.js";
 import Comment from "../models/Comment.js";
 import { fileRemover } from "../utils/fileRemover.js";
 import { v4 as uuidv4 } from "uuid";
+const getCloudinaryPath = (cloudinaryResult) => {
+  // Extract filename from public_id (e.g., "uploads/f1xdmifbvz3wuqyd7dsh" -> "f1xdmifbvz3wuqyd7dsh")
+  const filename = cloudinaryResult.public_id.split("/").pop();
+  return `uploads/${filename}`;
+};
 
 // ✅ Robust function to handle deeply nested JSON strings
 const safeParseArray = (value, fieldName = "field") => {
@@ -123,7 +128,7 @@ const createPost = async (req, res, next) => {
         const result = await cloudinary.uploader.upload(req.file.path, {
           folder: "uploads",
         });
-        photo = result.secure_url; // ✅ Use Cloudinary URL
+        photo = getCloudinaryPath(result);
       } catch (uploadError) {
         console.error("❌ Cloudinary Upload Error:", uploadError.message);
       }
@@ -259,8 +264,7 @@ const updatePost = async (req, res, next) => {
           }
         }
 
-        post.photo = result.secure_url; // ✅ Use new Cloudinary URL
-        console.log("✅ New image uploaded:", result.secure_url);
+        post.photo = getCloudinaryPath(result);
       } catch (uploadError) {
         console.error("❌ Cloudinary Upload Error:", uploadError.message);
         return res.status(500).json({ message: "Error uploading image" });
