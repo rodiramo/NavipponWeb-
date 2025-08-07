@@ -131,7 +131,7 @@ const SideNav = () => {
           isMenuOpen={isMenuOpen}
         />
         <NavItem
-          title="Publicaciónes"
+          title="Publicaciones"
           link="/user/posts/manage"
           icon={
             <LucideClipboardList size={22} color={theme.palette.primary.main} />

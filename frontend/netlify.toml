@@ -7,3 +7,8 @@
   NODE_OPTIONS = "--max-old-space-size=3072"
   CI = "false"
   GENERATE_SOURCEMAP = "false"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
