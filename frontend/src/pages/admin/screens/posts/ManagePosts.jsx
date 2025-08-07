@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
 import { images, stables } from "../../../../constants";
 import {
   deletePost,
@@ -10,6 +11,7 @@ import { useDataTable } from "../../../../hooks/useDataTable";
 import DataTable from "../../components/DataTable";
 import useUser from "../../../../hooks/useUser";
 import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "react-hot-toast";
 import {
   Trash2,
   Calendar,
@@ -38,6 +40,41 @@ import {
 } from "@mui/material";
 
 const ManagePosts = () => {
+  // Debug version of deletePost service
+  const debugDeletePost = async ({ slug, token }) => {
+    console.log("🚀 Frontend: Starting delete request for slug:", slug);
+    console.log("🚀 Frontend: Token present:", token ? "Yes" : "No");
+    console.log(
+      "🚀 Frontend: API URL:",
+      process.env.REACT_APP_API_URL || "http://localhost:5000"
+    );
+
+    try {
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      };
+
+      const fullUrl = `${process.env.REACT_APP_API_URL || "http://localhost:5000"}/api/posts/${slug}`;
+      console.log("🚀 Frontend: Making DELETE request to:", fullUrl);
+      console.log("🚀 Frontend: Request config:", config);
+
+      const { data } = await axios.delete(fullUrl, config);
+      console.log("✅ Frontend: Delete request successful:", data);
+      return data;
+    } catch (error) {
+      console.error("❌ Frontend: Delete request failed:", error);
+      console.error("❌ Frontend: Error response:", error.response?.data);
+      console.error("❌ Frontend: Error status:", error.response?.status);
+      console.error("❌ Frontend: Error config:", error.config);
+
+      if (error.response && error.response.data.message)
+        throw new Error(error.response.data.message);
+      throw new Error(error.message);
+    }
+  };
+
   const { jwt } = useUser();
   const queryClient = useQueryClient();
   const theme = useTheme();
@@ -52,8 +89,10 @@ const ManagePosts = () => {
         token: jwt,
       });
       queryClient.invalidateQueries(["posts"]);
+      toast.success(post.approved ? "Post desaprobado" : "Post aprobado");
     } catch (error) {
       console.error("Error toggling approval:", error);
+      toast.error(`Error al cambiar estado: ${error.message}`);
     }
   };
 
@@ -68,11 +107,15 @@ const ManagePosts = () => {
     submitSearchKeywordHandler,
     deleteDataHandler,
     setCurrentPage,
+    DeleteConfirmationDialog,
   } = useDataTable({
     dataQueryFn: () => getAllPosts(searchKeyword, currentPage),
     dataQueryKey: "posts",
-    deleteDataMessage: "Post borrado",
-    mutateDeleteFn: ({ slug }) => deletePost({ slug, token: jwt }),
+    deleteDataMessage: "Post eliminado exitosamente",
+    mutateDeleteFn: ({ slug }) => {
+      console.log("🔥 useDataTable: mutateDeleteFn called with slug:", slug);
+      return debugDeletePost({ slug, token: jwt });
+    },
   });
 
   const [updatedPosts, setUpdatedPosts] = useState(postsData?.data || []);
@@ -179,7 +222,7 @@ const ManagePosts = () => {
               </Typography>
             </Box>
             <Box sx={{ display: "flex", gap: 0.5, flexWrap: "wrap" }}>
-              {post.categories.length > 0 ? (
+              {post.categories && post.categories.length > 0 ? (
                 post.categories.slice(0, 3).map((cat, index) => (
                   <Chip
                     key={index}
@@ -213,7 +256,7 @@ const ManagePosts = () => {
               </Typography>
             </Box>
             <Box sx={{ display: "flex", gap: 0.5, flexWrap: "wrap" }}>
-              {post.tags.length > 0 ? (
+              {post.tags && post.tags.length > 0 ? (
                 post.tags.map((tag, index) => (
                   <Chip
                     key={index}
@@ -275,6 +318,7 @@ const ManagePosts = () => {
               )}
             </IconButton>
           </Tooltip>
+
           <Button
             startIcon={<Eye size={16} />}
             component={Link}
@@ -294,6 +338,7 @@ const ManagePosts = () => {
           >
             Ver detalles
           </Button>
+
           {/* Edit Button */}
           <Button
             startIcon={<Edit size={16} />}
@@ -319,7 +364,12 @@ const ManagePosts = () => {
           <Button
             disabled={isLoadingDeleteData}
             startIcon={<Trash2 size={16} />}
-            onClick={() => deleteDataHandler({ slug: post?.slug })}
+            onClick={() => {
+              console.log("🎯 Mobile Delete Button Clicked!");
+              console.log("🎯 Post slug:", post.slug);
+              console.log("🎯 Post object:", post);
+              deleteDataHandler({ slug: post.slug });
+            }}
             sx={{
               color: theme.palette.error.main,
               textTransform: "none",
@@ -333,7 +383,7 @@ const ManagePosts = () => {
             variant="outlined"
             size="small"
           >
-            Borrar
+            {isLoadingDeleteData ? "Borrando..." : "Borrar"}
           </Button>
         </Box>
       </CardContent>
@@ -453,7 +503,7 @@ const ManagePosts = () => {
                   spacing={0.5}
                   sx={{ flexWrap: "wrap", gap: 0.5 }}
                 >
-                  {post.categories.length > 0 ? (
+                  {post.categories && post.categories.length > 0 ? (
                     post.categories.slice(0, 2).map((cat, index) => (
                       <Chip
                         key={index}
@@ -522,7 +572,7 @@ const ManagePosts = () => {
                   spacing={0.5}
                   sx={{ flexWrap: "wrap", gap: 0.5 }}
                 >
-                  {post.tags.length > 0 ? (
+                  {post.tags && post.tags.length > 0 ? (
                     post.tags.slice(0, 3).map((tag, index) => (
                       <Chip
                         key={index}
@@ -531,7 +581,6 @@ const ManagePosts = () => {
                         sx={{
                           backgroundColor: theme.palette.primary.light,
                           color: theme.palette.primary.dark,
-
                           fontSize: "0.75rem",
                         }}
                       />
@@ -601,7 +650,6 @@ const ManagePosts = () => {
                     sx={{
                       textTransform: "none",
                       width: "120px",
-
                       borderRadius: 30,
                       color: theme.palette.secondary.medium,
                       borderColor: theme.palette.secondary.medium,
@@ -615,6 +663,7 @@ const ManagePosts = () => {
                   >
                     Ver detalles
                   </Button>
+
                   <Button
                     component={Link}
                     to={`/admin/posts/manage/edit/${post.slug}`}
@@ -633,13 +682,17 @@ const ManagePosts = () => {
                     variant="outlined"
                     size="small"
                   >
-                    {" "}
                     <Edit size={16} />
                   </Button>
 
                   <Button
                     disabled={isLoadingDeleteData}
-                    onClick={() => deleteDataHandler({ slug: post?.slug })}
+                    onClick={() => {
+                      console.log("🎯 Desktop Delete Button Clicked!");
+                      console.log("🎯 Post slug:", post.slug);
+                      console.log("🎯 Post object:", post);
+                      deleteDataHandler({ slug: post.slug });
+                    }}
                     sx={{
                       color: theme.palette.error.main,
                       borderColor: theme.palette.error.main,
@@ -662,7 +715,9 @@ const ManagePosts = () => {
             </tr>
           ))
         )}
-      </DataTable>
+      </DataTable>{" "}
+      {/* Add the missing DeleteConfirmationDialog! */}
+      <DeleteConfirmationDialog />
     </Box>
   );
 };

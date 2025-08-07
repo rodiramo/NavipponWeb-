@@ -351,18 +351,25 @@ export const forgotPassword = async (email) => {
   }
 };
 
-export const resetPassword = async ({ token, newPassword }) => {
-  try {
-    const { data } = await axios.post(`${API_URL}/api/users/reset-password`, {
-      token,
-      newPassword,
-    });
-    return data;
-  } catch (error) {
-    throw new Error(
-      error.response?.data?.message || "Error resetting password"
-    );
+// In your services/index/users.js
+export const resetPassword = async (token, password) => {
+  const response = await fetch(
+    `${process.env.REACT_APP_API_URL}/api/users/reset-password`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ token, password }),
+    }
+  );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Error al restablecer contraseña");
   }
+
+  return response.json();
 };
 
 export const verifyResetToken = async (token) => {

@@ -108,7 +108,6 @@ export const deleteUserPost = async ({ slug, token }) => {
     throw new Error(error.message);
   }
 };
-
 export const updateUserPost = async ({ updatedData, slug, token }) => {
   try {
     const config = {

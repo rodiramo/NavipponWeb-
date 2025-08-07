@@ -38,7 +38,7 @@ import {
 } from "@mui/material";
 
 const Reviews = () => {
-  const { jwt } = useUser();
+  const { jwt, userInfo } = useUser();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
@@ -54,17 +54,61 @@ const Reviews = () => {
     submitSearchKeywordHandler,
     deleteDataHandler,
     setCurrentPage,
+    DeleteConfirmationDialog,
   } = useDataTable({
     dataQueryFn: () => getAllReviews(jwt, searchKeyword, currentPage),
     dataQueryKey: "reviews",
     deleteDataMessage: "Reseña eliminada",
     mutateDeleteFn: ({ slug, token }) => {
+      // Enhanced debugging for delete function
+      console.log("🗑️ DEBUG - Delete attempt:", {
+        reviewId: slug,
+        token: token ? "Present" : "Missing",
+        userInfo: userInfo,
+        isAdmin: userInfo?.admin,
+      });
+
+      // Call the original delete function
       return deleteReview({ reviewId: slug, token });
     },
   });
 
+  // Enhanced delete handler with better error handling
+  const handleDeleteReview = async (reviewId) => {
+    try {
+      console.log("🗑️ Attempting to delete review:", reviewId);
+
+      // Check if user is admin
+      if (!userInfo?.admin) {
+        toast.error(
+          "No tienes permisos de administrador para eliminar reseñas"
+        );
+        return;
+      }
+
+      // Check if JWT token exists
+      if (!jwt) {
+        toast.error(
+          "Token de autenticación no encontrado. Por favor, inicia sesión nuevamente."
+        );
+        return;
+      }
+
+      // Call the delete handler
+      await deleteDataHandler({ slug: reviewId, token: jwt });
+    } catch (error) {
+      console.error("❌ Error deleting review:", error);
+      toast.error(`Error al eliminar la reseña: ${error.message}`);
+    }
+  };
+
   const { mutate: mutateUpdateReviewCheck } = useMutation({
     mutationFn: ({ token, check, reviewId }) => {
+      console.log("✅ DEBUG - Update review check:", {
+        reviewId,
+        check,
+        token: token ? "Present" : "Missing",
+      });
       return updateReview({ token, check, reviewId });
     },
     onSuccess: (data) => {
@@ -72,8 +116,8 @@ const Reviews = () => {
       toast.success(data?.check ? "Reseña aprobada" : "Reseña desaprobada");
     },
     onError: (error) => {
-      toast.error(error.message);
-      console.log(error);
+      console.error("❌ Error updating review:", error);
+      toast.error(`Error al actualizar la reseña: ${error.message}`);
     },
   });
 
@@ -162,7 +206,7 @@ const Reviews = () => {
             <Star
               size={16}
               color={theme.palette.primary.main}
-              fill={theme.palette.primary.main} // This fills the star
+              fill={theme.palette.primary.main}
               style={{ marginRight: 8 }}
             />
             <Typography variant="body2" color="textSecondary">
@@ -237,7 +281,7 @@ const Reviews = () => {
                   color: theme.palette.secondary.main,
                 },
               }}
-            />{" "}
+            />
             <Typography variant="body2" sx={{ ml: 1, fontWeight: "bold" }}>
               {review.rating}/5
             </Typography>
@@ -276,7 +320,7 @@ const Reviews = () => {
               title={review?.check ? "Desaprobar reseña" : "Aprobar reseña"}
             >
               <IconButton
-                disabled={isLoadingDeleteData}
+                disabled={isLoadingDeleteData || !userInfo?.admin}
                 onClick={() =>
                   mutateUpdateReviewCheck({
                     token: jwt,
@@ -297,6 +341,10 @@ const Reviews = () => {
                       : theme.palette.warning.light,
                     transform: "scale(1.05)",
                   },
+                  "&:disabled": {
+                    opacity: 0.5,
+                    cursor: "not-allowed",
+                  },
                 }}
               >
                 {review?.check ? (
@@ -309,11 +357,9 @@ const Reviews = () => {
 
             {/* Delete Button */}
             <Button
-              disabled={isLoadingDeleteData}
+              disabled={isLoadingDeleteData || !userInfo?.admin}
               startIcon={<Trash2 size={16} />}
-              onClick={() =>
-                deleteDataHandler({ slug: review?._id, token: jwt })
-              }
+              onClick={() => handleDeleteReview(review._id)}
               sx={{
                 color: theme.palette.error.main,
                 textTransform: "none",
@@ -324,17 +370,35 @@ const Reviews = () => {
                   backgroundColor: theme.palette.error.lightest,
                   borderColor: theme.palette.error.dark,
                 },
+                "&:disabled": {
+                  opacity: 0.5,
+                  cursor: "not-allowed",
+                },
               }}
               variant="outlined"
               size="small"
             >
-              Borrar
+              {isLoadingDeleteData ? "Borrando..." : "Borrar"}
             </Button>
           </Box>
         </Box>
       </CardContent>
     </Card>
   );
+
+  // Show admin status warning if not admin
+  if (userInfo && !userInfo.admin) {
+    return (
+      <Box sx={{ p: 3, textAlign: "center" }}>
+        <Typography variant="h5" color="error" gutterBottom>
+          Acceso Denegado
+        </Typography>
+        <Typography variant="body1">
+          No tienes permisos de administrador para acceder a esta página.
+        </Typography>
+      </Box>
+    );
+  }
 
   return (
     <Box
@@ -493,7 +557,7 @@ const Reviews = () => {
                               color: theme.palette.secondary.main,
                             },
                           }}
-                        />{" "}
+                        />
                         <Typography variant="caption" sx={{ ml: 0.5 }}>
                           ({review.rating})
                         </Typography>
@@ -538,13 +602,15 @@ const Reviews = () => {
                 <Stack direction="column" spacing={1} alignItems="center">
                   <Tooltip
                     title={
-                      review?.check
-                        ? "Click para desaprobar"
-                        : "Click para aprobar"
+                      !userInfo?.admin
+                        ? "Necesitas permisos de administrador"
+                        : review?.check
+                          ? "Click para desaprobar"
+                          : "Click para aprobar"
                     }
                   >
                     <IconButton
-                      disabled={isLoadingDeleteData}
+                      disabled={isLoadingDeleteData || !userInfo?.admin}
                       onClick={() =>
                         mutateUpdateReviewCheck({
                           token: jwt,
@@ -567,6 +633,10 @@ const Reviews = () => {
                             : theme.palette.warning.light,
                           transform: "scale(1.05)",
                         },
+                        "&:disabled": {
+                          opacity: 0.5,
+                          cursor: "not-allowed",
+                        },
                       }}
                     >
                       {review?.check ? (
@@ -587,11 +657,9 @@ const Reviews = () => {
                 }}
               >
                 <Button
-                  disabled={isLoadingDeleteData}
+                  disabled={isLoadingDeleteData || !userInfo?.admin}
                   startIcon={<Trash2 size={16} />}
-                  onClick={() =>
-                    deleteDataHandler({ slug: review?._id, token: jwt })
-                  }
+                  onClick={() => handleDeleteReview(review._id)}
                   sx={{
                     color: theme.palette.error.main,
                     borderColor: theme.palette.error.main,
@@ -603,18 +671,23 @@ const Reviews = () => {
                       borderColor: theme.palette.error.dark,
                       transform: "translateY(-1px)",
                     },
+                    "&:disabled": {
+                      opacity: 0.5,
+                      cursor: "not-allowed",
+                    },
                     transition: "all 0.2s ease-in-out",
                   }}
                   variant="outlined"
                   size="small"
                 >
-                  Borrar
+                  {isLoadingDeleteData ? "Borrando..." : "Borrar"}
                 </Button>
               </td>
             </tr>
           ))
         )}
       </DataTable>
+      <DeleteConfirmationDialog></DeleteConfirmationDialog>
     </Box>
   );
 };

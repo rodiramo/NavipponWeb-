@@ -6,6 +6,7 @@ import { v2 as cloudinary } from "cloudinary"; // Added missing import
 import upload from "./middleware/uploadPictureMiddleware.js";
 
 // Routes
+import passwordResetRoutes from "./routes/passwordRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import postRoutes from "./routes/postRoutes.js";
 import experienceRoutes from "./routes/experienceRoutes.js";
@@ -100,6 +101,8 @@ app.get("/", (req, res) => {
 });
 
 // API Routes
+
+app.use("/api/password", passwordResetRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/posts", postRoutes);
 app.use("/api/experiences", experienceRoutes);

@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 import { useDataTable } from "../../../../hooks/useDataTable";
@@ -21,6 +21,7 @@ import {
   Shield,
   ShieldCheck,
   User,
+  AlertTriangle,
 } from "lucide-react";
 import {
   useTheme,
@@ -38,13 +39,129 @@ import {
   Grid,
   useMediaQuery,
   Tooltip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  DialogContentText,
 } from "@mui/material";
+
+// Confirmation Modal Component
+const ConfirmationModal = ({
+  open,
+  onClose,
+  onConfirm,
+  title,
+  message,
+  confirmText = "Confirmar",
+  cancelText = "Cancelar",
+  isLoading = false,
+  severity = "warning",
+}) => {
+  const theme = useTheme();
+
+  const getIconColor = () => {
+    switch (severity) {
+      case "error":
+        return theme.palette.error.main;
+      case "warning":
+        return theme.palette.warning.main;
+      case "info":
+        return theme.palette.info.main;
+      default:
+        return theme.palette.warning.main;
+    }
+  };
+
+  return (
+    <Dialog
+      open={open}
+      onClose={!isLoading ? onClose : undefined}
+      maxWidth="sm"
+      fullWidth
+      PaperProps={{
+        sx: {
+          borderRadius: 3,
+          p: 1,
+        },
+      }}
+    >
+      <DialogTitle sx={{ pb: 2 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+          <Box
+            sx={{
+              backgroundColor: `${getIconColor()}15`,
+              borderRadius: "50%",
+              p: 1,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <AlertTriangle size={24} color={getIconColor()} />
+          </Box>
+          <Typography variant="h6" sx={{ fontWeight: "bold" }}>
+            {title}
+          </Typography>
+        </Box>
+      </DialogTitle>
+
+      <DialogContent sx={{ pb: 3 }}>
+        <DialogContentText
+          sx={{
+            color: theme.palette.text.primary,
+            fontSize: "1rem",
+            lineHeight: 1.6,
+          }}
+        >
+          {message}
+        </DialogContentText>
+      </DialogContent>
+
+      <DialogActions sx={{ px: 3, pb: 2, gap: 1 }}>
+        <Button
+          onClick={onClose}
+          disabled={isLoading}
+          variant="outlined"
+          sx={{
+            borderRadius: 2,
+            textTransform: "none",
+            minWidth: 100,
+          }}
+        >
+          {cancelText}
+        </Button>
+        <Button
+          onClick={onConfirm}
+          disabled={isLoading}
+          variant="contained"
+          color={severity === "error" ? "error" : "warning"}
+          sx={{
+            borderRadius: 2,
+            textTransform: "none",
+            minWidth: 100,
+          }}
+        >
+          {isLoading ? "Procesando..." : confirmText}
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
 
 const Users = () => {
   const { jwt, isAdmin, tokenInfo } = useUser();
   const queryClient = useQueryClient();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+
+  // Modal states
+  const [confirmModal, setConfirmModal] = useState({
+    open: false,
+    type: null,
+    data: null,
+    isLoading: false,
+  });
 
   console.log("JWT Token:", jwt ? "Present" : "Missing");
   console.log("Is Admin:", isAdmin);
@@ -117,6 +234,9 @@ const Users = () => {
     console.log("🔥 Admin status from JWT:", isAdmin);
     console.log("🔥 Token info:", tokenInfo);
 
+    // Set loading state
+    setConfirmModal((prev) => ({ ...prev, isLoading: true }));
+
     // Since Railway URL works (Status 200), use it directly
     const railwayUrl = "https://navippon.up.railway.app";
 
@@ -140,7 +260,15 @@ const Users = () => {
         console.log("🔥 Response:", responseText);
 
         queryClient.invalidateQueries(["users"]);
-        toast.success("Usuario eliminado exitosamente");
+        toast.success(`Usuario "${userToDelete.name}" eliminado exitosamente`);
+
+        // Close modal
+        setConfirmModal({
+          open: false,
+          type: null,
+          data: null,
+          isLoading: false,
+        });
         return;
       } else if (response.status === 500) {
         // Server error - get details
@@ -149,7 +277,6 @@ const Users = () => {
         toast.error(
           `Error del servidor: ${errorText || "Error interno del servidor"}`
         );
-        return;
       } else if (response.status === 403) {
         // Forbidden - JWT lacks admin privileges
         const errorText = await response.text();
@@ -157,29 +284,28 @@ const Users = () => {
         toast.error(
           "No tienes permisos de administrador para eliminar usuarios"
         );
-        return;
       } else if (response.status === 401) {
         // Unauthorized - JWT issue
         const errorText = await response.text();
         console.error("🔥 ❌ UNAUTHORIZED (401):", errorText);
         toast.error("Token de autenticación inválido");
-        return;
       } else if (response.status === 404) {
         // User not found
         const errorText = await response.text();
         console.error("🔥 ❌ NOT FOUND (404):", errorText);
         toast.error("Usuario no encontrado");
-        return;
       } else {
         // Other error
         const errorText = await response.text();
         console.error(`🔥 ❌ ERROR (${response.status}):`, errorText);
         toast.error(`Error ${response.status}: ${errorText}`);
-        return;
       }
     } catch (error) {
       console.error("🔥 ❌ NETWORK ERROR:", error.message);
       toast.error(`Error de conexión: ${error.message}`);
+    } finally {
+      // Reset loading state
+      setConfirmModal((prev) => ({ ...prev, isLoading: false }));
     }
   };
 
@@ -197,11 +323,18 @@ const Users = () => {
       onSuccess: (data) => {
         console.log("Admin update success:", data);
         queryClient.invalidateQueries(["users"]);
-        toast.success("Usuario actualizado");
+        toast.success("Rol de usuario actualizado exitosamente");
+        setConfirmModal({
+          open: false,
+          type: null,
+          data: null,
+          isLoading: false,
+        });
       },
       onError: (error) => {
         console.error("Admin update error:", error);
         toast.error(error.message || "Error al actualizar usuario");
+        setConfirmModal((prev) => ({ ...prev, isLoading: false }));
       },
     });
 
@@ -219,13 +352,115 @@ const Users = () => {
       onSuccess: (data) => {
         console.log("Verified update success:", data);
         queryClient.invalidateQueries(["users"]);
-        toast.success("Estado de verificación actualizado");
+        toast.success("Estado de verificación actualizado exitosamente");
+        setConfirmModal({
+          open: false,
+          type: null,
+          data: null,
+          isLoading: false,
+        });
       },
       onError: (error) => {
         console.error("Verified update error:", error);
         toast.error(error.message || "Error al actualizar verificación");
+        setConfirmModal((prev) => ({ ...prev, isLoading: false }));
       },
     });
+
+  // Open confirmation modal
+  const openConfirmModal = (type, data) => {
+    setConfirmModal({
+      open: true,
+      type,
+      data,
+      isLoading: false,
+    });
+  };
+
+  // Close confirmation modal
+  const closeConfirmModal = () => {
+    if (!confirmModal.isLoading) {
+      setConfirmModal({
+        open: false,
+        type: null,
+        data: null,
+        isLoading: false,
+      });
+    }
+  };
+
+  // Handle confirmation actions
+  const handleConfirmAction = () => {
+    const { type, data } = confirmModal;
+
+    switch (type) {
+      case "delete":
+        bypassDeleteUser(data.user);
+        break;
+      case "admin":
+        setConfirmModal((prev) => ({ ...prev, isLoading: true }));
+        mutateUpdateUser({
+          isAdmin: data.newAdminStatus,
+          userId: data.user._id,
+        });
+        break;
+      case "verified":
+        setConfirmModal((prev) => ({ ...prev, isLoading: true }));
+        mutateUpdateVerified({
+          isVerified: data.newStatus,
+          userId: data.user._id,
+        });
+        break;
+      default:
+        closeConfirmModal();
+    }
+  };
+
+  // Get modal content based on type
+  const getModalContent = () => {
+    const { type, data } = confirmModal;
+
+    switch (type) {
+      case "delete":
+        return {
+          title: "Eliminar Usuario",
+          message: `¿Estás seguro de que quieres eliminar a "${data?.user?.name}"? Esta acción no se puede deshacer y eliminará permanentemente todos los datos del usuario.`,
+          confirmText: "Eliminar",
+          severity: "error",
+        };
+      case "admin":
+        return {
+          title: "Cambiar Rol de Usuario",
+          message: `¿Quieres cambiar a "${data?.user?.name}" ${
+            data?.newAdminStatus ? "a administrador" : "a usuario regular"
+          }? ${
+            data?.newAdminStatus
+              ? "Como administrador, tendrá acceso completo al sistema."
+              : "Perderá los privilegios de administrador."
+          }`,
+          confirmText: "Cambiar Rol",
+          severity: "warning",
+        };
+      case "verified":
+        return {
+          title: "Cambiar Estado de Verificación",
+          message: `¿Quieres ${data?.newStatus ? "verificar" : "quitar la verificación"} a "${data?.user?.name}"? ${
+            data?.newStatus
+              ? "El usuario aparecerá como verificado en el sistema."
+              : "El usuario perderá su estado de verificación."
+          }`,
+          confirmText: data?.newStatus ? "Verificar" : "Quitar Verificación",
+          severity: "info",
+        };
+      default:
+        return {
+          title: "Confirmar Acción",
+          message: "¿Estás seguro de que quieres realizar esta acción?",
+          confirmText: "Confirmar",
+          severity: "warning",
+        };
+    }
+  };
 
   // Fixed admin toggle function
   const handleAdminToggle = (e, userItem) => {
@@ -234,31 +469,27 @@ const Users = () => {
 
     // Only proceed if the status is actually changing
     if (userItem.admin !== newAdminStatus) {
-      if (
-        window.confirm(
-          `¿Quieres cambiar este usuario ${
-            newAdminStatus ? "a administrador" : "a usuario regular"
-          }?`
-        )
-      ) {
-        mutateUpdateUser({ isAdmin: newAdminStatus, userId: userItem._id });
-      } else {
-        // Reset the select to original value if user cancels
-        e.target.value = userItem.admin ? "admin" : "user";
-      }
+      openConfirmModal("admin", { user: userItem, newAdminStatus });
+    } else {
+      // Reset the select to original value if no change
+      e.target.value = userItem.admin ? "admin" : "user";
     }
   };
 
   // Verified toggle function
   const handleVerifiedToggle = (userItem) => {
     const newStatus = !userItem.verified;
-    if (
-      window.confirm(
-        "¿Quieres cambiar el estado de verificación de este usuario?"
-      )
-    ) {
-      mutateUpdateVerified({ isVerified: newStatus, userId: userItem._id });
-    }
+    openConfirmModal("verified", { user: userItem, newStatus });
+  };
+
+  // Delete handler
+  const handleDeleteUser = (userItem) => {
+    console.log("🔴 DELETE BUTTON CLICKED");
+    console.log("🔴 User to delete:", userItem);
+    console.log("🔴 User ID:", userItem._id);
+    console.log("🔴 JWT exists:", !!jwt);
+
+    openConfirmModal("delete", { user: userItem });
   };
 
   const {
@@ -421,7 +652,7 @@ const Users = () => {
           <Tooltip title="Cambiar verificación">
             <IconButton
               onClick={() => handleVerifiedToggle(userItem)}
-              disabled={isLoadingUpdateVerified}
+              disabled={isLoadingUpdateVerified || confirmModal.isLoading}
               sx={{
                 backgroundColor: userItem.verified
                   ? theme.palette.success.lightest
@@ -445,7 +676,7 @@ const Users = () => {
             <Select
               value={userItem.admin ? "admin" : "user"}
               onChange={(e) => handleAdminToggle(e, userItem)}
-              disabled={isLoadingUpdateUser}
+              disabled={isLoadingUpdateUser || confirmModal.isLoading}
               sx={{
                 borderRadius: 30,
                 height: 30,
@@ -461,25 +692,9 @@ const Users = () => {
 
           {/* Delete Button */}
           <Button
-            disabled={isLoadingDeleteData}
+            disabled={isLoadingDeleteData || confirmModal.isLoading}
             startIcon={<Trash2 size={16} />}
-            onClick={() => {
-              console.log("🔴 MOBILE DELETE BUTTON CLICKED");
-              console.log("🔴 User to delete:", userItem);
-              console.log("🔴 User ID:", userItem._id);
-              console.log("🔴 JWT exists:", !!jwt);
-
-              if (
-                window.confirm(
-                  `¿Estás seguro de que quieres eliminar a ${userItem.name}?`
-                )
-              ) {
-                console.log("🔴 DELETE CONFIRMED - Calling bypassDeleteUser");
-                bypassDeleteUser(userItem);
-              } else {
-                console.log("🔴 DELETE CANCELLED");
-              }
-            }}
+            onClick={() => handleDeleteUser(userItem)}
             sx={{
               color: theme.palette.error.main,
               borderColor: theme.palette.error.main,
@@ -501,12 +716,30 @@ const Users = () => {
     </Card>
   );
 
+  const modalContent = getModalContent();
+
   return (
     <Box
       sx={{
         minHeight: "100vh",
       }}
     >
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        open={confirmModal.open}
+        onClose={closeConfirmModal}
+        onConfirm={handleConfirmAction}
+        title={modalContent.title}
+        message={modalContent.message}
+        confirmText={modalContent.confirmText}
+        isLoading={
+          confirmModal.isLoading ||
+          isLoadingUpdateUser ||
+          isLoadingUpdateVerified
+        }
+        severity={modalContent.severity}
+      />
+
       <DataTable
         pageTitle=""
         dataListName="Administrar usuarios"
@@ -643,7 +876,7 @@ const Users = () => {
                 <Tooltip title="Click para cambiar estado">
                   <IconButton
                     onClick={() => handleVerifiedToggle(userItem)}
-                    disabled={isLoadingUpdateVerified}
+                    disabled={isLoadingUpdateVerified || confirmModal.isLoading}
                     sx={{
                       backgroundColor: userItem.verified
                         ? theme.palette.success.lightest
@@ -681,7 +914,7 @@ const Users = () => {
                   <Select
                     value={userItem.admin ? "admin" : "user"}
                     onChange={(e) => handleAdminToggle(e, userItem)}
-                    disabled={isLoadingUpdateUser}
+                    disabled={isLoadingUpdateUser || confirmModal.isLoading}
                     sx={{
                       borderRadius: 30,
                       "& .MuiOutlinedInput-notchedOutline": {
@@ -719,27 +952,9 @@ const Users = () => {
                 }}
               >
                 <Button
-                  disabled={isLoadingDeleteData}
+                  disabled={isLoadingDeleteData || confirmModal.isLoading}
                   startIcon={<Trash2 size={16} />}
-                  onClick={() => {
-                    console.log("🔴 DESKTOP DELETE BUTTON CLICKED");
-                    console.log("🔴 User to delete:", userItem);
-                    console.log("🔴 User ID:", userItem._id);
-                    console.log("🔴 JWT exists:", !!jwt);
-
-                    if (
-                      window.confirm(
-                        `¿Estás seguro de que quieres eliminar a ${userItem.name}?`
-                      )
-                    ) {
-                      console.log(
-                        "🔴 DELETE CONFIRMED - Calling bypassDeleteUser"
-                      );
-                      bypassDeleteUser(userItem);
-                    } else {
-                      console.log("🔴 DELETE CANCELLED");
-                    }
-                  }}
+                  onClick={() => handleDeleteUser(userItem)}
                   sx={{
                     color: theme.palette.error.main,
                     borderColor: theme.palette.error.main,

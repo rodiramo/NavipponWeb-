@@ -908,7 +908,6 @@ const ManagePosts = () => {
                         color: theme.palette.primary.main,
                         fontWeight: "bold",
                         mb: 2,
-                        mt: 2,
                         fontSize: {
                           xs: "1.5rem",
                           sm: "1.75rem",
@@ -948,7 +947,7 @@ const ManagePosts = () => {
                       startIcon={<Search size={20} />}
                       onClick={() => navigate("/blog")}
                       sx={{
-                        backgroundColor: theme.palette.primary.main,
+                        backgroundColor: theme.palette.secondary.medium,
                         color: "white",
                         borderRadius: "30rem",
                         px: { xs: 3, md: 4 },

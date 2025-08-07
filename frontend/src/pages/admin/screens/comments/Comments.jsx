@@ -55,6 +55,7 @@ const Comments = () => {
     submitSearchKeywordHandler,
     deleteDataHandler,
     setCurrentPage,
+    DeleteConfirmationDialog,
   } = useDataTable({
     dataQueryFn: () => getAllComments(jwt, searchKeyword, currentPage),
     dataQueryKey: "comments",
@@ -696,6 +697,13 @@ const Comments = () => {
           ))
         )}
       </DataTable>
+      <DeleteConfirmationDialog
+        isOpen={deleteDataHandler.isOpen}
+        onClose={deleteDataHandler.onClose}
+        onConfirm={deleteDataHandler.onConfirm}
+        isLoading={isLoadingDeleteData}
+        itemName="Comentario"
+      ></DeleteConfirmationDialog>
     </Box>
   );
 };
