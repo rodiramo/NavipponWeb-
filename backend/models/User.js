@@ -150,13 +150,21 @@ UserSchema.pre("save", async function (next) {
   }
   return next();
 });
-
 UserSchema.methods.generateJWT = async function () {
-  return await sign({ id: this._id }, process.env.JWT_SECRET, {
+  const payload = {
+    id: this._id,
+    admin: this.admin, // ← ADD: Admin status for frontend
+    verified: this.verified, // ← ADD: Verification status for frontend
+    name: this.name, // ← ADD: User name for UI display
+    email: this.email, // ← ADD: Email for profile display
+  };
+
+  console.log("🔵 Generating JWT with enhanced payload:", payload);
+
+  return await sign(payload, process.env.JWT_SECRET, {
     expiresIn: "30d",
   });
 };
-
 UserSchema.methods.comparePassword = async function (enteredPassword) {
   return await compare(enteredPassword, this.password);
 };

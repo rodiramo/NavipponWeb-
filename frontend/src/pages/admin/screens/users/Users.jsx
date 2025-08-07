@@ -43,12 +43,14 @@ import {
 import axios from "axios";
 
 const Users = () => {
-  const { jwt } = useUser();
+  const { jwt, isAdmin, getTokenInfo, tokenInfo, logout } = useUser();
   const queryClient = useQueryClient();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
   console.log("JWT Token:", jwt ? "Present" : "Missing");
+  console.log("Is Admin:", isAdmin);
+  console.log("Token Info:", tokenInfo);
 
   // 🔧 PRODUCTION DIAGNOSTIC FUNCTION
   const runProductionDiagnostic = async () => {
@@ -127,24 +129,15 @@ const Users = () => {
       return;
     }
 
-    try {
-      const payload = JSON.parse(atob(jwt.split(".")[1]));
-      console.log("- Token valid:", true);
-      console.log("- User ID:", payload.id);
-      console.log("- payload.admin:", payload.admin);
-      console.log("- payload.isAdmin:", payload.isAdmin);
-      console.log("- payload.role:", payload.role);
-
-      const isAdmin =
-        payload.admin === true ||
-        payload.isAdmin === true ||
-        payload.role === "admin";
-      console.log("- Computed Is Admin:", isAdmin);
-      console.log("- Expires:", new Date(payload.exp * 1000));
-      console.log("- Is Expired:", payload.exp * 1000 < Date.now());
-      console.log("- Full payload:", payload);
-    } catch (error) {
-      console.error("❌ Invalid JWT token:", error.message);
+    if (tokenInfo) {
+      console.log("- Token valid:", !tokenInfo.isExpired);
+      console.log("- User ID:", tokenInfo.userId);
+      console.log("- Is Admin:", tokenInfo.isAdmin);
+      console.log("- Expires:", tokenInfo.expiresAt.toLocaleString());
+      console.log("- Is Expired:", tokenInfo.isExpired);
+      console.log("- Full payload:", tokenInfo.payload);
+    } else {
+      console.error("❌ Could not parse JWT token");
       return;
     }
 
@@ -260,50 +253,35 @@ const Users = () => {
     }
   }, [jwt]);
 
-  // 🔍 CHECK ADMIN STATUS
-  const checkAdminStatus = () => {
-    try {
-      const payload = JSON.parse(atob(jwt.split(".")[1]));
-      console.log("🔍 Current user from JWT:");
-      console.log("- User ID:", payload.id);
-      console.log("- Is Admin (payload.admin):", payload.admin);
-      console.log("- Is Admin (payload.isAdmin):", payload.isAdmin);
-      console.log("- Token expires:", new Date(payload.exp * 1000));
-      console.log("- Full payload:", payload);
-
-      // Check for admin status in different possible fields
-      const isAdmin =
-        payload.admin === true ||
-        payload.isAdmin === true ||
-        payload.admin === "true" ||
-        payload.isAdmin === "true" ||
-        payload.role === "admin";
-
-      console.log("🔍 Computed admin status:", isAdmin);
-
-      if (!isAdmin) {
-        console.warn(
-          "⚠️ JWT doesn't show admin, but you can change roles, so proceeding anyway..."
-        );
-        // Don't show error since they can actually do admin actions
-      }
-
-      return isAdmin;
-    } catch (error) {
-      console.error("Error parsing JWT:", error);
-      return false;
-    }
-  };
-
   useEffect(() => {
     if (jwt) {
-      checkAdminStatus();
+      console.log("🔍 Current user admin status:", isAdmin);
+      if (!isAdmin) {
+        console.warn(
+          "⚠️ User may not have admin privileges for delete operations"
+        );
+      }
     }
-  }, [jwt]);
+  }, [jwt, isAdmin]);
 
   // 🧪 BYPASS DELETE FUNCTION (uses Railway URL directly)
   const bypassDeleteUser = async (userToDelete) => {
     console.log("🔥 BYPASS DELETE - Using Railway URL directly");
+    console.log("🔥 Current admin status from hook:", isAdmin);
+    console.log("🔥 Token info:", tokenInfo);
+
+    if (!isAdmin) {
+      console.warn(
+        "🔥 ⚠️ Hook says user is not admin - proceeding anyway since you can modify user roles"
+      );
+      toast(
+        "⚠️ JWT no tiene campo admin, pero tienes permisos. Intentando eliminar...",
+        {
+          icon: "⚠️",
+          duration: 3000,
+        }
+      );
+    }
 
     // Since Railway URL works (Status 200), use it directly
     const railwayUrl = "https://navippon.up.railway.app";
@@ -709,23 +687,17 @@ const Users = () => {
 
         <Button
           onClick={() => {
-            console.log(
-              "🔄 Recommending re-login for fresh JWT with admin privileges"
-            );
             if (
               window.confirm(
-                "Tu JWT no tiene permisos de admin. ¿Quieres cerrar sesión y volver a entrar para obtener un token válido?"
+                "¿Quieres cerrar sesión y volver a entrar para obtener un token válido con permisos de admin?"
               )
             ) {
-              // Clear ALL possible auth tokens
-              localStorage.removeItem("jwt"); // useUser hook key
-              sessionStorage.removeItem("jwt"); // useUser hook key
-              localStorage.removeItem("authToken"); // login service key
-              sessionStorage.removeItem("authToken"); // login service key
-
-              console.log("🔄 All tokens cleared, redirecting to login...");
-              // Redirect to login
-              window.location.href = "/login";
+              logout(false); // logout without success message
+              toast("Redirigiendo al login para obtener nuevo token...", {
+                icon: "🔄",
+                duration: 2000,
+              });
+              // Navigate to login will happen automatically in logout
             }
           }}
           variant="contained"
@@ -737,18 +709,25 @@ const Users = () => {
 
         <Button
           onClick={() => {
-            const payload = JSON.parse(atob(jwt.split(".")[1]));
-            console.log("🔍 JWT ANALYSIS:");
-            console.log("Current JWT payload:", payload);
-            console.log("Missing fields needed for admin:");
-            console.log("- admin:", payload.admin, "❌");
-            console.log("- isAdmin:", payload.isAdmin, "❌");
-            console.log("- role:", payload.role, "❌");
+            const info = getTokenInfo();
+            console.log("🔍 COMPLETE TOKEN ANALYSIS:");
+            console.table(info);
 
-            toast("Check console for detailed JWT analysis", {
-              icon: "🔍",
-              duration: 4000,
-            });
+            if (tokenInfo) {
+              console.log("🔍 Current Token Details:");
+              console.log("- User ID:", tokenInfo.userId);
+              console.log("- Is Admin:", tokenInfo.isAdmin);
+              console.log("- Expires:", tokenInfo.expiresAt.toLocaleString());
+              console.log("- Is Expired:", tokenInfo.isExpired);
+            }
+
+            toast(
+              `Admin Status: ${isAdmin ? "YES" : "NO"} | Check console for details`,
+              {
+                icon: "🔍",
+                duration: 4000,
+              }
+            );
           }}
           variant="outlined"
           color="warning"
