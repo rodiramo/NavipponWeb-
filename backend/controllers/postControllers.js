@@ -134,6 +134,7 @@ const createPost = async (req, res, next) => {
 const deletePost = async (req, res, next) => {
   try {
     const post = await Post.findOneAndDelete({ slug: req.params.slug });
+    console.log("Attempting to delete post with ID:", req.params.slug);
 
     if (!post) {
       const error = new Error("Post no encontrado");

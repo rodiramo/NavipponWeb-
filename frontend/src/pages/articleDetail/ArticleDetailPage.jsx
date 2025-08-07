@@ -1075,9 +1075,9 @@ const ArticleDetailPage = (token) => {
                   <Box
                     component="img"
                     src={
-                      data.photo?.startsWith("http")
-                        ? data.photo
-                        : stables.UPLOAD_FOLDER_BASE_URL + data.photo
+                      data?.photo
+                        ? stables.UPLOAD_FOLDER_BASE_URL + data?.photo
+                        : images.samplePostImage
                     }
                     alt={data?.title}
                     sx={{
