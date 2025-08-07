@@ -10,19 +10,49 @@ import {
 export default function useUser() {
   const { user, jwt, setUser, setJWT } = useContext(Context);
   const [state, setState] = useState({ loading: false, error: false });
+  const [isInitializing, setIsInitializing] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token =
-      window.localStorage.getItem("jwt") ||
-      window.sessionStorage.getItem("jwt");
+    const initializeUser = async () => {
+      console.log("🔵 useUser: Initializing user...");
 
-    if (token) {
-      setJWT(token);
-      getUserProfile({ token })
-        .then(setUser)
-        .catch(() => setUser(null));
-    }
+      const token =
+        window.localStorage.getItem("jwt") ||
+        window.sessionStorage.getItem("jwt");
+
+      if (token) {
+        console.log("🔵 useUser: Token found, validating...");
+        setJWT(token);
+
+        try {
+          const userProfile = await getUserProfile({ token });
+          console.log("🔵 useUser: User profile retrieved successfully");
+          setUser(userProfile);
+        } catch (error) {
+          console.error("🔴 useUser: getUserProfile failed:", error);
+          console.log("🔴 useUser: Clearing invalid token and user data");
+
+          // Clear invalid tokens but DON'T redirect
+          window.localStorage.removeItem("jwt");
+          window.sessionStorage.removeItem("jwt");
+          setJWT(null);
+          setUser(null);
+
+          // Only log the error, don't redirect from here
+          console.log("🔴 useUser: Token was invalid, user should login again");
+        }
+      } else {
+        console.log("🔵 useUser: No token found");
+        setUser(null);
+        setJWT(null);
+      }
+
+      setIsInitializing(false);
+      console.log("🔵 useUser: Initialization complete");
+    };
+
+    initializeUser();
   }, [setUser, setJWT]);
 
   const login = useCallback(
@@ -67,6 +97,8 @@ export default function useUser() {
         console.error("🔴 Login error:", error);
         window.sessionStorage.removeItem("jwt");
         window.localStorage.removeItem("jwt");
+        setJWT(null);
+        setUser(null);
         setState({ loading: false, error: true });
       }
     },
@@ -86,15 +118,19 @@ export default function useUser() {
 
         navigate("/user/dashboard");
       } catch (error) {
+        console.error("🔴 Signup error:", error);
         window.sessionStorage.removeItem("jwt");
+        window.localStorage.removeItem("jwt");
+        setJWT(null);
+        setUser(null);
         setState({ loading: false, error: true });
-        console.error(error);
       }
     },
     [setJWT, setUser, navigate]
   );
 
   const logout = useCallback(() => {
+    console.log("🔵 Logging out user");
     window.sessionStorage.removeItem("jwt");
     window.localStorage.removeItem("jwt");
     setJWT(null);
@@ -108,6 +144,7 @@ export default function useUser() {
     isLogged: Boolean(jwt),
     isLoginLoading: state.loading,
     hasLoginError: state.error,
+    isInitializing, // NEW: Expose initialization state
     login,
     signup,
     logout,

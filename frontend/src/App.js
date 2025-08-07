@@ -93,142 +93,124 @@ function App() {
 
   return (
     <ThemeProvider theme={theme}>
-      {/* 🆕 Wrap the entire app with SocialContextProvider */}
-      <SocialContextProvider>
-        <div className="App font-opensans">
-          <ScrollToTop />
-          <Routes>
-            {/* Public Routes */}
-            <Route index path="/" element={<HomePage />} />
-            <Route path="/experience" element={<ExperiencePage />} />
+      <div className="App font-opensans">
+        <ScrollToTop />
+        <Routes>
+          {/* Public Routes */}
+          <Route index path="/" element={<HomePage />} />
+          <Route path="/experience" element={<ExperiencePage />} />
+          <Route path="/experience/:slug" element={<ExperienceDetailPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route
+            path="/reset-password/:token"
+            element={<ResetPasswordPage />}
+          />
+          {/* Blog Routes - Will use ArticleCard with context */}
+          <Route path="/blog" element={<BlogPage />} />
+          <Route path="/blog/:slug" element={<ArticleDetailPage />} />
+          <Route path="/blog/edit/:slug" element={<PostFormPage />} />
+          <Route path="/blog/create" element={<PostFormPage />} />
+          {/* Other Public Routes */}
+          <Route path="/region/:regionName" element={<RegionDetail />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          {/* Profile routes - Will use friends context */}
+          <Route path="/profile/:userId" element={<UserProfilePage />} />
+          {/* Footer Pages */}
+          <Route path="/faq" element={<FAQPage />} />
+          <Route path="/accessibility" element={<AccessibilityPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/terms" element={<TermsPage />} />
+          <Route path="/help" element={<HelpCenterPage />} />
+          <Route path="/sitemap" element={<SiteMapPage />} />
+          {/* Experience Management Routes (Public) */}
+          <Route
+            path="/experiences/manage/edit/:slug"
+            element={<ExperienceForm />}
+          />
+          <Route path="/posts/manage/create" element={<PostFormPage />} />
+          {/* Admin Routes */}
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<Admin />} />
+            <Route path="import" element={<AdminImport />} />
+            <Route path="comments" element={<Comments />} />
+            <Route path="reviews" element={<Reviews />} />
+            <Route path="posts/manage" element={<ManagePosts />} />
+            <Route path="experiences/manage" element={<ManageExperiences />} />
+            <Route path="posts/manage/create" element={<PostFormPage />} />
+            <Route path="posts/manage/edit/:slug" element={<PostFormPage />} />
             <Route
-              path="/experience/:slug"
-              element={<ExperienceDetailPage />}
-            />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-            <Route
-              path="/reset-password/:token"
-              element={<ResetPasswordPage />}
-            />
-            {/* Blog Routes - Will use ArticleCard with context */}
-            <Route path="/blog" element={<BlogPage />} />
-            <Route path="/blog/:slug" element={<ArticleDetailPage />} />
-            <Route path="/blog/edit/:slug" element={<PostFormPage />} />
-            <Route path="/blog/create" element={<PostFormPage />} />
-            {/* Other Public Routes */}
-            <Route path="/region/:regionName" element={<RegionDetail />} />
-            <Route path="/about" element={<AboutPage />} />
-            <Route path="/contact" element={<ContactPage />} />
-            {/* Profile routes - Will use friends context */}
-            <Route path="/profile/:userId" element={<UserProfilePage />} />
-            {/* Footer Pages */}
-            <Route path="/faq" element={<FAQPage />} />
-            <Route path="/accessibility" element={<AccessibilityPage />} />
-            <Route path="/privacy" element={<PrivacyPage />} />
-            <Route path="/terms" element={<TermsPage />} />
-            <Route path="/help" element={<HelpCenterPage />} />
-            <Route path="/sitemap" element={<SiteMapPage />} />
-            {/* Experience Management Routes (Public) */}
-            <Route
-              path="/experiences/manage/edit/:slug"
+              path="experiences/manage/edit/:slug"
               element={<ExperienceForm />}
             />
-            <Route path="/posts/manage/create" element={<PostFormPage />} />
-            {/* Admin Routes */}
-            <Route path="/admin" element={<AdminLayout />}>
-              <Route index element={<Admin />} />
-              <Route path="import" element={<AdminImport />} />
-              <Route path="comments" element={<Comments />} />
-              <Route path="reviews" element={<Reviews />} />
-              <Route path="posts/manage" element={<ManagePosts />} />
-              <Route
-                path="experiences/manage"
-                element={<ManageExperiences />}
-              />
-              <Route path="posts/manage/create" element={<PostFormPage />} />
-              <Route
-                path="posts/manage/edit/:slug"
-                element={<PostFormPage />}
-              />
-              <Route
-                path="experiences/manage/edit/:slug"
-                element={<ExperienceForm />}
-              />
-              <Route
-                path="experiences/manage/create"
-                element={<ExperienceForm />}
-              />
-              <Route path="categories/manage" element={<Categories />} />
-              <Route
-                path="categories/manage/edit/:slug"
-                element={<EditCategories />}
-              />
-              <Route path="users/manage" element={<Users />} />
-              <Route path="emailweb" element={<ManageEmails />} />
-              <Route path="emailweb/:id" element={<EmailDetail />} />
-            </Route>
-            {/* User Dashboard Routes - Will heavily use both contexts */}
-            <Route path="/user" element={<UserLayout />}>
-              <Route index element={<Dashboard />} />
-              <Route path="dashboard" element={<Dashboard />} />
-              <Route path="profile" element={<ProfilePage />} />
-              <Route path="notifications" element={<UserNotificationsPage />} />
+            <Route
+              path="experiences/manage/create"
+              element={<ExperienceForm />}
+            />
+            <Route path="categories/manage" element={<Categories />} />
+            <Route
+              path="categories/manage/edit/:slug"
+              element={<EditCategories />}
+            />
+            <Route path="users/manage" element={<Users />} />
+            <Route path="emailweb" element={<ManageEmails />} />
+            <Route path="emailweb/:id" element={<EmailDetail />} />
+          </Route>
+          {/* User Dashboard Routes - Will heavily use both contexts */}
+          <Route path="/user" element={<UserLayout />}>
+            <Route index element={<Dashboard />} />
+            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="profile" element={<ProfilePage />} />
+            <Route path="notifications" element={<UserNotificationsPage />} />
 
-              {/* Post Management - Will use saved posts context */}
-              <Route path="posts/manage" element={<UserManagePosts />} />
-              <Route path="posts/manage/create" element={<PostFormPage />} />
-              <Route
-                path="posts/manage/edit/:slug"
-                element={<UserEditPost />}
-              />
+            {/* Post Management - Will use saved posts context */}
+            <Route path="posts/manage" element={<UserManagePosts />} />
+            <Route path="posts/manage/create" element={<PostFormPage />} />
+            <Route path="posts/manage/edit/:slug" element={<UserEditPost />} />
 
-              {/* Experience Management */}
-              <Route
-                path="experiences/manage"
-                element={<UserManageExperiences />}
-              />
-              <Route
-                path="experiences/manage/create"
-                element={<ExperienceForm />}
-              />
-              <Route
-                path="experiences/manage/edit/:slug"
-                element={<UserEditExperience />}
-              />
+            {/* Experience Management */}
+            <Route
+              path="experiences/manage"
+              element={<UserManageExperiences />}
+            />
+            <Route
+              path="experiences/manage/create"
+              element={<ExperienceForm />}
+            />
+            <Route
+              path="experiences/manage/edit/:slug"
+              element={<UserEditExperience />}
+            />
 
-              {/* Favorites - Will use saved posts context */}
-              <Route path="favorites/manage" element={<ManageFavorites />} />
+            {/* Favorites - Will use saved posts context */}
+            <Route path="favorites/manage" element={<ManageFavorites />} />
 
-              {/* Itineraries */}
-              <Route
-                path="itineraries/manage"
-                element={<ManageItineraries />}
-              />
-              <Route
-                path="itineraries/manage/create"
-                element={<CreateItinerary />}
-              />
+            {/* Itineraries */}
+            <Route path="itineraries/manage" element={<ManageItineraries />} />
+            <Route
+              path="itineraries/manage/create"
+              element={<CreateItinerary />}
+            />
 
-              <Route
-                path="itineraries/manage/view/:id"
-                element={<ItineraryDetailPage />}
-              />
+            <Route
+              path="itineraries/manage/view/:id"
+              element={<ItineraryDetailPage />}
+            />
 
-              {/* Chat */}
-              <Route path="chat/bot" element={<ChatWithBot />} />
+            {/* Chat */}
+            <Route path="chat/bot" element={<ChatWithBot />} />
 
-              {/* Comments */}
-              <Route path="comments" element={<Comments />} />
-            </Route>
-            {/* 404 Not Found route */}
-            <Route path="/404" element={<NotFound />} /> {/* direct visit */}
-            <Route path="*" element={<Navigate to={`/404`} replace />} />
-          </Routes>
-          <Toaster />
-        </div>
-      </SocialContextProvider>
+            {/* Comments */}
+            <Route path="comments" element={<Comments />} />
+          </Route>
+          {/* 404 Not Found route */}
+          <Route path="/404" element={<NotFound />} /> {/* direct visit */}
+          <Route path="*" element={<Navigate to={`/404`} replace />} />
+        </Routes>
+        <Toaster />
+      </div>
     </ThemeProvider>
   );
 }

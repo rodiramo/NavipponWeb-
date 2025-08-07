@@ -28,6 +28,9 @@ const Review = ({
     affectedReview.type === "editing" &&
     affectedReview._id === review._id;
 
+  // Safe rating value with fallback
+  const safeRating = review.rating ?? 0;
+
   // Navigate to user profile
   const handleUserProfileClick = (e) => {
     e.stopPropagation(); // Prevent event bubbling
@@ -60,7 +63,15 @@ const Review = ({
     console.log("Constructed avatar URL:", avatarUrl);
     console.log("User object:", review.user);
     console.log("User verified status:", review.user.verified);
-  }, [review.user.avatar, review.user.name, avatarUrl, review.user]);
+    console.log("Review rating:", review.rating, "Safe rating:", safeRating);
+  }, [
+    review.user.avatar,
+    review.user.name,
+    avatarUrl,
+    review.user,
+    review.rating,
+    safeRating,
+  ]);
 
   // Handle avatar load error
   const handleAvatarError = () => {
@@ -131,9 +142,9 @@ const Review = ({
                       key={index}
                       style={{
                         color:
-                          index < Math.floor(review.rating)
+                          index < Math.floor(safeRating)
                             ? theme.palette.primary.main
-                            : index < review.rating
+                            : index < safeRating
                               ? theme.palette.primary.main
                               : "#e5e7eb",
                         fontSize: "1.5rem",
@@ -142,7 +153,7 @@ const Review = ({
                     />
                   ))}
                   <span className="ml-2 text-sm font-medium ">
-                    {review.rating.toFixed(1)}
+                    {safeRating.toFixed(1)}
                   </span>
                 </div>
 
@@ -201,7 +212,7 @@ const Review = ({
             formCancelHandler={() => setAffectedReview(null)}
             initialText={review.desc}
             initialTitle={review.title}
-            initialRating={review.rating}
+            initialRating={safeRating}
           />
         </div>
       )}
