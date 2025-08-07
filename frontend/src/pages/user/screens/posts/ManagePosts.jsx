@@ -288,21 +288,6 @@ const ManagePosts = () => {
           ¿Estás seguro de que quieres eliminar la publicación "
           {deleteDialog.post?.title}"?
         </Typography>
-        {debugMode && (
-          <Box sx={{ mt: 2, p: 2, bgcolor: "#f5f5f5", borderRadius: 1 }}>
-            <Typography variant="caption" component="div">
-              <strong>Debug Info:</strong>
-              <br />
-              Slug: {deleteDialog.post?.slug}
-              <br />
-              ID: {deleteDialog.post?._id}
-              <br />
-              JWT: {jwt ? "Present" : "Missing"}
-              <br />
-              User ID: {user?._id}
-            </Typography>
-          </Box>
-        )}
       </DialogContent>
       <DialogActions>
         <Button onClick={() => setDeleteDialog({ open: false, post: null })}>
@@ -541,55 +526,6 @@ const ManagePosts = () => {
       <ErrorSnackbar />
       <SuccessSnackbar />
       <DeleteConfirmationDialog />
-
-      {/* Debug Toggle */}
-      <Box sx={{ position: "fixed", top: 10, right: 10, zIndex: 9999 }}>
-        <Button
-          size="small"
-          variant="outlined"
-          onClick={() => setDebugMode(!debugMode)}
-          sx={{ fontSize: "0.75rem" }}
-        >
-          {debugMode ? "Hide Debug" : "Show Debug"}
-        </Button>
-      </Box>
-
-      {/* Debug Panel */}
-      {debugMode && (
-        <Box
-          sx={{
-            position: "fixed",
-            top: 50,
-            right: 10,
-            width: 300,
-            maxHeight: 400,
-            overflow: "auto",
-            bgcolor: "background.paper",
-            p: 2,
-            border: 1,
-            borderColor: "divider",
-            zIndex: 9998,
-            fontSize: "0.75rem",
-          }}
-        >
-          <Typography variant="h6" gutterBottom>
-            Debug Info
-          </Typography>
-          <Typography variant="body2">
-            JWT: {jwt ? "✅" : "❌"}
-            <br />
-            User ID: {user?._id || "N/A"}
-            <br />
-            Posts Count: {updatedPosts.length}
-            <br />
-            Loading: {isLoading ? "✅" : "❌"}
-            <br />
-            Deleting: {isLoadingDeleteData ? "✅" : "❌"}
-            <br />
-            Custom Deleting: {isCustomDeleting ? "✅" : "❌"}
-          </Typography>
-        </Box>
-      )}
 
       {/* Header */}
       <Box sx={{ mb: { xs: 3, md: 4 }, px: { xs: 2, md: 0 } }}>
