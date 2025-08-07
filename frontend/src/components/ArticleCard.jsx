@@ -127,9 +127,9 @@ const ArticleCard = ({ post, className, currentUser, token, onEdit }) => {
         <Link to={`/blog/${post.slug}`}>
           <img
             src={
-              post.photo
-                ? stables.UPLOAD_FOLDER_BASE_URL + post.photo
-                : images.samplePostImage
+              post.photo?.startsWith("http")
+                ? post.photo
+                : stables.UPLOAD_FOLDER_BASE_URL + post.photo
             }
             alt={post.title}
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
