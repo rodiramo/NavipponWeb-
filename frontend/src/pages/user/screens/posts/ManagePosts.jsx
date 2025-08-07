@@ -11,7 +11,7 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import DataTable from "../../components/DataTable";
 import { useDataTable } from "../../../../hooks/useDataTable";
-import ArticleCard from "../../../../components/ArticleCard"; // Import ArticleCard
+import ArticleCard from "../../../../components/ArticleCard";
 
 import useUser from "../../../../hooks/useUser";
 import {
@@ -49,6 +49,10 @@ import {
   Tab,
   Badge,
   IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
 
 const ManagePosts = () => {
@@ -60,11 +64,18 @@ const ManagePosts = () => {
   // Tab state
   const [currentTab, setCurrentTab] = useState(0);
 
+  // Debug state
+  const [debugMode, setDebugMode] = useState(false);
+  const [deleteDialog, setDeleteDialog] = useState({ open: false, post: null });
+
   // Error state management
   const [error, setError] = useState(null);
   const [showError, setShowError] = useState(false);
   const [success, setSuccess] = useState(null);
   const [showSuccess, setShowSuccess] = useState(false);
+
+  // Custom delete state for manual handling
+  const [isCustomDeleting, setIsCustomDeleting] = useState(false);
 
   // Saved posts state
   const [savedPosts, setSavedPosts] = useState([]);
@@ -84,6 +95,7 @@ const ManagePosts = () => {
     submitSearchKeywordHandler,
     deleteDataHandler,
     setCurrentPage,
+    refetch, // Add refetch if available
   } = useDataTable({
     dataQueryFn: () => {
       try {
@@ -110,11 +122,17 @@ const ManagePosts = () => {
     },
   });
 
-  const [updatedPosts, setUpdatedPosts] = useState(postsData?.data || []);
+  const updatedPosts = postsData?.data || [];
 
+  // Debug logging
   useEffect(() => {
-    setUpdatedPosts(postsData?.data || []);
-  }, [postsData]);
+    console.log("=== COMPONENT STATE DEBUG ===");
+    console.log("JWT token:", jwt ? "Present" : "Missing");
+    console.log("User:", user);
+    console.log("Posts data:", postsData);
+    console.log("Updated posts count:", updatedPosts.length);
+    console.log("Is loading delete:", isLoadingDeleteData);
+  }, [postsData, updatedPosts, jwt, user, isLoadingDeleteData]);
 
   // Load saved posts when tab changes
   useEffect(() => {
@@ -130,7 +148,7 @@ const ManagePosts = () => {
       const response = await getSavedPosts({
         token: jwt,
         page: savedPostsPage,
-        limit: 12, // Increased for better grid layout
+        limit: 12,
       });
       setSavedPosts(response.posts || []);
       setSavedPostsTotal(response.total || 0);
@@ -142,20 +160,6 @@ const ManagePosts = () => {
     }
   };
 
-  // Handle unsaving a post (now handled by ArticleCard internally)
-  const handleUnsavePost = async (postId) => {
-    try {
-      await toggleSavePost({ postId, token: jwt });
-      setSuccess("Publicación eliminada de tus guardados");
-      setShowSuccess(true);
-      // Reload saved posts
-      loadSavedPosts();
-    } catch (err) {
-      setError("Error eliminando de guardados: " + err.message);
-      setShowError(true);
-    }
-  };
-
   // Enhanced error handler
   const handleError = (errorMessage, action = "") => {
     const fullMessage = action ? `${action}: ${errorMessage}` : errorMessage;
@@ -164,15 +168,71 @@ const ManagePosts = () => {
     console.error(fullMessage);
   };
 
-  // Enhanced delete handler with error handling
-  const handleDelete = async (slug) => {
+  // Strategy 1: Using the hook's delete handler
+  const handleDeleteWithHook = async (slug) => {
     try {
+      console.log("=== DELETE WITH HOOK ===");
+      console.log("Slug:", slug);
+
       await deleteDataHandler({ slug });
       setSuccess("Publicación eliminada correctamente");
       setShowSuccess(true);
     } catch (err) {
+      console.error("Hook delete failed:", err);
       handleError(err.message, "Error deleting post");
     }
+  };
+
+  // Strategy 2: Direct API call with manual refetch
+  const handleDeleteDirect = async (slug) => {
+    setIsCustomDeleting(true);
+    try {
+      console.log("=== DELETE DIRECT ===");
+      console.log("Slug:", slug);
+      console.log("Token:", jwt ? "Present" : "Missing");
+
+      // Direct API call
+      const result = await deleteUserPost({ slug, token: jwt });
+      console.log("Delete API result:", result);
+
+      setSuccess("Publicación eliminada correctamente");
+      setShowSuccess(true);
+
+      // Force refetch if available
+      if (typeof refetch === "function") {
+        console.log("Refetching data...");
+        await refetch();
+      } else {
+        console.log("No refetch method available");
+        // Fallback: reload the page
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+      }
+    } catch (err) {
+      console.error("Direct delete failed:", err);
+      console.error("Error details:", {
+        message: err.message,
+        status: err.status,
+        response: err.response,
+      });
+      handleError(err.message || "Unknown error", "Error deleting post");
+    } finally {
+      setIsCustomDeleting(false);
+    }
+  };
+
+  // Strategy 3: Delete with confirmation dialog
+  const handleDeleteWithConfirmation = (post) => {
+    setDeleteDialog({ open: true, post });
+  };
+
+  const confirmDelete = async () => {
+    const post = deleteDialog.post;
+    setDeleteDialog({ open: false, post: null });
+
+    // Try direct delete first
+    await handleDeleteDirect(post.slug);
   };
 
   // Handle tab change
@@ -216,6 +276,49 @@ const ManagePosts = () => {
     </Snackbar>
   );
 
+  // Delete Confirmation Dialog
+  const DeleteConfirmationDialog = () => (
+    <Dialog
+      open={deleteDialog.open}
+      onClose={() => setDeleteDialog({ open: false, post: null })}
+    >
+      <DialogTitle>Confirmar eliminación</DialogTitle>
+      <DialogContent>
+        <Typography>
+          ¿Estás seguro de que quieres eliminar la publicación "
+          {deleteDialog.post?.title}"?
+        </Typography>
+        {debugMode && (
+          <Box sx={{ mt: 2, p: 2, bgcolor: "#f5f5f5", borderRadius: 1 }}>
+            <Typography variant="caption" component="div">
+              <strong>Debug Info:</strong>
+              <br />
+              Slug: {deleteDialog.post?.slug}
+              <br />
+              ID: {deleteDialog.post?._id}
+              <br />
+              JWT: {jwt ? "Present" : "Missing"}
+              <br />
+              User ID: {user?._id}
+            </Typography>
+          </Box>
+        )}
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={() => setDeleteDialog({ open: false, post: null })}>
+          Cancelar
+        </Button>
+        <Button
+          onClick={confirmDelete}
+          color="error"
+          disabled={isCustomDeleting}
+        >
+          {isCustomDeleting ? "Eliminando..." : "Eliminar"}
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+
   // Empty State Component for My Posts
   const MyPostsEmptyState = () => (
     <Container
@@ -236,21 +339,6 @@ const ManagePosts = () => {
             px: { xs: 2, md: 4 },
           }}
         >
-          <Box
-            sx={{
-              width: { xs: 150, sm: 200, md: 250 },
-              height: { xs: 150, sm: 200, md: 250 },
-              mb: { xs: 2, md: 4 },
-            }}
-          >
-            <Box
-              component="img"
-              src="/assets/nothing-here.png"
-              alt="No hay publicaciones"
-              sx={{ width: "100%", height: "100%", objectFit: "contain" }}
-            />
-          </Box>
-
           <Typography
             variant="h4"
             sx={{
@@ -286,89 +374,6 @@ const ManagePosts = () => {
             ¡Comparte tus experiencias, aventuras y conocimientos con otros
             usuarios de la comunidad!
           </Typography>
-        </Box>
-      </Fade>
-    </Container>
-  );
-
-  // Empty State Component for Saved Posts
-  const SavedPostsEmptyState = () => (
-    <Container
-      sx={{
-        background: theme.palette.background.default,
-        width: "100%",
-        height: "100%",
-      }}
-    >
-      <Fade in={true} timeout={600}>
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            textAlign: "center",
-            py: { xs: 4, md: 8 },
-            px: { xs: 2, md: 4 },
-          }}
-        >
-          <Heart
-            size={isMobile ? 60 : 80}
-            color={theme.palette.secondary.main}
-          />
-
-          <Typography
-            variant="h4"
-            sx={{
-              color: theme.palette.primary.main,
-              fontWeight: "bold",
-              mb: 2,
-              fontSize: { xs: "1.5rem", sm: "1.75rem", md: "2.125rem" },
-            }}
-          >
-            No tienes posts guardados
-          </Typography>
-
-          <Typography
-            variant="h6"
-            sx={{
-              color: theme.palette.text.secondary,
-              fontWeight: "medium",
-              mb: 1,
-              fontSize: { xs: "1rem", sm: "1.1rem", md: "1.25rem" },
-            }}
-          >
-            Guarda posts que te interesen
-          </Typography>
-
-          <Typography
-            sx={{
-              color: theme.palette.text.secondary,
-              mb: { xs: 3, md: 4 },
-              fontSize: { xs: "0.875rem", md: "1rem" },
-              maxWidth: { xs: "90%", md: "100%" },
-            }}
-          >
-            Explora la comunidad y guarda los posts que más te gusten para
-            leerlos más tarde.
-          </Typography>
-
-          <Button
-            variant="contained"
-            startIcon={<Search size={20} />}
-            onClick={() => navigate("/blog")}
-            sx={{
-              backgroundColor: theme.palette.secondary.main,
-              color: "white",
-              borderRadius: "30rem",
-              px: { xs: 3, md: 4 },
-              py: { xs: 1.5, md: 2 },
-              fontSize: { xs: "1rem", md: "1.1rem" },
-              fontWeight: "bold",
-              textTransform: "none",
-            }}
-          >
-            Explorar posts
-          </Button>
         </Box>
       </Fade>
     </Container>
@@ -509,8 +514,8 @@ const ManagePosts = () => {
             <Edit size={16} />
           </IconButton>
           <IconButton
-            disabled={isLoadingDeleteData}
-            onClick={() => handleDelete(post?.slug)}
+            disabled={isLoadingDeleteData || isCustomDeleting}
+            onClick={() => handleDeleteWithConfirmation(post)}
             size="small"
             color="error"
             sx={{
@@ -535,6 +540,56 @@ const ManagePosts = () => {
     >
       <ErrorSnackbar />
       <SuccessSnackbar />
+      <DeleteConfirmationDialog />
+
+      {/* Debug Toggle */}
+      <Box sx={{ position: "fixed", top: 10, right: 10, zIndex: 9999 }}>
+        <Button
+          size="small"
+          variant="outlined"
+          onClick={() => setDebugMode(!debugMode)}
+          sx={{ fontSize: "0.75rem" }}
+        >
+          {debugMode ? "Hide Debug" : "Show Debug"}
+        </Button>
+      </Box>
+
+      {/* Debug Panel */}
+      {debugMode && (
+        <Box
+          sx={{
+            position: "fixed",
+            top: 50,
+            right: 10,
+            width: 300,
+            maxHeight: 400,
+            overflow: "auto",
+            bgcolor: "background.paper",
+            p: 2,
+            border: 1,
+            borderColor: "divider",
+            zIndex: 9998,
+            fontSize: "0.75rem",
+          }}
+        >
+          <Typography variant="h6" gutterBottom>
+            Debug Info
+          </Typography>
+          <Typography variant="body2">
+            JWT: {jwt ? "✅" : "❌"}
+            <br />
+            User ID: {user?._id || "N/A"}
+            <br />
+            Posts Count: {updatedPosts.length}
+            <br />
+            Loading: {isLoading ? "✅" : "❌"}
+            <br />
+            Deleting: {isLoadingDeleteData ? "✅" : "❌"}
+            <br />
+            Custom Deleting: {isCustomDeleting ? "✅" : "❌"}
+          </Typography>
+        </Box>
+      )}
 
       {/* Header */}
       <Box sx={{ mb: { xs: 3, md: 4 }, px: { xs: 2, md: 0 } }}>
@@ -552,7 +607,6 @@ const ManagePosts = () => {
             sx={{
               color: theme.palette.primary.main,
               fontWeight: "bold",
-
               fontSize: { xs: "1.75rem", md: "2.125rem" },
             }}
           >
@@ -576,6 +630,7 @@ const ManagePosts = () => {
             {isMobile ? "Nueva publicación" : "Subir nueva publicación"}
           </Button>
         </Box>
+
         {/* Tabs */}
         <Box sx={{ mb: 3, display: "flex", justifyContent: "flex-start" }}>
           <Tabs
@@ -767,8 +822,8 @@ const ManagePosts = () => {
                             <Edit size={16} />
                           </Button>
                           <Button
-                            disabled={isLoadingDeleteData}
-                            onClick={() => handleDelete(post?.slug)}
+                            disabled={isLoadingDeleteData || isCustomDeleting}
+                            onClick={() => handleDeleteWithConfirmation(post)}
                             variant="outlined"
                             size="small"
                             color="error"
@@ -884,10 +939,92 @@ const ManagePosts = () => {
         </>
       ) : (
         <>
-          {/* Show empty state when no saved posts exist */}
+          {/* Saved Posts Tab - Same as before */}
           {savedPosts.length === 0 && !savedPostsLoading ? (
             <Box sx={{ minHeight: "50vh", py: 4 }}>
-              <SavedPostsEmptyState />
+              <Container
+                sx={{
+                  background: theme.palette.background.default,
+                  width: "100%",
+                  height: "100%",
+                }}
+              >
+                <Fade in={true} timeout={600}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      textAlign: "center",
+                      py: { xs: 4, md: 8 },
+                      px: { xs: 2, md: 4 },
+                    }}
+                  >
+                    <Heart
+                      size={isMobile ? 60 : 80}
+                      color={theme.palette.secondary.main}
+                    />
+
+                    <Typography
+                      variant="h4"
+                      sx={{
+                        color: theme.palette.primary.main,
+                        fontWeight: "bold",
+                        mb: 2,
+                        fontSize: {
+                          xs: "1.5rem",
+                          sm: "1.75rem",
+                          md: "2.125rem",
+                        },
+                      }}
+                    >
+                      No tienes posts guardados
+                    </Typography>
+
+                    <Typography
+                      variant="h6"
+                      sx={{
+                        color: theme.palette.text.secondary,
+                        fontWeight: "medium",
+                        mb: 1,
+                        fontSize: { xs: "1rem", sm: "1.1rem", md: "1.25rem" },
+                      }}
+                    >
+                      Guarda posts que te interesen
+                    </Typography>
+
+                    <Typography
+                      sx={{
+                        color: theme.palette.text.secondary,
+                        mb: { xs: 3, md: 4 },
+                        fontSize: { xs: "0.875rem", md: "1rem" },
+                        maxWidth: { xs: "90%", md: "100%" },
+                      }}
+                    >
+                      Explora la comunidad y guarda los posts que más te gusten
+                      para leerlos más tarde.
+                    </Typography>
+
+                    <Button
+                      variant="contained"
+                      startIcon={<Search size={20} />}
+                      onClick={() => navigate("/blog")}
+                      sx={{
+                        backgroundColor: theme.palette.secondary.main,
+                        color: "white",
+                        borderRadius: "30rem",
+                        px: { xs: 3, md: 4 },
+                        py: { xs: 1.5, md: 2 },
+                        fontSize: { xs: "1rem", md: "1.1rem" },
+                        fontWeight: "bold",
+                        textTransform: "none",
+                      }}
+                    >
+                      Explorar posts
+                    </Button>
+                  </Box>
+                </Fade>
+              </Container>
             </Box>
           ) : (
             <Box>
@@ -911,7 +1048,7 @@ const ManagePosts = () => {
                           post={post}
                           currentUser={user}
                           token={jwt}
-                          className="h-full" // Ensure consistent height
+                          className="h-full"
                         />
                       </Grid>
                     ))}
