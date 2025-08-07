@@ -68,58 +68,6 @@ const Users = () => {
     let API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
     console.log("- Raw API_URL:", API_URL);
 
-    // Fix API URL for production
-    if (
-      window.location.hostname === "navippon.com" &&
-      API_URL.includes("localhost")
-    ) {
-      const possibleUrls = [
-        <Button
-          onClick={() => {
-            console.log("🔍 TOKEN STORAGE DEBUG:");
-            console.log(
-              "- localStorage jwt:",
-              localStorage.getItem("jwt") ? "EXISTS" : "MISSING"
-            );
-            console.log(
-              "- sessionStorage jwt:",
-              sessionStorage.getItem("jwt") ? "EXISTS" : "MISSING"
-            );
-            console.log(
-              "- localStorage authToken:",
-              localStorage.getItem("authToken") ? "EXISTS" : "MISSING"
-            );
-            console.log(
-              "- sessionStorage authToken:",
-              sessionStorage.getItem("authToken") ? "EXISTS" : "MISSING"
-            );
-
-            const tokens = {
-              localJWT: localStorage.getItem("jwt"),
-              sessionJWT: sessionStorage.getItem("jwt"),
-              localAuthToken: localStorage.getItem("authToken"),
-              sessionAuthToken: sessionStorage.getItem("authToken"),
-            };
-
-            console.log("🔍 All stored tokens:", tokens);
-
-            toast("Check console for token storage details", {
-              icon: "🔍",
-              duration: 3000,
-            });
-          }}
-          variant="outlined"
-          color="secondary"
-          sx={{ mr: 2 }}
-        >
-          🔍 Debug Tokens
-        </Button>,
-      ];
-      console.log("⚠️ Production site using localhost API URL!");
-      console.log("🔧 Possible production API URLs:", possibleUrls);
-      API_URL = "https://navippon.up.railway.app"; // Use Railway URL
-    }
-
     console.log("- Final API_URL being used:", API_URL);
 
     // 2. JWT Check
@@ -255,10 +203,19 @@ const Users = () => {
 
   useEffect(() => {
     if (jwt) {
-      console.log("🔍 Current user admin status:", isAdmin);
-      if (!isAdmin) {
-        console.warn(
-          "⚠️ User may not have admin privileges for delete operations"
+      console.log("🔍 Frontend admin status (from JWT):", isAdmin);
+      if (isAdmin) {
+        console.log("✅ JWT has admin field - optimal UX and security");
+        console.log("📱 Frontend: Gets admin status immediately from JWT");
+        console.log(
+          "🔒 Backend: Still validates against database for security"
+        );
+      } else {
+        console.log(
+          "⚠️ JWT missing admin field - user might be admin but JWT doesn't reflect it"
+        );
+        console.log(
+          "💡 Backend will still check database, but frontend UX is limited"
         );
       }
     }
@@ -267,21 +224,8 @@ const Users = () => {
   // 🧪 BYPASS DELETE FUNCTION (uses Railway URL directly)
   const bypassDeleteUser = async (userToDelete) => {
     console.log("🔥 BYPASS DELETE - Using Railway URL directly");
-    console.log("🔥 Current admin status from hook:", isAdmin);
+    console.log("🔥 Admin status from JWT:", isAdmin);
     console.log("🔥 Token info:", tokenInfo);
-
-    if (!isAdmin) {
-      console.warn(
-        "🔥 ⚠️ Hook says user is not admin - proceeding anyway since you can modify user roles"
-      );
-      toast(
-        "⚠️ JWT no tiene campo admin, pero tienes permisos. Intentando eliminar...",
-        {
-          icon: "⚠️",
-          duration: 3000,
-        }
-      );
-    }
 
     // Since Railway URL works (Status 200), use it directly
     const railwayUrl = "https://navippon.up.railway.app";
@@ -673,142 +617,6 @@ const Users = () => {
         minHeight: "100vh",
       }}
     >
-      {/* Debug Panel */}
-      <Box sx={{ mb: 2 }}>
-        <Button
-          startIcon={<Bug />}
-          onClick={runProductionDiagnostic}
-          variant="outlined"
-          color="warning"
-          sx={{ mr: 2 }}
-        >
-          Run Production Diagnostic
-        </Button>
-
-        <Button
-          onClick={() => {
-            if (
-              window.confirm(
-                "¿Quieres cerrar sesión y volver a entrar para obtener un token válido con permisos de admin?"
-              )
-            ) {
-              logout(false); // logout without success message
-              toast("Redirigiendo al login para obtener nuevo token...", {
-                icon: "🔄",
-                duration: 2000,
-              });
-              // Navigate to login will happen automatically in logout
-            }
-          }}
-          variant="contained"
-          color="primary"
-          sx={{ mr: 2 }}
-        >
-          🔑 Fix JWT - Re-login
-        </Button>
-
-        <Button
-          onClick={() => {
-            const info = getTokenInfo();
-            console.log("🔍 COMPLETE TOKEN ANALYSIS:");
-            console.table(info);
-
-            if (tokenInfo) {
-              console.log("🔍 Current Token Details:");
-              console.log("- User ID:", tokenInfo.userId);
-              console.log("- Is Admin:", tokenInfo.isAdmin);
-              console.log("- Expires:", tokenInfo.expiresAt.toLocaleString());
-              console.log("- Is Expired:", tokenInfo.isExpired);
-            }
-
-            toast(
-              `Admin Status: ${isAdmin ? "YES" : "NO"} | Check console for details`,
-              {
-                icon: "🔍",
-                duration: 4000,
-              }
-            );
-          }}
-          variant="outlined"
-          color="warning"
-          sx={{ mr: 2 }}
-        >
-          🔍 Analyze JWT
-        </Button>
-
-        <Button
-          onClick={async () => {
-            // Test different API URLs for production
-            const possibleUrls = [
-              "https://navippon.up.railway.app", // Railway production URL
-              "https://api.navippon.com",
-              "https://navippon.com/api",
-              "https://backend.navippon.com",
-              process.env.REACT_APP_API_URL || "http://localhost:5001",
-            ];
-
-            console.log("🧪 TESTING POSSIBLE API URLS:");
-            for (const url of possibleUrls) {
-              try {
-                console.log(`Testing: ${url}/api/users/count`);
-                const response = await fetch(`${url}/api/users/count`, {
-                  method: "GET",
-                  headers: { Authorization: `Bearer ${jwt}` },
-                });
-                console.log(
-                  `- ${url}: Status ${response.status} ${response.ok ? "✅" : "❌"}`
-                );
-                if (response.ok) {
-                  toast.success(`Working API URL: ${url}`);
-                  break;
-                }
-              } catch (error) {
-                console.log(`- ${url}: Failed (${error.message}) ❌`);
-              }
-            }
-          }}
-          variant="outlined"
-          color="secondary"
-          sx={{ mr: 2 }}
-        >
-          Test API URLs
-        </Button>
-
-        <Button
-          onClick={async () => {
-            console.log("🔄 CHECKING BACKEND PROFILE...");
-            try {
-              const response = await fetch(
-                "https://navippon.up.railway.app/api/users/profile",
-                {
-                  method: "GET",
-                  headers: { Authorization: `Bearer ${jwt}` },
-                }
-              );
-
-              if (response.ok) {
-                const userData = await response.json();
-                console.log("🔄 Current user data from backend:", userData);
-                toast(`Backend says admin: ${userData.admin ? "YES" : "NO"}`, {
-                  icon: "🔍",
-                  duration: 4000,
-                });
-              } else {
-                console.error("🔄 Failed to get profile:", response.status);
-                toast.error("No se pudo obtener el perfil del usuario");
-              }
-            } catch (error) {
-              console.error("🔄 Profile request failed:", error);
-              toast.error("Error al obtener perfil: " + error.message);
-            }
-          }}
-          variant="outlined"
-          color="warning"
-        >
-          Check Backend Profile
-        </Button>
-      </Box>
-
       <DataTable
         pageTitle=""
         dataListName="Administrar usuarios"
