@@ -1,3 +1,5 @@
+import Notification from "../models/Notification.js";
+
 import upload from "../middleware/uploadPictureMiddleware.js";
 import cloudinary from "../config/cloudinaryConfig.js";
 import Comment from "../models/Comment.js";

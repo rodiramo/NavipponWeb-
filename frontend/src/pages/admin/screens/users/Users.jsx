@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 import { useDataTable } from "../../../../hooks/useDataTable";
@@ -21,6 +21,7 @@ import {
   Shield,
   ShieldCheck,
   User,
+  Bug,
 } from "lucide-react";
 import {
   useTheme,
@@ -39,6 +40,7 @@ import {
   useMediaQuery,
   Tooltip,
 } from "@mui/material";
+import axios from "axios";
 
 const Users = () => {
   const { jwt } = useUser();
@@ -47,6 +49,327 @@ const Users = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
   console.log("JWT Token:", jwt ? "Present" : "Missing");
+
+  // 🔧 PRODUCTION DIAGNOSTIC FUNCTION
+  const runProductionDiagnostic = async () => {
+    console.log("🔧 PRODUCTION DIAGNOSTIC STARTING...");
+    console.log("================================================");
+
+    // 1. Environment Check
+    console.log("1️⃣ ENVIRONMENT CHECK:");
+    console.log("- NODE_ENV:", process.env.NODE_ENV);
+    console.log("- REACT_APP_API_URL:", process.env.REACT_APP_API_URL);
+    console.log("- Window hostname:", window.location.hostname);
+    console.log("- Window origin:", window.location.origin);
+    console.log("- Current URL:", window.location.href);
+
+    let API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
+    console.log("- Raw API_URL:", API_URL);
+
+    // Fix API URL for production
+    if (
+      window.location.hostname === "navippon.com" &&
+      API_URL.includes("localhost")
+    ) {
+      const possibleUrls = [
+        <Button
+          onClick={() => {
+            console.log("🔍 TOKEN STORAGE DEBUG:");
+            console.log(
+              "- localStorage jwt:",
+              localStorage.getItem("jwt") ? "EXISTS" : "MISSING"
+            );
+            console.log(
+              "- sessionStorage jwt:",
+              sessionStorage.getItem("jwt") ? "EXISTS" : "MISSING"
+            );
+            console.log(
+              "- localStorage authToken:",
+              localStorage.getItem("authToken") ? "EXISTS" : "MISSING"
+            );
+            console.log(
+              "- sessionStorage authToken:",
+              sessionStorage.getItem("authToken") ? "EXISTS" : "MISSING"
+            );
+
+            const tokens = {
+              localJWT: localStorage.getItem("jwt"),
+              sessionJWT: sessionStorage.getItem("jwt"),
+              localAuthToken: localStorage.getItem("authToken"),
+              sessionAuthToken: sessionStorage.getItem("authToken"),
+            };
+
+            console.log("🔍 All stored tokens:", tokens);
+
+            toast("Check console for token storage details", {
+              icon: "🔍",
+              duration: 3000,
+            });
+          }}
+          variant="outlined"
+          color="secondary"
+          sx={{ mr: 2 }}
+        >
+          🔍 Debug Tokens
+        </Button>,
+      ];
+      console.log("⚠️ Production site using localhost API URL!");
+      console.log("🔧 Possible production API URLs:", possibleUrls);
+      API_URL = "https://navippon.up.railway.app"; // Use Railway URL
+    }
+
+    console.log("- Final API_URL being used:", API_URL);
+
+    // 2. JWT Check
+    console.log("\n2️⃣ JWT TOKEN CHECK:");
+    if (!jwt) {
+      console.error("❌ No JWT token found");
+      return;
+    }
+
+    try {
+      const payload = JSON.parse(atob(jwt.split(".")[1]));
+      console.log("- Token valid:", true);
+      console.log("- User ID:", payload.id);
+      console.log("- payload.admin:", payload.admin);
+      console.log("- payload.isAdmin:", payload.isAdmin);
+      console.log("- payload.role:", payload.role);
+
+      const isAdmin =
+        payload.admin === true ||
+        payload.isAdmin === true ||
+        payload.role === "admin";
+      console.log("- Computed Is Admin:", isAdmin);
+      console.log("- Expires:", new Date(payload.exp * 1000));
+      console.log("- Is Expired:", payload.exp * 1000 < Date.now());
+      console.log("- Full payload:", payload);
+    } catch (error) {
+      console.error("❌ Invalid JWT token:", error.message);
+      return;
+    }
+
+    // 3. API Connectivity Test
+    console.log("\n3️⃣ API CONNECTIVITY TEST:");
+    const testEndpoints = [
+      {
+        name: "Railway API",
+        url: `https://navippon.up.railway.app/api/users/count`,
+      },
+      { name: "User Count", url: `${API_URL}/api/users/count` },
+      { name: "Get Users", url: `${API_URL}/api/users?page=1&limit=1` },
+    ];
+
+    for (const endpoint of testEndpoints) {
+      try {
+        console.log(`Testing ${endpoint.name}: ${endpoint.url}`);
+        const response = await fetch(endpoint.url, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${jwt}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        console.log(`- Status: ${response.status}`);
+        console.log(`- OK: ${response.ok}`);
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.log(`- Error response: ${errorText}`);
+        }
+      } catch (error) {
+        console.error(`❌ ${endpoint.name} failed:`, error.message);
+      }
+    }
+
+    // 4. Delete Endpoint Test
+    console.log("\n4️⃣ DELETE ENDPOINT TEST:");
+    const deleteUrl = `https://navippon.up.railway.app/api/users/test-user-id`;
+    console.log("- Delete URL would be:", deleteUrl);
+
+    try {
+      // Don't actually delete, just test if endpoint exists
+      const response = await fetch(deleteUrl, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      console.log("- Delete endpoint status:", response.status);
+      if (response.status === 404) {
+        console.log("✅ Endpoint exists but user not found (expected)");
+      } else if (response.status === 403) {
+        console.log("❌ Forbidden - user lacks admin privileges");
+      } else if (response.status === 401) {
+        console.log("❌ Unauthorized - JWT issue");
+      } else if (response.status === 500) {
+        console.log("⚠️ Server error - backend issue");
+        const errorText = await response.text();
+        console.log("- Server error details:", errorText);
+      } else {
+        console.log("- Response:", await response.text());
+      }
+    } catch (error) {
+      console.error("❌ Delete endpoint test failed:", error.message);
+    }
+
+    console.log("\n================================================");
+    console.log("🔧 DIAGNOSTIC COMPLETE");
+  };
+
+  // 🔍 CHECK API URL AND CONNECTIVITY
+  useEffect(() => {
+    let API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
+
+    // Fix for production
+    if (
+      window.location.hostname === "navippon.com" &&
+      API_URL.includes("localhost")
+    ) {
+      API_URL = "https://navippon.up.railway.app";
+    }
+
+    console.log("🔍 PRODUCTION API URL CHECK:");
+    console.log("🔍 REACT_APP_API_URL:", process.env.REACT_APP_API_URL);
+    console.log("🔍 Final API_URL:", API_URL);
+    console.log("🔍 Environment:", process.env.NODE_ENV);
+    console.log("🔍 Current origin:", window.location.origin);
+
+    // Test if API is reachable
+    if (jwt) {
+      console.log("🔍 Testing API connectivity...");
+      fetch(`${API_URL}/api/users/count`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+        },
+      })
+        .then((response) => {
+          console.log("🔍 API connectivity test:", response.status);
+          if (response.ok) {
+            console.log("✅ API is reachable");
+          } else {
+            console.error("❌ API returned error status:", response.status);
+          }
+        })
+        .catch((error) => {
+          console.error("❌ API connectivity failed:", error.message);
+        });
+    }
+  }, [jwt]);
+
+  // 🔍 CHECK ADMIN STATUS
+  const checkAdminStatus = () => {
+    try {
+      const payload = JSON.parse(atob(jwt.split(".")[1]));
+      console.log("🔍 Current user from JWT:");
+      console.log("- User ID:", payload.id);
+      console.log("- Is Admin (payload.admin):", payload.admin);
+      console.log("- Is Admin (payload.isAdmin):", payload.isAdmin);
+      console.log("- Token expires:", new Date(payload.exp * 1000));
+      console.log("- Full payload:", payload);
+
+      // Check for admin status in different possible fields
+      const isAdmin =
+        payload.admin === true ||
+        payload.isAdmin === true ||
+        payload.admin === "true" ||
+        payload.isAdmin === "true" ||
+        payload.role === "admin";
+
+      console.log("🔍 Computed admin status:", isAdmin);
+
+      if (!isAdmin) {
+        console.warn(
+          "⚠️ JWT doesn't show admin, but you can change roles, so proceeding anyway..."
+        );
+        // Don't show error since they can actually do admin actions
+      }
+
+      return isAdmin;
+    } catch (error) {
+      console.error("Error parsing JWT:", error);
+      return false;
+    }
+  };
+
+  useEffect(() => {
+    if (jwt) {
+      checkAdminStatus();
+    }
+  }, [jwt]);
+
+  // 🧪 BYPASS DELETE FUNCTION (uses Railway URL directly)
+  const bypassDeleteUser = async (userToDelete) => {
+    console.log("🔥 BYPASS DELETE - Using Railway URL directly");
+
+    // Since Railway URL works (Status 200), use it directly
+    const railwayUrl = "https://navippon.up.railway.app";
+
+    try {
+      const deleteUrl = `${railwayUrl}/api/users/${userToDelete._id}`;
+      console.log(`🔥 Using working Railway URL: ${deleteUrl}`);
+
+      const response = await fetch(deleteUrl, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      console.log(`🔥 Railway Response Status: ${response.status}`);
+
+      if (response.ok) {
+        console.log("🔥 ✅ DELETE SUCCESS with Railway!");
+        const responseText = await response.text();
+        console.log("🔥 Response:", responseText);
+
+        queryClient.invalidateQueries(["users"]);
+        toast.success("Usuario eliminado exitosamente");
+        return;
+      } else if (response.status === 500) {
+        // Server error - get details
+        const errorText = await response.text();
+        console.error("🔥 ❌ SERVER ERROR (500):", errorText);
+        toast.error(
+          `Error del servidor: ${errorText || "Error interno del servidor"}`
+        );
+        return;
+      } else if (response.status === 403) {
+        // Forbidden - JWT lacks admin privileges
+        const errorText = await response.text();
+        console.error("🔥 ❌ FORBIDDEN (403):", errorText);
+        toast.error(
+          "No tienes permisos de administrador para eliminar usuarios"
+        );
+        return;
+      } else if (response.status === 401) {
+        // Unauthorized - JWT issue
+        const errorText = await response.text();
+        console.error("🔥 ❌ UNAUTHORIZED (401):", errorText);
+        toast.error("Token de autenticación inválido");
+        return;
+      } else if (response.status === 404) {
+        // User not found
+        const errorText = await response.text();
+        console.error("🔥 ❌ NOT FOUND (404):", errorText);
+        toast.error("Usuario no encontrado");
+        return;
+      } else {
+        // Other error
+        const errorText = await response.text();
+        console.error(`🔥 ❌ ERROR (${response.status}):`, errorText);
+        toast.error(`Error ${response.status}: ${errorText}`);
+        return;
+      }
+    } catch (error) {
+      console.error("🔥 ❌ NETWORK ERROR:", error.message);
+      toast.error(`Error de conexión: ${error.message}`);
+    }
+  };
 
   // Mutation for updating admin status
   const { mutate: mutateUpdateUser, isLoading: isLoadingUpdateUser } =
@@ -57,7 +380,6 @@ const Users = () => {
           userId: String(userId),
           token: jwt,
         });
-        // Fix: Call with correct parameter order (userId, userData, token)
         return updateProfile(String(userId), { admin: isAdmin }, jwt);
       },
       onSuccess: (data) => {
@@ -80,7 +402,6 @@ const Users = () => {
           userId: String(userId),
           token: jwt,
         });
-        // Fix: Call with correct parameter order (userId, userData, token)
         return updateProfile(String(userId), { verified: isVerified }, jwt);
       },
       onSuccess: (data) => {
@@ -145,6 +466,12 @@ const Users = () => {
     deleteDataMessage: "Usuario eliminado",
     mutateDeleteFn: ({ slug, token }) => deleteUser({ slug, token }),
   });
+
+  // Debug useDataTable hook
+  console.log("🔍 useDataTable hook values:");
+  console.log("🔍 deleteDataHandler type:", typeof deleteDataHandler);
+  console.log("🔍 isLoadingDeleteData:", isLoadingDeleteData);
+  console.log("🔍 usersData:", usersData);
 
   // Check if JWT is missing or invalid
   if (!jwt) {
@@ -324,9 +651,23 @@ const Users = () => {
           <Button
             disabled={isLoadingDeleteData}
             startIcon={<Trash2 size={16} />}
-            onClick={() =>
-              deleteDataHandler({ slug: userItem._id, token: jwt })
-            }
+            onClick={() => {
+              console.log("🔴 MOBILE DELETE BUTTON CLICKED");
+              console.log("🔴 User to delete:", userItem);
+              console.log("🔴 User ID:", userItem._id);
+              console.log("🔴 JWT exists:", !!jwt);
+
+              if (
+                window.confirm(
+                  `¿Estás seguro de que quieres eliminar a ${userItem.name}?`
+                )
+              ) {
+                console.log("🔴 DELETE CONFIRMED - Calling bypassDeleteUser");
+                bypassDeleteUser(userItem);
+              } else {
+                console.log("🔴 DELETE CANCELLED");
+              }
+            }}
             sx={{
               color: theme.palette.error.main,
               borderColor: theme.palette.error.main,
@@ -354,6 +695,141 @@ const Users = () => {
         minHeight: "100vh",
       }}
     >
+      {/* Debug Panel */}
+      <Box sx={{ mb: 2 }}>
+        <Button
+          startIcon={<Bug />}
+          onClick={runProductionDiagnostic}
+          variant="outlined"
+          color="warning"
+          sx={{ mr: 2 }}
+        >
+          Run Production Diagnostic
+        </Button>
+
+        <Button
+          onClick={() => {
+            console.log(
+              "🔄 Recommending re-login for fresh JWT with admin privileges"
+            );
+            if (
+              window.confirm(
+                "Tu JWT no tiene permisos de admin. ¿Quieres cerrar sesión y volver a entrar para obtener un token válido?"
+              )
+            ) {
+              // Clear ALL possible auth tokens
+              localStorage.removeItem("jwt"); // useUser hook key
+              sessionStorage.removeItem("jwt"); // useUser hook key
+              localStorage.removeItem("authToken"); // login service key
+              sessionStorage.removeItem("authToken"); // login service key
+
+              console.log("🔄 All tokens cleared, redirecting to login...");
+              // Redirect to login
+              window.location.href = "/login";
+            }
+          }}
+          variant="contained"
+          color="primary"
+          sx={{ mr: 2 }}
+        >
+          🔑 Fix JWT - Re-login
+        </Button>
+
+        <Button
+          onClick={() => {
+            const payload = JSON.parse(atob(jwt.split(".")[1]));
+            console.log("🔍 JWT ANALYSIS:");
+            console.log("Current JWT payload:", payload);
+            console.log("Missing fields needed for admin:");
+            console.log("- admin:", payload.admin, "❌");
+            console.log("- isAdmin:", payload.isAdmin, "❌");
+            console.log("- role:", payload.role, "❌");
+
+            toast("Check console for detailed JWT analysis", {
+              icon: "🔍",
+              duration: 4000,
+            });
+          }}
+          variant="outlined"
+          color="warning"
+          sx={{ mr: 2 }}
+        >
+          🔍 Analyze JWT
+        </Button>
+
+        <Button
+          onClick={async () => {
+            // Test different API URLs for production
+            const possibleUrls = [
+              "https://navippon.up.railway.app", // Railway production URL
+              "https://api.navippon.com",
+              "https://navippon.com/api",
+              "https://backend.navippon.com",
+              process.env.REACT_APP_API_URL || "http://localhost:5001",
+            ];
+
+            console.log("🧪 TESTING POSSIBLE API URLS:");
+            for (const url of possibleUrls) {
+              try {
+                console.log(`Testing: ${url}/api/users/count`);
+                const response = await fetch(`${url}/api/users/count`, {
+                  method: "GET",
+                  headers: { Authorization: `Bearer ${jwt}` },
+                });
+                console.log(
+                  `- ${url}: Status ${response.status} ${response.ok ? "✅" : "❌"}`
+                );
+                if (response.ok) {
+                  toast.success(`Working API URL: ${url}`);
+                  break;
+                }
+              } catch (error) {
+                console.log(`- ${url}: Failed (${error.message}) ❌`);
+              }
+            }
+          }}
+          variant="outlined"
+          color="secondary"
+          sx={{ mr: 2 }}
+        >
+          Test API URLs
+        </Button>
+
+        <Button
+          onClick={async () => {
+            console.log("🔄 CHECKING BACKEND PROFILE...");
+            try {
+              const response = await fetch(
+                "https://navippon.up.railway.app/api/users/profile",
+                {
+                  method: "GET",
+                  headers: { Authorization: `Bearer ${jwt}` },
+                }
+              );
+
+              if (response.ok) {
+                const userData = await response.json();
+                console.log("🔄 Current user data from backend:", userData);
+                toast(`Backend says admin: ${userData.admin ? "YES" : "NO"}`, {
+                  icon: "🔍",
+                  duration: 4000,
+                });
+              } else {
+                console.error("🔄 Failed to get profile:", response.status);
+                toast.error("No se pudo obtener el perfil del usuario");
+              }
+            } catch (error) {
+              console.error("🔄 Profile request failed:", error);
+              toast.error("Error al obtener perfil: " + error.message);
+            }
+          }}
+          variant="outlined"
+          color="warning"
+        >
+          Check Backend Profile
+        </Button>
+      </Box>
+
       <DataTable
         pageTitle=""
         dataListName="Administrar usuarios"
@@ -531,7 +1007,6 @@ const Users = () => {
                     disabled={isLoadingUpdateUser}
                     sx={{
                       borderRadius: 30,
-
                       "& .MuiOutlinedInput-notchedOutline": {
                         borderColor: theme.palette.primary.main,
                       },
@@ -569,9 +1044,25 @@ const Users = () => {
                 <Button
                   disabled={isLoadingDeleteData}
                   startIcon={<Trash2 size={16} />}
-                  onClick={() =>
-                    deleteDataHandler({ slug: userItem._id, token: jwt })
-                  }
+                  onClick={() => {
+                    console.log("🔴 DESKTOP DELETE BUTTON CLICKED");
+                    console.log("🔴 User to delete:", userItem);
+                    console.log("🔴 User ID:", userItem._id);
+                    console.log("🔴 JWT exists:", !!jwt);
+
+                    if (
+                      window.confirm(
+                        `¿Estás seguro de que quieres eliminar a ${userItem.name}?`
+                      )
+                    ) {
+                      console.log(
+                        "🔴 DELETE CONFIRMED - Calling bypassDeleteUser"
+                      );
+                      bypassDeleteUser(userItem);
+                    } else {
+                      console.log("🔴 DELETE CANCELLED");
+                    }
+                  }}
                   sx={{
                     color: theme.palette.error.main,
                     borderColor: theme.palette.error.main,
