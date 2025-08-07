@@ -168,7 +168,7 @@ const ManagePosts = () => {
   const handleDelete = async (slug) => {
     try {
       await deleteDataHandler({ slug });
-      setSuccess("Post deleted successfully");
+      setSuccess("Publicación eliminada correctamente");
       setShowSuccess(true);
     } catch (err) {
       handleError(err.message, "Error deleting post");
