@@ -717,7 +717,8 @@ const ManagePosts = () => {
                                 size="small"
                                 label={tag}
                                 sx={{
-                                  backgroundColor: theme.palette.secondary.main,
+                                  backgroundColor:
+                                    theme.palette.secondary.medium,
                                   color: "white",
                                 }}
                               />
@@ -898,7 +899,7 @@ const ManagePosts = () => {
                   >
                     <Heart
                       size={isMobile ? 60 : 80}
-                      color={theme.palette.secondary.main}
+                      color={theme.palette.secondary.medium}
                     />
 
                     <Typography
@@ -907,6 +908,7 @@ const ManagePosts = () => {
                         color: theme.palette.primary.main,
                         fontWeight: "bold",
                         mb: 2,
+                        mt: 2,
                         fontSize: {
                           xs: "1.5rem",
                           sm: "1.75rem",
@@ -914,7 +916,7 @@ const ManagePosts = () => {
                         },
                       }}
                     >
-                      No tienes posts guardados
+                      No tienes publicaciones guardadas
                     </Typography>
 
                     <Typography
@@ -926,7 +928,7 @@ const ManagePosts = () => {
                         fontSize: { xs: "1rem", sm: "1.1rem", md: "1.25rem" },
                       }}
                     >
-                      Guarda posts que te interesen
+                      Guarda publicaciones que te interesen
                     </Typography>
 
                     <Typography
@@ -946,7 +948,7 @@ const ManagePosts = () => {
                       startIcon={<Search size={20} />}
                       onClick={() => navigate("/blog")}
                       sx={{
-                        backgroundColor: theme.palette.secondary.main,
+                        backgroundColor: theme.palette.primary.main,
                         color: "white",
                         borderRadius: "30rem",
                         px: { xs: 3, md: 4 },
@@ -956,7 +958,7 @@ const ManagePosts = () => {
                         textTransform: "none",
                       }}
                     >
-                      Explorar posts
+                      Explorar publicaciones
                     </Button>
                   </Box>
                 </Fade>
