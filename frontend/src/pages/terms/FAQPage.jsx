@@ -362,7 +362,7 @@ const FAQPage = () => {
                 background: `linear-gradient(135deg, ${theme.palette.primary.main})`,
               }}
             >
-              Contactar Soporte
+              Contactar soporte
             </Button>
           </Box>
         </Paper>

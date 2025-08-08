@@ -16,7 +16,7 @@ const TermsPage = () => {
   const sections = [
     {
       id: "acceptance",
-      title: "1. Aceptación de los Términos",
+      title: "1. Aceptación de los términos",
       icon: <Gavel />,
       content: `Al acceder y utilizar Navippon ("la Plataforma"), usted acepta cumplir con estos Términos de Uso y todas las leyes y regulaciones aplicables. Si no está de acuerdo con alguno de estos términos, no debe utilizar nuestros servicios.
 
@@ -24,7 +24,7 @@ Estos términos constituyen un acuerdo legal vinculante entre usted y Navippon. 
     },
     {
       id: "services",
-      title: "2. Descripción del Servicio",
+      title: "2. Descripción del servicio",
       icon: <Business />,
       content: `Navippon es una plataforma digital que permite a los usuarios:
       
@@ -37,7 +37,7 @@ Navippon actúa como un servicio de información y planificación. No somos una 
     },
     {
       id: "user-responsibilities",
-      title: "3. Responsabilidades del Usuario",
+      title: "3. Responsabilidades del usuario",
       icon: <Person />,
       content: `Al utilizar Navippon, usted se compromete a:
 
@@ -67,7 +67,7 @@ Los usuarios que contribuyan con contenido (reseñas, fotos, comentarios) otorga
     },
     {
       id: "prohibited-uses",
-      title: "5. Usos Prohibidos",
+      title: "5. Usos prohibidos",
       icon: <Security />,
       content: `Está prohibido utilizar Navippon para:
 
@@ -84,7 +84,7 @@ Nos reservamos el derecho de suspender o terminar cuentas que violen estas restr
     },
     {
       id: "disclaimers",
-      title: "6. Exenciones de Responsabilidad",
+      title: "6. Exenciones de responsabilidad",
       icon: <Info />,
       content: `Navippon se proporciona "tal como está" sin garantías de ningún tipo. No garantizamos:
 
@@ -103,7 +103,7 @@ Los usuarios deben verificar toda la información independientemente antes de ha
     },
     {
       id: "limitation-liability",
-      title: "7. Limitación de Responsabilidad",
+      title: "7. Limitación de responsabilidad",
       icon: <Shield />,
       content: `En la máxima medida permitida por la ley, Navippon no será responsable de:
 
@@ -134,13 +134,39 @@ Usted puede terminar su cuenta en cualquier momento contactándonos. Tras la ter
     },
     {
       id: "governing-law",
-      title: "9. Ley Aplicable y Jurisdicción",
+      title: "9. Ley aplicable y jurisdicción",
       icon: <Gavel />,
       content: `Estos Términos de Uso se rigen por las leyes de España, sin tener en cuenta los principios de conflicto de leyes.
 
 Cualquier disputa relacionada con estos términos será sometida a la jurisdicción exclusiva de los tribunales de Madrid, España.
 
 Si alguna disposición de estos términos se considera inválida o inaplicable, las disposiciones restantes permanecerán en pleno vigor y efecto.`,
+    },
+    {
+      id: "ai-generated-images",
+      title: "10. Imágenes generadas por IA",
+      icon: <Gavel />,
+      content: `Las imágenes utilizadas en Navippon son generadas mediante inteligencia artificial (IA).
+
+Al utilizar nuestra plataforma, usted reconoce y acepta que:
+• Las imágenes no representan necesariamente personas, lugares o eventos reales
+• Pueden contener variaciones, imprecisiones o elementos ficticios
+• No se debe interpretar el contenido visual como un hecho comprobado
+
+Todo uso, reproducción o distribución de dichas imágenes debe cumplir con nuestras políticas y con la legislación vigente. Nos reservamos el derecho de modificar, actualizar o retirar imágenes en cualquier momento por razones técnicas, legales o de moderación.`,
+    },
+    {
+      id: "intellectual-property",
+      title: "11. Propiedad intelectual y uso de imágenes",
+      icon: <Gavel />,
+      content: `Los derechos de uso de las imágenes generadas por IA en Navippon pertenecen a la plataforma, salvo indicación contraria.
+
+Queda prohibido:
+• Utilizar las imágenes con fines ilegales, difamatorios o engañosos
+• Presentar las imágenes como material fotográfico auténtico sin indicar su origen IA
+• Revender o redistribuir las imágenes sin nuestro consentimiento escrito
+
+En caso de uso indebido, podremos tomar medidas legales o técnicas para proteger nuestros derechos y los de terceros.`,
     },
   ];
 
@@ -183,7 +209,7 @@ Si alguna disposición de estos términos se considera inválida o inaplicable, 
               fontSize: { xs: "2.5rem", md: "3.5rem" },
             }}
           >
-            Términos de Uso
+            Términos de uso
           </Typography>
 
           <Typography
