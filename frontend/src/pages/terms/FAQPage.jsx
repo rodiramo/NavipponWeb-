@@ -181,7 +181,7 @@ const FAQPage = () => {
               fontSize: { xs: "2.5rem", md: "3.5rem" },
             }}
           >
-            Preguntas Frecuentes
+            Preguntas frecuentes
           </Typography>
           <Typography
             variant="h5"

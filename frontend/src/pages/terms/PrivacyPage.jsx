@@ -32,23 +32,23 @@ const PrivacyPage = () => {
 
   const dataTypes = [
     {
-      type: "Información de Cuenta",
+      type: "Información de cuenta",
       data: "Nombre, email, contraseña (encriptada)",
     },
     {
-      type: "Información de Perfil",
+      type: "Información de perfil",
       data: "Foto de perfil, preferencias de viaje",
     },
     {
-      type: "Datos de Uso",
+      type: "Datos de uso",
       data: "Páginas visitadas, tiempo en el sitio, clics",
     },
     {
-      type: "Información Técnica",
+      type: "Información técnica",
       data: "Dirección IP, tipo de navegador, dispositivo",
     },
     {
-      type: "Datos de Itinerarios",
+      type: "Datos de itinerarios",
       data: "Destinos, fechas, experiencias seleccionadas",
     },
     {
@@ -95,7 +95,7 @@ const PrivacyPage = () => {
       id: "introduction",
       title: "1. Introducción",
       icon: <PrivacyTip />,
-      content: `En Navippon, respetamos su privacidad y nos comprometemos a proteger sus datos personales. Esta Política de Privacidad explica cómo recopilamos, utilizamos, almacenamos y protegemos su información cuando utiliza nuestra plataforma.
+      content: `En Navippon, respetamos su privacidad y nos comprometemos a proteger sus datos personales. Esta política de privacidad explica cómo recopilamos, utilizamos, almacenamos y protegemos su información cuando utiliza nuestra plataforma.
 
 Esta política cumple con el Reglamento General de Protección de Datos (GDPR), la Ley Orgánica de Protección de Datos Personales y garantía de los derechos digitales (LOPDGDD) y otras leyes de privacidad aplicables.
 
@@ -103,7 +103,7 @@ Al utilizar Navippon, usted acepta las prácticas descritas en esta política.`,
     },
     {
       id: "data-controller",
-      title: "2. Responsable del Tratamiento",
+      title: "2. Responsable del tratamiento",
       icon: <Security />,
       content: `Responsable del tratamiento:
 Navippon S.L.
@@ -115,7 +115,7 @@ Para cualquier consulta relacionada con la privacidad de sus datos, puede contac
     },
     {
       id: "data-collection",
-      title: "3. Información que Recopilamos",
+      title: "3. Información que recopilamos",
       icon: <DataUsage />,
       content: `Recopilamos información de las siguientes maneras:
 
@@ -179,7 +179,7 @@ Información de terceros:
               fontSize: { xs: "2.5rem", md: "3.5rem" },
             }}
           >
-            Política de Privacidad
+            Política de privacidad
           </Typography>
 
           <Typography
@@ -320,7 +320,7 @@ Información de terceros:
                 variant="h5"
                 sx={{ fontWeight: 700, color: theme.palette.text.primary }}
               >
-                4. Tipos de Datos que Procesamos
+                4. Tipos de datos que procesamos
               </Typography>
             </Box>
           </Box>
@@ -397,7 +397,7 @@ Información de terceros:
                 variant="h5"
                 sx={{ fontWeight: 700, color: theme.palette.text.primary }}
               >
-                5. Cómo Utilizamos sus Datos
+                5. Cómo utilizamos sus datos
               </Typography>
             </Box>
           </Box>
@@ -468,7 +468,7 @@ Información de terceros:
                 variant="h5"
                 sx={{ fontWeight: 700, color: theme.palette.text.primary }}
               >
-                6. Sus Derechos como Usuario
+                6. Sus derechos como usuario
               </Typography>
             </Box>
           </Box>
@@ -554,7 +554,7 @@ Información de terceros:
                 variant="h5"
                 sx={{ fontWeight: 700, color: theme.palette.text.primary }}
               >
-                7. Cookies y Tecnologías de Seguimiento
+                7. Cookies y tecnologías de seguimiento
               </Typography>
             </Box>
           </Box>
@@ -574,19 +574,19 @@ Información de terceros:
             >
               {[
                 {
-                  type: "Cookies Esenciales",
+                  type: "Cookies esenciales",
                   purpose: "Necesarias para el funcionamiento básico del sitio",
                 },
                 {
-                  type: "Cookies de Análisis",
+                  type: "Cookies de análisis",
                   purpose: "Para entender cómo usa nuestro sitio web",
                 },
                 {
-                  type: "Cookies de Preferencias",
+                  type: "Cookies de preferencias",
                   purpose: "Para recordar sus configuraciones y preferencias",
                 },
                 {
-                  type: "Cookies de Marketing",
+                  type: "Cookies de marketing",
                   purpose: "Para mostrar contenido relevante y personalizado",
                 },
               ].map((cookie, index) => (
@@ -637,7 +637,7 @@ Información de terceros:
           />
 
           <Typography variant="h4" sx={{ fontWeight: 700, mb: 2 }}>
-            ¿Preguntas sobre Privacidad?
+            ¿Preguntas sobre privacidad?
           </Typography>
 
           <Typography

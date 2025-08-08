@@ -40,8 +40,8 @@ const HelpCenterPage = () => {
   const helpCategories = [
     {
       id: "getting-started",
-      title: "Primeros Pasos",
-
+      title: "Primeros pasos",
+      icon: <PlayCircle />,
       color: theme.palette.primary.main,
       description:
         "Todo lo que necesitas para comenzar tu aventura en Navippon",
@@ -68,7 +68,7 @@ const HelpCenterPage = () => {
     },
     {
       id: "itineraries",
-      title: "Gestión de Itinerarios",
+      title: "Gestión de itinerarios",
       icon: <Map />,
       color: theme.palette.secondary.main,
       description: "Aprende a crear y gestionar tus planes de viaje perfectos",
@@ -99,7 +99,7 @@ const HelpCenterPage = () => {
     },
     {
       id: "experiences",
-      title: "Experiencias y Reservas",
+      title: "Experiencias y reservas",
       icon: <Attractions />,
       color: theme.palette.success.main,
       description:
@@ -130,7 +130,7 @@ const HelpCenterPage = () => {
     },
     {
       id: "account",
-      title: "Mi Cuenta",
+      title: "Mi cuenta",
       icon: <Person />,
       color: theme.palette.info.main,
       description:
@@ -153,7 +153,7 @@ const HelpCenterPage = () => {
     },
     {
       id: "troubleshooting",
-      title: "Solución de Problemas",
+      title: "Solución de problemas",
       icon: <Settings />,
       color: theme.palette.warning.main,
       description: "Resuelve problemas comunes y errores técnicos",
@@ -180,7 +180,7 @@ const HelpCenterPage = () => {
     },
     {
       id: "advanced",
-      title: "Funciones Avanzadas",
+      title: "Funciones avanzadas",
       icon: <Lightbulb />,
       color: theme.palette.error.main,
       description: "Aprovecha al máximo todas las características de Navippon",
@@ -208,25 +208,25 @@ const HelpCenterPage = () => {
 
   const quickActions = [
     {
-      title: "Crear Cuenta",
+      title: "Crear cuenta",
       icon: <Person />,
       url: "/register",
       color: theme.palette.primary.main,
     },
     {
-      title: "Explorar Experiencias",
+      title: "Explorar experiencias",
       icon: <Attractions />,
       url: "/experience",
       color: theme.palette.secondary.main,
     },
     {
-      title: "Crear Itinerario",
+      title: "Crear itinerario",
       icon: <Map />,
       url: "/itinerarios",
       color: theme.palette.success.main,
     },
     {
-      title: "Contactar Soporte",
+      title: "Contactar soporte",
       icon: <Phone />,
       url: "/contact",
       color: theme.palette.warning.main,
@@ -235,7 +235,7 @@ const HelpCenterPage = () => {
 
   const popularGuides = [
     {
-      title: "Guía Completa: Tu Primer Viaje a Japón",
+      title: "Guía completa: Tu primer viaje a Japón",
       description:
         "Todo lo que necesitas saber para planificar tu primera visita a Japón",
       time: "15 min",
@@ -244,7 +244,7 @@ const HelpCenterPage = () => {
       rating: 4.9,
     },
     {
-      title: "Cómo Crear el Itinerario Perfecto",
+      title: "Cómo crear el itinerario perfecto",
       description: "Consejos profesionales para optimizar tu plan de viaje",
       time: "12 min",
       difficulty: "Intermedio",
@@ -252,7 +252,7 @@ const HelpCenterPage = () => {
       rating: 4.8,
     },
     {
-      title: "Reservar Experiencias como un Experto",
+      title: "Reservar experiencias como un experto",
       description: "Estrategias para conseguir las mejores reservas en Japón",
       time: "10 min",
       difficulty: "Intermedio",
@@ -321,7 +321,7 @@ const HelpCenterPage = () => {
               fontSize: { xs: "2.5rem", md: "3.5rem" },
             }}
           >
-            Centro de Ayuda
+            Centro de ayuda
           </Typography>
 
           <Typography
@@ -412,7 +412,7 @@ const HelpCenterPage = () => {
             variant="h5"
             sx={{ fontWeight: 700, mb: 3, color: theme.palette.secondary.main }}
           >
-            Acciones Rápidas
+            Acciones rápidas
           </Typography>
 
           <Grid container spacing={2}>
@@ -479,7 +479,7 @@ const HelpCenterPage = () => {
               variant="h5"
               sx={{ fontWeight: 700, color: theme.palette.warning.main }}
             >
-              Guías Más Populares
+              Guías más populares
             </Typography>
             <Chip
               label="Trending"
@@ -574,7 +574,7 @@ const HelpCenterPage = () => {
           variant="h4"
           sx={{ fontWeight: 700, mb: 4, color: theme.palette.text.primary }}
         >
-          Categorías de Ayuda
+          Categorías de ayuda
         </Typography>
 
         <Grid container spacing={4}>
@@ -775,7 +775,7 @@ const HelpCenterPage = () => {
                 textTransform: "none",
               }}
             >
-              Contactar Soporte
+              Contactar soporte
             </Button>
           </Paper>
         )}
@@ -823,7 +823,7 @@ const HelpCenterPage = () => {
                 background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
               }}
             >
-              Enviar Email
+              Enviar email
             </Button>
 
             <Button
@@ -840,7 +840,7 @@ const HelpCenterPage = () => {
                 color: theme.palette.primary.main,
               }}
             >
-              Chat en Vivo
+              Chat en vivo
             </Button>
 
             <Button
@@ -857,7 +857,7 @@ const HelpCenterPage = () => {
                 color: theme.palette.secondary.main,
               }}
             >
-              Llamar Ahora
+              Llamar ahora
             </Button>
           </Box>
         </Paper>

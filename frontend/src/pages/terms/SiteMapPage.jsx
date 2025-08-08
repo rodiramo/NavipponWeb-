@@ -52,7 +52,7 @@ const SiteMapPage = () => {
   const siteStructure = [
     {
       id: "main",
-      title: "Páginas Principales",
+      title: "Páginas principales",
       icon: <Home />,
       color: theme.palette.primary.main,
       pages: [
@@ -63,19 +63,19 @@ const SiteMapPage = () => {
           icon: <Home />,
         },
         {
-          title: "Explorar Experiencias",
+          title: "Explorar experiencias",
           url: "/experience",
           description: "Descubre hoteles, restaurantes y atracciones",
           icon: <Explore />,
         },
         {
-          title: "Mis Itinerarios",
+          title: "Mis itinerarios",
           url: "/itinerarios",
           description: "Gestiona tus planes de viaje",
           icon: <Map />,
         },
         {
-          title: "Acerca de Nosotros",
+          title: "Acerca de nosotros",
           url: "/about",
           description: "Conoce más sobre Navippon",
           icon: <Info />,
@@ -90,7 +90,7 @@ const SiteMapPage = () => {
     },
     {
       id: "experiences",
-      title: "Categorías de Experiencias",
+      title: "Categorías de experiencias",
       icon: <Explore />,
       color: theme.palette.secondary.main,
       pages: [
@@ -138,7 +138,7 @@ const SiteMapPage = () => {
           title: "Kanto",
           url: "/region/Kanto",
           description:
-            "El corazón moderno de Japón con Tokio, cultura pop y innovación tecnológica",
+            "El corazón moderno de Japón con Tokio, cultura pop e innovación tecnológica",
           icon: <Map />,
         },
         {
@@ -180,12 +180,12 @@ const SiteMapPage = () => {
     },
     {
       id: "user",
-      title: "Área de Usuario",
+      title: "Área de usuario",
       icon: <Person />,
       color: theme.palette.success.main,
       pages: [
         {
-          title: "Mi Perfil",
+          title: "Mi perfil",
           url: "/profile",
           description: "Gestiona tu información personal",
           icon: <Person />,
@@ -197,13 +197,13 @@ const SiteMapPage = () => {
           icon: <Settings />,
         },
         {
-          title: "Mis Favoritos",
+          title: "Mis favoritos",
           url: "/profile/favorites",
           description: "Experiencias que has marcado como favoritas",
           icon: <Favorite />,
         },
         {
-          title: "Historial de Itinerarios",
+          title: "Historial de itinerarios",
           url: "/profile/itineraries",
           description: "Todos tus planes de viaje",
           icon: <Navigation />,
@@ -217,7 +217,7 @@ const SiteMapPage = () => {
       color: theme.palette.info.main,
       pages: [
         {
-          title: "Iniciar Sesión",
+          title: "Iniciar sesión",
           url: "/login",
           description: "Accede a tu cuenta",
           icon: <Login />,
@@ -229,7 +229,7 @@ const SiteMapPage = () => {
           icon: <PersonAdd />,
         },
         {
-          title: "Recuperar Contraseña",
+          title: "Recuperar contraseña",
           url: "/forgot-password",
           description: "Restablece tu contraseña",
           icon: <Security />,
@@ -238,18 +238,18 @@ const SiteMapPage = () => {
     },
     {
       id: "help",
-      title: "Ayuda y Soporte",
+      title: "Ayuda y soporte",
       icon: <Help />,
       color: theme.palette.warning.main,
       pages: [
         {
-          title: "Preguntas Frecuentes",
+          title: "Preguntas frecuentes",
           url: "/faq",
           description: "Respuestas a las consultas más comunes",
           icon: <QuestionAnswer />,
         },
         {
-          title: "Centro de Ayuda",
+          title: "Centro de ayuda",
           url: "/help",
           description: "Guías y tutoriales",
           icon: <Help />,
@@ -264,18 +264,18 @@ const SiteMapPage = () => {
     },
     {
       id: "legal",
-      title: "Legal y Políticas",
+      title: "Legal y políticas",
       icon: <Gavel />,
       color: theme.palette.error.main,
       pages: [
         {
-          title: "Términos de Uso",
+          title: "Términos de uso",
           url: "/terms",
           description: "Condiciones de uso de la plataforma",
           icon: <Gavel />,
         },
         {
-          title: "Política de Privacidad",
+          title: "Política de privacidad",
           url: "/privacy",
           description: "Cómo protegemos tus datos",
           icon: <PrivacyTip />,
@@ -296,13 +296,13 @@ const SiteMapPage = () => {
       color: theme.palette.grey[600],
       pages: [
         {
-          title: "Panel de Administración",
+          title: "Panel de administración",
           url: "/admin",
           description: "Gestión del sitio (solo administradores)",
           icon: <Business />,
         },
         {
-          title: "Gestión de Experiencias",
+          title: "Gestión de experiencias",
           url: "/admin/experiences",
           description: "Administrar contenido",
           icon: <Settings />,
@@ -379,7 +379,7 @@ const SiteMapPage = () => {
               fontSize: { xs: "2.5rem", md: "3.5rem" },
             }}
           >
-            Mapa del Sitio
+            Mapa del sitio
           </Typography>
 
           <Typography
@@ -511,7 +511,7 @@ const SiteMapPage = () => {
               sx={{ display: "flex", alignItems: "center", gap: 1 }}
             >
               <AccountTree sx={{ fontSize: 18 }} />
-              Mapa del Sitio
+              Mapa del sitio
             </Typography>
           </Breadcrumbs>
         </Paper>
