@@ -28,7 +28,7 @@ const AboutHeader = () => {
           variant="h1"
           sx={{ textAlign: "center", fontWeight: "bold" }}
         >
-          Sobre Nosotros
+          Sobre nosotros
         </Typography>
         <div style={{ width: "20%", marginTop: "1rem", opacity: "0.7" }}>
           <CustomShape color={customColor} />
