@@ -67,6 +67,74 @@ const ExperienceCard = ({
     return theme.palette.primary.main;
   };
 
+  // Fixed price display logic
+  const renderPrice = () => {
+    if (experience.price === null || experience.price === undefined) {
+      return null;
+    }
+
+    if (experience.price === 0) {
+      return (
+        <Box
+          sx={{
+            position: "absolute",
+            bottom: { xs: 8, sm: 10, md: 12 },
+            right: { xs: 8, sm: 10, md: 12 },
+            display: "flex",
+            alignItems: "center",
+            gap: { xs: 0.5, sm: 0.75, md: 1 },
+            background: theme.palette.success.light,
+            color: theme.palette.success.dark,
+            borderRadius: { xs: 20, sm: 25, md: 30 },
+            px: { xs: 1, sm: 1.5, md: 2 },
+            py: { xs: 0.5, sm: 0.75, md: 1 },
+            boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+          }}
+        >
+          <Typography
+            variant="subtitle2"
+            sx={{
+              fontWeight: 800,
+              fontSize: { xs: "0.7rem", sm: "0.75rem", md: "0.8rem" },
+            }}
+          >
+            Gratis
+          </Typography>
+        </Box>
+      );
+    }
+
+    return (
+      <Box
+        sx={{
+          position: "absolute",
+          bottom: { xs: 8, sm: 10, md: 12 },
+          right: { xs: 8, sm: 10, md: 12 },
+          display: "flex",
+          alignItems: "center",
+          gap: { xs: 0.5, sm: 0.75, md: 1 },
+          background: theme.palette.primary.light,
+          color: theme.palette.primary.dark,
+          borderRadius: { xs: 20, sm: 25, md: 30 },
+          px: { xs: 1, sm: 1.5, md: 2 },
+          py: { xs: 0.5, sm: 0.75, md: 1 },
+          boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+        }}
+      >
+        ¥
+        <Typography
+          variant="subtitle2"
+          sx={{
+            fontWeight: 800,
+            fontSize: { xs: "0.7rem", sm: "0.75rem", md: "0.8rem" },
+          }}
+        >
+          {experience.price}
+        </Typography>
+      </Box>
+    );
+  };
+
   return (
     <Zoom in={true} style={{ transitionDelay: "100ms" }}>
       <Card
@@ -204,36 +272,8 @@ const ExperienceCard = ({
             </Box>
           )}
 
-          {/* Price Badge */}
-          {experience.price && (
-            <Box
-              sx={{
-                position: "absolute",
-                bottom: { xs: 8, sm: 10, md: 12 },
-                right: { xs: 8, sm: 10, md: 12 },
-                display: "flex",
-                alignItems: "center",
-                gap: { xs: 0.5, sm: 0.75, md: 1 },
-                background: theme.palette.primary.light,
-                color: theme.palette.primary.dark,
-                borderRadius: { xs: 20, sm: 25, md: 30 },
-                px: { xs: 1, sm: 1.5, md: 2 },
-                py: { xs: 0.5, sm: 0.75, md: 1 },
-                boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
-              }}
-            >
-              ¥
-              <Typography
-                variant="subtitle2"
-                sx={{
-                  fontWeight: 800,
-                  fontSize: { xs: "0.7rem", sm: "0.75rem", md: "0.8rem" },
-                }}
-              >
-                {experience.price}
-              </Typography>
-            </Box>
-          )}
+          {/* Price Badge - Fixed to show "Gratis" for price 0 */}
+          {renderPrice()}
 
           {/* Hover Overlay - "Agregar al itinerario" */}
           {!isSelected && !isMobile && (
@@ -284,12 +324,12 @@ const ExperienceCard = ({
                   px: 1,
                 }}
               >
-                Agregar al itinerario
+                Seleccionar experiencia
               </Typography>
             </Box>
           )}
 
-          {/* Selection Indicator for mobile */}
+          {/* Selection Indicator */}
           {isSelected && (
             <Box
               sx={{
@@ -407,9 +447,11 @@ const AddExperienceModal = ({
   const isTablet = useMediaQuery(theme.breakpoints.down("md"));
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
-  const [selectedExperiences, setSelectedExperiences] = useState([]);
+  const [selectedExperience, setSelectedExperience] = useState(null); // Changed to single selection
   const [currentPage, setCurrentPage] = useState(1);
-  const experiencesPerPage = isMobile ? 6 : isTablet ? 9 : 12;
+
+  // Increased experiences per page to show more results
+  const experiencesPerPage = isMobile ? 12 : isTablet ? 18 : 24;
 
   // Filter experiences based on search and category
   const filteredExperiences = useMemo(() => {
@@ -435,7 +477,7 @@ const AddExperienceModal = ({
     return filtered;
   }, [allExperiences, searchQuery, selectedCategory]);
 
-  // Pagination
+  // Pagination with debugging
   const totalPages = Math.ceil(filteredExperiences.length / experiencesPerPage);
   const startIndex = (currentPage - 1) * experiencesPerPage;
   const paginatedExperiences = filteredExperiences.slice(
@@ -443,28 +485,40 @@ const AddExperienceModal = ({
     startIndex + experiencesPerPage
   );
 
+  // Debug pagination
+  console.log("🔍 Pagination Debug:", {
+    totalExperiences: filteredExperiences.length,
+    experiencesPerPage,
+    totalPages,
+    currentPage,
+    startIndex,
+    showingCount: paginatedExperiences.length,
+  });
+
   // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery, selectedCategory]);
 
+  // Changed to single selection logic
   const handleSelectExperience = (experience) => {
-    setSelectedExperiences((prev) => {
-      const isSelected = prev.find((exp) => exp._id === experience._id);
-      if (isSelected) {
-        return prev.filter((exp) => exp._id !== experience._id);
-      } else {
-        return [...prev, experience];
+    setSelectedExperience((prev) => {
+      // If clicking the same experience, deselect it
+      if (prev && prev._id === experience._id) {
+        return null;
       }
+      // Otherwise, select the new experience (replacing any previous selection)
+      return experience;
     });
   };
 
+  // Changed to handle single experience
   const handleAddSelected = () => {
-    selectedExperiences.forEach((experience) => {
-      onAddExperience(experience);
-    });
-    setSelectedExperiences([]);
-    onClose();
+    if (selectedExperience) {
+      onAddExperience(selectedExperience);
+      setSelectedExperience(null);
+      onClose();
+    }
   };
 
   const handleClearFilters = () => {
@@ -516,12 +570,12 @@ const AddExperienceModal = ({
                 Añadir Experiencia
               </Typography>
               <Typography variant="caption" sx={{ opacity: 0.9 }}>
-                {filteredExperiences.length} experiencias
+                {filteredExperiences.length} experiencias disponibles
               </Typography>
             </Box>
-            {selectedExperiences.length > 0 && (
+            {selectedExperience && (
               <Chip
-                label={selectedExperiences.length}
+                label="1 seleccionada"
                 size="small"
                 sx={{
                   background: "rgba(255,255,255,0.2)",
@@ -628,30 +682,79 @@ const AddExperienceModal = ({
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
+                mb: 1,
+                flexDirection: "column",
+                gap: 1,
               }}
             >
-              {activeFiltersCount > 0 && (
-                <Button
-                  onClick={handleClearFilters}
-                  variant="text"
-                  size="small"
-                  startIcon={<X size={14} />}
-                  sx={{ textTransform: "none", fontWeight: 600 }}
-                >
-                  Limpiar
-                </Button>
-              )}
-              <Box sx={{ flex: 1 }} />
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  width: "100%",
+                }}
+              >
+                {activeFiltersCount > 0 && (
+                  <Button
+                    onClick={handleClearFilters}
+                    variant="text"
+                    size="small"
+                    startIcon={<X size={14} />}
+                    sx={{ textTransform: "none", fontWeight: 600 }}
+                  >
+                    Limpiar
+                  </Button>
+                )}
+                <Box sx={{ flex: 1 }} />
+                <Typography variant="caption" color="text.secondary">
+                  Página {currentPage} de {totalPages}
+                </Typography>
+              </Box>
+
+              {/* Always show pagination if more than 1 page */}
               {totalPages > 1 && (
-                <Pagination
-                  count={totalPages}
-                  page={currentPage}
-                  onChange={(e, page) => setCurrentPage(page)}
-                  size="small"
-                  color="primary"
-                  siblingCount={0}
-                  boundaryCount={1}
-                />
+                <Box
+                  sx={{
+                    width: "100%",
+                    display: "flex",
+                    justifyContent: "center",
+                    background: `${theme.palette.primary.main}15`,
+                    borderRadius: 2,
+                    p: 1,
+                  }}
+                >
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <Button
+                      variant="contained"
+                      size="small"
+                      onClick={() =>
+                        setCurrentPage(Math.max(1, currentPage - 1))
+                      }
+                      disabled={currentPage === 1}
+                      sx={{ minWidth: 30, fontSize: "0.75rem" }}
+                    >
+                      ‹
+                    </Button>
+                    <Typography
+                      variant="caption"
+                      sx={{ fontWeight: 600, mx: 1 }}
+                    >
+                      {currentPage}/{totalPages}
+                    </Typography>
+                    <Button
+                      variant="contained"
+                      size="small"
+                      onClick={() =>
+                        setCurrentPage(Math.min(totalPages, currentPage + 1))
+                      }
+                      disabled={currentPage === totalPages}
+                      sx={{ minWidth: 30, fontSize: "0.75rem" }}
+                    >
+                      ›
+                    </Button>
+                  </Box>
+                </Box>
               )}
             </Box>
           </Box>
@@ -718,26 +821,102 @@ const AddExperienceModal = ({
                 )}
               </Box>
             ) : (
-              <Grid container spacing={2}>
-                {paginatedExperiences.map((experience) => (
-                  <Grid item xs={6} key={experience._id}>
-                    <ExperienceCard
-                      experience={experience}
-                      onSelect={handleSelectExperience}
-                      isSelected={selectedExperiences.some(
-                        (exp) => exp._id === experience._id
-                      )}
-                      theme={theme}
-                      isMobile={isMobile}
-                    />
-                  </Grid>
-                ))}
-              </Grid>
+              <>
+                <Grid container spacing={2}>
+                  {paginatedExperiences.map((experience) => (
+                    <Grid item xs={6} key={experience._id}>
+                      <ExperienceCard
+                        experience={experience}
+                        onSelect={handleSelectExperience}
+                        isSelected={selectedExperience?._id === experience._id}
+                        theme={theme}
+                        isMobile={isMobile}
+                      />
+                    </Grid>
+                  ))}
+                </Grid>
+
+                {/* Mobile Bottom Pagination */}
+                {totalPages > 1 && (
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      mt: 3,
+                      pt: 2,
+                      borderTop: `1px solid ${theme.palette.divider}`,
+                      flexDirection: "column",
+                      gap: 2,
+                      background: theme.palette.background.paper,
+                    }}
+                  >
+                    <Typography variant="caption" color="text.secondary">
+                      Página {currentPage} de {totalPages}
+                    </Typography>
+
+                    {/* Simple Navigation Buttons for Mobile */}
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1,
+                        justifyContent: "center",
+                      }}
+                    >
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        onClick={() => setCurrentPage(1)}
+                        disabled={currentPage === 1}
+                        sx={{ minWidth: 35, fontSize: "0.75rem" }}
+                      >
+                        ⇤
+                      </Button>
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        onClick={() => setCurrentPage(currentPage - 1)}
+                        disabled={currentPage === 1}
+                        sx={{ minWidth: 35 }}
+                      >
+                        ‹
+                      </Button>
+
+                      <Typography
+                        variant="body2"
+                        sx={{ mx: 2, fontWeight: 600 }}
+                      >
+                        {currentPage} / {totalPages}
+                      </Typography>
+
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        onClick={() => setCurrentPage(currentPage + 1)}
+                        disabled={currentPage === totalPages}
+                        sx={{ minWidth: 35 }}
+                      >
+                        ›
+                      </Button>
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        onClick={() => setCurrentPage(totalPages)}
+                        disabled={currentPage === totalPages}
+                        sx={{ minWidth: 35, fontSize: "0.75rem" }}
+                      >
+                        ⇥
+                      </Button>
+                    </Box>
+                  </Box>
+                )}
+              </>
             )}
           </Box>
 
           {/* Mobile Actions - Fixed bottom */}
-          {selectedExperiences.length > 0 && (
+          {selectedExperience && (
             <Box
               sx={{
                 position: "sticky",
@@ -761,8 +940,7 @@ const AddExperienceModal = ({
                   background: `linear-gradient(135deg, ${theme.palette.primary.main})`,
                 }}
               >
-                Añadir {selectedExperiences.length} experiencia
-                {selectedExperiences.length > 1 ? "s" : ""}
+                Añadir experiencia
               </Button>
             </Box>
           )}
@@ -845,14 +1023,14 @@ const AddExperienceModal = ({
                 variant="body1"
                 sx={{ opacity: 0.9, fontSize: { xs: "0.875rem", sm: "1rem" } }}
               >
-                Busca y selecciona experiencias para tu itinerario
+                {filteredExperiences.length} experiencias disponibles
               </Typography>
             </Box>
           </Box>
 
-          {selectedExperiences.length > 0 && (
+          {selectedExperience && (
             <Chip
-              label={`${selectedExperiences.length} seleccionadas`}
+              label="1 seleccionada"
               sx={{
                 background: "rgba(255,255,255,0.2)",
                 color: "white",
@@ -993,7 +1171,7 @@ const AddExperienceModal = ({
           )}
         </Box>
 
-        {/* Results Info */}
+        {/* Results Info and Pagination */}
         <Box
           sx={{
             display: "flex",
@@ -1001,24 +1179,60 @@ const AddExperienceModal = ({
             justifyContent: "space-between",
             mb: 2,
             flexDirection: { xs: "column", sm: "row" },
-            gap: { xs: 1, sm: 0 },
+            gap: { xs: 2, sm: 0 },
           }}
         >
           <Typography variant="body2" color="text.secondary">
             {loading
               ? "Cargando..."
-              : `${filteredExperiences.length} experiencias encontradas`}
+              : `Mostrando ${startIndex + 1}-${Math.min(startIndex + experiencesPerPage, filteredExperiences.length)} de ${filteredExperiences.length} experiencias`}
           </Typography>
+
+          {/* Always show pagination if more than 1 page */}
           {totalPages > 1 && (
-            <Pagination
-              count={totalPages}
-              page={currentPage}
-              onChange={(e, page) => setCurrentPage(page)}
-              size="small"
-              color="primary"
-              siblingCount={isTablet ? 0 : 1}
-              boundaryCount={1}
-            />
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: 1,
+                background: theme.palette.background.paper,
+                p: 2,
+                borderRadius: 2,
+                border: `1px solid ${theme.palette.divider}`,
+              }}
+            >
+              <Typography variant="caption" color="text.secondary">
+                Página {currentPage} de {totalPages}
+              </Typography>
+
+              {/* Simple button navigation */}
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  sx={{ textTransform: "none" }}
+                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                  disabled={currentPage === 1}
+                >
+                  Anterior
+                </Button>
+                <Typography variant="body2" sx={{ mx: 2, fontWeight: 600 }}>
+                  {currentPage} de {totalPages}
+                </Typography>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  sx={{ textTransform: "none" }}
+                  onClick={() =>
+                    setCurrentPage(Math.min(totalPages, currentPage + 1))
+                  }
+                  disabled={currentPage === totalPages}
+                >
+                  Siguiente
+                </Button>
+              </Box>
+            </Box>
           )}
         </Box>
       </Box>
@@ -1087,21 +1301,162 @@ const AddExperienceModal = ({
             )}
           </Box>
         ) : (
-          <Grid container spacing={{ xs: 2, sm: 2.5, md: 3 }}>
-            {paginatedExperiences.map((experience) => (
-              <Grid item xs={12} sm={6} md={4} lg={3} key={experience._id}>
-                <ExperienceCard
-                  experience={experience}
-                  onSelect={handleSelectExperience}
-                  isSelected={selectedExperiences.some(
-                    (exp) => exp._id === experience._id
-                  )}
-                  theme={theme}
-                  isMobile={isMobile}
-                />
-              </Grid>
-            ))}
-          </Grid>
+          <>
+            <Grid container spacing={{ xs: 2, sm: 2.5, md: 3 }}>
+              {paginatedExperiences.map((experience) => (
+                <Grid item xs={12} sm={6} md={4} lg={3} key={experience._id}>
+                  <ExperienceCard
+                    experience={experience}
+                    onSelect={handleSelectExperience}
+                    isSelected={selectedExperience?._id === experience._id}
+                    theme={theme}
+                    isMobile={isMobile}
+                  />
+                </Grid>
+              ))}
+            </Grid>
+
+            {/* Bottom Pagination */}
+            {totalPages > 1 && (
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  mt: 4,
+                  pt: 3,
+                  borderTop: `1px solid ${theme.palette.divider}`,
+                  flexDirection: "column",
+                  gap: 2,
+                  background: theme.palette.background.paper,
+                  position: "relative",
+                  zIndex: 1,
+                }}
+              >
+                <Typography variant="body2" color="text.secondary">
+                  Página {currentPage} de {totalPages} •{" "}
+                  {filteredExperiences.length} experiencias total
+                </Typography>
+
+                {/* Navigation Buttons */}
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1,
+                    flexWrap: "wrap",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={() => setCurrentPage(1)}
+                    disabled={currentPage === 1}
+                    sx={{ minWidth: 60, textTransform: "none" }}
+                  >
+                    Primera
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={() => setCurrentPage(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    sx={{ minWidth: 40 }}
+                  >
+                    ‹
+                  </Button>
+
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 0.5,
+                      background: theme.palette.primary.light,
+                      borderRadius: 2,
+                      px: 2,
+                      py: 1,
+                    }}
+                  >
+                    {/* Show page numbers around current page */}
+                    {Array.from({ length: Math.min(7, totalPages) }, (_, i) => {
+                      let pageNum;
+                      if (totalPages <= 7) {
+                        pageNum = i + 1;
+                      } else if (currentPage <= 4) {
+                        pageNum = i + 1;
+                      } else if (currentPage >= totalPages - 3) {
+                        pageNum = totalPages - 6 + i;
+                      } else {
+                        pageNum = currentPage - 3 + i;
+                      }
+
+                      return (
+                        <Button
+                          key={pageNum}
+                          variant={
+                            currentPage === pageNum ? "contained" : "text"
+                          }
+                          size="small"
+                          onClick={() => setCurrentPage(pageNum)}
+                          sx={{
+                            minWidth: 35,
+                            height: 30,
+                            backgroundColor:
+                              currentPage === pageNum
+                                ? theme.palette.primary.main
+                                : "transparent",
+                            color:
+                              currentPage === pageNum
+                                ? "white"
+                                : theme.palette.primary.dark,
+                            fontWeight: currentPage === pageNum ? 700 : 500,
+                            "&:hover": {
+                              backgroundColor:
+                                currentPage === pageNum
+                                  ? theme.palette.primary.dark
+                                  : theme.palette.primary.light,
+                            },
+                          }}
+                        >
+                          {pageNum}
+                        </Button>
+                      );
+                    })}
+                  </Box>
+
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={() => setCurrentPage(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    sx={{ minWidth: 40 }}
+                  >
+                    ›
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={() => setCurrentPage(totalPages)}
+                    disabled={currentPage === totalPages}
+                    sx={{ minWidth: 60, textTransform: "none" }}
+                  >
+                    Última
+                  </Button>
+                </Box>
+
+                {/* Debug info - Remove in production */}
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ mt: 1 }}
+                >
+                  Total páginas: {totalPages} | Experiencias por página:{" "}
+                  {experiencesPerPage}
+                </Typography>
+              </Box>
+            )}
+          </>
         )}
       </DialogContent>
 
@@ -1133,7 +1488,7 @@ const AddExperienceModal = ({
         <Button
           onClick={handleAddSelected}
           variant="contained"
-          disabled={selectedExperiences.length === 0}
+          disabled={!selectedExperience}
           startIcon={<Plus size={16} />}
           fullWidth={isMobile}
           sx={{
@@ -1141,10 +1496,9 @@ const AddExperienceModal = ({
             px: 4,
             fontWeight: 700,
             textTransform: "none",
-            background:
-              selectedExperiences.length > 0
-                ? `linear-gradient(135deg, ${theme.palette.primary.main})`
-                : undefined,
+            background: selectedExperience
+              ? `linear-gradient(135deg, ${theme.palette.primary.main})`
+              : undefined,
             order: { xs: 1, sm: 2 },
             "&:disabled": {
               background: theme.palette.grey[300],
@@ -1152,8 +1506,7 @@ const AddExperienceModal = ({
             },
           }}
         >
-          Añadir{" "}
-          {selectedExperiences.length > 0 && `(${selectedExperiences.length})`}
+          Añadir experiencia
         </Button>
       </DialogActions>
     </Dialog>

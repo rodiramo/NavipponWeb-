@@ -9,7 +9,7 @@ import {
 
 export default function useUser() {
   const { user, jwt, setUser, setJWT } = useContext(Context);
-  const [state, setState] = useState({ loading: false, error: false });
+  const [state, setState] = useState({ loading: false, error: "" });
   const [isInitializing, setIsInitializing] = useState(true);
   const navigate = useNavigate();
 

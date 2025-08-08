@@ -31,15 +31,21 @@ const registerUser = async (req, res, next) => {
   try {
     const { name, email, password } = req.body;
 
-    let user = await User.findOne({ email });
+    // Normalize email to avoid case-sensitive duplicates
+    const normalizedEmail = email.toLowerCase();
+
+    let user = await User.findOne({ email: normalizedEmail });
 
     if (user) {
-      throw new Error("El usuario ya existe");
+      // Return 400 so frontend knows it's a client error
+      return res
+        .status(400)
+        .json({ message: "Este correo ya está registrado" });
     }
 
     user = await User.create({
       name,
-      email,
+      email: normalizedEmail,
       password,
       avatar: "",
       coverImg: "",
@@ -71,32 +77,41 @@ const registerUser = async (req, res, next) => {
   }
 };
 
-const loginUser = async (req, res, next) => {
+const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    let user = await User.findOne({ email });
+    if (!email || !password) {
+      return res
+        .status(400)
+        .json({ message: "Por favor, completa todos los campos" });
+    }
+
+    const normalizedEmail = email.toLowerCase();
+    let user = await User.findOne({ email: normalizedEmail });
 
     if (!user) {
-      throw new Error("Email no encontrado");
+      return res.status(400).json({ message: "El email no está registrado" });
     }
 
-    if (await user.comparePassword(password)) {
-      return res.status(201).json({
-        _id: user._id,
-        avatar: user.avatar,
-        coverImg: user.coverImg,
-        name: user.name,
-        email: user.email,
-        verified: user.verified,
-        admin: user.admin,
-        token: await user.generateJWT(),
-      });
-    } else {
-      throw new Error("Email o contraseña incorrectos");
+    const isMatch = await user.comparePassword(password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "La contraseña es incorrecta" });
     }
+
+    return res.status(200).json({
+      _id: user._id,
+      avatar: user.avatar,
+      coverImg: user.coverImg,
+      name: user.name,
+      email: user.email,
+      verified: user.verified,
+      admin: user.admin,
+      token: await user.generateJWT(),
+    });
   } catch (error) {
-    next(error);
+    console.error(error);
+    return res.status(500).json({ message: "Error en el inicio de sesión" });
   }
 };
 

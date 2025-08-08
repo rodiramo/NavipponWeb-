@@ -5,10 +5,12 @@ import { useNavigate, useParams } from "react-router-dom";
 import DateChangeDialog from "./components/DateChangeDialog";
 import OfflineManager from "./components/OfflineManager";
 
-// DnD Kit imports
+// DnD Kit imports with better collision detection
 import {
   DndContext,
   closestCenter,
+  closestCorners,
+  rectIntersection,
   KeyboardSensor,
   PointerSensor,
   useSensor,
@@ -58,17 +60,93 @@ const ItineraryDetailPage = () => {
   const navigate = useNavigate();
   const { user, jwt } = useUser();
 
-  // DnD Kit sensors
+  // Enhanced DnD Kit sensors with better activation
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 8,
+        distance: 8, // Slightly higher distance to prevent accidental drags
+        tolerance: 5,
+        delay: 100, // Small delay to distinguish from clicks
       },
     }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
+
+  // Enhanced collision detection function - much more aggressive board targeting
+  const customCollisionDetection = (args) => {
+    const { active, droppableContainers, collisionRect } = args;
+
+    // Get the active item's type
+    const activeId = active.id.toString();
+    const isDraggingActivity =
+      activeId.includes("-") &&
+      !activeId.startsWith("board-") &&
+      !activeId.startsWith("fav-");
+    const isDraggingFavorite = activeId.startsWith("fav-");
+
+    // For activities and favorites, we want to prioritize board-level drops
+    if (isDraggingActivity || isDraggingFavorite) {
+      const boardCollisions = [];
+
+      // Check each board container for collision
+      droppableContainers.forEach((container) => {
+        const containerId = container.id.toString();
+        if (containerId.startsWith("board-")) {
+          const containerRect = container.rect.current;
+          if (containerRect) {
+            // Check if drag position overlaps with board area
+            const isOverlapping =
+              collisionRect.left < containerRect.right &&
+              collisionRect.right > containerRect.left &&
+              collisionRect.top < containerRect.bottom &&
+              collisionRect.bottom > containerRect.top;
+
+            if (isOverlapping) {
+              // Calculate overlap area to prioritize the board with most overlap
+              const overlapArea =
+                Math.max(
+                  0,
+                  Math.min(collisionRect.right, containerRect.right) -
+                    Math.max(collisionRect.left, containerRect.left)
+                ) *
+                Math.max(
+                  0,
+                  Math.min(collisionRect.bottom, containerRect.bottom) -
+                    Math.max(collisionRect.top, containerRect.top)
+                );
+
+              boardCollisions.push({
+                id: container.id,
+                data: container.data,
+                overlapArea,
+              });
+            }
+          }
+        }
+      });
+
+      // If we have board collisions, return the one with the largest overlap
+      if (boardCollisions.length > 0) {
+        boardCollisions.sort((a, b) => b.overlapArea - a.overlapArea);
+        return [boardCollisions[0]];
+      }
+    }
+
+    // Fallback to default collision detection for other cases
+    const intersectionCollisions = rectIntersection(args);
+    if (intersectionCollisions.length > 0) {
+      return intersectionCollisions;
+    }
+
+    const cornerCollisions = closestCorners(args);
+    if (cornerCollisions.length > 0) {
+      return cornerCollisions;
+    }
+
+    return closestCenter(args);
+  };
 
   // State
   const [isPrivate, setIsPrivate] = useState(false);
@@ -100,6 +178,10 @@ const ItineraryDetailPage = () => {
   const [activeId, setActiveId] = useState(null);
   const [activeData, setActiveData] = useState(null);
 
+  // Enhanced drag state for better visual feedback
+  const [dragType, setDragType] = useState(null); // 'activity', 'favorite', 'board'
+  const [dragOverBoard, setDragOverBoard] = useState(null);
+
   const [transportMode, setTransportMode] = useState("walking");
   const [showDistanceIndicators, setShowDistanceIndicators] = useState(true);
   const [showRouteOptimizer, setShowRouteOptimizer] = useState(true);
@@ -126,15 +208,9 @@ const ItineraryDetailPage = () => {
 
   // Helper function to get the correct experience ID from different data structures
   const getExperienceId = (experience) => {
-    // Handle different data structures:
-    // 1. Direct experience object: { _id: "...", title: "...", ... }
-    // 2. Favorite object: { _id: "favorite_id", experienceId: { _id: "...", title: "..." } }
-
     if (experience.experienceId && experience.experienceId._id) {
-      // This is a favorite object with nested experience
       return experience.experienceId._id;
     } else if (experience._id) {
-      // This is a direct experience object
       return experience._id;
     } else {
       console.error("❌ Cannot extract experience ID from:", experience);
@@ -145,10 +221,8 @@ const ItineraryDetailPage = () => {
   // Helper function to get the actual experience object
   const getExperienceObject = (experience) => {
     if (experience.experienceId) {
-      // This is a favorite object with nested experience
       return experience.experienceId;
     } else {
-      // This is a direct experience object
       return experience;
     }
   };
@@ -175,22 +249,16 @@ const ItineraryDetailPage = () => {
     const experienceId = getExperienceId(experience);
     const queueKey = `${experienceId}-${boardIndex}`;
 
-    // Check if this exact addition is already in progress
     if (pendingAdditions.has(queueKey)) {
       toast.error("Esta experiencia ya se está añadiendo");
       return;
     }
 
     try {
-      // Add to pending set
       setPendingAdditions((prev) => new Set([...prev, queueKey]));
-
-      // Small delay to prevent rapid-fire requests
       await new Promise((resolve) => setTimeout(resolve, 100));
-
       await performExperienceAddition(experience, boardIndex);
     } finally {
-      // Remove from pending set
       setPendingAdditions((prev) => {
         const newSet = new Set(prev);
         newSet.delete(queueKey);
@@ -222,10 +290,9 @@ const ItineraryDetailPage = () => {
         _id: `temp-${Date.now()}`,
         experienceId: experienceObj,
         uniqueId: `${boardIndex}-${targetBoard.favorites.length}-temp`,
-        isOptimistic: true, // Flag to identify optimistic updates
+        isOptimistic: true,
       };
 
-      // Update the boards state immediately for instant feedback
       const updatedBoards = [...boards];
       updatedBoards[boardIndex] = {
         ...targetBoard,
@@ -237,10 +304,8 @@ const ItineraryDetailPage = () => {
         "⚡ Optimistic update applied - experience should be visible"
       );
 
-      // Use direct API call with retry logic
       await testDirectAPICallWithRetry(experience, boardIndex);
 
-      // After successful API call, refresh from server to get real data
       console.log("🔄 Refreshing data from server...");
       await fetchItinerary();
 
@@ -251,9 +316,8 @@ const ItineraryDetailPage = () => {
     } catch (error) {
       console.error("❌ Error adding experience:", error);
 
-      // ROLLBACK OPTIMISTIC UPDATE on error
       console.log("⏪ Rolling back optimistic update due to error");
-      await fetchItinerary(); // Refresh to remove the optimistic update
+      await fetchItinerary();
 
       let errorMessage = "Error al añadir experiencia";
       if (error.message) {
@@ -267,7 +331,7 @@ const ItineraryDetailPage = () => {
       }
 
       toast.error(errorMessage, { id: toastId });
-      throw error; // Re-throw to be caught by caller
+      throw error;
     }
   };
 
@@ -314,7 +378,6 @@ const ItineraryDetailPage = () => {
             console.log(
               `⚠️ Version conflict on attempt ${attempt}, retrying...`
             );
-            // Wait before retry with exponential backoff
             await new Promise((resolve) => setTimeout(resolve, attempt * 200));
             continue;
           }
@@ -348,7 +411,8 @@ const ItineraryDetailPage = () => {
   // Main function to handle adding experience to board
   const handleAddExperienceToBoard = async (
     experience,
-    targetBoardIndex = null
+    targetBoardIndex = null,
+    isFromModal = false
   ) => {
     if (!hasPermission("addExperience")) {
       toast.error("No tienes permisos para añadir experiencias");
@@ -357,7 +421,6 @@ const ItineraryDetailPage = () => {
 
     if (!isEditable) return;
 
-    // Global check to prevent too many simultaneous requests
     if (isAddingExperience) {
       toast.error("Espera a que se complete la adición anterior");
       return;
@@ -375,7 +438,6 @@ const ItineraryDetailPage = () => {
       return;
     }
 
-    // Extract the correct experience ID and object
     const experienceId = getExperienceId(experience);
     const experienceObj = getExperienceObject(experience);
 
@@ -385,7 +447,6 @@ const ItineraryDetailPage = () => {
       return;
     }
 
-    // Check for duplicates using current state
     const targetBoard = boards[boardIndex];
     if (isExperienceInBoard(experience, targetBoard.favorites)) {
       toast.error("Esta experiencia ya está añadida en este día");
@@ -395,13 +456,67 @@ const ItineraryDetailPage = () => {
     try {
       setIsAddingExperience(true);
 
-      // Use the queued addition approach to prevent concurrency conflicts
-      await addExperienceWithQueue(experience, boardIndex);
+      // Only use optimistic updates for modal additions, not drag & drop
+      if (isFromModal) {
+        await addExperienceWithOptimisticUpdate(experience, boardIndex);
+      } else {
+        await addExperienceWithQueue(experience, boardIndex);
+      }
     } catch (error) {
-      // Error handling is done in addExperienceWithQueue
       console.error("❌ Error in handleAddExperienceToBoard:", error);
     } finally {
       setIsAddingExperience(false);
+    }
+  };
+
+  // Optimistic update version for modal additions
+  const addExperienceWithOptimisticUpdate = async (experience, boardIndex) => {
+    const targetBoard = boards[boardIndex];
+    const experienceId = getExperienceId(experience);
+    const experienceObj = getExperienceObject(experience);
+
+    const toastId = `adding-${experienceId}-${Date.now()}`;
+    toast.loading("Añadiendo experiencia...", { id: toastId });
+
+    // Create optimistic update
+    const optimisticFavorite = {
+      _id: `temp-${Date.now()}`,
+      experienceId: experienceObj,
+      uniqueId: `${boardIndex}-${targetBoard.favorites.length}-temp`,
+      isOptimistic: true,
+    };
+
+    // Apply optimistic update
+    const updatedBoards = [...boards];
+    updatedBoards[boardIndex] = {
+      ...targetBoard,
+      favorites: [...targetBoard.favorites, optimisticFavorite],
+      dailyBudget: calculateDailyBudget({
+        ...targetBoard,
+        favorites: [...targetBoard.favorites, optimisticFavorite],
+      }),
+    };
+
+    // Update total budget
+    const newTotalBudget = updatedBoards.reduce(
+      (sum, board) => sum + (board.dailyBudget || 0),
+      0
+    );
+
+    setBoards(updatedBoards);
+    setTotalBudget(newTotalBudget);
+
+    try {
+      await testDirectAPICallWithRetry(experience, boardIndex);
+      await fetchItinerary(); // This will replace optimistic with real data
+      toast.success(`${experienceObj.title || "Experiencia"} añadida`, {
+        id: toastId,
+      });
+    } catch (error) {
+      console.error("❌ Error adding experience:", error);
+      await fetchItinerary(); // Rollback on error
+      toast.error("Error al añadir experiencia", { id: toastId });
+      throw error;
     }
   };
 
@@ -442,7 +557,7 @@ const ItineraryDetailPage = () => {
     }
   };
 
-  // 🆕 NEW: Enhanced handleMoveActivity function for manual up/down buttons
+  // Enhanced handleMoveActivity function for manual up/down buttons
   const handleMoveActivity = async (boardIndex, fromIndex, toIndex) => {
     if (!hasPermission("edit")) {
       toast.error("No tienes permisos para reordenar experiencias");
@@ -462,14 +577,12 @@ const ItineraryDetailPage = () => {
       const newBoards = [...boards];
       const targetBoard = newBoards[boardIndex];
 
-      // Use arrayMove to reorder
       const reorderedFavorites = arrayMove(
         targetBoard.favorites,
         fromIndex,
         toIndex
       );
 
-      // Update with new unique IDs
       newBoards[boardIndex] = {
         ...targetBoard,
         favorites: reorderedFavorites.map((fav, index) => ({
@@ -478,17 +591,14 @@ const ItineraryDetailPage = () => {
         })),
       };
 
-      // Update state immediately
       setBoards(newBoards);
       updateTotalBudget(newBoards);
 
-      // Save to backend
       await updateItinerary(id, { boards: newBoards }, jwt);
       toast.success("Experiencia reordenada");
     } catch (error) {
       console.error("Error moving activity:", error);
       toast.error("Error al reordenar experiencia");
-      // Refresh on error
       fetchItinerary();
     }
   };
@@ -518,20 +628,69 @@ const ItineraryDetailPage = () => {
     }
   };
 
+  // Helper function to calculate daily budget for a board
+  const calculateDailyBudget = (board) => {
+    if (!board || !Array.isArray(board.favorites)) {
+      console.log("💰 No board or favorites found");
+      return 0;
+    }
+
+    console.log(
+      `💰 Calculating budget for board with ${board.favorites.length} experiences`
+    );
+
+    return board.favorites.reduce((sum, favorite, index) => {
+      const experience = getExperienceObject(favorite);
+      const price = experience?.price || 0;
+      console.log(
+        `💰 Experience ${index + 1}: "${experience?.title}" - Price: ¥${price} (type: ${typeof price})`
+      );
+
+      // Handle case where price might be a string
+      const numericPrice =
+        typeof price === "string" ? parseFloat(price) || 0 : price;
+
+      return sum + numericPrice;
+    }, 0);
+  };
+
+  // Enhanced function to calculate and update budgets
   const updateTotalBudget = async (boardsArray, shouldSave = false) => {
     if (!Array.isArray(boardsArray)) return;
 
-    const total = boardsArray.reduce(
+    // Calculate daily budget for each board and update the boards
+    const updatedBoards = boardsArray.map((board, index) => {
+      const dailyBudget = calculateDailyBudget(board);
+      console.log(`💰 Board ${index + 1} daily budget: ¥${dailyBudget}`);
+      return {
+        ...board,
+        dailyBudget: dailyBudget,
+      };
+    });
+
+    // Calculate total budget
+    const total = updatedBoards.reduce(
       (sum, board) => sum + (board?.dailyBudget || 0),
       0
     );
 
+    console.log(`💰 Total budget calculated: ¥${total}`);
+
+    // Update state with boards that have correct daily budgets
+    setBoards(updatedBoards);
     setTotalBudget(total);
 
     if (shouldSave) {
       try {
-        await updateItinerary(id, { totalBudget: total }, jwt);
-        console.log("Total budget saved to database:", total);
+        await updateItinerary(
+          id,
+          {
+            boards: updatedBoards,
+            totalBudget: total,
+          },
+          jwt
+        );
+        console.log("Total budget and boards saved to database:", total);
       } catch (error) {
         console.error("Error saving total budget:", error);
       }
@@ -540,7 +699,7 @@ const ItineraryDetailPage = () => {
     return total;
   };
 
-  // NEW: Handle route optimization/reordering
+  // Handle route optimization/reordering
   const handleReorderExperiences = async (boardIndex, optimizedRoute) => {
     if (!hasPermission("edit")) {
       toast.error("No tienes permisos para reordenar experiencias");
@@ -556,13 +715,11 @@ const ItineraryDetailPage = () => {
         return;
       }
 
-      // Update the board with the optimized route
       targetBoard.favorites = optimizedRoute.map((experience, index) => ({
         ...experience,
         uniqueId: `${boardIndex}-${index}-${experience._id}`,
       }));
 
-      // Recalculate daily budget
       targetBoard.dailyBudget = targetBoard.favorites.reduce(
         (sum, fav) => sum + (fav.experienceId?.price || 0),
         0
@@ -571,14 +728,12 @@ const ItineraryDetailPage = () => {
       setBoards(newBoards);
       updateTotalBudget(newBoards);
 
-      // Save to backend
       await updateItinerary(id, { boards: newBoards }, jwt);
 
       toast.success("Ruta optimizada aplicada correctamente");
     } catch (error) {
       console.error("Error optimizing route:", error);
       toast.error("Error al optimizar la ruta");
-      // Refresh data on error
       fetchItinerary();
     }
   };
@@ -715,12 +870,20 @@ const ItineraryDetailPage = () => {
 
       setName(data.name || "");
       setTravelDays(data.travelDays || 0);
-      setTotalBudget(data.totalBudget || 0);
       setIsPrivate(data.isPrivate || false);
 
       const boardsWithIds = (data.boards || []).map((board, index) => {
         console.log(`📦 Processing board ${index}:`, board);
         console.log(`📦 Board favorites:`, board.favorites);
+
+        // Calculate the correct daily budget for this board
+        const dailyBudget = (board.favorites || []).reduce((sum, favorite) => {
+          const experience = favorite.experienceId || favorite;
+          const price = experience?.price || 0;
+          const numericPrice =
+            typeof price === "string" ? parseFloat(price) || 0 : price;
+          return sum + numericPrice;
+        }, 0);
 
         return {
           ...board,
@@ -730,13 +893,24 @@ const ItineraryDetailPage = () => {
             : formatDateForLocal(
                 new Date(Date.now() + index * 24 * 60 * 60 * 1000)
               ),
-          // Ensure favorites is always an array
           favorites: Array.isArray(board.favorites) ? board.favorites : [],
+          dailyBudget: dailyBudget, // Set the calculated daily budget
         };
       });
 
       console.log("🎯 Processed boards:", boardsWithIds);
+
+      // Calculate total budget from the processed boards
+      const totalBudget = boardsWithIds.reduce(
+        (sum, board) => sum + (board.dailyBudget || 0),
+        0
+      );
+
       setBoards(boardsWithIds);
+      setTotalBudget(totalBudget);
+
+      console.log("💰 Total budget from fetch:", totalBudget);
+
       setTravelers(data.travelers || []);
       setNotes(data.notes || []);
 
@@ -803,7 +977,7 @@ const ItineraryDetailPage = () => {
     fetchFavorites();
   }, [user?._id, jwt]);
 
-  // 🆕 NEW: Debug useEffect to monitor board state
+  // Debug useEffect to monitor board state
   useEffect(() => {
     console.log(
       "🔍 Current boards state:",
@@ -811,11 +985,19 @@ const ItineraryDetailPage = () => {
         boardIndex: index,
         boardId: board._id || board.id,
         favoritesCount: board.favorites?.length || 0,
+        dailyBudget: board.dailyBudget || 0,
         activityIds: (board.favorites || []).map(
           (fav, favIndex) => `${index}-${favIndex}-${fav._id}`
         ),
       }))
     );
+
+    // Log total budget for debugging
+    const currentTotal = boards.reduce(
+      (sum, board) => sum + (board.dailyBudget || 0),
+      0
+    );
+    console.log("💰 Current total budget from boards:", currentTotal);
   }, [boards]);
 
   const hasPermission = (action) => {
@@ -905,16 +1087,15 @@ const ItineraryDetailPage = () => {
   };
 
   const handleAddExperienceWithBoardSelection = async (experience) => {
-    // Don't close the modal immediately - let user add multiple experiences
     const targetBoardIndex = selectedBoardIndex;
 
     if (targetBoardIndex !== null) {
-      await handleAddExperienceToBoard(experience, targetBoardIndex);
+      await handleAddExperienceToBoard(experience, targetBoardIndex, true); // true = isFromModal
       return;
     }
 
     if (boards.length === 1) {
-      await handleAddExperienceToBoard(experience, 0);
+      await handleAddExperienceToBoard(experience, 0, true); // true = isFromModal
     } else if (boards.length > 1) {
       const boardOptions = boards
         .map((board, index) => {
@@ -934,7 +1115,7 @@ const ItineraryDetailPage = () => {
       if (selection) {
         const boardIndex = parseInt(selection) - 1;
         if (boardIndex >= 0 && boardIndex < boards.length) {
-          await handleAddExperienceToBoard(experience, boardIndex);
+          await handleAddExperienceToBoard(experience, boardIndex, true); // true = isFromModal
         } else {
           toast.error("Selección inválida");
         }
@@ -978,13 +1159,11 @@ const ItineraryDetailPage = () => {
         return;
       }
 
-      // FIXED: Don't send userId - backend gets it from JWT
       await removeExperienceFromItinerary({
         itineraryId: id,
         experienceId: experienceId,
         boardDate: board.date,
         token: jwt,
-        // userId removed - backend gets it from req.user._id
       });
 
       // Refresh the itinerary data
@@ -1032,25 +1211,22 @@ const ItineraryDetailPage = () => {
       console.error(error);
     }
   };
+
   const handleTransportModeChange = useCallback(
     (newMode, boardIndex = null) => {
       if (boardIndex !== null) {
-        // Update specific board transport mode
         setBoardTransportModes((prev) => ({
           ...prev,
           [boardIndex]: newMode,
         }));
       } else {
-        // Update global transport mode
         setTransportMode(newMode);
-        // Optionally clear board-specific modes when global changes
         setBoardTransportModes({});
       }
     },
     []
   );
 
-  // Helper function to get transport mode for a specific board
   const getTransportModeForBoard = useCallback(
     (boardIndex) => {
       return boardTransportModes[boardIndex] || transportMode;
@@ -1155,13 +1331,14 @@ const ItineraryDetailPage = () => {
     }
   }, [addExperienceModalOpen, allExperiences.length, fetchAllExperiences]);
 
-  // 🆕 ENHANCED: Better drag start with activity parsing
+  // ENHANCED: Improved drag start with better type detection
   const handleDragStart = (event) => {
     setActiveId(event.active.id);
 
     const dragData = event.active.data?.current;
     if (dragData) {
       setActiveData(dragData);
+      setDragType(dragData.type);
     } else {
       const activeIdStr = event.active.id.toString();
 
@@ -1171,9 +1348,18 @@ const ItineraryDetailPage = () => {
         const favorite = drawerFavorites.find((fav) => fav._id === favoriteId);
         if (favorite) {
           setActiveData({ favorite, type: "favorite" });
+          setDragType("favorite");
         }
-      } else if (activeIdStr.includes("-")) {
-        // 🆕 ENHANCED: Better parsing for activity drags
+      } else if (activeIdStr.startsWith("board-")) {
+        // Dragging a board
+        setDragType("board");
+        setActiveData({ type: "board" });
+      } else if (
+        activeIdStr.includes("-") &&
+        !activeIdStr.startsWith("board-") &&
+        !activeIdStr.startsWith("fav-")
+      ) {
+        // Enhanced activity parsing - this is dragging an activity/experience
         const parts = activeIdStr.split("-");
         if (parts.length >= 3) {
           const boardIndex = parseInt(parts[0]);
@@ -1191,6 +1377,7 @@ const ItineraryDetailPage = () => {
               boardIndex,
               favIndex,
             });
+            setDragType("activity");
 
             console.log(
               `🎯 Dragging activity from board ${boardIndex}, position ${favIndex}`
@@ -1201,12 +1388,52 @@ const ItineraryDetailPage = () => {
     }
   };
 
-  // 🆕 ENHANCED: Complete drag end handler with same-board reordering
+  // Enhanced drag over handler - more aggressive board detection
+  const handleDragOver = (event) => {
+    const { over, activatorEvent } = event;
+
+    if (over) {
+      const overId = over.id.toString();
+
+      // Detect which board we're hovering over - prioritize board drop zones
+      if (overId.startsWith("board-")) {
+        const boardId = overId.replace("board-", "");
+        const boardIndex = boards.findIndex(
+          (board) => (board.id || board._id) === boardId
+        );
+        if (boardIndex !== -1) {
+          setDragOverBoard(boardIndex);
+        }
+      } else if (overId.includes("-") && !overId.startsWith("fav-")) {
+        // Hovering over an activity - find its board
+        const parts = overId.split("-");
+        if (parts.length >= 3) {
+          const boardIndex = parseInt(parts[0]);
+          if (!isNaN(boardIndex)) {
+            setDragOverBoard(boardIndex);
+          }
+        }
+      }
+    } else {
+      // If no specific drop target, try to determine which board we're over by position
+      if (activatorEvent && boards.length > 0) {
+        // This is a fallback - try to detect board by mouse position
+        // Note: This is approximate and may not be 100% accurate
+        setDragOverBoard(null);
+      } else {
+        setDragOverBoard(null);
+      }
+    }
+  };
+
+  // ENHANCED: Complete drag end handler with better collision detection
   const handleDragEnd = async (event) => {
     const { active, over } = event;
 
     setActiveId(null);
     setActiveData(null);
+    setDragType(null);
+    setDragOverBoard(null);
 
     if (!over || !hasPermission("dragDrop")) {
       return;
@@ -1216,11 +1443,80 @@ const ItineraryDetailPage = () => {
     const overId = over.id;
 
     try {
-      // 🆕 NEW: Handle reordering activities WITHIN the same board
+      // 🆕 NEW: Handle dropping activities onto board areas (empty spaces)
+      if (
+        activeId.toString().includes("-") &&
+        !activeId.toString().startsWith("board-") &&
+        !activeId.toString().startsWith("fav-") &&
+        overId.toString().startsWith("board-")
+      ) {
+        const [sourceBoardIndex, sourceFavIndex] = activeId
+          .toString()
+          .split("-")
+          .map(Number);
+
+        const targetBoardId = overId.toString().replace("board-", "");
+        const targetBoardIndex = boards.findIndex(
+          (board) => (board.id || board._id) === targetBoardId
+        );
+
+        if (
+          !isNaN(sourceBoardIndex) &&
+          !isNaN(sourceFavIndex) &&
+          targetBoardIndex !== -1 &&
+          sourceBoardIndex !== targetBoardIndex
+        ) {
+          const sourceBoard = boards[sourceBoardIndex];
+          const targetBoard = boards[targetBoardIndex];
+          const movedFavorite = sourceBoard.favorites[sourceFavIndex];
+
+          if (!movedFavorite) return;
+
+          const experienceId = getExperienceId(movedFavorite);
+          const experienceObj = getExperienceObject(movedFavorite);
+
+          if (!experienceId || !experienceObj) {
+            toast.error("Error: experiencia inválida");
+            return;
+          }
+
+          if (isExperienceInBoard(movedFavorite, targetBoard.favorites)) {
+            toast.error("Esta experiencia ya está añadida en este día");
+            return;
+          }
+
+          toast.loading("Moviendo experiencia...", {
+            id: "moving-experience",
+          });
+
+          // Remove from source board
+          await removeExperienceFromItinerary({
+            itineraryId: id,
+            experienceId: experienceId,
+            boardDate: sourceBoard.date,
+            token: jwt,
+          });
+
+          // Add to target board
+          await addExperienceToItinerary({
+            itineraryId: id,
+            experienceId: experienceId,
+            boardDate: targetBoard.date,
+            token: jwt,
+          });
+
+          await fetchItinerary();
+          toast.success("Experiencia movida", { id: "moving-experience" });
+          return;
+        }
+      }
+
+      // Enhanced reordering activities WITHIN the same board
       if (
         activeId.toString().includes("-") &&
         overId.toString().includes("-") &&
-        !overId.toString().startsWith("board-")
+        !overId.toString().startsWith("board-") &&
+        !overId.toString().includes("drop-zone")
       ) {
         const [sourceBoardIndex, sourceFavIndex] = activeId
           .split("-")
@@ -1229,7 +1525,6 @@ const ItineraryDetailPage = () => {
           .split("-")
           .map(Number);
 
-        // Only proceed if we have valid indices
         if (
           !isNaN(sourceBoardIndex) &&
           !isNaN(sourceFavIndex) &&
@@ -1249,14 +1544,12 @@ const ItineraryDetailPage = () => {
             const board = newBoards[sourceBoardIndex];
 
             if (board && board.favorites && board.favorites[sourceFavIndex]) {
-              // Use arrayMove to reorder the favorites array
               const reorderedFavorites = arrayMove(
                 board.favorites,
                 sourceFavIndex,
                 targetFavIndex
               );
 
-              // Update the board with reordered favorites and new unique IDs
               newBoards[sourceBoardIndex] = {
                 ...board,
                 favorites: reorderedFavorites.map((fav, index) => ({
@@ -1265,18 +1558,16 @@ const ItineraryDetailPage = () => {
                 })),
               };
 
-              // Update state immediately for smooth UX
               setBoards(newBoards);
               updateTotalBudget(newBoards);
 
-              // Save to backend
               await updateItinerary(id, { boards: newBoards }, jwt);
               toast.success("Experiencia reordenada");
 
-              return; // Early return to prevent other drag handlers
+              return;
             }
           }
-          // Different board reordering (move between boards)
+          // Different board reordering (move between boards) - when dropping on specific activities
           else if (sourceBoardIndex !== targetBoardIndex) {
             const sourceBoard = boards[sourceBoardIndex];
             const targetBoard = boards[targetBoardIndex];
@@ -1292,7 +1583,6 @@ const ItineraryDetailPage = () => {
               return;
             }
 
-            // Check for duplicates
             if (isExperienceInBoard(movedFavorite, targetBoard.favorites)) {
               toast.error("Esta experiencia ya está añadida en este día");
               return;
@@ -1302,7 +1592,6 @@ const ItineraryDetailPage = () => {
               id: "moving-experience",
             });
 
-            // Remove from source day
             await removeExperienceFromItinerary({
               itineraryId: id,
               experienceId: experienceId,
@@ -1310,7 +1599,6 @@ const ItineraryDetailPage = () => {
               token: jwt,
             });
 
-            // Add to target day
             await addExperienceToItinerary({
               itineraryId: id,
               experienceId: experienceId,
@@ -1318,7 +1606,6 @@ const ItineraryDetailPage = () => {
               token: jwt,
             });
 
-            // Refresh the itinerary data
             await fetchItinerary();
             toast.success("Experiencia movida", { id: "moving-experience" });
             return;
@@ -1326,25 +1613,36 @@ const ItineraryDetailPage = () => {
         }
       }
 
-      // Handle moving from favorites drawer to a day
+      // Enhanced handling for moving from favorites drawer to a day
       else if (
         activeId.toString().startsWith("fav-") &&
-        overId.toString().startsWith("board-")
+        (overId.toString().startsWith("board-") ||
+          overId.toString().includes("drop-zone"))
       ) {
         const favoriteId = activeId.toString().replace("fav-", "");
-        const boardId = overId.toString().replace("board-", "");
+        let boardIndex = -1;
+
+        // Determine target board
+        if (overId.toString().startsWith("board-")) {
+          const boardId = overId.toString().replace("board-", "");
+          boardIndex = boards.findIndex(
+            (board) => (board.id || board._id) === boardId
+          );
+        } else if (overId.toString().includes("drop-zone")) {
+          // Extract board index from drop zone ID
+          const dropZoneParts = overId.toString().split("-");
+          if (dropZoneParts.length >= 3) {
+            boardIndex = parseInt(dropZoneParts[2]);
+          }
+        }
 
         const favoriteIndex = drawerFavorites.findIndex(
           (fav) => fav._id === favoriteId
         );
-        if (favoriteIndex === -1) return;
+
+        if (favoriteIndex === -1 || boardIndex === -1) return;
 
         const movedFavorite = drawerFavorites[favoriteIndex];
-        const boardIndex = boards.findIndex(
-          (board) => (board.id || board._id) === boardId
-        );
-        if (boardIndex === -1) return;
-
         const targetBoard = boards[boardIndex];
         const experienceId = getExperienceId(movedFavorite);
         const experienceObj = getExperienceObject(movedFavorite);
@@ -1354,7 +1652,6 @@ const ItineraryDetailPage = () => {
           return;
         }
 
-        // Check for duplicates
         if (isExperienceInBoard(movedFavorite, targetBoard.favorites)) {
           toast.error("Esta experiencia ya está añadida en este día");
           return;
@@ -1362,7 +1659,6 @@ const ItineraryDetailPage = () => {
 
         toast.loading("Añadiendo experiencia...", { id: "adding-from-fav" });
 
-        // Add to target day
         await addExperienceToItinerary({
           itineraryId: id,
           experienceId: experienceId,
@@ -1370,12 +1666,11 @@ const ItineraryDetailPage = () => {
           token: jwt,
         });
 
-        // Refresh the itinerary data
         await fetchItinerary();
         toast.success("Experiencia añadida", { id: "adding-from-fav" });
       }
 
-      // Handle reordering boards (days)
+      // Enhanced board reordering
       else if (
         activeId.toString().startsWith("board-") &&
         overId.toString().startsWith("board-") &&
@@ -1395,7 +1690,6 @@ const ItineraryDetailPage = () => {
     } catch (error) {
       console.error("Error in drag handler:", error);
       toast.error("Error al procesar el movimiento");
-      // Refresh data on error to ensure UI is in sync
       fetchItinerary();
     }
   };
@@ -1410,8 +1704,9 @@ const ItineraryDetailPage = () => {
 
       <DndContext
         sensors={sensors}
-        collisionDetection={closestCenter}
+        collisionDetection={customCollisionDetection}
         onDragStart={userRole !== "viewer" ? handleDragStart : undefined}
+        onDragOver={userRole !== "viewer" ? handleDragOver : undefined}
         onDragEnd={userRole !== "viewer" ? handleDragEnd : undefined}
       >
         <Box
@@ -1439,7 +1734,7 @@ const ItineraryDetailPage = () => {
             sx={{
               transition: "margin 0.3s ease-in-out",
               width: "100%",
-              height: "100vh", // Use full viewport height
+              height: "100vh",
               display: "flex",
               flexDirection: "column",
             }}
@@ -1499,26 +1794,24 @@ const ItineraryDetailPage = () => {
             >
               <Box
                 sx={{
-                  flex: 1, // Take remaining height after header
+                  flex: 1,
                   display: "flex",
-                  gap: { xs: 0.75, sm: 1, md: 1.25 }, // Much smaller gaps
+                  gap: { xs: 0.75, sm: 1, md: 1.25 },
                   overflowX: "auto",
                   overflowY: "visible",
-                  px: { xs: 0.5, sm: 0.75, md: 1 }, // Minimal horizontal padding
-                  py: { xs: 0.5, sm: 0.75 }, // Minimal vertical padding
+                  px: { xs: 0.5, sm: 0.75, md: 1 },
+                  py: { xs: 0.5, sm: 0.75 },
                   alignItems: "flex-start",
-
-                  // Optimize for mobile scrolling
                   WebkitOverflowScrolling: "touch",
                   scrollbarWidth: "thin",
 
-                  // Each board takes less space, fits more on screen
+                  // Enhanced visual feedback during drag operations
                   "& > *": {
                     minWidth: {
-                      xs: "240px", // Much narrower on mobile - fit 1.5+ boards
-                      sm: "260px", // Fit ~2.5 boards on tablet
-                      md: "280px", // Fit ~4+ boards on desktop
-                      lg: "300px", // Fit 5+ boards on larger screens
+                      xs: "240px",
+                      sm: "260px",
+                      md: "280px",
+                      lg: "300px",
                     },
                     maxWidth: {
                       xs: "240px",
@@ -1527,14 +1820,14 @@ const ItineraryDetailPage = () => {
                       lg: "300px",
                     },
                     height: {
-                      xs: "calc(100vh - 140px)", // Use almost full height on mobile
+                      xs: "calc(100vh - 140px)",
                       sm: "calc(100vh - 150px)",
                       md: "calc(100vh - 160px)",
                     },
-                    flexShrink: 0, // Don't shrink boards
+                    flexShrink: 0,
+                    position: "relative",
                   },
 
-                  // Thinner, less intrusive scrollbar
                   "&::-webkit-scrollbar": {
                     height: { xs: "3px", sm: "4px", md: "5px" },
                   },
@@ -1551,7 +1844,6 @@ const ItineraryDetailPage = () => {
                 }}
               >
                 {boards.map((board, boardIndex) => {
-                  // 🆕 ENHANCED: Ensure each favorite has a proper uniqueId for drag and drop
                   const boardWithUniqueIds = {
                     ...board,
                     favorites: (board.favorites || []).map((fav, favIndex) => ({
@@ -1564,70 +1856,68 @@ const ItineraryDetailPage = () => {
                     boardId: board._id || board.id,
                     date: board.date,
                     favoritesCount: board.favorites?.length || 0,
-                    activityIds: (board.favorites || []).map(
-                      (fav, favIndex) => `${boardIndex}-${favIndex}-${fav._id}`
-                    ),
                   });
 
                   return (
-                    <BoardCard
+                    <Box
                       key={board._id || board.id || `board-${boardIndex}`}
-                      board={boardWithUniqueIds}
-                      boardIndex={boardIndex}
-                      totalBoards={boards.length}
-                      onMoveBoard={
-                        hasPermission("edit") ? handleMoveBoard : undefined
-                      }
-                      onRemoveBoard={
-                        hasPermission("edit") ? handleRemoveBoard : undefined
-                      }
-                      onRemoveFavorite={
-                        hasPermission("removeExperience")
-                          ? handleRemoveFavorite
-                          : undefined
-                      }
-                      onAddExperience={
-                        hasPermission("addExperience")
-                          ? handleBoardAddExperience
-                          : undefined
-                      }
-                      onReorderExperiences={
-                        hasPermission("edit")
-                          ? handleReorderExperiences
-                          : undefined
-                      }
-                      // 🆕 NEW: Add the manual move handler for up/down buttons
-                      onMoveActivity={
-                        hasPermission("edit") ? handleMoveActivity : undefined
-                      }
-                      isDragDisabled={
-                        !hasPermission("dragDrop") ||
-                        (activeId && !activeId.toString().startsWith("board-"))
-                      }
-                      userRole={userRole}
-                      transportMode={transportMode}
-                      showDistanceIndicators={showDistanceIndicators}
-                      showRouteOptimizer={showRouteOptimizer}
-                      // Enable compact mode for better space utilization
-                      compact={true}
-                      dense={true}
-                    />
+                      sx={{ position: "relative" }}
+                    >
+                      <BoardCard
+                        board={boardWithUniqueIds}
+                        boardIndex={boardIndex}
+                        totalBoards={boards.length}
+                        onMoveBoard={
+                          hasPermission("edit") ? handleMoveBoard : undefined
+                        }
+                        onRemoveBoard={
+                          hasPermission("edit") ? handleRemoveBoard : undefined
+                        }
+                        onRemoveFavorite={
+                          hasPermission("removeExperience")
+                            ? handleRemoveFavorite
+                            : undefined
+                        }
+                        onAddExperience={
+                          hasPermission("addExperience")
+                            ? handleBoardAddExperience
+                            : undefined
+                        }
+                        onReorderExperiences={
+                          hasPermission("edit")
+                            ? handleReorderExperiences
+                            : undefined
+                        }
+                        onMoveActivity={
+                          hasPermission("edit") ? handleMoveActivity : undefined
+                        }
+                        isDragDisabled={
+                          !hasPermission("dragDrop") ||
+                          (activeId &&
+                            !activeId.toString().startsWith("board-"))
+                        }
+                        userRole={userRole}
+                        transportMode={transportMode}
+                        showDistanceIndicators={showDistanceIndicators}
+                        showRouteOptimizer={showRouteOptimizer}
+                        compact={true}
+                        dense={true}
+                        // Enhanced visual feedback props
+                        showDropHighlight={dragOverBoard === boardIndex}
+                        isDragOver={dragOverBoard === boardIndex}
+                      />
+                    </Box>
                   );
                 })}
 
                 {hasPermission("edit") && (
-                  <Box
-                    sx={{
-                      display: "flex",
-                    }}
-                  >
+                  <Box sx={{ display: "flex" }}>
                     <AddBoardCard onAddBoard={handleAddBoard} />
                   </Box>
                 )}
               </Box>
             </SortableContext>
 
-            {/* 3. Optimize favorites drawer for mobile */}
             {hasPermission("edit") && !isMobile && (
               <FavoritesDrawer
                 isOpen={isDrawerOpen}
@@ -1641,10 +1931,9 @@ const ItineraryDetailPage = () => {
                 setSelectedPrefecture={setSelectedPrefecture}
                 onClearFilters={handleClearFilters}
                 userRole={userRole}
-                // Make drawer more compact
                 sx={{
                   "& .MuiDrawer-paper": {
-                    width: { sm: 280, md: 320 }, // Smaller drawer width
+                    width: { sm: 280, md: 320 },
                   },
                 }}
               />
@@ -1655,13 +1944,22 @@ const ItineraryDetailPage = () => {
         {userRole !== "viewer" && (
           <DragOverlay dropAnimation={null}>
             {activeId && activeData && activeData.favorite ? (
-              <ExperienceDragPreview
-                experience={getExperienceObject(activeData.favorite)}
-                category={
-                  getExperienceObject(activeData.favorite)?.categories ||
-                  "Other"
-                }
-              />
+              <Box
+                sx={{
+                  transform: "rotate(5deg)",
+                  boxShadow: "0 8px 25px rgba(0,0,0,0.3)",
+                  borderRadius: 2,
+                  overflow: "hidden",
+                }}
+              >
+                <ExperienceDragPreview
+                  experience={getExperienceObject(activeData.favorite)}
+                  category={
+                    getExperienceObject(activeData.favorite)?.categories ||
+                    "Other"
+                  }
+                />
+              </Box>
             ) : null}
           </DragOverlay>
         )}
@@ -1698,7 +1996,7 @@ const ItineraryDetailPage = () => {
           open={addExperienceModalOpen}
           onClose={() => {
             setAddExperienceModalOpen(false);
-            setSelectedBoardIndex(null); // Reset board selection when manually closing
+            setSelectedBoardIndex(null);
           }}
           onAddExperience={handleAddExperienceWithBoardSelection}
           allExperiences={allExperiences}

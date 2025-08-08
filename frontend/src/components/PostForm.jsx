@@ -278,7 +278,7 @@ const PostForm = ({ slug: propSlug = null, open, onClose }) => {
             mb: 1,
           }}
         >
-          {isEditing ? "Editar Publicación" : "Nueva Publicación"}
+          {isEditing ? "Editar publicación" : "Nueva publicación"}
         </Typography>
         <Typography
           variant="body2"
@@ -525,6 +525,8 @@ const PostForm = ({ slug: propSlug = null, open, onClose }) => {
                     onChange={(e) => setCaption(e.target.value)}
                     multiline
                     rows={3}
+                    inputProps={{ maxLength: 200 }}
+                    helperText={`${title.length}/200 caracteres`}
                     fullWidth
                     required
                     placeholder="Escribe un resumen atractivo..."

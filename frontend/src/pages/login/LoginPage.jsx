@@ -20,6 +20,7 @@ import HomeButton from "../../components/HomeButton";
 const LoginPage = () => {
   const theme = useTheme();
   const isNonMobileScreens = useMediaQuery("(min-width:1000px)");
+  const [loginErrorMessage, setLoginErrorMessage] = useState(null);
 
   const { login, isLoginLoading, hasLoginError } = useUser();
   const [showPassword, setShowPassword] = useState(false);
@@ -52,11 +53,15 @@ const LoginPage = () => {
     mode: "onChange",
   });
 
-  const submitHandler = (data) => {
+  const submitHandler = async (data) => {
     const { email, password } = data;
-    login({ email, password, rememberMe });
+    try {
+      await login({ email, password, rememberMe });
+      setLoginErrorMessage(null);
+    } catch (error) {
+      setLoginErrorMessage(error.message || "Error desconocido");
+    }
   };
-
   // Input styles without hover/active states
   const inputStyles = {
     borderRadius: "50px",
@@ -333,7 +338,7 @@ const LoginPage = () => {
           </form>
           {hasLoginError && (
             <Typography color="error" textAlign="center" mt={2}>
-              Credenciales inválidas
+              {loginErrorMessage || "Error en login"}
             </Typography>
           )}
         </Box>
