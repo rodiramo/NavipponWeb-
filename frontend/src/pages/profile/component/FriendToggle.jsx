@@ -82,7 +82,7 @@ const FriendToggle = ({
         sx={{
           backgroundColor: isFriend
             ? theme.palette.success.light
-            : theme.palette.grey[100],
+            : theme.palette.primary.white,
           color: isFriend
             ? theme.palette.success.dark
             : theme.palette.text.secondary,

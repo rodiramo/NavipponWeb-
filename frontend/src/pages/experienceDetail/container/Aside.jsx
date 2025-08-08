@@ -389,7 +389,7 @@ const Aside = ({ info }) => {
     if (info.budget) return `¥ ${info.budget}`;
     if (info.cost) return `¥ ${info.cost}`;
     if (info.pricing) return `¥ ${info.pricing}`;
-    return "A consultar";
+    return "Gratis";
   };
 
   // Try multiple possible data paths for season
@@ -400,19 +400,6 @@ const Aside = ({ info }) => {
     if (info.recommendedSeason) return info.recommendedSeason;
     return "No especificada";
   };
-
-  // ADD THIS DEBUG CODE TO SEE YOUR DATA STRUCTURE
-  console.log("=== DEBUG INFO DATA ===");
-  console.log("Full info object:", info);
-  console.log("Categories:", info.categories);
-  console.log("Restaurant tags:", info.restaurantTags);
-  console.log("Hotel tags:", info.hotelTags);
-  console.log("Attraction tags:", info.attractionTags);
-  console.log("General tags:", info.generalTags);
-  console.log("Price:", info.price);
-  console.log("Budget:", info.budget);
-  console.log("All keys in info:", Object.keys(info));
-  console.log("=======================");
   // Contact info item component
   const ContactItem = ({ icon, text, isLink = false, href = null }) => (
     <Box

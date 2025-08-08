@@ -21,6 +21,9 @@ import {
   FolderOpen,
   Plus,
   Eye,
+  CheckCircle,
+  Tag,
+  Clock,
   Search,
   Bookmark,
   FileEdit,
@@ -41,6 +44,8 @@ import {
   Stack,
   Fade,
   Container,
+  TableRow,
+  TableCell,
   TextField,
   CircularProgress,
   Alert,
@@ -651,9 +656,29 @@ const ManagePosts = () => {
                   headers={postsData?.headers}
                 >
                   {updatedPosts.map((post) => (
-                    <tr key={post._id}>
-                      <td style={{ padding: "16px 24px" }}>
-                        <Box sx={{ display: "flex", alignItems: "center" }}>
+                    <TableRow
+                      key={post._id}
+                      sx={{
+                        backgroundColor: theme.palette.background.paper,
+                        transition: "all 0.2s ease-in-out",
+                        "&:hover": {
+                          backgroundColor: theme.palette.background.default,
+                          transform: "scale(1.001)",
+                          boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+                        },
+                      }}
+                    >
+                      {/* Enhanced Post Thumbnail and Title */}
+                      <TableCell
+                        sx={{
+                          padding: "20px 24px",
+                          borderBottom: `1px solid ${theme.palette.divider}`,
+                          minWidth: "320px",
+                        }}
+                      >
+                        <Box
+                          sx={{ display: "flex", alignItems: "center", gap: 2 }}
+                        >
                           <Avatar
                             src={
                               post?.photo
@@ -662,115 +687,496 @@ const ManagePosts = () => {
                             }
                             alt={post.title}
                             variant="rounded"
-                            sx={{ width: 70, height: 60, mr: 2 }}
+                            sx={{
+                              width: 72,
+                              height: 72,
+                              borderRadius: 2,
+                              boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+                              border: `2px solid ${theme.palette.background.default}`,
+                            }}
+                          />
+                          <Box sx={{ flex: 1, minWidth: 0 }}>
+                            <Typography
+                              variant="subtitle1"
+                              sx={{
+                                color: theme.palette.primary.main,
+                                fontWeight: 700,
+                                fontSize: "1.1rem",
+                                lineHeight: 1.3,
+                                display: "-webkit-box",
+                                WebkitLineClamp: 2,
+                                WebkitBoxOrient: "vertical",
+                                overflow: "hidden",
+                                mb: 0.5,
+                                "&:hover": {
+                                  color: theme.palette.primary.dark,
+                                },
+                              }}
+                            >
+                              {post.title}
+                            </Typography>
+                            <Typography
+                              variant="caption"
+                              sx={{
+                                color: theme.palette.text.secondary,
+                                fontSize: "0.75rem",
+                                fontWeight: 500,
+                              }}
+                            >
+                              ID: {post._id.slice(-8)}
+                            </Typography>
+                          </Box>
+                        </Box>
+                      </TableCell>
+
+                      {/* Enhanced Categories */}
+                      <TableCell
+                        sx={{
+                          padding: "20px 24px",
+                          borderBottom: `1px solid ${theme.palette.divider}`,
+                          maxWidth: "200px",
+                        }}
+                      >
+                        <Box
+                          sx={{ display: "flex", alignItems: "center", mb: 1 }}
+                        >
+                          <FolderOpen
+                            size={14}
+                            style={{
+                              marginRight: 6,
+                              color: theme.palette.secondary.main,
+                            }}
                           />
                           <Typography
-                            variant="subtitle1"
-                            sx={{ fontWeight: "bold" }}
+                            variant="caption"
+                            sx={{
+                              color: theme.palette.text.secondary,
+                              fontSize: "0.7rem",
+                              fontWeight: 600,
+                              textTransform: "uppercase",
+                              letterSpacing: "0.5px",
+                            }}
                           >
-                            {post.title}
+                            Categorías
                           </Typography>
                         </Box>
-                      </td>
-                      <td style={{ padding: "16px 24px" }}>
-                        <Stack
-                          direction="row"
-                          spacing={0.5}
-                          sx={{ flexWrap: "wrap", gap: 0.5 }}
-                        >
-                          {post.categories?.length > 0 ? (
-                            post.categories
-                              .slice(0, 2)
-                              .map((category, index) => (
-                                <Chip
-                                  key={index}
-                                  size="small"
-                                  label={category.title}
-                                  variant="outlined"
-                                />
-                              ))
-                          ) : (
-                            <Typography variant="body2" color="textSecondary">
-                              Sin categorizar
-                            </Typography>
-                          )}
-                        </Stack>
-                      </td>
-                      <td style={{ padding: "16px 24px" }}>
-                        <Typography variant="body2">
-                          {new Date(post.createdAt).toLocaleDateString(
-                            "es-ES",
-                            { day: "numeric", month: "short", year: "numeric" }
-                          )}
-                        </Typography>
-                      </td>
-                      <td style={{ padding: "16px 24px" }}>
-                        <Stack
-                          direction="row"
-                          spacing={0.5}
-                          sx={{ flexWrap: "wrap", gap: 0.5 }}
-                        >
-                          {post.tags?.length > 0 ? (
-                            post.tags.slice(0, 3).map((tag, index) => (
+                        <Stack direction="column" spacing={0.5}>
+                          {post.categories && post.categories.length > 0 ? (
+                            post.categories.slice(0, 2).map((cat, index) => (
                               <Chip
                                 key={index}
                                 size="small"
-                                label={tag}
+                                label={cat.title}
                                 sx={{
                                   backgroundColor:
-                                    theme.palette.secondary.medium,
-                                  color: "white",
+                                    theme.palette.secondary.main + "15",
+                                  color: theme.palette.secondary.dark,
+                                  fontSize: "0.75rem",
+                                  fontWeight: 600,
+                                  height: 24,
+                                  borderRadius: 3,
+                                  border: `1px solid ${theme.palette.secondary.main}30`,
+                                  "& .MuiChip-label": {
+                                    px: 1,
+                                  },
+                                  "&:hover": {
+                                    backgroundColor:
+                                      theme.palette.secondary.main + "25",
+                                    transform: "scale(1.02)",
+                                  },
+                                  transition: "all 0.2s ease",
                                 }}
                               />
                             ))
                           ) : (
-                            <Typography variant="body2" color="textSecondary">
-                              Sin etiquetas
+                            <Chip
+                              size="small"
+                              label="Sin categorizar"
+                              sx={{
+                                backgroundColor: theme.palette.grey[100],
+                                color: theme.palette.grey[600],
+                                fontSize: "0.75rem",
+                                fontWeight: 500,
+                                height: 24,
+                                borderRadius: 3,
+                              }}
+                            />
+                          )}
+                          {post.categories && post.categories.length > 2 && (
+                            <Typography
+                              variant="caption"
+                              sx={{
+                                color: theme.palette.text.secondary,
+                                fontSize: "0.7rem",
+                                fontStyle: "italic",
+                              }}
+                            >
+                              +{post.categories.length - 2} más
                             </Typography>
                           )}
                         </Stack>
-                      </td>
-                      <td style={{ padding: "16px 24px" }}>
-                        <Chip
-                          size="small"
-                          label={post.approved ? "Aprobado" : "Pendiente"}
-                          color={post.approved ? "success" : "warning"}
-                        />
-                      </td>
-                      <td style={{ padding: "16px 24px" }}>
-                        <Stack direction="row" spacing={1}>
+                      </TableCell>
+
+                      {/* Enhanced Created Date */}
+                      <TableCell
+                        sx={{
+                          padding: "20px 24px",
+                          borderBottom: `1px solid ${theme.palette.divider}`,
+                          minWidth: "140px",
+                        }}
+                      >
+                        <Box
+                          sx={{ display: "flex", alignItems: "center", mb: 1 }}
+                        >
+                          <Calendar
+                            size={14}
+                            style={{
+                              marginRight: 6,
+                              color: theme.palette.info.main,
+                            }}
+                          />
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              color: theme.palette.text.secondary,
+                              fontSize: "0.7rem",
+                              fontWeight: 600,
+                              textTransform: "uppercase",
+                              letterSpacing: "0.5px",
+                            }}
+                          >
+                            Creado
+                          </Typography>
+                        </Box>
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            color: theme.palette.text.primary,
+                            fontWeight: 600,
+                            fontSize: "0.9rem",
+                          }}
+                        >
+                          {new Date(post.createdAt).toLocaleDateString(
+                            "es-ES",
+                            {
+                              day: "2-digit",
+                              month: "short",
+                              year: "numeric",
+                            }
+                          )}
+                        </Typography>
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            color: theme.palette.text.secondary,
+                            fontSize: "0.7rem",
+                          }}
+                        >
+                          {new Date(post.createdAt).toLocaleTimeString(
+                            "es-ES",
+                            {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            }
+                          )}
+                        </Typography>
+                      </TableCell>
+
+                      {/* Enhanced Tags */}
+                      <TableCell
+                        sx={{
+                          padding: "20px 24px",
+                          borderBottom: `1px solid ${theme.palette.divider}`,
+                          maxWidth: "220px",
+                        }}
+                      >
+                        <Box
+                          sx={{ display: "flex", alignItems: "center", mb: 1 }}
+                        >
+                          <Tag
+                            size={14}
+                            style={{
+                              marginRight: 6,
+                              color: theme.palette.primary.main,
+                            }}
+                          />
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              color: theme.palette.text.secondary,
+                              fontSize: "0.7rem",
+                              fontWeight: 600,
+                              textTransform: "uppercase",
+                              letterSpacing: "0.5px",
+                            }}
+                          >
+                            Etiquetas
+                          </Typography>
+                        </Box>
+                        <Box
+                          sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}
+                        >
+                          {post.tags && post.tags.length > 0 ? (
+                            <>
+                              {post.tags.slice(0, 3).map((tag, index) => (
+                                <Chip
+                                  key={index}
+                                  size="small"
+                                  label={tag}
+                                  sx={{
+                                    backgroundColor:
+                                      theme.palette.primary.main + "12",
+                                    color: theme.palette.primary.dark,
+                                    fontSize: "0.7rem",
+                                    fontWeight: 600,
+                                    height: 22,
+                                    borderRadius: 11,
+                                    border: `1px solid ${theme.palette.primary.main}25`,
+                                    "& .MuiChip-label": {
+                                      px: 0.75,
+                                    },
+                                    "&:hover": {
+                                      backgroundColor:
+                                        theme.palette.primary.main + "20",
+                                      transform: "scale(1.05)",
+                                    },
+                                    transition: "all 0.2s ease",
+                                  }}
+                                />
+                              ))}
+                              {post.tags.length > 3 && (
+                                <Chip
+                                  size="small"
+                                  label={`+${post.tags.length - 3}`}
+                                  sx={{
+                                    backgroundColor: theme.palette.grey[200],
+                                    color: theme.palette.grey[700],
+                                    fontSize: "0.7rem",
+                                    fontWeight: 600,
+                                    height: 22,
+                                    borderRadius: 11,
+                                    "& .MuiChip-label": {
+                                      px: 0.75,
+                                    },
+                                  }}
+                                />
+                              )}
+                            </>
+                          ) : (
+                            <Chip
+                              size="small"
+                              label="Sin etiquetas"
+                              sx={{
+                                backgroundColor: theme.palette.grey[100],
+                                color: theme.palette.grey[600],
+                                fontSize: "0.7rem",
+                                fontWeight: 500,
+                                height: 22,
+                                borderRadius: 11,
+                              }}
+                            />
+                          )}
+                        </Box>
+                      </TableCell>
+
+                      {/* Enhanced Status */}
+                      <TableCell
+                        sx={{
+                          padding: "20px 24px",
+                          borderBottom: `1px solid ${theme.palette.divider}`,
+                          minWidth: "120px",
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: 1,
+                          }}
+                        >
+                          <Chip
+                            size="medium"
+                            label={post.approved ? "Aprobado" : "Pendiente"}
+                            icon={
+                              post.approved ? (
+                                <CheckCircle size={16} />
+                              ) : (
+                                <Clock size={16} />
+                              )
+                            }
+                            sx={{
+                              backgroundColor: post.approved
+                                ? theme.palette.success.main + "15"
+                                : theme.palette.warning.main + "15",
+                              color: post.approved
+                                ? theme.palette.success.dark
+                                : theme.palette.warning.dark,
+                              border: `1px solid ${
+                                post.approved
+                                  ? theme.palette.success.main + "40"
+                                  : theme.palette.warning.main + "40"
+                              }`,
+                              fontWeight: 700,
+                              fontSize: "0.8rem",
+                              height: 32,
+                              borderRadius: 16,
+                              "& .MuiChip-icon": {
+                                color: post.approved
+                                  ? theme.palette.success.main
+                                  : theme.palette.warning.main,
+                              },
+                              "&:hover": {
+                                backgroundColor: post.approved
+                                  ? theme.palette.success.main + "25"
+                                  : theme.palette.warning.main + "25",
+                                transform: "scale(1.02)",
+                              },
+                              transition: "all 0.2s ease",
+                            }}
+                          />
+
+                          {/* Additional status indicators */}
+                          <Box sx={{ display: "flex", gap: 0.5 }}>
+                            {post.featured && (
+                              <Chip
+                                size="small"
+                                label="Destacado"
+                                sx={{
+                                  backgroundColor:
+                                    theme.palette.info.main + "15",
+                                  color: theme.palette.info.dark,
+                                  fontSize: "0.65rem",
+                                  height: 20,
+                                  fontWeight: 600,
+                                }}
+                              />
+                            )}
+                            {post.isPrivate && (
+                              <Chip
+                                size="small"
+                                label="Privado"
+                                sx={{
+                                  backgroundColor:
+                                    theme.palette.error.main + "15",
+                                  color: theme.palette.error.dark,
+                                  fontSize: "0.65rem",
+                                  height: 20,
+                                  fontWeight: 600,
+                                }}
+                              />
+                            )}
+                          </Box>
+                        </Box>
+                      </TableCell>
+
+                      {/* Enhanced Actions */}
+                      <TableCell
+                        sx={{
+                          padding: "20px 24px",
+                          borderBottom: `1px solid ${theme.palette.divider}`,
+                          minWidth: "200px",
+                        }}
+                      >
+                        <Stack
+                          direction="row"
+                          spacing={1}
+                          sx={{ flexWrap: "wrap", gap: 1 }}
+                        >
                           <Button
+                            startIcon={<Eye size={16} />}
                             component={Link}
                             to={`/blog/${post?.slug}`}
-                            startIcon={<Eye size={16} />}
                             variant="outlined"
                             size="small"
-                            sx={{ borderRadius: "30rem" }}
+                            sx={{
+                              borderRadius: 20,
+                              textTransform: "none",
+                              fontWeight: 600,
+                              fontSize: "0.8rem",
+                              px: 2,
+                              py: 0.75,
+                              borderColor: theme.palette.info.main + "60",
+                              color: theme.palette.info.main,
+                              backgroundColor: theme.palette.info.main + "08",
+                              "&:hover": {
+                                backgroundColor: theme.palette.info.main + "15",
+                                borderColor: theme.palette.info.main,
+                                transform: "translateY(-1px)",
+                                boxShadow: "0 4px 12px rgba(33, 150, 243, 0.3)",
+                              },
+                              transition: "all 0.2s ease",
+                            }}
                           >
                             Ver
                           </Button>
+
                           <Button
+                            startIcon={<Edit size={16} />}
                             component={Link}
                             to={`/user/posts/manage/edit/${post?.slug}`}
                             variant="outlined"
                             size="small"
-                            sx={{ borderRadius: "30rem" }}
+                            sx={{
+                              borderRadius: 20,
+                              textTransform: "none",
+                              fontWeight: 600,
+                              fontSize: "0.8rem",
+                              px: 2,
+                              py: 0.75,
+                              borderColor: theme.palette.primary.main + "60",
+                              color: theme.palette.primary.main,
+                              backgroundColor:
+                                theme.palette.primary.main + "08",
+                              "&:hover": {
+                                backgroundColor:
+                                  theme.palette.primary.main + "15",
+                                borderColor: theme.palette.primary.main,
+                                transform: "translateY(-1px)",
+                                boxShadow: "0 4px 12px rgba(25, 118, 210, 0.3)",
+                              },
+                              transition: "all 0.2s ease",
+                            }}
                           >
-                            <Edit size={16} />
+                            Editar
                           </Button>
+
                           <Button
+                            startIcon={<Trash2 size={16} />}
                             disabled={isLoadingDeleteData || isCustomDeleting}
                             onClick={() => handleDeleteWithConfirmation(post)}
                             variant="outlined"
                             size="small"
-                            color="error"
-                            sx={{ borderRadius: "30rem" }}
+                            sx={{
+                              borderRadius: 20,
+                              textTransform: "none",
+                              fontWeight: 600,
+                              fontSize: "0.8rem",
+                              px: 2,
+                              py: 0.75,
+                              borderColor: theme.palette.error.main + "60",
+                              color: theme.palette.error.main,
+                              backgroundColor: theme.palette.error.main + "08",
+                              "&:hover": {
+                                backgroundColor:
+                                  theme.palette.error.main + "15",
+                                borderColor: theme.palette.error.main,
+                                transform: "translateY(-1px)",
+                                boxShadow: "0 4px 12px rgba(244, 67, 54, 0.3)",
+                              },
+                              "&:disabled": {
+                                opacity: 0.6,
+                                cursor: "not-allowed",
+                              },
+                              transition: "all 0.2s ease",
+                            }}
                           >
-                            <Trash2 size={16} />
+                            {isLoadingDeleteData || isCustomDeleting
+                              ? "Eliminando..."
+                              : "Eliminar"}
                           </Button>
                         </Stack>
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   ))}
                 </DataTable>
               )}

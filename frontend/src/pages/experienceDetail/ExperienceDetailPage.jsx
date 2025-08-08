@@ -269,7 +269,7 @@ const ExperienceDetailPage = () => {
                   variant="contained"
                   sx={{
                     background: isFavorite
-                      ? theme.palette.secondary.main
+                      ? theme.palette.secondary.medium
                       : theme.palette.primary.main,
                     color: "white",
                     borderRadius: "25px",
