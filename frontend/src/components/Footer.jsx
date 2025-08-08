@@ -146,7 +146,7 @@ const Footer = ({ onShowGuide }) => {
                 external
               >
                 <IoHomeOutline className="text-lg" />
-                Av. La Paz 1536
+                Av. La Paz 1536
               </FooterLink>
               <FooterLink href="mailto:infonavippon@gmail.com" external>
                 <IoMailOutline className="text-lg" />
@@ -162,7 +162,7 @@ const Footer = ({ onShowGuide }) => {
           {/* help center */}
           <div className="space-y-6">
             <h5 className="text-xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
-              Centro de Ayuda
+              Centro de ayuda
             </h5>
             <nav className="space-y-4">
               <FooterLink
@@ -173,15 +173,15 @@ const Footer = ({ onShowGuide }) => {
                 }}
               >
                 <BookOpen size={16} />
-                Guía de Inicio
+                Guía de inicio
               </FooterLink>
               <FooterLink to="/faq">
                 <FileQuestion size={16} />
-                Preguntas Frecuentes
+                Preguntas frecuentes
               </FooterLink>
               <FooterLink href="mailto:infonavippon@gmail.com" external>
                 <MessageCircle size={16} />
-                Contactar Soporte
+                Contactar soporte
               </FooterLink>
             </nav>
           </div>
@@ -224,8 +224,8 @@ const Footer = ({ onShowGuide }) => {
 
             {/* extra legal links */}
             <div className="pt-4 space-y-3 border-t border-gray-700/30">
-              <FooterLink to="/privacy">Política de Privacidad</FooterLink>
-              <FooterLink to="/terms">Términos de Uso</FooterLink>
+              <FooterLink to="/privacy">Política de privacidad</FooterLink>
+              <FooterLink to="/terms">Términos de uso</FooterLink>
             </div>
           </div>
         </div>
@@ -234,10 +234,10 @@ const Footer = ({ onShowGuide }) => {
         <div className="mt-16 pt-8 border-t border-gray-700/50">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <p className="text-sm text-gray-400">
-              © 2025 Navippon. Todos los derechos reservados.
+              © 2025 Navippon. Todos los derechos reservados.
             </p>
             <div className="flex space-x-6 text-sm">
-              <FooterLink to="/sitemap">Mapa del Sitio</FooterLink>
+              <FooterLink to="/sitemap">Mapa del sitio</FooterLink>
               <FooterLink to="/accessibility">Accesibilidad</FooterLink>
             </div>
           </div>
